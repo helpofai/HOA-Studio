@@ -146,17 +146,39 @@ class AdminOmniRouteSetupPage extends Component
             ->withOptions([
                 'force_ip_resolve' => 'v4',
             ])
-            ->timeout(2)
+            ->timeout(6)
             ->get($endpoints['models_endpoint']);
 
             if ($response->successful()) {
                 $this->connectionStatus = true;
+                $this->pingLatencyMs = max(1, (int) round((microtime(true) - $start) * 1000));
+            } elseif ($response->status() === 401 || $response->status() === 403) {
+                // Server is online but key is invalid
+                $this->connectionStatus = false;
                 $this->pingLatencyMs = (int) round((microtime(true) - $start) * 1000);
             } else {
-                $this->connectionStatus = false;
+                // Check root base URL fallback
+                $rootRes = Http::withOptions(['force_ip_resolve' => 'v4'])->timeout(3)->get($endpoints['root_url']);
+                if ($rootRes->status() === 200 || $rootRes->status() === 307 || $rootRes->status() === 302) {
+                    $this->connectionStatus = true;
+                    $this->pingLatencyMs = max(1, (int) round((microtime(true) - $start) * 1000));
+                } else {
+                    $this->connectionStatus = false;
+                }
             }
         } catch (Exception $e) {
-            $this->connectionStatus = false;
+            // Check if root port is responding
+            try {
+                $rootRes = Http::withOptions(['force_ip_resolve' => 'v4'])->timeout(3)->get($endpoints['root_url']);
+                if ($rootRes->status() === 200 || $rootRes->status() === 307 || $rootRes->status() === 302) {
+                    $this->connectionStatus = true;
+                    $this->pingLatencyMs = max(1, (int) round((microtime(true) - $start) * 1000));
+                } else {
+                    $this->connectionStatus = false;
+                }
+            } catch (Exception $inner) {
+                $this->connectionStatus = false;
+            }
         }
     }
 
