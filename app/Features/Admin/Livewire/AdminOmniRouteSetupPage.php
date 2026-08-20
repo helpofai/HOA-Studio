@@ -64,6 +64,8 @@ class AdminOmniRouteSetupPage extends Component
     public string $statusMessage = '';
     public bool $isTesting = false;
     public ?array $syncTelemetry = null;
+    public ?string $saveStatus = null; // 'success', 'error', null
+    public ?string $syncStatus = null; // 'success', 'error', null
 
     // Model Health Probe State
     public array $testingModelIds = [];
@@ -365,6 +367,7 @@ class AdminOmniRouteSetupPage extends Component
             $this->connectionStatus = true;
             $this->pingLatencyMs = $result['latency_ms'];
             $this->syncTelemetry = $result;
+            $this->syncStatus = 'success';
 
             $this->appendProgressLog('info', 'COMPLETE', "✔ Dynamic synchronization complete! All models updated in database.");
             $this->statusMessage = "OmniRoute Gateway Online ({$result['latency_ms']}ms). Dynamically synchronized {$result['total_synced']} models ({$result['combos_count']} combos, {$result['free_tier_count']} free-tier pools)!";
@@ -372,6 +375,7 @@ class AdminOmniRouteSetupPage extends Component
             $this->fetchConsoleLogs();
         } catch (Exception $e) {
             $this->connectionStatus = false;
+            $this->syncStatus = 'error';
             $this->statusMessage = "Gateway connection error: " . $e->getMessage();
             $this->appendProgressLog('error', 'ERROR', "Synchronization failed: " . $e->getMessage());
             session()->flash('error', $this->statusMessage);
@@ -439,36 +443,42 @@ class AdminOmniRouteSetupPage extends Component
 
     public function saveConfiguration()
     {
-        $this->validate([
-            'base_url' => 'required|url',
-            'api_key' => 'required|string',
-            'default_model' => 'required|string',
-        ]);
+        try {
+            $this->validate([
+                'base_url' => 'required|url',
+                'api_key' => 'required|string',
+                'default_model' => 'required|string',
+            ]);
 
-        $provider = AiProvider::firstOrCreate(['slug' => 'omniroute'], [
-            'name' => 'OmniRoute Gateway',
-            'icon' => '⚡',
-            'description' => 'Unified AI Proxy Gateway v3.8.50 with multi-provider routing and fallbacks.',
-            'is_local' => true,
-        ]);
+            $provider = AiProvider::firstOrCreate(['slug' => 'omniroute'], [
+                'name' => 'OmniRoute Gateway',
+                'icon' => '⚡',
+                'description' => 'Unified AI Proxy Gateway v3.8.50 with multi-provider routing and fallbacks.',
+                'is_local' => true,
+            ]);
 
-        $provider->base_url = $this->base_url;
-        $provider->api_key_encrypted = $this->api_key;
-        $provider->allow_user_key = $this->allow_user_key;
-        $provider->is_active = $this->is_active;
-        $provider->settings = [
-            'default_model' => $this->default_model,
-            'compression' => $this->compression_mode,
-            'thinking_budget' => $this->thinking_budget,
-        ];
-        $provider->save();
+            $provider->base_url = $this->base_url;
+            $provider->api_key_encrypted = $this->api_key;
+            $provider->allow_user_key = $this->allow_user_key;
+            $provider->is_active = $this->is_active;
+            $provider->settings = [
+                'default_model' => $this->default_model,
+                'compression' => $this->compression_mode,
+                'thinking_budget' => $this->thinking_budget,
+            ];
+            $provider->save();
 
-        // Also persist to settings table for global config overrides
-        DB::table('settings')->updateOrInsert(['key' => 'omniroute_base_url'], ['value' => $this->base_url, 'updated_at' => now()]);
-        DB::table('settings')->updateOrInsert(['key' => 'omniroute_api_key'], ['value' => $this->api_key, 'updated_at' => now()]);
-        DB::table('settings')->updateOrInsert(['key' => 'omniroute_default_model'], ['value' => $this->default_model, 'updated_at' => now()]);
+            // Also persist to settings table for global config overrides
+            DB::table('settings')->updateOrInsert(['key' => 'omniroute_base_url'], ['value' => $this->base_url, 'updated_at' => now()]);
+            DB::table('settings')->updateOrInsert(['key' => 'omniroute_api_key'], ['value' => $this->api_key, 'updated_at' => now()]);
+            DB::table('settings')->updateOrInsert(['key' => 'omniroute_default_model'], ['value' => $this->default_model, 'updated_at' => now()]);
 
-        session()->flash('status', 'OmniRoute Gateway configuration saved and synchronized successfully.');
+            $this->saveStatus = 'success';
+            session()->flash('status', 'OmniRoute Gateway configuration saved and synchronized successfully.');
+        } catch (Exception $e) {
+            $this->saveStatus = 'error';
+            session()->flash('error', 'Failed to save settings: ' . $e->getMessage());
+        }
     }
 
     public function render()

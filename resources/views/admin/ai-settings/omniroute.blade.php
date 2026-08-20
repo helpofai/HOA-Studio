@@ -95,23 +95,52 @@
 
                     <!-- Dynamic Sync Action Button -->
                     <div class="pt-2 flex flex-col sm:flex-row items-center gap-3">
-                        <x-glass.button 
+                        <button 
                             type="button" 
                             wire:click="testConnectionAndSyncModels" 
-                            variant="primary" 
-                            size="sm" 
-                            class="shadow-lg shadow-violet-500/25 flex-1 justify-center gap-2 font-bold"
+                            wire:loading.attr="disabled"
+                            class="flex-1 justify-center gap-2 font-bold px-4 py-2.5 rounded-xl text-xs transition-all cursor-pointer shadow-lg flex items-center {{ $syncStatus === 'success' ? 'bg-emerald-600/90 text-white shadow-emerald-500/30 border border-emerald-400' : ($syncStatus === 'error' ? 'bg-red-600/90 text-white shadow-red-500/30 border border-red-400' : 'bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-violet-500/25') }}"
                         >
-                            <span wire:loading.remove wire:target="testConnectionAndSyncModels">🔄 Full Dynamic Sync from OmniRoute</span>
+                            <span wire:loading.remove wire:target="testConnectionAndSyncModels" class="flex items-center gap-1.5">
+                                @if($syncStatus === 'success')
+                                    <span class="text-sm font-black">✓</span>
+                                    <span>Full Dynamic Sync from OmniRoute</span>
+                                @elseif($syncStatus === 'error')
+                                    <span class="text-sm font-black">✕</span>
+                                    <span>Sync Failed (Retry)</span>
+                                @else
+                                    <span>🔄</span>
+                                    <span>Full Dynamic Sync from OmniRoute</span>
+                                @endif
+                            </span>
                             <span wire:loading wire:target="testConnectionAndSyncModels" class="flex items-center gap-2">
                                 <span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                                Ingesting Gateway Models & Combos...
+                                <span>Ingesting Gateway Models & Combos...</span>
                             </span>
-                        </x-glass.button>
+                        </button>
 
-                        <x-glass.button type="submit" variant="glass" size="sm" class="shrink-0 border-white/20">
-                            💾 Save Settings
-                        </x-glass.button>
+                        <button 
+                            type="submit" 
+                            wire:loading.attr="disabled"
+                            class="shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-md flex items-center gap-1.5 {{ $saveStatus === 'success' ? 'bg-emerald-600 text-white border border-emerald-400 shadow-emerald-500/25' : ($saveStatus === 'error' ? 'bg-red-600 text-white border border-red-400 shadow-red-500/25' : 'bg-slate-900/80 hover:bg-slate-800 text-slate-200 border border-white/20 hover:border-white/40') }}"
+                        >
+                            <span wire:loading.remove wire:target="saveConfiguration" class="flex items-center gap-1.5">
+                                @if($saveStatus === 'success')
+                                    <span class="text-sm font-black text-white">✓</span>
+                                    <span>Saved Settings</span>
+                                @elseif($saveStatus === 'error')
+                                    <span class="text-sm font-black text-white">✕</span>
+                                    <span>Save Failed</span>
+                                @else
+                                    <span>💾</span>
+                                    <span>Save Settings</span>
+                                @endif
+                            </span>
+                            <span wire:loading wire:target="saveConfiguration" class="flex items-center gap-1.5">
+                                <span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                <span>Saving...</span>
+                            </span>
+                        </button>
                     </div>
                 </x-glass.card>
 
@@ -171,6 +200,31 @@
                                 <span class="text-xs text-slate-300">Provider is globally active for Studio generation</span>
                             </label>
                         </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-white/5 flex justify-end">
+                        <button 
+                            type="submit" 
+                            wire:loading.attr="disabled"
+                            class="px-5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-md flex items-center gap-1.5 {{ $saveStatus === 'success' ? 'bg-emerald-600 text-white border border-emerald-400 shadow-emerald-500/25' : ($saveStatus === 'error' ? 'bg-red-600 text-white border border-red-400 shadow-red-500/25' : 'bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-violet-500/20') }}"
+                        >
+                            <span wire:loading.remove wire:target="saveConfiguration" class="flex items-center gap-1.5">
+                                @if($saveStatus === 'success')
+                                    <span class="text-sm font-black text-white">✓</span>
+                                    <span>Settings Saved Successfully</span>
+                                @elseif($saveStatus === 'error')
+                                    <span class="text-sm font-black text-white">✕</span>
+                                    <span>Failed to Save</span>
+                                @else
+                                    <span>💾</span>
+                                    <span>Save Configuration</span>
+                                @endif
+                            </span>
+                            <span wire:loading wire:target="saveConfiguration" class="flex items-center gap-1.5">
+                                <span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                <span>Saving...</span>
+                            </span>
+                        </button>
                     </div>
                 </x-glass.card>
             </form>
