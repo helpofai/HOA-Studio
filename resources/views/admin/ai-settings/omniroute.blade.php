@@ -1,0 +1,914 @@
+{{--
+/*
+|--------------------------------------------------------------------------
+| HelpOfAi (HOA) Professional Software
+|--------------------------------------------------------------------------
+|
+| Copyright (c) 2026 Rajib Adhikary. All Rights Reserved.
+|
+| This file is part of the HelpOfAi Professional Software Suite.
+| Unauthorized copying, modification, redistribution, reverse engineering,
+| decompilation, or commercial use of this source code, in whole or in part,
+| is strictly prohibited without prior written permission from the copyright owner.
+|
+| Author      : Rajib Adhikary
+| Organization: HelpOfAi (HOA)
+| Website     : https://helpofai.com
+| Location    : Basta Purba Para, Aranghata, Nadia, West Bengal, India
+|
+| This source code contains proprietary and confidential information.
+| Any unauthorized access or distribution may violate applicable copyright laws.
+|
+|--------------------------------------------------------------------------
+*/
+--}}
+
+<div class="space-y-8 max-w-6xl mx-auto">
+    <!-- Breadcrumb & Title Header -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{{ route('admin.ai-settings.index') }}" wire:navigate class="hover:text-white transition-colors">AI Providers</a>
+                <span>/</span>
+                <span class="text-violet-400 font-semibold">OmniRoute Gateway Setup</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
+                <span>⚡ OmniRoute Gateway v3.8.50</span>
+                <x-glass.badge variant="violet">Dynamic Multi-Route Engine</x-glass.badge>
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1">
+                Manage proxy connection credentials, test live latency, configure model cascades, and set BYOK policies.
+            </p>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <a href="{{ route('admin.ai-settings.index') }}" wire:navigate>
+                <x-glass.button variant="secondary" size="sm">
+                    &larr; Back to Providers
+                </x-glass.button>
+            </a>
+        </div>
+    </div>
+
+    @if (session('status'))
+        <div class="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 flex items-center gap-2">
+            <span>✓</span>
+            <span>{{ session('status') }}</span>
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div class="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400 flex items-center gap-2">
+            <span>⚠️</span>
+            <span>{{ session('error') }}</span>
+        </div>
+    @endif
+
+    <!-- Top Section: 2 Column Layout (Form & Health Diagnostics) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Configuration Form (2 Cols) -->
+        <div class="lg:col-span-2 space-y-6">
+            <form wire:submit="saveConfiguration" class="space-y-6">
+                <!-- Gateway Endpoint & Key -->
+                <x-glass.card variant="elevated" class="p-6 sm:p-8 space-y-4 border border-violet-500/20">
+                    <div class="flex items-center justify-between pb-3 border-b border-white/5">
+                        <div>
+                            <h3 class="text-base font-bold text-white">Gateway Connection & Credentials</h3>
+                            <p class="text-xs text-slate-400">OpenAI-compatible unified endpoint with auto-fallback cascade</p>
+                        </div>
+                        <x-glass.badge variant="violet">OmniRoute v3.8.50</x-glass.badge>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs font-medium text-slate-300 block mb-1.5">Gateway Base URL</label>
+                            <x-glass.input wire:model="base_url" required placeholder="http://localhost:20128/v1" />
+                            <p class="text-[10px] text-slate-500 mt-1">Default local instance: http://localhost:20128/v1 or remote proxy</p>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-medium text-slate-300 block mb-1.5">Master Gateway API Key</label>
+                            <x-glass.input wire:model="api_key" type="password" required placeholder="omniroute-default-key" />
+                            <p class="text-[10px] text-slate-500 mt-1">Bearer token for /v1/* inference authentication</p>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Sync Action Button -->
+                    <div class="pt-2 flex flex-col sm:flex-row items-center gap-3">
+                        <x-glass.button 
+                            type="button" 
+                            wire:click="testConnectionAndSyncModels" 
+                            variant="primary" 
+                            size="sm" 
+                            class="shadow-lg shadow-violet-500/25 flex-1 justify-center gap-2 font-bold"
+                        >
+                            <span wire:loading.remove wire:target="testConnectionAndSyncModels">🔄 Full Dynamic Sync from OmniRoute</span>
+                            <span wire:loading wire:target="testConnectionAndSyncModels" class="flex items-center gap-2">
+                                <span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                Ingesting Gateway Models & Combos...
+                            </span>
+                        </x-glass.button>
+
+                        <x-glass.button type="submit" variant="glass" size="sm" class="shrink-0 border-white/20">
+                            💾 Save Settings
+                        </x-glass.button>
+                    </div>
+                </x-glass.card>
+
+                <!-- Model Cascades & Compression Options -->
+                <x-glass.card variant="standard" class="p-6 space-y-4">
+                    <h3 class="text-base font-bold text-white pb-3 border-b border-white/5">
+                        Routing Strategy & Compression
+                    </h3>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs font-medium text-slate-300 block mb-1.5">Default Fallback Model / Routing Mode</label>
+                            <select wire:model="default_model" class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-violet-500 font-medium">
+                                <option value="auto">⚡ OmniRoute Auto (Smart Dynamic Selection)</option>
+                                <option value="auto:free">⚡ OmniRoute Auto Free (42 Free-Tier Pools)</option>
+                                <option value="auto:quality">🧠 OmniRoute Auto Quality (Tier-1 Reasoning)</option>
+                                <option value="auto:fast">🚀 OmniRoute Auto Fast (Lowest Latency)</option>
+                                <option value="combo:creative-pro">🔀 Combo: Creative Pro (Auto Cascade)</option>
+                                <option value="combo:free-tier-fast">🔀 Combo: Free Tier Cascade (Fast)</option>
+                                <option value="combo:reasoning-r1">🔀 Combo: Deep Reasoning R1</option>
+                                <option value="deepseek/deepseek-chat">🐋 DeepSeek-V3 (deepseek/deepseek-chat)</option>
+                                <option value="cc/claude-3-7-sonnet">🎭 Claude 3.7 Sonnet (cc/claude-3-7-sonnet)</option>
+                                <option value="openai/gpt-4o">🤖 OpenAI GPT-4o (openai/gpt-4o)</option>
+                                <option value="glm/glm-4-flash">✨ GLM 4 Flash (Free Tier)</option>
+                                <option value="groq/llama-3.3-70b-versatile">⚡ Groq Llama 3.3 70B (Fast Free)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-medium text-slate-300 block mb-1.5">Context Compression Mode</label>
+                            <select wire:model="compression_mode" class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-violet-500">
+                                <option value="default">Default Panel Profile (Caveman / RTK)</option>
+                                <option value="engine:rtk">RTK Command Output Engine</option>
+                                <option value="off">Off (Raw Tokens / No Compression)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                        <div>
+                            <label class="text-xs font-medium text-slate-300 block mb-1.5">Reasoning / Thinking Budget</label>
+                            <select wire:model="thinking_budget" class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-violet-500">
+                                <option value="auto">Auto Adaptive Budget</option>
+                                <option value="0">Disabled (Fast Direct)</option>
+                                <option value="32768">Deep Reasoning (32k Tokens)</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-2 pt-6">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" wire:model="allow_user_key" class="rounded bg-slate-900 border-white/20 text-violet-600 focus:ring-violet-500/30">
+                                <span class="text-xs text-slate-300">Allow users to set their own BYOK key</span>
+                            </label>
+
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" wire:model="is_active" class="rounded bg-slate-900 border-white/20 text-violet-600 focus:ring-violet-500/30">
+                                <span class="text-xs text-slate-300">Provider is globally active for Studio generation</span>
+                            </label>
+                        </div>
+                    </div>
+                </x-glass.card>
+            </form>
+        </div>
+
+        <!-- Live Diagnostics & Status (1 Col) -->
+        <div class="space-y-6">
+            <x-glass.card variant="standard" class="p-6 space-y-4">
+                <h3 class="text-base font-bold text-white tracking-tight flex items-center justify-between">
+                    <span>Gateway Telemetry</span>
+                    @if($connectionStatus === true)
+                        <span class="w-3 h-3 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]"></span>
+                    @elseif($connectionStatus === false)
+                        <span class="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]"></span>
+                    @else
+                        <span class="w-3 h-3 rounded-full bg-slate-500"></span>
+                    @endif
+                </h3>
+
+                <div class="space-y-3 text-xs">
+                    <div class="flex items-center justify-between pb-2 border-b border-white/5">
+                        <span class="text-slate-400">Gateway Status:</span>
+                        <span class="font-bold {{ $connectionStatus === true ? 'text-emerald-400' : ($connectionStatus === false ? 'text-red-400' : 'text-slate-400') }}">
+                            {{ $connectionStatus === true ? 'ONLINE' : ($connectionStatus === false ? 'OFFLINE / ERROR' : 'NOT TESTED') }}
+                        </span>
+                    </div>
+
+                    @if($pingLatencyMs !== null)
+                        <div class="flex items-center justify-between pb-2 border-b border-white/5">
+                            <span class="text-slate-400">Ping Latency:</span>
+                            <span class="font-mono text-indigo-300 font-bold">{{ $pingLatencyMs }}ms</span>
+                        </div>
+                    @endif
+
+                    <div class="flex items-center justify-between pb-2 border-b border-white/5">
+                        <span class="text-slate-400">Total Models in DB:</span>
+                        <span class="font-mono font-bold text-white">{{ $totalModelsCount }}</span>
+                    </div>
+
+                    <div class="flex items-center justify-between pb-2 border-b border-white/5">
+                        <span class="text-slate-400">Free Tier Pools:</span>
+                        <span class="font-mono font-bold text-emerald-400">{{ $freeTierCount }} Pools (~1.51B tok)</span>
+                    </div>
+
+                    <div class="flex items-center justify-between pb-2 border-b border-white/5">
+                        <span class="text-slate-400">Multi-Combos:</span>
+                        <span class="font-mono font-bold text-purple-400">{{ $combosCount }} Cascades</span>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-400">Reasoning Models:</span>
+                        <span class="font-bold text-indigo-400">{{ $reasoningCount }} Models</span>
+                    </div>
+                </div>
+            </x-glass.card>
+
+            <!-- Console Logs — Application Console Output & Debug Logs (Native OmniRoute ConsoleLogViewer Style) -->
+            <x-glass.card variant="standard" class="p-4 sm:p-5 space-y-3" wire:poll.5s="fetchConsoleLogs">
+                <!-- Toolbar Header -->
+                <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/5">
+                    <div class="flex items-center gap-2">
+                        <span class="text-base">🖥️</span>
+                        <div>
+                            <h3 class="text-sm font-bold text-white leading-none">Application Console</h3>
+                            <span class="text-[10px] text-slate-400">Live output and debug stream (same as OmniRoute dashboard)</span>
+                        </div>
+                    </div>
+
+                    <!-- Right Controls (Refresh, Pulse, Buffer Clear) -->
+                    <div class="flex items-center gap-2 text-xs">
+                        <div class="flex items-center gap-1.5 text-[10px] text-slate-400 bg-slate-900/80 px-2.5 py-1 rounded-lg border border-white/5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span class="font-mono text-white font-bold">{{ count($filteredLogs) }}</span> entries
+                            @if($lastUpdated)
+                                <span class="text-slate-600">•</span>
+                                <span class="text-slate-400 font-mono text-[9px]">updated {{ $lastUpdated }}</span>
+                            @endif
+                        </div>
+
+                        <button 
+                            type="button" 
+                            x-on:click="$dispatch('open-omni-terminal')"
+                            class="px-2 py-1 rounded-lg text-violet-300 hover:text-white bg-violet-950/80 hover:bg-violet-900 border border-violet-500/30 transition-colors cursor-pointer text-xs flex items-center gap-1" 
+                            title="Pop out Draggable & Minimizable Terminal Window (Persists across pages)"
+                        >
+                            <span>↗️ Pop Out</span>
+                        </button>
+
+                        <button 
+                            type="button" 
+                            wire:click="fetchConsoleLogs" 
+                            class="px-2 py-1 rounded-lg text-slate-300 hover:text-white bg-slate-900/80 hover:bg-slate-800 border border-white/5 transition-colors cursor-pointer text-xs flex items-center gap-1" 
+                            title="Refresh Console Logs"
+                        >
+                            <span>🔄</span>
+                        </button>
+
+                        <button 
+                            type="button" 
+                            wire:click="clearConsoleLogs" 
+                            class="px-2 py-1 rounded-lg text-slate-400 hover:text-red-400 bg-slate-900/80 hover:bg-red-500/10 border border-white/5 transition-colors cursor-pointer text-xs flex items-center gap-1" 
+                            title="Clear Console Buffer"
+                        >
+                            <span>🧹</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filters & Search Toolbar -->
+                <div class="flex flex-col sm:flex-row items-center gap-2">
+                    <!-- Level Filter Dropdown -->
+                    <div class="w-full sm:w-32">
+                        <select 
+                            wire:model.live="logLevelFilter" 
+                            class="w-full bg-[#0d1117] border border-[#30363d] rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
+                        >
+                            <option value="all">All Levels</option>
+                            <option value="debug">Debug+</option>
+                            <option value="info">Info+</option>
+                            <option value="warn">Warn+</option>
+                            <option value="error">Error+</option>
+                        </select>
+                    </div>
+
+                    <!-- Search Input -->
+                    <div class="w-full sm:flex-1">
+                        <input 
+                            type="text" 
+                            wire:model.live.debounce.200ms="logSearch" 
+                            placeholder="Filter console logs (message, component, correlationId)..." 
+                            class="w-full bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-1.5 text-xs font-mono text-slate-200 placeholder-[#8b949e] focus:outline-none focus:border-cyan-500"
+                        />
+                    </div>
+                </div>
+
+                <!-- Terminal Output Box (Native OmniRoute macOS Style) -->
+                <div 
+                    x-data="{ autoScroll: true }"
+                    class="rounded-xl border border-[#30363d] bg-[#0d1117] overflow-hidden font-mono text-xs leading-relaxed shadow-2xl"
+                >
+                    <!-- macOS Header Bar -->
+                    <div class="sticky top-0 z-10 px-3.5 py-2 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2.5 h-2.5 rounded-full bg-[#FF5F56]"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-[#FFBD2E]"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-[#27C93F]"></div>
+                            <span class="ml-2 text-[#8b949e] text-[10px] tracking-wide font-sans font-medium">
+                                OmniRoute — Application Console Output
+                            </span>
+                        </div>
+
+                        <span class="text-[10px] font-mono text-cyan-400/70">
+                            http://localhost:20128/dashboard/logs/console
+                        </span>
+                    </div>
+
+                    <!-- Log Stream Lines Window -->
+                    <div 
+                        x-ref="logWindow"
+                        class="p-3 space-y-1 max-h-72 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-[#30363d] text-[11px]"
+                    >
+                        @forelse($filteredLogs as $idx => $entry)
+                            @php
+                                $level = strtolower($entry['level'] ?? 'info');
+                                $colorClass = match($level) {
+                                    'debug' => 'text-gray-400',
+                                    'trace' => 'text-gray-500',
+                                    'info' => 'text-cyan-400',
+                                    'warn' => 'text-yellow-400',
+                                    'error' => 'text-red-400',
+                                    'fatal' => 'text-fuchsia-400',
+                                    default => 'text-cyan-400',
+                                };
+                                $bgClass = match($level) {
+                                    'debug' => 'bg-gray-500/10 border-gray-500/20',
+                                    'trace' => 'bg-gray-500/10 border-gray-500/20',
+                                    'info' => 'bg-cyan-500/10 border-cyan-500/20',
+                                    'warn' => 'bg-yellow-500/10 border-yellow-500/20',
+                                    'error' => 'bg-red-500/10 border-red-500/20',
+                                    'fatal' => 'bg-fuchsia-500/10 border-fuchsia-500/20',
+                                    default => 'bg-cyan-500/10 border-cyan-500/20',
+                                };
+                                $timeStr = \Carbon\Carbon::parse($entry['timestamp'])->format('H:i:s.v');
+                            @endphp
+
+                            <div class="group flex items-start gap-2 px-1.5 py-0.5 rounded hover:bg-white/5 transition-colors {{ in_array($level, ['error', 'fatal']) ? 'bg-red-500/5' : '' }}">
+                                <!-- Timestamp -->
+                                <span class="text-[#484f58] whitespace-nowrap shrink-0 select-none text-[10px]">
+                                    {{ $timeStr }}
+                                </span>
+
+                                <!-- Level badge -->
+                                <span class="inline-block px-1.5 py-0 rounded text-[9px] font-semibold uppercase border shrink-0 {{ $colorClass }} {{ $bgClass }}">
+                                    {{ str_pad($level, 5) }}
+                                </span>
+
+                                <!-- Component tag -->
+                                @if(!empty($entry['component']))
+                                    <span class="text-purple-400/80 shrink-0 text-[10px]">[{{ $entry['component'] }}]</span>
+                                @endif
+
+                                <!-- Message body -->
+                                <span class="text-[#c9d1d9] flex-1 break-all select-text">
+                                    {{ $entry['message'] ?? '' }}
+                                    
+                                    @if(!empty($entry['correlationId']))
+                                        <span class="text-[#484f58] ml-1.5 text-[9px]">cid:{{ substr($entry['correlationId'], 0, 8) }}</span>
+                                    @endif
+                                </span>
+                            </div>
+                        @empty
+                            <div class="text-[#8b949e] text-center py-10 space-y-1">
+                                <span class="text-2xl block mb-1 opacity-40">💻</span>
+                                <p class="text-xs font-semibold">No Console Log Entries Found</p>
+                                <p class="text-[10px] text-slate-500">Waiting for live inference streams or background gateway telemetry...</p>
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+            </x-glass.card>
+        </div>
+    </div>
+
+    <!-- Active Models Catalog with Advanced Dynamic Filtering & Pagination -->
+    <div class="space-y-4">
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-bold text-white tracking-tight flex items-center gap-2 flex-wrap">
+                    <span>Dynamic OmniRoute Catalog</span>
+                    <x-glass.badge variant="violet">{{ $models->total() }} Models</x-glass.badge>
+                    @if($workingCount > 0)
+                        <span class="px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-[11px] font-mono font-bold flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                            {{ $workingCount }} Working
+                        </span>
+                    @endif
+                    @if($failedCount > 0)
+                        <span class="px-2 py-0.5 rounded-full bg-red-950/80 border border-red-500/40 text-red-300 text-[11px] font-mono font-bold flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+                            {{ $failedCount }} Failed
+                        </span>
+                    @endif
+                </h2>
+                <p class="text-xs text-slate-400 mt-0.5">Real-time health verification across 42 free tier pools, reasoning engines, and auto-fallback combos.</p>
+            </div>
+
+            <!-- Bulk Diagnostics & Per Page Selector -->
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- Batch Test Visible Models Button -->
+                <button 
+                    type="button" 
+                    wire:click="testCurrentPageModels" 
+                    wire:loading.attr="disabled"
+                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold shadow-md shadow-emerald-600/20 transition-all cursor-pointer disabled:opacity-50"
+                    title="Run live probe test on all visible models on this page"
+                >
+                    <span wire:loading.remove wire:target="testCurrentPageModels">🧪 Test Visible Models</span>
+                    <span wire:loading wire:target="testCurrentPageModels" class="flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-white animate-ping"></span>
+                        Testing In Progress...
+                    </span>
+                </button>
+
+                <!-- Resync from Gateway Button -->
+                <button 
+                    type="button" 
+                    wire:click="testConnectionAndSyncModels" 
+                    wire:loading.attr="disabled"
+                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-violet-500/30 hover:border-violet-500/60 text-violet-300 hover:text-white text-xs font-semibold transition-all cursor-pointer"
+                    title="Re-synchronize catalog directly from OmniRoute /v1/models"
+                >
+                    <span>🔄 Resync Models</span>
+                </button>
+
+                <div class="flex items-center gap-1.5 text-xs text-slate-400">
+                    <span class="text-[11px]">Per page:</span>
+                    <select wire:model.live="perPage" class="bg-slate-900 border border-white/10 rounded-lg px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-violet-500">
+                        <option value="12">12</option>
+                        <option value="18">18</option>
+                        <option value="36">36</option>
+                        <option value="72">72</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-1.5">
+                    <x-glass.button type="button" variant="glass" size="sm" wire:click="bulkToggleModels(true)" class="text-emerald-300 hover:bg-emerald-500/10 text-xs">
+                        ✓ Enable All
+                    </x-glass.button>
+                    <x-glass.button type="button" variant="glass" size="sm" wire:click="bulkToggleModels(false)" class="text-red-300 hover:bg-red-500/10 text-xs">
+                        ✕ Disable All
+                    </x-glass.button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <x-glass.card variant="subtle" class="p-4 space-y-3">
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+                <!-- Search Input -->
+                <div class="w-full sm:flex-1">
+                    <x-glass.input 
+                        wire:model.live.debounce.250ms="modelSearch" 
+                        placeholder="Search models by name, vendor, or ID (e.g. deepseek, claude, gpt-4o, llama, combo)..." 
+                    />
+                </div>
+
+                <!-- Status Filter Dropdown -->
+                <div class="w-full sm:w-64">
+                    <select wire:model.live="modelStatusFilter" class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-violet-500 font-medium">
+                        <option value="all">All Models ({{ $totalModelsCount }})</option>
+                        <option value="working">🟢 Working Models ({{ $workingCount }})</option>
+                        <option value="failed">🔴 Failed Models ({{ $failedCount }})</option>
+                        <option value="untested">⚪ Untested Models</option>
+                        <option value="free_tier">⚡ Free Tier Pools ({{ $freeTierCount }})</option>
+                        <option value="combos">🔀 Auto Combos ({{ $combosCount }})</option>
+                        <option value="reasoning">🧠 Reasoning Engines ({{ $reasoningCount }})</option>
+                        <option value="online">● Active ({{ $onlineModelsCount }})</option>
+                        <option value="offline">○ Disabled ({{ $offlineModelsCount }})</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Quick Engine & Capability Filter Pills -->
+            <div class="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
+                <span class="text-[11px] text-slate-400 mr-1">Quick Filters:</span>
+                
+                <button 
+                    type="button" 
+                    wire:click="$set('modelVendorFilter', '')" 
+                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelVendorFilter === '' ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
+                >
+                    All Engines
+                </button>
+
+                <button 
+                    type="button" 
+                    wire:click="$set('modelStatusFilter', 'working')" 
+                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelStatusFilter === 'working' ? 'bg-emerald-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-emerald-400 hover:text-white border border-emerald-500/20' }}"
+                >
+                    🟢 Working Only
+                </button>
+
+                <button 
+                    type="button" 
+                    wire:click="$set('modelStatusFilter', 'free_tier')" 
+                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelStatusFilter === 'free_tier' ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
+                >
+                    ⚡ Free Tier
+                </button>
+
+                <button 
+                    type="button" 
+                    wire:click="$set('modelStatusFilter', 'reasoning')" 
+                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelStatusFilter === 'reasoning' ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
+                >
+                    🧠 Reasoning
+                </button>
+
+                <button 
+                    type="button" 
+                    wire:click="$set('modelStatusFilter', 'combos')" 
+                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelStatusFilter === 'combos' ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
+                >
+                    🔀 Combos
+                </button>
+
+                <button 
+                    type="button" 
+                    wire:click="$set('modelVendorFilter', 'deepseek')" 
+                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelVendorFilter === 'deepseek' ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
+                >
+                    🐋 DeepSeek
+                </button>
+
+                <button 
+                    type="button" 
+                    wire:click="$set('modelVendorFilter', 'cc')" 
+                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelVendorFilter === 'cc' ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
+                >
+                    🎭 Claude
+                </button>
+
+                <button 
+                    type="button" 
+                    wire:click="$set('modelVendorFilter', 'openai')" 
+                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelVendorFilter === 'openai' ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
+                >
+                    🤖 OpenAI
+                </button>
+
+                <button 
+                    type="button" 
+                    wire:click="$set('modelVendorFilter', 'groq')" 
+                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelVendorFilter === 'groq' ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
+                >
+                    ⚡ Groq Free
+                </button>
+
+                <button 
+                    type="button" 
+                    wire:click="$set('modelVendorFilter', 'glm')" 
+                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelVendorFilter === 'glm' ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
+                >
+                    ✨ GLM Flash
+                </button>
+            </div>
+        </x-glass.card>
+
+        <!-- Models Grid (Paginated) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            @forelse($models as $m)
+                @php
+                    $isCurrentDefault = $default_model === $m->model_id;
+                    $usage = $modelUsage->get($m->model_id);
+                    $isBeingTested = isset($testingModelIds[$m->id]);
+                @endphp
+                <x-glass.card variant="standard" class="p-5 flex flex-col justify-between hover:border-violet-500/40 transition-all relative {{ $isCurrentDefault ? 'border-violet-500/50 bg-violet-950/20' : '' }}">
+                    @if($isCurrentDefault)
+                        <div class="absolute top-0 right-0 px-2.5 py-0.5 bg-gradient-to-l from-violet-600 to-indigo-600 text-white font-mono text-[9px] font-bold uppercase rounded-bl-lg shadow-sm">
+                            ★ DEFAULT ROUTE
+                        </div>
+                    @endif
+
+                    <div>
+                        <!-- Title & Health Status Badge -->
+                        <div class="flex items-start justify-between gap-2 mb-2 pr-10">
+                            <h4 class="text-sm font-bold text-white truncate" title="{{ $m->name }}">{{ $m->name }}</h4>
+                        </div>
+
+                        <!-- Model ID & Live Health Indicator -->
+                        <div class="flex items-center justify-between gap-2 font-mono text-[11px] text-indigo-300 bg-slate-900 px-2.5 py-1 rounded-lg border border-white/5 mb-3">
+                            <span class="truncate flex-1" title="{{ $m->model_id }}">{{ $m->model_id }}</span>
+
+                            <!-- Health Diagnostic Badge -->
+                            @if($m->last_test_status === 'working')
+                                <span class="px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-400 border border-emerald-500/40 text-[9px] shrink-0 font-bold flex items-center gap-1" title="Tested {{ $m->last_tested_at ? $m->last_tested_at->diffForHumans() : 'recently' }}">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                    {{ $m->last_test_latency_ms ?? 0 }}ms
+                                </span>
+                            @elseif($m->last_test_status === 'failed')
+                                <span class="px-1.5 py-0.2 rounded bg-red-950 text-red-400 border border-red-500/40 text-[9px] shrink-0 font-bold flex items-center gap-1" title="{{ $m->last_test_error ?? 'Probe failed' }}">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+                                    ERROR
+                                </span>
+                            @else
+                                <span class="text-slate-600 text-[9px] shrink-0">untested</span>
+                            @endif
+                        </div>
+
+                        <!-- Capability Tags / Badges -->
+                        <div class="flex flex-wrap items-center gap-1.5 text-[10px] mb-4 font-mono font-semibold">
+                            <span class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300">
+                                {{ number_format($m->context_window / 1000) }}k Ctx
+                            </span>
+
+                            @if($m->is_free_tier)
+                                <span class="px-2 py-0.5 rounded-md bg-emerald-950 text-emerald-300 border border-emerald-500/30">
+                                    ⚡ Free Tier
+                                </span>
+                            @endif
+
+                            @if($m->is_combo)
+                                <span class="px-2 py-0.5 rounded-md bg-purple-950 text-purple-300 border border-purple-500/30">
+                                    🔀 Combo
+                                </span>
+                            @endif
+
+                            @if($m->supports_reasoning)
+                                <span class="px-2 py-0.5 rounded-md bg-cyan-950 text-cyan-300 border border-cyan-500/30">
+                                    🧠 &lt;think&gt;
+                                </span>
+                            @endif
+
+                            @if($usage)
+                                <span class="px-2 py-0.5 rounded-md bg-slate-800 text-indigo-300">
+                                    {{ number_format($usage->total_words) }} words
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Footer Controls with Live Model Test Button -->
+                    <div class="pt-3 border-t border-white/5 flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <!-- Active / Offline Status Toggle Button -->
+                            <button 
+                                type="button" 
+                                wire:click="toggleModelStatus({{ $m->id }})" 
+                                class="px-2 py-1 rounded-lg text-[10px] font-bold uppercase cursor-pointer transition-all {{ $m->is_active ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20' }}"
+                            >
+                                {{ $m->is_active ? '● Active' : '○ Offline' }}
+                            </button>
+
+                            <!-- Live Single Model Test Button -->
+                            <button 
+                                type="button" 
+                                wire:click="testSingleModel({{ $m->id }})" 
+                                wire:loading.attr="disabled"
+                                class="px-2 py-1 rounded-lg text-[10px] font-mono font-bold bg-slate-900 border border-white/10 hover:border-emerald-500/50 hover:bg-emerald-950/50 text-slate-300 hover:text-emerald-300 transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                                title="Send live inference probe to test if model is working right now"
+                            >
+                                <span wire:loading.remove wire:target="testSingleModel({{ $m->id }})">🧪 Test</span>
+                                <span wire:loading wire:target="testSingleModel({{ $m->id }})" class="text-emerald-400 animate-pulse">Testing...</span>
+                            </button>
+                        </div>
+
+                        <!-- Set as Default Action -->
+                        @if(!$isCurrentDefault)
+                            <button 
+                                type="button" 
+                                wire:click="setDefaultRoutingModel('{{ $m->model_id }}')" 
+                                class="text-[11px] text-slate-400 hover:text-violet-300 transition-colors font-medium cursor-pointer"
+                            >
+                                Set Default
+                            </button>
+                        @else
+                            <span class="text-[11px] text-violet-400 font-semibold flex items-center gap-1">
+                                ✓ Active Default
+                            </span>
+                        @endif
+                    </div>
+                </x-glass.card>
+            @empty
+                <div class="col-span-full py-12 text-center">
+                    <x-glass.card variant="subtle" class="p-8 max-w-md mx-auto">
+                        <div class="text-3xl mb-2">🔍</div>
+                        <h4 class="text-sm font-bold text-white mb-1">No Models Match Filters</h4>
+                        <p class="text-xs text-slate-400 mb-4">Try clearing your search query or selecting "All Models".</p>
+                        <x-glass.button type="button" variant="secondary" size="sm" wire:click="$set('modelSearch', ''); $set('modelStatusFilter', 'all'); $set('modelVendorFilter', '')">
+                            Clear All Filters
+                        </x-glass.button>
+                    </x-glass.card>
+                </div>
+            @endforelse
+        </div>
+
+        <!-- Pagination Controls (Centered Dynamic Range Display) -->
+        @if($models->hasPages())
+            <div class="pt-6 border-t border-white/5 flex flex-col items-center justify-center gap-4 text-center">
+                <!-- Centered Dynamic Range Display -->
+                <div class="text-xs text-slate-400 bg-slate-900/70 px-4 py-1.5 rounded-full border border-white/5 shadow-inner">
+                    Showing <strong class="text-white font-mono">{{ $models->firstItem() }}</strong> to <strong class="text-white font-mono">{{ $models->lastItem() }}</strong> of <strong class="text-violet-400 font-mono font-bold">{{ $models->total() }}</strong> models
+                </div>
+
+                <!-- Centered Pagination Buttons -->
+                <div class="flex items-center justify-center flex-wrap gap-1.5 text-xs">
+                    <!-- Previous Button -->
+                    <button 
+                        type="button"
+                        wire:click="previousPage('modelsPage')" 
+                        @disabled($models->onFirstPage())
+                        class="px-3 py-1.5 rounded-lg border border-white/10 text-slate-300 hover:text-white hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                    >
+                        &larr; Prev
+                    </button>
+
+                    <!-- Page Numbers (Compact Window) -->
+                    @php
+                        $currentPage = $models->currentPage();
+                        $lastPage = $models->lastPage();
+                        $start = max(1, $currentPage - 2);
+                        $end = min($lastPage, $currentPage + 2);
+                    @endphp
+
+                    @if($start > 1)
+                        <button type="button" wire:click="gotoPage(1, 'modelsPage')" class="w-8 h-8 rounded-lg border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 font-mono cursor-pointer">1</button>
+                        @if($start > 2)
+                            <span class="text-slate-600 px-1">...</span>
+                        @endif
+                    @endif
+
+                    @for($page = $start; $page <= $end; $page++)
+                        <button 
+                            type="button" 
+                            wire:click="gotoPage({{ $page }}, 'modelsPage')" 
+                            class="w-8 h-8 rounded-lg font-mono transition-all cursor-pointer {{ $page === $currentPage ? 'bg-violet-600 text-white font-bold shadow-md shadow-violet-500/20' : 'border border-white/10 text-slate-300 hover:text-white hover:bg-white/5' }}"
+                        >
+                            {{ $page }}
+                        </button>
+                    @endfor
+
+                    @if($end < $lastPage)
+                        @if($end < $lastPage - 1)
+                            <span class="text-slate-600 px-1">...</span>
+                        @endif
+                        <button type="button" wire:click="gotoPage({{ $lastPage }}, 'modelsPage')" class="w-8 h-8 rounded-lg border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 font-mono cursor-pointer">{{ $lastPage }}</button>
+                    @endif
+
+                    <!-- Next Button -->
+                    <button 
+                        type="button"
+                        wire:click="nextPage('modelsPage')" 
+                        @disabled(!$models->hasMorePages())
+                        class="px-3 py-1.5 rounded-lg border border-white/10 text-slate-300 hover:text-white hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                    >
+                        Next &rarr;
+                    </button>
+                </div>
+            </div>
+        @endif
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- REAL-TIME DIAGNOSTIC & SYNC PROGRESS TERMINAL POPUP MODAL                 -->
+    <!-- ========================================================================= -->
+    @if($showProgressModal)
+        <div 
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md"
+            x-data="{ 
+                init() {
+                    this.$nextTick(() => {
+                        const el = document.getElementById('progressLogTerminal');
+                        if (el) el.scrollTop = el.scrollHeight;
+                    });
+                }
+            }"
+        >
+            <div 
+                class="w-full max-w-2xl bg-[#0d1117] border border-[#30363d] rounded-2xl shadow-[0_25px_70px_rgba(0,0,0,0.95)] ring-1 ring-white/10 overflow-hidden font-mono text-xs flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-200"
+            >
+                <!-- macOS Interactive Terminal Header -->
+                <div class="h-11 px-4 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between shrink-0 select-none">
+                    <div class="flex items-center gap-2">
+                        <!-- Red (X) Close button -->
+                        <button 
+                            type="button" 
+                            wire:click="closeProgressModal" 
+                            class="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E] flex items-center justify-center text-[8px] font-bold text-black/70 hover:opacity-100 opacity-90 transition-all cursor-pointer group"
+                            title="Close Diagnostics Window (X)"
+                        >
+                            <span class="opacity-0 group-hover:opacity-100 font-sans leading-none">✕</span>
+                        </button>
+                        <span class="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123] opacity-80"></span>
+                        <span class="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29] opacity-80"></span>
+
+                        <span class="ml-3 text-slate-200 text-xs font-bold tracking-tight truncate">
+                            {{ $progressModalTitle ?: 'Live OmniRoute Diagnostic Terminal' }}
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        @if(!$progressDone)
+                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-400 text-[10px] font-bold">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                                IN PROGRESS
+                            </span>
+                        @else
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-400 text-[10px] font-bold">
+                                ✓ COMPLETE
+                            </span>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Subtitle / Context Bar -->
+                <div class="px-4 py-2.5 bg-[#161b22]/70 border-b border-[#30363d] flex items-center justify-between gap-3 text-[11px] text-slate-400 shrink-0">
+                    <div class="truncate">
+                        {{ $progressModalSubtitle ?: 'Live real-time output stream from gateway' }}
+                    </div>
+
+                    @if($progressTotal > 0)
+                        <div class="font-mono text-[11px] text-cyan-300 font-bold shrink-0">
+                            {{ $progressCurrent }}/{{ $progressTotal }} ({{ round(($progressCurrent / max(1, $progressTotal)) * 100) }}%)
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Animated Progress Bar -->
+                @if($progressTotal > 0)
+                    <div class="h-1 bg-slate-900 overflow-hidden shrink-0">
+                        <div 
+                            class="h-full bg-gradient-to-r from-violet-500 via-indigo-500 to-emerald-400 transition-all duration-300"
+                            style="width: {{ round(($progressCurrent / max(1, $progressTotal)) * 100) }}%;"
+                        ></div>
+                    </div>
+                @endif
+
+                <!-- Terminal Log Stream -->
+                <div 
+                    id="progressLogTerminal"
+                    class="p-4 space-y-1.5 overflow-y-auto overflow-x-hidden flex-1 select-text bg-[#0d1117] text-[11px] leading-relaxed scrollbar-thin scrollbar-thumb-[#30363d] min-h-[220px]"
+                >
+                    @forelse($progressLogs as $pl)
+                        @php
+                            $color = match($pl['level'] ?? 'info') {
+                                'ok' => 'text-emerald-400',
+                                'error' => 'text-red-400',
+                                'warn' => 'text-yellow-400',
+                                'debug' => 'text-slate-400',
+                                default => 'text-cyan-300',
+                            };
+                            $badgeBg = match($pl['level'] ?? 'info') {
+                                'ok' => 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400',
+                                'error' => 'bg-red-500/10 border-red-500/20 text-red-400 font-bold',
+                                'warn' => 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400',
+                                'debug' => 'bg-slate-500/10 border-slate-500/20 text-slate-400',
+                                default => 'bg-cyan-500/10 border-cyan-500/20 text-cyan-300',
+                            };
+                        @endphp
+                        <div class="flex items-start gap-2.5 font-mono">
+                            <span class="text-[#484f58] whitespace-nowrap text-[10px] select-none shrink-0">{{ $pl['time'] }}</span>
+                            <span class="px-1.5 py-0 rounded text-[9px] uppercase border font-semibold shrink-0 {{ $badgeBg }}">
+                                {{ $pl['tag'] ?? 'INFO' }}
+                            </span>
+                            <span class="text-[#c9d1d9] flex-1 break-all select-text {{ $color }}">
+                                {{ $pl['message'] }}
+                            </span>
+                        </div>
+                    @empty
+                        <div class="text-slate-500 text-center py-8">
+                            Initializing live gateway diagnostic connection...
+                        </div>
+                    @endforelse
+                </div>
+
+                <!-- Footer Summary Bar & Close Trigger -->
+                <div class="p-3.5 bg-[#161b22] border-t border-[#30363d] flex items-center justify-between gap-3 shrink-0">
+                    <div class="flex items-center gap-3 text-[11px] text-slate-400 font-mono">
+                        @if($progressWorking > 0 || $progressFailed > 0)
+                            <span class="text-emerald-400 font-bold">🟢 {{ $progressWorking }} Working</span>
+                            <span class="text-slate-600">•</span>
+                            <span class="text-red-400 font-bold">🔴 {{ $progressFailed }} Failed</span>
+                        @else
+                            <span>Gateway: <strong class="text-cyan-300">{{ $base_url }}</strong></span>
+                        @endif
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button 
+                            type="button" 
+                            wire:click="closeProgressModal" 
+                            class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/10 hover:border-white/20 text-white text-xs font-semibold transition-all cursor-pointer"
+                        >
+                            {{ $progressDone ? 'Done & Review Models (X)' : 'Close Window (X)' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+</div>

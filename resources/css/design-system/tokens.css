@@ -1,0 +1,38 @@
+/*
+|--------------------------------------------------------------------------
+| HelpOfAi (HOA) Professional Software
+|--------------------------------------------------------------------------
+|
+| Copyright (c) 2026 Rajib Adhikary. All Rights Reserved.
+|
+| This file is part of the HelpOfAi Professional Software Suite.
+| Unauthorized copying, modification, redistribution, reverse engineering,
+| decompilation, or commercial use of this source code, in whole or in part,
+| is strictly prohibited without prior written permission from the copyright owner.
+|
+| Author      : Rajib Adhikary
+| Organization: HelpOfAi (HOA)
+| Website     : https://helpofai.com
+| Location    : Basta Purba Para, Aranghata, Nadia, West Bengal, India
+|
+| This source code contains proprietary and confidential information.
+| Any unauthorized access or distribution may violate applicable copyright laws.
+|
+|--------------------------------------------------------------------------
+*/
+
+@layer base {
+  :root {
+    --glass-subtle-bg: rgba(15, 23, 42, 0.45);
+    --glass-standard-bg: rgba(15, 23, 42, 0.65);
+    --glass-elevated-bg: rgba(15, 23, 42, 0.80);
+    --glass-premium-bg: rgba(15, 23, 42, 0.90);
+    --glass-border-subtle: rgba(255, 255, 255, 0.08);
+    --glass-border-standard: rgba(255, 255, 255, 0.12);
+    --glass-border-elevated: rgba(255, 255, 255, 0.18);
+    --glass-border-highlight: rgba(255, 255, 255, 0.25);
+    --glass-blur-subtle: 8px;
+    --glass-blur-standard: 16px;
+    --glass-blur-elevated: 24px;
+  }
+}
