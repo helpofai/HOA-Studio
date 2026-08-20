@@ -1,3 +1,5 @@
+<?php
+
 /*
 |--------------------------------------------------------------------------
 | HelpOfAi (HOA) Professional Software
@@ -21,26 +23,19 @@
 |--------------------------------------------------------------------------
 */
 
-import './bootstrap';
-import './features/editor/editor-manager.js';
-import './features/editor/drivers/tiptap-driver.js';
-import './features/editor/drivers/gutenberg-driver.js';
-import './features/editor/drivers/notion-driver.js';
-import './features/editor/drivers/markdown-driver.js';
-import './features/editor/drivers/markdown-split-driver.js';
-import './features/editor/drivers/html-driver.js';
-import './features/editor/drivers/plaintext-driver.js';
-import { createIcons, icons } from 'lucide';
+namespace App\Features\Documents\Contracts;
 
-window.initLucideIcons = () => {
-    createIcons({ icons });
-};
+use App\Features\Documents\Models\Document;
 
-document.addEventListener('DOMContentLoaded', () => {
-    window.initLucideIcons();
-});
+interface EditorAdapterInterface
+{
+    /**
+     * Convert from this editor's format into the canonical database format.
+     */
+    public function toCanonical(string $content): array;
 
-document.addEventListener('livewire:navigated', () => {
-    window.initLucideIcons();
-});
-
+    /**
+     * Convert from canonical format into this editor's expected format.
+     */
+    public function fromCanonical(array $canonical): string;
+}

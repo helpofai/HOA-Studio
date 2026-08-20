@@ -169,47 +169,54 @@
             </div>
 
             <!-- Connect Key Form -->
-            <form wire:submit="saveApiKey" class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-slate-900/60 border border-white/5">
-                <div>
-                    <label class="block text-[11px] font-semibold text-slate-300 mb-1">Provider</label>
-                    <select wire:model="byok_provider" class="w-full bg-slate-900 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
-                        <option value="openai">OpenAI (GPT-4o, o3-mini)</option>
-                        <option value="deepseek">DeepSeek (V3, R1)</option>
-                        <option value="anthropic">Anthropic (Claude 3.7)</option>
-                        <option value="custom">Custom Endpoint (Ollama / vLLM)</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-[11px] font-semibold text-slate-300 mb-1">API Key / Token</label>
-                    <input 
-                        type="password" 
-                        wire:model="byok_api_key" 
-                        placeholder="sk-..." 
-                        class="w-full bg-slate-900 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
-                        required
-                    />
-                    @error('byok_api_key') <p class="text-[10px] text-red-400 mt-0.5">{{ $message }}</p> @enderror
-                </div>
-
-                <div class="flex items-end gap-2">
-                    <div class="flex-1">
-                        <label class="block text-[11px] font-semibold text-slate-300 mb-1">Custom Base URL (Optional)</label>
-                        <input 
-                            type="text" 
-                            wire:model="byok_custom_url" 
-                            placeholder="http://localhost:11434/v1" 
-                            class="w-full bg-slate-900 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
-                        />
+            @if($allowedProviders->isNotEmpty())
+                <form wire:submit="saveApiKey" class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-slate-900/60 border border-white/5">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-300 mb-1">Provider (Admin Enabled)</label>
+                        <select wire:model="byok_provider" class="w-full bg-slate-900 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 font-medium">
+                            @foreach($allowedProviders as $ap)
+                                <option value="{{ $ap->slug }}">{{ $ap->name }} ({{ $ap->slug }})</option>
+                            @endforeach
+                            <option value="custom">Custom Endpoint (Ollama / vLLM / Local)</option>
+                        </select>
                     </div>
-                    <button 
-                        type="submit" 
-                        class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/30 transition-all cursor-pointer shrink-0"
-                    >
-                        Save Key
-                    </button>
+
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-300 mb-1">API Key / Token</label>
+                        <input 
+                            type="password" 
+                            wire:model="byok_api_key" 
+                            placeholder="sk-..." 
+                            class="w-full bg-slate-900 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
+                            required
+                        />
+                        @error('byok_api_key') <p class="text-[10px] text-red-400 mt-0.5">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div class="flex items-end gap-2">
+                        <div class="flex-1">
+                            <label class="block text-[11px] font-semibold text-slate-300 mb-1">Custom Base URL (Optional)</label>
+                            <input 
+                                type="text" 
+                                wire:model="byok_custom_url" 
+                                placeholder="http://localhost:11434/v1" 
+                                class="w-full bg-slate-900 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
+                            />
+                        </div>
+                        <button 
+                            type="submit" 
+                            class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/30 transition-all cursor-pointer shrink-0"
+                        >
+                            Save Key
+                        </button>
+                    </div>
+                </form>
+            @else
+                <div class="p-4 rounded-xl bg-slate-900/80 border border-white/10 text-xs text-slate-400 flex items-center gap-2.5">
+                    <span class="text-base">ℹ️</span>
+                    <span>Custom BYOK API keys are currently disabled by the administrator in the Admin Control Panel. Platform master gateway keys and plan word quotas are in effect.</span>
                 </div>
-            </form>
+            @endif
 
             <!-- Connected Keys Table -->
             <div class="overflow-x-auto">

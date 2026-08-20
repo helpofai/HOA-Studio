@@ -201,6 +201,36 @@ class OmniRouteClient
     }
 
     /**
+     * Perform quick latency & health check on OmniRoute gateway.
+     */
+    public function healthCheck(): array
+    {
+        $start = microtime(true);
+        try {
+            $response = Http::withHeaders($this->buildHeaders())
+                ->withOptions(['force_ip_resolve' => 'v4'])
+                ->timeout(5)
+                ->get($this->endpoints['models_endpoint']);
+
+            $latency = max(1, (int) round((microtime(true) - $start) * 1000));
+
+            if ($response->successful()) {
+                return [
+                    'status' => 'healthy',
+                    'latency_ms' => $latency,
+                ];
+            }
+        } catch (Exception $e) {
+            // Handled
+        }
+
+        return [
+            'status' => 'degraded',
+            'latency_ms' => 0,
+        ];
+    }
+
+    /**
      * Fetch list of available models from OmniRoute gateway.
      */
     public function getAvailableModels(): array

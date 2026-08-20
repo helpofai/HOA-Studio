@@ -61,11 +61,15 @@ use App\Features\Usage\Livewire\UserUsagePage;
 // Authenticated User Workspace Routes (/dashboard/*)
 Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::get('/', DashboardPage::class)->name('dashboard');
+    Route::get('/editor', \App\Features\Documents\Http\Controllers\OpenEditorController::class)->name('editor');
     Route::get('/documents', DocumentsPage::class)->name('documents.index');
     Route::get('/documents/{id}', DocumentEditor::class)->name('documents.editor');
     Route::get('/templates', TemplatesHubPage::class)->name('templates.index');
     Route::get('/brand-voices', BrandVoicePage::class)->name('brand-voices.index');
     Route::get('/knowledge-base', KnowledgeBasePage::class)->name('knowledge-base.index');
+    Route::get('/ai-models', \App\Features\AI\Livewire\UserAiModelsPage::class)->name('ai-models.index');
+    Route::get('/ai-models/omniroute', \App\Features\AI\Livewire\UserOmniRouteSetupPage::class)->name('ai-models.omniroute');
+    Route::get('/ai-settings/omniroute', \App\Features\AI\Livewire\UserOmniRouteSetupPage::class)->name('ai-settings.omniroute');
     Route::get('/usage', UserUsagePage::class)->name('usage.index');
     Route::get('/projects', ProjectsPage::class)->name('projects.index');
     Route::get('/profile', ProfilePage::class)->name('profile');

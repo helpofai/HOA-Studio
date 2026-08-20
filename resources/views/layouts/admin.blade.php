@@ -99,76 +99,116 @@
                 </div>
 
                 <!-- Navigation Links List (SPA Mode with wire:navigate) -->
-                <nav class="p-3 space-y-1 text-xs font-medium">
-                    <div x-show="!collapsed" x-transition.opacity class="pb-1 px-3 text-[10px] font-bold text-violet-400 uppercase tracking-wider">
-                        Management
+                <nav class="p-3 space-y-3 overflow-y-auto max-h-[calc(100vh-8rem)] custom-scrollbar">
+                    
+                    <!-- 1. MANAGEMENT SECTION -->
+                    <div class="space-y-1">
+                        <div x-show="!collapsed" x-transition.opacity class="px-3 pt-2 pb-1 text-[9.5px] font-bold text-slate-500 uppercase tracking-widest flex items-center justify-between">
+                            <span>Management</span>
+                        </div>
+                        <div x-show="collapsed" class="py-1"></div>
+
+                        <a 
+                            href="{{ route('admin.dashboard') }}" 
+                            wire:navigate
+                            class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13.5px] font-medium transition-all {{ request()->routeIs('admin.dashboard') ? 'bg-violet-600/25 text-violet-200 border border-violet-500/40 font-semibold shadow-sm shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5' }}"
+                            :title="collapsed ? 'Overview' : ''"
+                        >
+                            <span class="text-lg shrink-0">📊</span>
+                            <span x-show="!collapsed" x-transition.opacity.duration.150ms class="truncate text-[13.5px]">Overview</span>
+                        </a>
+
+                        <a 
+                            href="{{ route('admin.usage') }}" 
+                            wire:navigate
+                            class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13.5px] font-medium transition-all {{ request()->routeIs('admin.usage') ? 'bg-violet-600/25 text-violet-200 border border-violet-500/40 font-semibold shadow-sm shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5' }}"
+                            :title="collapsed ? 'AI Usage Logs' : ''"
+                        >
+                            <span class="text-lg shrink-0">📈</span>
+                            <span x-show="!collapsed" x-transition.opacity.duration.150ms class="truncate text-[13.5px]">AI Usage & Logs</span>
+                        </a>
                     </div>
-                    <div x-show="collapsed" class="py-1"></div>
 
-                    <a 
-                        href="{{ route('admin.dashboard') }}" 
-                        wire:navigate
-                        class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all {{ request()->routeIs('admin.dashboard') ? 'bg-violet-600/25 text-violet-200 border border-violet-500/40 font-semibold shadow-sm shadow-violet-500/10' : 'text-slate-400 hover:text-white hover:bg-white/5' }}"
-                        :title="collapsed ? 'Overview' : ''"
-                    >
-                        <span class="text-base shrink-0">📊</span>
-                        <span x-show="!collapsed" x-transition.opacity.duration.150ms class="truncate">Overview</span>
-                    </a>
+                    <!-- 2. USER CONTROL PANEL -->
+                    <div class="space-y-1 pt-1">
+                        <div x-show="!collapsed" x-transition.opacity class="px-3 pt-2 pb-1 text-[9.5px] font-bold text-slate-500 uppercase tracking-widest flex items-center justify-between">
+                            <span>User Control Panel</span>
+                        </div>
+                        <div x-show="collapsed" class="py-1 border-t border-white/5"></div>
 
-                    <a 
-                        href="{{ route('admin.users') }}" 
-                        wire:navigate
-                        class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all {{ request()->routeIs('admin.users') ? 'bg-violet-600/25 text-violet-200 border border-violet-500/40 font-semibold shadow-sm shadow-violet-500/10' : 'text-slate-400 hover:text-white hover:bg-white/5' }}"
-                        :title="collapsed ? 'Users & Quotas' : ''"
-                    >
-                        <span class="text-base shrink-0">👥</span>
-                        <span x-show="!collapsed" x-transition.opacity.duration.150ms class="truncate">Users & Quotas</span>
-                    </a>
-
-                    <a 
-                        href="{{ route('admin.ai-settings.index') }}" 
-                        wire:navigate
-                        class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all {{ request()->routeIs('admin.ai-settings.*') ? 'bg-violet-600/25 text-violet-200 border border-violet-500/40 font-semibold shadow-sm shadow-violet-500/10' : 'text-slate-400 hover:text-white hover:bg-white/5' }}"
-                        :title="collapsed ? 'AI Providers & Gateways' : ''"
-                    >
-                        <span class="text-base shrink-0">⚡</span>
-                        <span x-show="!collapsed" x-transition.opacity.duration.150ms class="truncate">AI Providers</span>
-                    </a>
-
-                    <a 
-                        href="{{ route('admin.usage') }}" 
-                        wire:navigate
-                        class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all {{ request()->routeIs('admin.usage') ? 'bg-violet-600/25 text-violet-200 border border-violet-500/40 font-semibold shadow-sm shadow-violet-500/10' : 'text-slate-400 hover:text-white hover:bg-white/5' }}"
-                        :title="collapsed ? 'AI Usage Logs' : ''"
-                    >
-                        <span class="text-base shrink-0">📈</span>
-                        <span x-show="!collapsed" x-transition.opacity.duration.150ms class="truncate">AI Usage Logs</span>
-                    </a>
-
-                    <a 
-                        href="{{ route('admin.settings') }}" 
-                        wire:navigate
-                        class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all {{ request()->routeIs('admin.settings') ? 'bg-violet-600/25 text-violet-200 border border-violet-500/40 font-semibold shadow-sm shadow-violet-500/10' : 'text-slate-400 hover:text-white hover:bg-white/5' }}"
-                        :title="collapsed ? 'System Settings' : ''"
-                    >
-                        <span class="text-base shrink-0">⚙️</span>
-                        <span x-show="!collapsed" x-transition.opacity.duration.150ms class="truncate">System Settings</span>
-                    </a>
-
-                    <div x-show="!collapsed" x-transition.opacity class="pt-4 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                        Quick Switch
+                        <a 
+                            href="{{ route('admin.users') }}" 
+                            wire:navigate
+                            class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13.5px] font-medium transition-all {{ request()->routeIs('admin.users') ? 'bg-violet-600/25 text-violet-200 border border-violet-500/40 font-semibold shadow-sm shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5' }}"
+                            :title="collapsed ? 'Users & Quotas' : ''"
+                        >
+                            <span class="text-lg shrink-0">👥</span>
+                            <span x-show="!collapsed" x-transition.opacity.duration.150ms class="truncate text-[13.5px]">Users & Quotas</span>
+                        </a>
                     </div>
-                    <div x-show="collapsed" class="py-2 border-t border-white/5"></div>
 
-                    <a 
-                        href="{{ route('dashboard') }}" 
-                        wire:navigate
-                        class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all"
-                        :title="collapsed ? 'Return to Studio' : ''"
-                    >
-                        <span class="text-base shrink-0">🚀</span>
-                        <span x-show="!collapsed" x-transition.opacity class="truncate">Studio Workspace</span>
-                    </a>
+                    <!-- 3. ADMIN CONTROL PANEL -->
+                    <div class="space-y-1 pt-1">
+                        <div x-show="!collapsed" x-transition.opacity class="px-3 pt-2 pb-1 text-[9.5px] font-bold text-slate-500 uppercase tracking-widest flex items-center justify-between">
+                            <span>Admin Control Panel</span>
+                        </div>
+                        <div x-show="collapsed" class="py-1 border-t border-white/5"></div>
+
+                        <a 
+                            href="{{ route('admin.settings') }}" 
+                            wire:navigate
+                            class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13.5px] font-medium transition-all {{ request()->routeIs('admin.settings') ? 'bg-violet-600/25 text-violet-200 border border-violet-500/40 font-semibold shadow-sm shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5' }}"
+                            :title="collapsed ? 'System Settings' : ''"
+                        >
+                            <span class="text-lg shrink-0">⚙️</span>
+                            <span x-show="!collapsed" x-transition.opacity.duration.150ms class="truncate text-[13.5px]">System Settings</span>
+                        </a>
+
+                        <a 
+                            href="{{ route('admin.ai-settings.index') }}" 
+                            wire:navigate
+                            class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13.5px] font-medium transition-all {{ request()->routeIs('admin.ai-settings.*') ? 'bg-violet-600/25 text-violet-200 border border-violet-500/40 font-semibold shadow-sm shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5' }}"
+                            :title="collapsed ? 'AI Providers & Gateway' : ''"
+                        >
+                            <span class="text-lg shrink-0">⚡</span>
+                            <span x-show="!collapsed" x-transition.opacity.duration.150ms class="truncate text-[13.5px]">AI Providers & Gateway</span>
+                        </a>
+                    </div>
+
+                    <!-- 4. SECURITY & SAFETY -->
+                    <div class="space-y-1 pt-1">
+                        <div x-show="!collapsed" x-transition.opacity class="px-3 pt-2 pb-1 text-[9.5px] font-bold text-slate-500 uppercase tracking-widest flex items-center justify-between">
+                            <span>Security & Safety</span>
+                        </div>
+                        <div x-show="collapsed" class="py-1 border-t border-white/5"></div>
+
+                        <a 
+                            href="{{ route('admin.ai-settings.index') }}#circuit-breaker" 
+                            wire:navigate
+                            class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13.5px] font-medium transition-all text-slate-300 hover:text-white hover:bg-white/5"
+                            :title="collapsed ? 'Circuit Breaker & BYOK' : ''"
+                        >
+                            <span class="text-lg shrink-0">🛡️</span>
+                            <span x-show="!collapsed" x-transition.opacity.duration.150ms class="truncate text-[13.5px]">Circuit Breaker & Safety</span>
+                        </a>
+                    </div>
+
+                    <!-- 5. QUICK SWITCH -->
+                    <div class="pt-2 border-t border-white/5">
+                        <div x-show="!collapsed" x-transition.opacity class="px-3 pt-2 pb-1 text-[9.5px] font-bold text-slate-500 uppercase tracking-widest">
+                            Quick Switch
+                        </div>
+
+                        <a 
+                            href="{{ route('dashboard') }}" 
+                            wire:navigate
+                            class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13.5px] font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                            :title="collapsed ? 'Return to Studio' : ''"
+                        >
+                            <span class="text-lg shrink-0">🚀</span>
+                            <span x-show="!collapsed" x-transition.opacity class="truncate text-[13.5px]">Studio Workspace</span>
+                        </a>
+                    </div>
                 </nav>
             </div>
 

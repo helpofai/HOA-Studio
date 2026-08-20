@@ -1,3 +1,5 @@
+<?php
+
 /*
 |--------------------------------------------------------------------------
 | HelpOfAi (HOA) Professional Software
@@ -21,26 +23,24 @@
 |--------------------------------------------------------------------------
 */
 
-import './bootstrap';
-import './features/editor/editor-manager.js';
-import './features/editor/drivers/tiptap-driver.js';
-import './features/editor/drivers/gutenberg-driver.js';
-import './features/editor/drivers/notion-driver.js';
-import './features/editor/drivers/markdown-driver.js';
-import './features/editor/drivers/markdown-split-driver.js';
-import './features/editor/drivers/html-driver.js';
-import './features/editor/drivers/plaintext-driver.js';
-import { createIcons, icons } from 'lucide';
+namespace App\Features\Documents\Adapters;
 
-window.initLucideIcons = () => {
-    createIcons({ icons });
-};
+use App\Features\Documents\Contracts\EditorAdapterInterface;
 
-document.addEventListener('DOMContentLoaded', () => {
-    window.initLucideIcons();
-});
+class PlainTextAdapter implements EditorAdapterInterface
+{
+    public function toCanonical(string $content): array
+    {
+        $sanitized = strip_tags($content);
+        return [
+            'content_html' => '<p>' . e($sanitized) . '</p>',
+            'content_plain' => $sanitized,
+            'content_markdown' => $sanitized,
+        ];
+    }
 
-document.addEventListener('livewire:navigated', () => {
-    window.initLucideIcons();
-});
-
+    public function fromCanonical(array $canonical): string
+    {
+        return $canonical['content_plain'] ?? '';
+    }
+}

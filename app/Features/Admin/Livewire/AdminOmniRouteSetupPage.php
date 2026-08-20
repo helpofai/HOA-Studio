@@ -391,8 +391,9 @@ class AdminOmniRouteSetupPage extends Component
             $this->syncTelemetry = $result;
             $this->syncStatus = 'success';
 
-            $this->appendProgressLog('info', 'COMPLETE', "✔ Dynamic synchronization complete! All models updated in database.");
-            $this->statusMessage = "OmniRoute Gateway Online ({$result['latency_ms']}ms). Dynamically synchronized {$result['total_synced']} models ({$result['combos_count']} combos, {$result['free_tier_count']} free-tier pools)!";
+            $pruneText = !empty($result['pruned_count']) ? " (Purged {$result['pruned_count']} stale models)" : "";
+            $this->appendProgressLog('info', 'COMPLETE', "✔ Dynamic synchronization complete! All {$result['total_synced']} active models updated{$pruneText}.");
+            $this->statusMessage = "OmniRoute Gateway Online ({$result['latency_ms']}ms). Dynamically synchronized {$result['total_synced']} models{$pruneText} ({$result['combos_count']} combos, {$result['free_tier_count']} free-tier pools)!";
             session()->flash('status', $this->statusMessage);
             $this->fetchConsoleLogs();
         } catch (Exception $e) {

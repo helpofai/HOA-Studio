@@ -53,9 +53,27 @@ class EditorRegistry
                 'is_active' => true,
             ],
             'markdown' => [
-                'name' => 'Raw Markdown / Split Preview',
-                'description' => 'Distraction-free monospace Markdown editor with live HTML rendering.',
+                'name' => 'Raw Markdown',
+                'description' => 'Distraction-free monospace Markdown editor with raw source formatting.',
                 'icon' => 'code',
+                'is_active' => true,
+            ],
+            'markdown_split' => [
+                'name' => 'Markdown + Split Preview',
+                'description' => 'Split-pane Markdown authoring with real-time sanitized HTML live preview.',
+                'icon' => 'columns',
+                'is_active' => true,
+            ],
+            'html' => [
+                'name' => 'HTML Editor',
+                'description' => 'Raw source code editor for developers and power users.',
+                'icon' => 'terminal',
+                'is_active' => true,
+            ],
+            'plaintext' => [
+                'name' => 'Plain Text Editor',
+                'description' => 'Clean, minimal, distraction-free environment for pure text.',
+                'icon' => 'align-left',
                 'is_active' => true,
             ],
         ];

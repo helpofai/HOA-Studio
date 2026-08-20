@@ -158,15 +158,16 @@
                             <span class="text-[10px] text-slate-400 block uppercase">Endpoint Type</span>
                             <span class="font-mono text-indigo-300 text-[11px]">{{ $provider->is_local ? 'Local Gateway' : 'Cloud API' }}</span>
                         </div>
-                        <div class="pt-2 border-t border-white/5">
+                        <div class="pt-2 border-t border-white/5 flex flex-col justify-between">
                             <span class="text-[10px] text-slate-400 block uppercase">User BYOK Keys</span>
                             <button 
                                 type="button"
                                 wire:click="toggleAllowUserKey({{ $provider->id }})" 
-                                class="text-[10px] font-bold font-mono cursor-pointer {{ $provider->allow_user_key ? 'text-emerald-400 hover:underline' : 'text-slate-500 hover:underline' }}"
-                                title="Click to toggle whether users can supply their own keys for this provider"
+                                class="mt-1 flex items-center justify-between px-2 py-1 rounded-lg text-[10px] font-bold font-mono transition-all cursor-pointer {{ $provider->allow_user_key ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/25' : 'bg-slate-800 text-slate-400 border border-white/10 hover:bg-slate-700' }}"
+                                title="Toggle whether users can use their own API keys for this provider"
                             >
-                                {{ $provider->allow_user_key ? '✓ Permitted' : '✕ Disabled' }}
+                                <span>{{ $provider->allow_user_key ? '✓ Users Allowed' : '✕ Admin Only' }}</span>
+                                <span class="w-2 h-2 rounded-full {{ $provider->allow_user_key ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600' }}"></span>
                             </button>
                         </div>
                     </div>

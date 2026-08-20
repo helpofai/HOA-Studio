@@ -117,6 +117,8 @@ class SyncOmniRouteGateway
         $freeTierCount = 0;
         $reasoningCount = 0;
 
+        $syncedModelIds = [];
+
         // Process standard models
         foreach ($modelsData as $m) {
             $modelId = $m['id'] ?? null;
@@ -124,6 +126,7 @@ class SyncOmniRouteGateway
                 continue;
             }
 
+            $syncedModelIds[] = $modelId;
             $name = $m['name'] ?? $this->formatModelName($modelId);
             $contextWindow = $m['context_length'] ?? $m['context_window'] ?? $this->inferContextWindow($modelId);
             $isCombo = str_starts_with($modelId, 'combo:');
@@ -175,6 +178,7 @@ class SyncOmniRouteGateway
         ];
 
         foreach ($knownCombos as $kc) {
+            $syncedModelIds[] = $kc['id'];
             AiModel::updateOrCreate(
                 ['ai_provider_id' => $provider->id, 'model_id' => $kc['id']],
                 [
@@ -190,6 +194,14 @@ class SyncOmniRouteGateway
             );
         }
 
+        // Dynamically purge stale models that are no longer present in OmniRoute Gateway
+        $prunedCount = 0;
+        if (!empty($syncedModelIds)) {
+            $prunedCount = AiModel::where('ai_provider_id', $provider->id)
+                ->whereNotIn('model_id', $syncedModelIds)
+                ->delete();
+        }
+
         // Update provider last_synced_at timestamp & base_url
         $settings = $provider->settings ?? [];
         $settings['last_synced_at'] = now()->toIso8601String();
@@ -199,6 +211,7 @@ class SyncOmniRouteGateway
 
         return [
             'total_synced' => $totalSynced,
+            'pruned_count' => $prunedCount,
             'combos_count' => $combosCount,
             'free_tier_count' => $freeTierCount,
             'reasoning_count' => $reasoningCount,

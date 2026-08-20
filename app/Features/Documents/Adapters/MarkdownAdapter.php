@@ -1,3 +1,5 @@
+<?php
+
 /*
 |--------------------------------------------------------------------------
 | HelpOfAi (HOA) Professional Software
@@ -21,26 +23,36 @@
 |--------------------------------------------------------------------------
 */
 
-import './bootstrap';
-import './features/editor/editor-manager.js';
-import './features/editor/drivers/tiptap-driver.js';
-import './features/editor/drivers/gutenberg-driver.js';
-import './features/editor/drivers/notion-driver.js';
-import './features/editor/drivers/markdown-driver.js';
-import './features/editor/drivers/markdown-split-driver.js';
-import './features/editor/drivers/html-driver.js';
-import './features/editor/drivers/plaintext-driver.js';
-import { createIcons, icons } from 'lucide';
+namespace App\Features\Documents\Adapters;
 
-window.initLucideIcons = () => {
-    createIcons({ icons });
-};
+use App\Features\Documents\Contracts\EditorAdapterInterface;
+use League\CommonMark\GithubFlavoredMarkdownConverter;
 
-document.addEventListener('DOMContentLoaded', () => {
-    window.initLucideIcons();
-});
+class MarkdownAdapter implements EditorAdapterInterface
+{
+    protected GithubFlavoredMarkdownConverter $converter;
 
-document.addEventListener('livewire:navigated', () => {
-    window.initLucideIcons();
-});
+    public function __construct()
+    {
+        $this->converter = new GithubFlavoredMarkdownConverter([
+            'html_input' => 'strip',
+            'allow_unsafe_links' => false,
+        ]);
+    }
 
+    public function toCanonical(string $content): array
+    {
+        $html = $this->converter->convert($content)->getContent();
+
+        return [
+            'content_html' => $html,
+            'content_markdown' => $content,
+            'content_plain' => strip_tags($html),
+        ];
+    }
+
+    public function fromCanonical(array $canonical): string
+    {
+        return $canonical['content_markdown'] ?? '';
+    }
+}

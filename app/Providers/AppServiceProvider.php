@@ -35,7 +35,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(\App\Features\Documents\Services\EditorManager::class, function () {
+            return new \App\Features\Documents\Services\EditorManager();
+        });
     }
 
     /**

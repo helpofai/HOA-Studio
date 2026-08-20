@@ -41,7 +41,8 @@ class ModelGovernanceService
     public function pingModel(AiModel $model): array
     {
         $start = microtime(true);
-        $baseUrl = rtrim(config('omniroute.base_url', 'http://127.0.0.1:20128'), '/');
+        $endpoints = OmniRouteUrlResolver::resolve(config('omniroute.base_url', 'http://127.0.0.1:20128/v1'));
+        $chatEndpoint = rtrim($endpoints['openai_base'], '/') . '/chat/completions';
         $apiKey = config('omniroute.api_key', 'sk-or-v1-dev-master-key');
 
         try {
@@ -51,7 +52,7 @@ class ModelGovernanceService
             ])
             ->timeout(5)
             ->withOptions(['force_ip_resolve' => 'v4'])
-            ->post("{$baseUrl}/v1/chat/completions", [
+            ->post($chatEndpoint, [
                 'model' => $model->model_id,
                 'messages' => [
                     ['role' => 'user', 'content' => 'ping'],

@@ -94,13 +94,20 @@ class ProfilePage extends Component
 
     public function saveApiKey()
     {
+        $user = Auth::user();
+
+        // Check if provider is explicitly disabled for BYOK by administrator
+        $provider = \App\Features\AI\Models\AiProvider::where('slug', $this->byok_provider)->first();
+        if ($provider && (!$provider->allow_user_key || !$provider->is_active)) {
+            session()->flash('error', "Administrator has disabled custom BYOK keys for provider '{$this->byok_provider}'.");
+            return;
+        }
+
         $this->validate([
-            'byok_provider' => 'required|string|in:openai,deepseek,anthropic,custom',
+            'byok_provider' => 'required|string|max:50',
             'byok_api_key' => 'required|string|min:4|max:500',
             'byok_custom_url' => 'nullable|string|url|max:255',
         ]);
-
-        $user = Auth::user();
 
         UserApiKey::updateOrCreate(
             [
@@ -138,10 +145,12 @@ class ProfilePage extends Component
     {
         $user = Auth::user();
         $apiKeys = $user->apiKeys()->latest()->get();
+        $allowedProviders = \App\Features\AI\Models\AiProvider::where('allow_user_key', true)->where('is_active', true)->get();
 
         return view('auth.profile', [
             'user' => $user,
             'apiKeys' => $apiKeys,
+            'allowedProviders' => $allowedProviders,
         ]);
     }
 }
