@@ -50,7 +50,7 @@ export class GutenbergDriver {
 
     parseHtmlToBlocks(html) {
         const temp = document.createElement('div');
-        temp.innerHTML = html;
+        temp.innerHTML = html || '';
         this.blocks = [];
 
         if (temp.children.length === 0 && temp.textContent.trim()) {
@@ -68,6 +68,10 @@ export class GutenbergDriver {
                 this.blocks.push({ id: this.genId(), type: 'code', content: el.innerText });
             } else if (tag === 'ul' || tag === 'ol') {
                 this.blocks.push({ id: this.genId(), type: 'list', ordered: tag === 'ol', content: el.innerHTML });
+            } else if (tag === 'table') {
+                this.blocks.push({ id: this.genId(), type: 'table', content: el.outerHTML });
+            } else if (tag === 'div') {
+                this.blocks.push({ id: this.genId(), type: 'card', content: el.innerHTML });
             } else {
                 this.blocks.push({ id: this.genId(), type: 'paragraph', content: el.innerHTML });
             }
@@ -94,10 +98,10 @@ export class GutenbergDriver {
                         </span>
                         <span class="text-xs text-slate-400 font-mono" id="gt-block-count">${this.blocks.length} blocks</span>
                     </div>
-                    <div class="flex items-center gap-1.5">
+                    <div class="flex flex-wrap items-center gap-1.5">
                         <button type="button" data-add="paragraph" class="gt-add-btn px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold">+ Paragraph</button>
                         <button type="button" data-add="heading" class="gt-add-btn px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold">+ Heading</button>
-                        <button type="button" data-add="quote" class="gt-add-btn px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold">+ Quote</button>
+                        <button type="button" data-add="quote" class="gt-add-btn px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold">+ Callout</button>
                         <button type="button" data-add="code" class="gt-add-btn px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold">+ Code</button>
                     </div>
                 </div>
@@ -117,7 +121,7 @@ export class GutenbergDriver {
         list.innerHTML = this.blocks.map((b, idx) => `
             <div class="gt-block group relative p-4 rounded-2xl bg-slate-900/40 hover:bg-slate-900/80 border border-white/5 hover:border-indigo-500/30 transition-all shadow-sm" data-id="${b.id}" data-idx="${idx}">
                 <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/5 text-[10px] text-slate-400 font-mono">
-                    <span class="uppercase tracking-wider font-bold text-slate-500">${b.type} ${b.level ? 'H' + b.level : ''}</span>
+                    <span class="uppercase tracking-wider font-bold text-indigo-400">${b.type} ${b.level ? 'H' + b.level : ''}</span>
                     <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button type="button" class="gt-up p-1 hover:text-white" title="Move Up">↑</button>
                         <button type="button" class="gt-down p-1 hover:text-white" title="Move Down">↓</button>
@@ -134,11 +138,18 @@ export class GutenbergDriver {
 
     renderBlockEditor(b) {
         if (b.type === 'heading') {
-            return `<div contenteditable="true" class="gt-content text-2xl font-black text-white focus:outline-none" data-id="${b.id}">${b.content}</div>`;
+            const fontClass = b.level === 1 ? 'text-2xl font-black text-white' : (b.level === 2 ? 'text-xl font-bold text-white' : 'text-lg font-semibold text-indigo-200');
+            return `<div contenteditable="true" class="gt-content ${fontClass} focus:outline-none" data-id="${b.id}">${b.content}</div>`;
         } else if (b.type === 'quote') {
-            return `<blockquote contenteditable="true" class="gt-content border-l-4 border-indigo-500 pl-4 py-1 text-slate-300 italic font-serif focus:outline-none" data-id="${b.id}">${b.content}</blockquote>`;
+            return `<blockquote contenteditable="true" class="gt-content border-l-4 border-indigo-500 bg-indigo-950/20 p-3 rounded-r-xl text-slate-200 italic font-sans focus:outline-none" data-id="${b.id}">${b.content}</blockquote>`;
         } else if (b.type === 'code') {
-            return `<pre class="bg-slate-950 p-3 rounded-xl"><code contenteditable="true" class="gt-content text-xs font-mono text-emerald-400 focus:outline-none block" data-id="${b.id}">${b.content}</code></pre>`;
+            return `<pre class="bg-slate-950 p-4 rounded-xl border border-white/10 overflow-x-auto"><code contenteditable="true" class="gt-content text-xs font-mono text-emerald-400 focus:outline-none block" data-id="${b.id}">${b.content}</code></pre>`;
+        } else if (b.type === 'table') {
+            return `<div class="gt-content overflow-x-auto my-2" data-id="${b.id}">${b.content}</div>`;
+        } else if (b.type === 'card') {
+            return `<div contenteditable="true" class="gt-content p-3 rounded-xl bg-slate-950/60 border border-indigo-500/30 text-xs text-slate-200 focus:outline-none" data-id="${b.id}">${b.content}</div>`;
+        } else if (b.type === 'list') {
+            return `<ul contenteditable="true" class="gt-content list-disc list-inside space-y-1 text-slate-200 focus:outline-none" data-id="${b.id}">${b.content}</ul>`;
         } else {
             return `<div contenteditable="true" class="gt-content text-base leading-relaxed text-slate-200 focus:outline-none min-h-[28px]" data-id="${b.id}">${b.content}</div>`;
         }
@@ -148,10 +159,22 @@ export class GutenbergDriver {
         this.container.querySelectorAll('.gt-add-btn').forEach(btn => {
             btn.onclick = () => {
                 const type = btn.getAttribute('data-add');
-                this.blocks.push({ id: this.genId(), type, level: type === 'heading' ? 2 : undefined, content: '' });
+                const newBlock = { id: this.genId(), type: type, level: type === 'heading' ? 2 : undefined, content: '' };
+                this.blocks.push(newBlock);
                 this.renderBlockList();
                 this.triggerUpdate();
             };
+        });
+
+        this.container.addEventListener('input', (e) => {
+            if (e.target.classList.contains('gt-content')) {
+                const id = e.target.getAttribute('data-id');
+                const block = this.blocks.find(b => b.id === id);
+                if (block) {
+                    block.content = e.target.innerHTML;
+                    this.triggerUpdate();
+                }
+            }
         });
 
         this.container.addEventListener('click', (e) => {
@@ -159,7 +182,12 @@ export class GutenbergDriver {
             if (!blockEl) return;
             const idx = parseInt(blockEl.getAttribute('data-idx'));
 
-            if (e.target.classList.contains('gt-up') && idx > 0) {
+            if (e.target.classList.contains('gt-del')) {
+                this.blocks.splice(idx, 1);
+                if (this.blocks.length === 0) this.blocks.push({ id: this.genId(), type: 'paragraph', content: '' });
+                this.renderBlockList();
+                this.triggerUpdate();
+            } else if (e.target.classList.contains('gt-up') && idx > 0) {
                 const temp = this.blocks[idx];
                 this.blocks[idx] = this.blocks[idx - 1];
                 this.blocks[idx - 1] = temp;
@@ -171,26 +199,48 @@ export class GutenbergDriver {
                 this.blocks[idx + 1] = temp;
                 this.renderBlockList();
                 this.triggerUpdate();
-            } else if (e.target.classList.contains('gt-del')) {
-                this.blocks.splice(idx, 1);
-                if (this.blocks.length === 0) {
-                    this.blocks.push({ id: this.genId(), type: 'paragraph', content: '' });
-                }
-                this.renderBlockList();
-                this.triggerUpdate();
             }
         });
+    }
 
-        this.container.addEventListener('input', (e) => {
-            if (e.target.classList.contains('gt-content')) {
-                const id = e.target.getAttribute('data-id');
-                const blk = this.blocks.find(b => b.id === id);
-                if (blk) {
-                    blk.content = e.target.innerHTML;
-                    this.triggerUpdate();
-                }
+    insertContent(html) {
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+        const newBlocks = [];
+        Array.from(temp.children).forEach(el => {
+            const tag = el.tagName.toLowerCase();
+            if (/^h[1-6]$/.test(tag)) {
+                newBlocks.push({ id: this.genId(), type: 'heading', level: parseInt(tag[1]), content: el.innerHTML });
+            } else if (tag === 'blockquote') {
+                newBlocks.push({ id: this.genId(), type: 'quote', content: el.innerHTML });
+            } else if (tag === 'pre' || tag === 'code') {
+                newBlocks.push({ id: this.genId(), type: 'code', content: el.innerText });
+            } else if (tag === 'table') {
+                newBlocks.push({ id: this.genId(), type: 'table', content: el.outerHTML });
+            } else if (tag === 'div') {
+                newBlocks.push({ id: this.genId(), type: 'card', content: el.innerHTML });
+            } else if (tag === 'ul' || tag === 'ol') {
+                newBlocks.push({ id: this.genId(), type: 'list', ordered: tag === 'ol', content: el.innerHTML });
+            } else {
+                newBlocks.push({ id: this.genId(), type: 'paragraph', content: el.innerHTML });
             }
         });
+        if (newBlocks.length === 0 && html.trim()) {
+            newBlocks.push({ id: this.genId(), type: 'paragraph', content: html });
+        }
+        this.blocks = [...this.blocks, ...newBlocks];
+        this.renderBlockList();
+        this.triggerUpdate();
+    }
+
+    replaceSelection(replacement) {
+        this.insertContent(replacement);
+    }
+
+    setContent(html) {
+        this.parseHtmlToBlocks(html || '');
+        this.renderBlockList();
+        this.triggerUpdate();
     }
 
     triggerUpdate() {
@@ -216,6 +266,9 @@ export class GutenbergDriver {
             if (b.type === 'heading') return `<h${b.level || 2}>${b.content}</h${b.level || 2}>`;
             if (b.type === 'quote') return `<blockquote>${b.content}</blockquote>`;
             if (b.type === 'code') return `<pre><code>${b.content}</code></pre>`;
+            if (b.type === 'table') return b.content;
+            if (b.type === 'card') return `<div class="p-4 my-4 rounded-2xl bg-slate-900/90 border border-indigo-500/30">${b.content}</div>`;
+            if (b.type === 'list') return b.ordered ? `<ol>${b.content}</ol>` : `<ul>${b.content}</ul>`;
             return `<p>${b.content}</p>`;
         }).join('\n');
     }
@@ -226,42 +279,8 @@ export class GutenbergDriver {
         return temp.textContent || '';
     }
 
-    
-    insertContent(html) {
-        const temp = document.createElement('div');
-        temp.innerHTML = html;
-        const newBlocks = [];
-        Array.from(temp.children).forEach(el => {
-            const tag = el.tagName.toLowerCase();
-            if (/^h[1-6]$/.test(tag)) {
-                newBlocks.push({ id: this.genId(), type: 'heading', level: parseInt(tag[1]), content: el.innerHTML });
-            } else if (tag === 'blockquote') {
-                newBlocks.push({ id: this.genId(), type: 'quote', content: el.innerHTML });
-            } else if (tag === 'pre' || tag === 'code') {
-                newBlocks.push({ id: this.genId(), type: 'code', content: el.innerText });
-            } else {
-                newBlocks.push({ id: this.genId(), type: 'paragraph', content: el.innerHTML });
-            }
-        });
-        if (newBlocks.length === 0 && html.trim()) {
-            newBlocks.push({ id: this.genId(), type: 'paragraph', content: html });
-        }
-        this.blocks = [...this.blocks, ...newBlocks];
-        this.renderBlockList();
-        this.triggerUpdate();
-    }
-
-    replaceSelection(replacement) {
-        this.insertContent(replacement);
-    }
-
-    setContent(html) {
-        this.parseHtmlToBlocks(html || '');
-        this.renderBlockList();
-        this.triggerUpdate();
-    }
-
     destroy() {
+        clearTimeout(this.saveTimeout);
         if (this.container) this.container.innerHTML = '';
     }
 }
