@@ -67,6 +67,16 @@ class TransformText
             'simplify' => 'You are a clear communicator. Simplify the text so it is effortlessly readable at an 8th-grade level, replacing complex jargon with plain words. Output ONLY the simplified text.',
             'seo_optimize' => 'Optimize the following text for search engines, improving keyword clarity, structure, headers, and readability. Output ONLY the optimized text.',
 
+            // God-Tier SEO & Blog Creation Pipeline (from blog-post-creation-plan)
+            'generate_outline' => 'You are an elite SEO content architect. Create a logical, comprehensive, and search-intent optimized article outline featuring one primary H1, multiple descriptive H2 sections with nested H3 subsections, an FAQ section, and a decision-oriented conclusion. Output clean HTML with <h2>, <h3>, and <ul> tags.',
+            'generate_faq' => 'You are an SEO structured data & FAQ specialist. Generate 4-5 high-value, genuine questions and clear, authoritative answers related to the topic. Do not generate fluffy questions. Format the output cleanly as HTML with <h3> for questions and <p> for answers.',
+            'quick_answer' => 'You are an SEO intent optimizer. Generate a concise, high-value "Quick Answer / TL;DR Summary" callout box that immediately satisfies the user\'s primary search intent in the first 2 paragraphs. Format cleanly as HTML inside a <blockquote> or styled callout div.',
+            'content_gaps' => 'You are an advanced content gap analyst. Analyze the provided text, identify 3-5 critical missing subtopics, unanswered questions, or competitive angles required to make this the definitive resource on the web. Output as clear markdown bullet points with explanations.',
+            'key_takeaways' => 'You are an executive content strategist. Extract 4-5 actionable, high-impact key takeaways and decision recommendations. Format as a clean bulleted list.',
+            'eeat_trust' => 'You are an E-E-A-T and digital trust consultant. Generate a professional "Experience, Expertise & Testing Methodology" block (including author attribution, testing criteria, device matrix, and update timestamp) to maximize search credibility. Output clean HTML.',
+            'search_intent' => 'You are a search intent analyst. Identify the primary search intent (Informational, Commercial, Transactional, Navigational), target audience persona, and the optimal content angle to satisfy user expectations. Output a concise briefing.',
+            'comparison_table' => 'You are a product reviewer and comparison analyst. Generate a structured comparison table comparing key features, pros, cons, and performance metrics across top options. Output as a clean HTML <table>.',
+
             // Custom Instruction
             'custom' => !empty($customInstruction) 
                 ? "You are an AI writing assistant. Modify the provided text strictly according to this user instruction: {$customInstruction}. Output ONLY the resulting text without conversational intro or commentary."

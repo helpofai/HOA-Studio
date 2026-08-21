@@ -132,4 +132,98 @@ class GenerateSeoMetadata
 
         return is_array($decoded) ? array_slice($decoded, 0, 8) : [];
     }
+
+    /**
+     * Generate structured FAQ pairs (Questions + Answers)
+     */
+    public function generateFaqs(User $user, string $documentText, ?string $keyword = null): array
+    {
+        if (!$user->hasQuota(1)) {
+            throw new Exception("Monthly word quota exceeded.");
+        }
+
+        $systemPrompt = "You are an SEO structured data expert. Analyze the content and generate 4 high-value, highly searched FAQ pairs. Return ONLY valid JSON formatted as: [{\"question\": \"...\", \"answer\": \"...\"}, ...].";
+
+        $prompt = "Target Topic / Keyword: " . ($keyword ?: 'General') . "\n\nContent Excerpt:\n" . mb_substr($documentText, 0, 1500);
+
+        $response = $this->client->chatCompletion([
+            ['role' => 'system', 'content' => $systemPrompt],
+            ['role' => 'user', 'content' => $prompt],
+        ], ['model' => 'auto', 'temperature' => 0.6]);
+
+        $content = trim($response['content']);
+        $wordsUsed = max(1, str_word_count(strip_tags($content)));
+
+        $this->recordUsage->execute($user, [
+            'words_used' => $wordsUsed,
+            'tokens_used' => $response['total_tokens'] ?? 0,
+            'model_slug' => $response['model'] ?? 'omniroute',
+        ]);
+
+        $decoded = json_decode(preg_replace('/^```json|```$/m', '', $content), true);
+
+        return is_array($decoded) ? array_slice($decoded, 0, 5) : [];
+    }
+
+    /**
+     * Generate a Quick Answer / TL;DR Box
+     */
+    public function generateQuickAnswer(User $user, string $documentText, ?string $keyword = null): string
+    {
+        if (!$user->hasQuota(1)) {
+            throw new Exception("Monthly word quota exceeded.");
+        }
+
+        $systemPrompt = "You are an SEO intent optimization expert. Generate a concise, 2-3 sentence 'Quick Answer / Summary' box addressing the primary search intent. Output clean HTML with <strong> and concise bullet points if needed. Do not wrap in markdown code blocks.";
+
+        $prompt = "Target Keyword: " . ($keyword ?: 'General') . "\n\nContent Excerpt:\n" . mb_substr($documentText, 0, 1500);
+
+        $response = $this->client->chatCompletion([
+            ['role' => 'system', 'content' => $systemPrompt],
+            ['role' => 'user', 'content' => $prompt],
+        ], ['model' => 'auto', 'temperature' => 0.6]);
+
+        $content = trim($response['content']);
+        $wordsUsed = max(1, str_word_count(strip_tags($content)));
+
+        $this->recordUsage->execute($user, [
+            'words_used' => $wordsUsed,
+            'tokens_used' => $response['total_tokens'] ?? 0,
+            'model_slug' => $response['model'] ?? 'omniroute',
+        ]);
+
+        return $content;
+    }
+
+    /**
+     * Identify Content Gaps & Missing Topics
+     */
+    public function generateContentGaps(User $user, string $documentText, ?string $keyword = null): array
+    {
+        if (!$user->hasQuota(1)) {
+            throw new Exception("Monthly word quota exceeded.");
+        }
+
+        $systemPrompt = "You are a senior SEO content strategist. Analyze the content and return 4 critical missing subtopics or questions required to outperform top-ranking competitors. Return ONLY valid JSON formatted as: [{\"topic\": \"...\", \"reason\": \"...\", \"suggested_h2\": \"...\"}, ...].";
+
+        $prompt = "Primary Keyword: " . ($keyword ?: 'General') . "\n\nContent Excerpt:\n" . mb_substr($documentText, 0, 1500);
+
+        $response = $this->client->chatCompletion([
+            ['role' => 'system', 'content' => $systemPrompt],
+            ['role' => 'user', 'content' => $prompt],
+        ], ['model' => 'auto', 'temperature' => 0.6]);
+
+        $content = trim($response['content']);
+        $wordsUsed = max(1, str_word_count(strip_tags($content)));
+
+        $this->recordUsage->execute($user, [
+            'words_used' => $wordsUsed,
+            'tokens_used' => $response['total_tokens'] ?? 0,
+            'model_slug' => $response['model'] ?? 'omniroute',
+        ]);
+
+        $decoded = json_decode(preg_replace('/^```json|```$/m', '', $content), true);
+
+        return is_array($decoded) ? array_slice($decoded, 0, 4) : [];
+    }
 }
