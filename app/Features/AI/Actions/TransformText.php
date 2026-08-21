@@ -77,10 +77,10 @@ class TransformText
             'search_intent' => 'You are a search intent analyst. Identify the primary search intent (Informational, Commercial, Transactional, Navigational), target audience persona, and the optimal content angle to satisfy user expectations. Output a concise briefing.',
             'comparison_table' => 'You are a product reviewer and comparison analyst. Generate a structured comparison table comparing key features, pros, cons, and performance metrics across top options. Output as a clean HTML <table>.',
 
-            // Custom Instruction
+            // Custom Instruction & Full Publication Directives
             'custom' => !empty($customInstruction) 
-                ? "You are an AI writing assistant. Modify the provided text strictly according to this user instruction: {$customInstruction}. Output ONLY the resulting text without conversational intro or commentary."
-                : 'Improve and refine the following text. Output ONLY the improved text.',
+                ? "You are an elite enterprise AI writing assistant and publication editor. Fulfill this user instruction with world-class editorial depth and structure: {$customInstruction}. If writing an article, blog post, or guide, always format with: 1) High-CTR H1 headline, 2) Executive TL;DR Summary callout box (<blockquote>), 3) Suggested AI Image generation prompt cards with visual descriptions, 4) Hierarchical H2 and nested H3 sections with rich bolded keywords, 5) Formatted comparison tables (<table>), 6) Code blocks with syntax where applicable, 7) E-E-A-T trust signals and methodology card, 8) Schema-ready FAQs (<h3> for questions, <p> for answers), and 9) Actionable checklist. Output clean, publication-ready HTML without conversational intro or commentary."
+                : 'Improve and refine the following text with professional headings, bold markers, and clean structure. Output ONLY the improved text.',
 
             default => 'Improve and refine the following text. Output ONLY the improved text.',
         };
