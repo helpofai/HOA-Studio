@@ -187,65 +187,9 @@
                     </p>
                 </div>
 
-                <!-- Live Alpine.js Studio Simulation Component -->
+                <!-- Live Alpine.js Studio Simulation Component (Loaded safely via Alpine.data) -->
                 <div 
-                    x-data="{
-                        activeEngine: 'tiptap', // tiptap, gutenberg, notion, markdown_split, markdown_raw, html, plaintext
-                        activeIntelTab: 'seo', // seo, keys, recs, outline, versions
-                        isStreaming: false,
-                        aiPromptText: 'Write a compelling deep-dive on decoupled AI multi-editor architecture in 2026',
-                        selectedAiModel: 'Claude 3.7 Sonnet (OmniRoute)',
-                        streamingToken: '',
-                        wordCount: 428,
-                        seoScore: 94,
-                        readScore: 82,
-
-                        // Gutenberg Blocks State
-                        gtBlocks: [
-                            { id: 1, type: 'heading', level: 2, content: 'Architectural Blueprint: Universal Document Model' },
-                            { id: 2, type: 'paragraph', content: 'In 2026, content platforms decouple the storage format from the editor UI. A single canonical representation converts seamlessly between ProseMirror JSON, Gutenberg blocks, and Markdown.' },
-                            { id: 3, type: 'quote', content: '"The canonical document must never belong to a single editor engine." — Architecture Rule #1' }
-                        ],
-                        addGtBlock(type) {
-                            this.gtBlocks.push({
-                                id: Date.now(),
-                                type: type,
-                                level: type === 'heading' ? 2 : undefined,
-                                content: type === 'heading' ? 'New Section Heading' : (type === 'quote' ? 'Blockquote text...' : 'New paragraph content...')
-                            });
-                            this.wordCount += 12;
-                        },
-                        removeGtBlock(idx) {
-                            this.gtBlocks.splice(idx, 1);
-                        },
-
-                        // Notion State
-                        notionBlocks: [
-                            { id: 1, type: 'heading', text: 'Universal Content Workspace' },
-                            { id: 2, type: 'callout', text: '💡 Notion-style drag handle ⠿ and slash command / trigger quick structural mutations.' },
-                            { id: 3, type: 'text', text: 'Click anywhere to edit, drag to rearrange, or use / for fast formatting blocks.' }
-                        ],
-
-                        // AI Streaming Simulation Action
-                        runDemoAi(type) {
-                            this.isStreaming = true;
-                            this.streamingToken = 'Routing prompt to ' + this.selectedAiModel + '...';
-                            
-                            setTimeout(() => {
-                                if (type === 'generate') {
-                                    this.streamingToken = '✓ Generated: Multi-tier streaming proxy provides token quota pre-flight checks and real-time SSE multiplexing across distributed AI clusters.';
-                                    this.wordCount += 24;
-                                    this.seoScore = 98;
-                                } else if (type === 'rewrite') {
-                                    this.streamingToken = '✓ Polished: Decoupled AI routing ensures resilient failover and zero downtime for mission-critical enterprise publishing teams.';
-                                } else if (type === 'seo') {
-                                    this.streamingToken = '✓ SEO Optimization Complete: Added LSI keywords, balanced H2 density, and generated SERP meta description.';
-                                    this.seoScore = 99;
-                                }
-                                this.isStreaming = false;
-                            }, 700);
-                        }
-                    }"
+                    x-data="multiEditorDemo"
                     class="glass-elevated rounded-3xl overflow-hidden border border-white/15 shadow-2xl space-y-0"
                 >
                     <!-- Studio Top Navigation & Engine Selector Bar -->
@@ -821,4 +765,64 @@ Modern content production platforms demand high-throughput intelligence routing 
             </div>
         </div>
     </footer>
+
+    <!-- Alpine.js Component Definition Script for Clean, Quote-Safe Initialization -->
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('multiEditorDemo', () => ({
+                activeEngine: 'tiptap',
+                activeIntelTab: 'seo',
+                isStreaming: false,
+                aiPromptText: 'Write a compelling deep-dive on decoupled AI multi-editor architecture in 2026',
+                selectedAiModel: 'Claude 3.7 Sonnet (OmniRoute)',
+                streamingToken: '',
+                wordCount: 428,
+                seoScore: 94,
+                readScore: 82,
+
+                gtBlocks: [
+                    { id: 1, type: 'heading', level: 2, content: 'Architectural Blueprint: Universal Document Model' },
+                    { id: 2, type: 'paragraph', content: 'In 2026, content platforms decouple the storage format from the editor UI. A single canonical representation converts seamlessly between ProseMirror JSON, Gutenberg blocks, and Markdown.' },
+                    { id: 3, type: 'quote', content: 'The canonical document must never belong to a single editor engine. — Architecture Rule #1' }
+                ],
+                addGtBlock(type) {
+                    this.gtBlocks.push({
+                        id: Date.now(),
+                        type: type,
+                        level: type === 'heading' ? 2 : undefined,
+                        content: type === 'heading' ? 'New Section Heading' : (type === 'quote' ? 'Blockquote text...' : 'New paragraph content...')
+                    });
+                    this.wordCount += 12;
+                },
+                removeGtBlock(idx) {
+                    this.gtBlocks.splice(idx, 1);
+                },
+
+                notionBlocks: [
+                    { id: 1, type: 'heading', text: 'Universal Content Workspace' },
+                    { id: 2, type: 'callout', text: '💡 Notion-style drag handle ⠿ and slash command / trigger quick structural mutations.' },
+                    { id: 3, type: 'text', text: 'Click anywhere to edit, drag to rearrange, or use / for fast formatting blocks.' }
+                ],
+
+                runDemoAi(type) {
+                    this.isStreaming = true;
+                    this.streamingToken = 'Routing prompt to ' + this.selectedAiModel + '...';
+                    
+                    setTimeout(() => {
+                        if (type === 'generate') {
+                            this.streamingToken = '✓ Generated: Multi-tier streaming proxy provides token quota pre-flight checks and real-time SSE multiplexing across distributed AI clusters.';
+                            this.wordCount += 24;
+                            this.seoScore = 98;
+                        } else if (type === 'rewrite') {
+                            this.streamingToken = '✓ Polished: Decoupled AI routing ensures resilient failover and zero downtime for mission-critical enterprise publishing teams.';
+                        } else if (type === 'seo') {
+                            this.streamingToken = '✓ SEO Optimization Complete: Added LSI keywords, balanced H2 density, and generated SERP meta description.';
+                            this.seoScore = 99;
+                        }
+                        this.isStreaming = false;
+                    }, 700);
+                }
+            }));
+        });
+    </script>
 </x-layouts.app>
