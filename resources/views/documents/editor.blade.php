@@ -455,43 +455,35 @@
                     </div>
                 </div>
 
-                <!-- Live AI Real-time Streaming Stream Canvas Container -->
+                <!-- Direct In-Canvas AI Generation Active Indicator -->
                 <div 
-                    x-show="showAiStreamBanner"
-                    x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 -translate-y-2"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    class="mb-6 p-4 rounded-3xl bg-indigo-950/40 border-2 border-indigo-500/50 shadow-2xl backdrop-blur-2xl space-y-3 animate-in"
+                    x-show="isTransforming"
+                    x-transition:enter="transition ease-out duration-150"
+                    x-transition:enter-start="opacity-0 -translate-y-2 scale-95"
+                    x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                    class="mb-4 px-4 py-2.5 rounded-2xl bg-indigo-950/80 border border-indigo-500/50 shadow-xl backdrop-blur-xl flex items-center justify-between gap-3 text-xs animate-in"
                     style="display: none;"
                 >
-                    <div class="flex items-center justify-between pb-2 border-b border-indigo-500/20">
-                        <div class="flex items-center gap-3">
-                            <span class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></span>
-                            <div>
-                                <div class="text-xs font-bold text-white flex items-center gap-2">
-                                    <span>✦ AI Live Streaming to Canvas</span>
-                                    <span class="text-[10px] font-mono text-indigo-300 font-normal" x-text="'(' + routedModel + ')'"></span>
-                                </div>
-                                <p class="text-[11px] text-slate-400">Tokens are rendering directly into the active document.</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button type="button" x-on:click="abortAiTransform()" class="px-2.5 py-1 rounded-xl bg-red-600/30 hover:bg-red-600 text-red-300 hover:text-white text-xs font-bold">■ Stop</button>
-                        </div>
+                    <div class="flex items-center gap-2.5">
+                        <span class="relative flex h-3 w-3">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+                        </span>
+                        <span class="font-bold text-white flex items-center gap-1.5">
+                            <span>✦ AI Generating Live in Canvas</span>
+                            <span class="text-[10px] font-mono text-indigo-300 font-normal" x-text="'(' + routedModel + ')'"></span>
+                        </span>
                     </div>
 
-                    <!-- Live Streamed Text Preview with Blinking Cursor -->
-                    <div class="p-3 rounded-2xl bg-slate-950/80 border border-indigo-500/30 text-xs text-slate-200 font-sans leading-relaxed max-h-60 overflow-y-auto whitespace-pre-wrap">
-                        <span x-text="liveAiStreamText"></span><span x-show="isTransforming" class="inline-block w-2 h-4 ml-1 bg-indigo-400 animate-pulse align-middle"></span>
-                    </div>
-
-                    <!-- Post-Generation Action Ribbon -->
-                    <div x-show="!isTransforming && liveAiStreamText" class="flex items-center justify-between pt-1 text-xs">
-                        <span class="text-[10px] font-mono text-emerald-400 font-bold">✓ Generation Complete</span>
-                        <div class="flex items-center gap-2">
-                            <button type="button" x-on:click="copyStreamText()" class="px-2.5 py-1 rounded-lg bg-slate-900 border border-white/10 text-slate-300 hover:text-white text-xs">📋 Copy</button>
-                            <button type="button" x-on:click="acceptAiStream()" class="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs">✓ Keep & Insert to Canvas</button>
-                        </div>
+                    <div class="flex items-center gap-2 font-mono text-[11px]">
+                        <span class="text-slate-400 text-[10px]" x-text="liveAiStreamText.length + ' chars'"></span>
+                        <button 
+                            type="button" 
+                            x-on:click="abortAiTransform()" 
+                            class="px-2.5 py-1 rounded-xl bg-red-600/30 hover:bg-red-600 text-red-300 hover:text-white font-bold text-xs transition-colors flex items-center gap-1 cursor-pointer"
+                        >
+                            <span>■</span> <span>Stop (Esc)</span>
+                        </button>
                     </div>
                 </div>
 
@@ -1550,6 +1542,15 @@ document.addEventListener('alpine:init', () => {
                 let buffer = '';
                 let fullResult = '';
 
+                // Capture pre-stream document state for live in-canvas generation
+                const initialHtml = this.editorInstance ? this.editorInstance.getHTML() : '';
+                const isBlankDoc = !initialHtml || 
+                                   initialHtml === '<p></p>' || 
+                                   initialHtml === '<p>Start building your block content...</p>' || 
+                                   initialHtml.trim().length === 0;
+
+                let lastCanvasUpdate = 0;
+
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
@@ -1570,6 +1571,16 @@ document.addEventListener('alpine:init', () => {
                                 if (parsed.result) {
                                     fullResult = parsed.result;
                                     this.liveAiStreamText = fullResult;
+                                }
+
+                                // LIVE IN-CANVAS TOKEN STREAMING UPDATE (throttled every 60ms for smooth 60fps)
+                                const now = Date.now();
+                                if (now - lastCanvasUpdate > 60 && this.editorInstance) {
+                                    lastCanvasUpdate = now;
+                                    const liveContent = isBlankDoc ? fullResult : (initialHtml + '<p></p>' + fullResult);
+                                    if (typeof this.editorInstance.setContent === 'function') {
+                                        this.editorInstance.setContent(liveContent);
+                                    }
                                 }
                             } catch (e) {}
                         }
