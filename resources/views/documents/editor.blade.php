@@ -34,8 +34,9 @@
         // Layout Docking & Focus Mode
         showLeftPanel: true,
         showRightPanel: true,
-        rightTab: 'seo', // seo, keywords, recommendations, readability, outline, versions
-        focusMode: false,
+        rightTab: 'seo', // seo, keywords, recs, outline, versions
+        targetWordGoal: 1000,
+        showGoalModal: false,
 
         // Capability flags
         caps: { richText: true, blocks: true, markdown: false, undoRedo: true },
@@ -87,6 +88,34 @@
                 level: parseInt(h.tagName[1]),
                 text: h.textContent.trim()
             })).filter(h => h.text.length > 0);
+        },
+
+        scrollToHeading(text) {
+            const container = document.getElementById('tiptap-content-target');
+            if (!container) return;
+            const els = Array.from(container.querySelectorAll('h1, h2, h3, .gt-block, .notion-row'));
+            const match = els.find(el => el.textContent.trim().toLowerCase().includes(text.toLowerCase()));
+            if (match) {
+                match.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                match.classList.add('ring-2', 'ring-indigo-500/50', 'rounded-lg');
+                setTimeout(() => match.classList.remove('ring-2', 'ring-indigo-500/50', 'rounded-lg'), 1500);
+            }
+        },
+
+        setPromptPreset(text) {
+            this.aiPrompt = text;
+            const textarea = document.getElementById('ai-command-prompt');
+            if (textarea) textarea.focus();
+        },
+
+        toggleFocusMode() {
+            if (this.showLeftPanel || this.showRightPanel) {
+                this.showLeftPanel = false;
+                this.showRightPanel = false;
+            } else {
+                this.showLeftPanel = true;
+                this.showRightPanel = true;
+            }
         },
 
         initEditor() {
@@ -260,6 +289,24 @@
         $wire.on('editor:reload', () => {
             initEditor();
         });
+
+        // Global productivity keyboard shortcuts
+        window.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+                e.preventDefault();
+                $wire.saveExplicitSnapshot();
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                showLeftPanel = true;
+                const p = document.getElementById('ai-command-prompt');
+                if (p) p.focus();
+            }
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
+                e.preventDefault();
+                toggleFocusMode();
+            }
+        });
     "
 >
     <!-- ========================================================================= -->
@@ -328,23 +375,32 @@
                 <span>{{ $saveStatusText }}</span>
             </div>
 
-            <!-- Layout Panel Toggles (Focus Mode) -->
+            <!-- Focus Mode & Panel Toggles -->
             <div class="flex items-center rounded-xl bg-slate-900 border border-white/10 p-0.5">
                 <button 
                     type="button" 
                     x-on:click="showLeftPanel = !showLeftPanel" 
                     :class="showLeftPanel ? 'bg-indigo-600/30 text-indigo-300' : 'text-slate-400 hover:text-white'"
                     class="p-1.5 rounded-lg text-xs font-mono transition-colors" 
-                    title="Toggle AI Command Center (Left Panel)"
+                    title="Toggle AI Command Center (Ctrl+K)"
                 >
                     ◧ AI
+                </button>
+                <button 
+                    type="button" 
+                    x-on:click="toggleFocusMode()" 
+                    :class="(!showLeftPanel && !showRightPanel) ? 'bg-purple-600/40 text-purple-300' : 'text-slate-400 hover:text-white'"
+                    class="p-1.5 rounded-lg text-xs font-mono transition-colors" 
+                    title="Zen Focus Mode (Ctrl+Shift+F)"
+                >
+                    ⛶ Focus
                 </button>
                 <button 
                     type="button" 
                     x-on:click="showRightPanel = !showRightPanel" 
                     :class="showRightPanel ? 'bg-indigo-600/30 text-indigo-300' : 'text-slate-400 hover:text-white'"
                     class="p-1.5 rounded-lg text-xs font-mono transition-colors" 
-                    title="Toggle Content Intelligence (Right Panel)"
+                    title="Toggle Content Intelligence"
                 >
                     ◨ Intel
                 </button>
@@ -406,8 +462,9 @@
                 variant="primary" 
                 size="sm" 
                 wire:click="saveExplicitSnapshot"
+                title="Save snapshot (Ctrl+S)"
             >
-                💾 Save Snapshot
+                💾 Save (Ctrl+S)
             </x-glass.button>
         </div>
     </div>
@@ -437,15 +494,27 @@
                         <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
                         <h2 class="text-xs uppercase font-bold text-white tracking-wider">AI Command Center</h2>
                     </div>
-                    <span class="text-[10px] font-mono text-indigo-400 font-bold px-2 py-0.5 rounded bg-indigo-600/20 border border-indigo-500/30">Active</span>
+                    <span class="text-[10px] font-mono text-indigo-400 font-bold px-2 py-0.5 rounded bg-indigo-600/20 border border-indigo-500/30">OmniRoute</span>
+                </div>
+
+                <!-- Prompt Presets Chips -->
+                <div class="space-y-1.5">
+                    <span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Prompt Presets</span>
+                    <div class="flex flex-wrap gap-1">
+                        <button type="button" x-on:click="setPromptPreset('Write 5 key executive takeaways for this topic')" class="px-2 py-0.5 rounded-lg bg-slate-900/80 hover:bg-indigo-600/20 text-slate-300 hover:text-indigo-300 text-[10px] border border-white/5 transition-colors">💡 5 Key Takeaways</button>
+                        <button type="button" x-on:click="setPromptPreset('Generate an FAQ section with 3 common questions')" class="px-2 py-0.5 rounded-lg bg-slate-900/80 hover:bg-indigo-600/20 text-slate-300 hover:text-indigo-300 text-[10px] border border-white/5 transition-colors">❓ FAQ Section</button>
+                        <button type="button" x-on:click="setPromptPreset('Expand the introduction with compelling industry statistics')" class="px-2 py-0.5 rounded-lg bg-slate-900/80 hover:bg-indigo-600/20 text-slate-300 hover:text-indigo-300 text-[10px] border border-white/5 transition-colors">+ Intro Stats</button>
+                    </div>
                 </div>
 
                 <!-- Ask AI Input Card -->
                 <div class="space-y-2">
-                    <label class="text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
-                        <span>✦ Ask AI / Custom Prompt</span>
+                    <label class="text-[11px] font-bold text-slate-300 flex items-center justify-between">
+                        <span>✦ Ask AI Prompt</span>
+                        <span class="text-[9px] font-mono text-slate-500">Ctrl+K</span>
                     </label>
                     <textarea 
+                        id="ai-command-prompt"
                         x-model="aiPrompt"
                         rows="3"
                         placeholder="Tell AI what you want to do... (e.g. Write a highly engaging intro for my blog post)"
@@ -460,7 +529,7 @@
                     >
                         <span x-show="!isTransforming">✦ Generate with AI</span>
                         <span x-show="isTransforming" class="animate-spin text-sm">⟳</span>
-                        <span x-show="isTransforming">Generating...</span>
+                        <span x-show="isTransforming">Streaming Tokens...</span>
                     </button>
                 </div>
 
@@ -579,10 +648,13 @@
                         </div>
                     </template>
 
-                    <!-- Markdown badge -->
+                    <!-- Markdown badge & helpers -->
                     <template x-if="caps.markdown && !caps.richText">
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1.5">
                             <span class="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 text-[11px] font-mono border border-indigo-500/20">📝 Markdown Active</span>
+                            <button type="button" x-on:click="if (editorInstance) editorInstance.insertContent ? editorInstance.insertContent('\n## ') : null" class="px-2 py-1 rounded hover:bg-white/10 text-slate-300 text-xs font-mono">## H2</button>
+                            <button type="button" x-on:click="if (editorInstance) editorInstance.insertContent ? editorInstance.insertContent('**bold**') : null" class="px-2 py-1 rounded hover:bg-white/10 text-slate-300 text-xs font-mono">**B**</button>
+                            <button type="button" x-on:click="if (editorInstance) editorInstance.insertContent ? editorInstance.insertContent('- [ ] ') : null" class="px-2 py-1 rounded hover:bg-white/10 text-slate-300 text-xs font-mono">✓ Todo</button>
                             <span class="w-[1px] h-4 bg-white/10 mx-1"></span>
                         </div>
                     </template>
@@ -604,7 +676,7 @@
                     </template>
                 </div>
 
-                <!-- Word & Reading Metrics -->
+                <!-- Word & Reading Metrics with Goal Progress -->
                 <div class="flex items-center gap-3 text-xs text-slate-400 font-mono pr-2">
                     <span><strong class="text-white" x-text="wordCount">0</strong> words</span>
                     <span>&bull;</span>
@@ -685,8 +757,8 @@
                     </div>
                 </div>
 
-                <!-- Active Editor Engine Canvas Mount Target -->
-                <div id="tiptap-content-target" class="min-h-[550px]"></div>
+                <!-- Active Editor Engine Canvas Mount Target (wire:ignore for lightspeed typing) -->
+                <div id="tiptap-content-target" class="min-h-[550px]" wire:ignore></div>
             </x-glass.card>
         </div>
 
@@ -704,6 +776,7 @@
                     <div class="flex items-center gap-1.5">
                         <span class="text-xs uppercase font-bold text-white tracking-wider">Content Intelligence</span>
                     </div>
+                    <span class="text-[10px] font-mono text-emerald-400 font-bold" x-text="'Goal: ' + Math.min(100, Math.round((wordCount/targetWordGoal)*100)) + '%'"></span>
                 </div>
 
                 <!-- Tab Selectors -->
@@ -834,16 +907,17 @@
                     </div>
                 </div>
 
-                <!-- TAB 4: OUTLINE TREE -->
+                <!-- TAB 4: OUTLINE TREE WITH CLICK-TO-SCROLL -->
                 <div x-show="rightTab === 'outline'" class="space-y-2" style="display: none;">
-                    <span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Document Outline</span>
+                    <span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Document Outline (Click to Scroll)</span>
                     <div class="space-y-1 max-h-96 overflow-y-auto font-mono text-xs pr-1">
                         <template x-if="docOutline.length === 0">
                             <p class="text-slate-500 text-xs italic py-2">No headings detected yet. Add H1, H2, or H3 to generate structure.</p>
                         </template>
                         <template x-for="(item, idx) in docOutline" :key="idx">
                             <div 
-                                class="p-1.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer text-slate-300 hover:text-white flex items-center gap-2"
+                                x-on:click="scrollToHeading(item.text)"
+                                class="p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer text-slate-300 hover:text-white flex items-center gap-2"
                                 :class="{
                                     'pl-2 font-bold text-indigo-300': item.level === 1,
                                     'pl-5 text-slate-300': item.level === 2,
@@ -886,7 +960,7 @@
     </div>
 
     <!-- ========================================================================= -->
-    <!-- STICKY BOTTOM STATUS BAR                                                  -->
+    <!-- STICKY BOTTOM STATUS BAR WITH GOAL TRACKER                                -->
     <!-- ========================================================================= -->
     <div class="sticky bottom-0 z-20 mt-4 p-3 rounded-2xl glass-elevated border border-white/10 shadow-2xl flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-slate-400">
         <div class="flex flex-wrap items-center gap-4">
@@ -899,6 +973,8 @@
             <span>SEO: <strong class="{{ ($seoData['score'] ?? 0) >= 80 ? 'text-emerald-400' : 'text-yellow-400' }}">{{ $seoData['score'] ?? 0 }}/100</strong></span>
             <span>&bull;</span>
             <span>Readability: <strong class="text-cyan-400">{{ ($seoData['readability_score'] ?? 0) >= 60 ? 'Good' : 'Standard' }}</strong></span>
+            <span class="hidden md:inline">&bull;</span>
+            <span class="hidden md:inline text-slate-300">Goal: <strong class="text-emerald-400" x-text="wordCount + '/' + targetWordGoal"></strong> (<span x-text="Math.min(100, Math.round((wordCount/targetWordGoal)*100)) + '%'"></span>)</span>
         </div>
 
         <div class="flex items-center gap-4">
