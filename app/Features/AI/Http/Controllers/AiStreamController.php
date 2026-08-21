@@ -151,6 +151,18 @@ class AiStreamController extends Controller
             : ($validated['text'] . (!empty($validated['custom_instruction']) ? "\n\nInstruction: " . $validated['custom_instruction'] : ''));
 
         $systemPrompt = $action->getSystemPrompt($validated['type'], $validated['custom_instruction'] ?? null);
+
+        // Ground with Knowledge Base RAG context if available
+        try {
+            $ragAction = app(\App\Features\KnowledgeBase\Actions\RetrieveRagContext::class);
+            $ragResult = $ragAction->execute($user, $userContent, limit: 3);
+            if (!empty($ragResult['has_context']) && !empty($ragResult['prompt_snippet'])) {
+                $systemPrompt .= "\n\n" . $ragResult['prompt_snippet'];
+            }
+        } catch (\Throwable $e) {
+            // Non-blocking fallback
+        }
+
         $messages = [
             ['role' => 'system', 'content' => $systemPrompt],
             ['role' => 'user', 'content' => $userContent],

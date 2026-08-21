@@ -98,6 +98,18 @@ class TransformText
         $customInstruction = $options['custom_instruction'] ?? null;
         $systemPrompt = $this->getSystemPrompt($transformationType, $customInstruction);
 
+        // Ground with Knowledge Base RAG context if available
+        try {
+            $ragAction = app(\App\Features\KnowledgeBase\Actions\RetrieveRagContext::class);
+            $queryText = !empty($customInstruction) ? $customInstruction : $text;
+            $ragResult = $ragAction->execute($user, $queryText, limit: 3);
+            if (!empty($ragResult['has_context']) && !empty($ragResult['prompt_snippet'])) {
+                $systemPrompt .= "\n\n" . $ragResult['prompt_snippet'];
+            }
+        } catch (\Throwable $e) {
+            // Non-blocking fallback
+        }
+
         $messages = [
             ['role' => 'system', 'content' => $systemPrompt],
             ['role' => 'user', 'content' => $text],
