@@ -1567,21 +1567,34 @@ document.addEventListener('alpine:init', () => {
                     }
                 }
 
-                // DIRECT IN-CANVAS INTEGRATION
+                // DIRECT IN-CANVAS INTEGRATION ACROSS ALL ENGINES
                 if (fullResult.trim().length > 0 && this.editorInstance) {
                     if (this.hasSelection && typeof this.editorInstance.replaceSelection === 'function') {
                         this.editorInstance.replaceSelection(fullResult);
-                        this.addLog('AI', 'Replaced selected range with ' + fullResult.length + ' chars (' + this.routedModel + ')');
+                        this.addLog('AI', 'Replaced selected range (' + fullResult.length + ' chars)');
                     } else {
                         const currentHtml = this.editorInstance.getHTML ? this.editorInstance.getHTML() : '';
-                        const isDocEmpty = !currentHtml || currentHtml === '<p></p>' || currentHtml.trim().length === 0;
+                        const isDocEmpty = !currentHtml || 
+                                           currentHtml === '<p></p>' || 
+                                           currentHtml === '<p>Start building your block content...</p>' || 
+                                           currentHtml.trim().length === 0;
 
                         if (isDocEmpty) {
                             this.editorInstance.setContent(fullResult);
-                            this.addLog('GENERATE', 'Generated initial full post (' + fullResult.length + ' chars)');
+                            this.addLog('GENERATE', 'Generated complete publication (' + fullResult.length + ' chars)');
                         } else {
                             this.insertContentIntoCanvas(fullResult, true);
-                            this.addLog('GENERATE', 'Appended generated block (' + fullResult.length + ' chars)');
+                            this.addLog('GENERATE', 'Appended generated section (' + fullResult.length + ' chars)');
+                        }
+                    }
+
+                    // Inferred Document Title Auto-Update
+                    const h1Match = fullResult.match(/<h1>(.*?)<\/h1>/i) || fullResult.match(/^#\s+(.*?)$/m);
+                    if (h1Match && h1Match[1]) {
+                        const extractedTitle = h1Match[1].replace(/<[^>]*>/g, '').trim();
+                        if (extractedTitle) {
+                            Livewire.dispatch('updateTitle', { newTitle: extractedTitle });
+                            this.addLog('SEO', 'Auto-applied document title: "' + extractedTitle.substring(0, 30) + '..."');
                         }
                     }
                 }

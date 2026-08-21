@@ -163,6 +163,33 @@ export class NotionDriver {
         return temp.textContent || '';
     }
 
+    
+    insertContent(html) {
+        const temp = document.createElement('div');
+        temp.innerHTML = html;
+        const newBlocks = [];
+        Array.from(temp.children).forEach(el => {
+            const tag = el.tagName.toLowerCase();
+            if (/^h[1-6]$/.test(tag)) {
+                newBlocks.push({ id: this.genId(), type: 'heading', level: parseInt(tag[1]), content: el.innerHTML });
+            } else if (tag === 'blockquote') {
+                newBlocks.push({ id: this.genId(), type: 'callout', content: el.innerHTML });
+            } else {
+                newBlocks.push({ id: this.genId(), type: 'paragraph', content: el.innerHTML });
+            }
+        });
+        if (newBlocks.length === 0 && html.trim()) {
+            newBlocks.push({ id: this.genId(), type: 'paragraph', content: html });
+        }
+        this.blocks = [...this.blocks, ...newBlocks];
+        this.renderBlocks();
+        this.triggerUpdate();
+    }
+
+    replaceSelection(replacement) {
+        this.insertContent(replacement);
+    }
+
     setContent(html) {
         this.parseHtml(html || '');
         this.renderBlocks();

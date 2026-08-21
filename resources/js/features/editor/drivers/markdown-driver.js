@@ -108,6 +108,22 @@ export class MarkdownDriver {
         return `<p>${html}</p>`.replace(/<p><h/g, '<h').replace(/<\/h1><\/p>/g, '</h1>').replace(/<\/h2><\/p>/g, '</h2>');
     }
 
+    
+    insertContent(content) {
+        if (this.textarea) {
+            const mdContent = content.includes('<') ? this.htmlToMarkdown(content) : content;
+            const start = this.textarea.selectionStart || this.textarea.value.length;
+            const end = this.textarea.selectionEnd || this.textarea.value.length;
+            this.textarea.value = this.textarea.value.substring(0, start) + '\n\n' + mdContent + '\n\n' + this.textarea.value.substring(end);
+            this.updatePreview();
+            this.triggerUpdate();
+        }
+    }
+
+    replaceSelection(replacement) {
+        this.insertContent(replacement);
+    }
+
     setContent(content) {
         if (this.textarea) {
             this.textarea.value = this.htmlToMarkdown(content);

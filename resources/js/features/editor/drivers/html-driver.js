@@ -89,6 +89,20 @@ export class HtmlDriver {
         return temp.textContent || '';
     }
 
+    
+    insertContent(html) {
+        if (this.textarea) {
+            const start = this.textarea.selectionStart || this.textarea.value.length;
+            const end = this.textarea.selectionEnd || this.textarea.value.length;
+            this.textarea.value = this.textarea.value.substring(0, start) + '\n' + html + '\n' + this.textarea.value.substring(end);
+            this.triggerUpdate();
+        }
+    }
+
+    replaceSelection(replacement) {
+        this.insertContent(replacement);
+    }
+
     setContent(html) {
         if (this.textarea) {
             this.textarea.value = html || '';

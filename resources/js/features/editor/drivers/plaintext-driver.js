@@ -65,7 +65,7 @@ export class PlainTextDriver {
 
     triggerUpdate() {
         const text = this.textarea.value;
-        const html = `<p>${e(text)}</p>`.replace(/\n/g, '<br>');
+        const html = `<p>${text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`.replace(/\n/g, '<br>');
         const words = text.trim().split(/\s+/).filter(Boolean).length;
         const chars = text.length;
 
@@ -79,6 +79,21 @@ export class PlainTextDriver {
                 this.config.onAutosave({ html, text, words, chars });
             }
         }, this.debounceMs);
+    }
+
+    
+    insertContent(content) {
+        if (this.textarea) {
+            const clean = this.stripHtml(content);
+            const start = this.textarea.selectionStart || this.textarea.value.length;
+            const end = this.textarea.selectionEnd || this.textarea.value.length;
+            this.textarea.value = this.textarea.value.substring(0, start) + '\n\n' + clean + '\n\n' + this.textarea.value.substring(end);
+            this.triggerUpdate();
+        }
+    }
+
+    replaceSelection(replacement) {
+        this.insertContent(replacement);
     }
 
     setContent(content) {

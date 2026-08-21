@@ -41,6 +41,7 @@ use App\Features\SEO\Services\SeoAnalyzer;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -316,6 +317,7 @@ class DocumentEditor extends Component
         ];
     }
 
+    #[On('updateTitle')]
     public function applyTitle(string $newTitle)
     {
         $this->title = $newTitle;

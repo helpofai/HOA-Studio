@@ -146,10 +146,14 @@ class AiStreamController extends Controller
             ]);
         }
 
+        $userContent = !empty($validated['custom_instruction']) && ($validated['text'] === 'Document Context' || empty(trim($validated['text'])))
+            ? $validated['custom_instruction']
+            : ($validated['text'] . (!empty($validated['custom_instruction']) ? "\n\nInstruction: " . $validated['custom_instruction'] : ''));
+
         $systemPrompt = $action->getSystemPrompt($validated['type'], $validated['custom_instruction'] ?? null);
         $messages = [
             ['role' => 'system', 'content' => $systemPrompt],
-            ['role' => 'user', 'content' => $validated['text']],
+            ['role' => 'user', 'content' => $userContent],
         ];
 
         return response()->stream(function () use ($client, $messages, $validated, $user, $recordUsage) {
