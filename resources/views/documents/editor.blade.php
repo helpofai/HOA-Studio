@@ -219,7 +219,7 @@
                         <span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 animate-pulse"></span>
                         <h2 class="text-xs uppercase font-extrabold text-white tracking-wider">AI Command Center</h2>
                     </div>
-                    <span class="text-[10px] font-mono text-indigo-400 font-bold px-2 py-0.5 rounded-full bg-indigo-600/20 border border-indigo-500/30">Direct Canvas</span>
+                    <span class="text-[10px] font-mono text-indigo-400 font-bold px-2 py-0.5 rounded-full bg-indigo-600/20 border border-indigo-500/30">Live Canvas</span>
                 </div>
 
                 <!-- 1-Click God-Level Prompt Presets -->
@@ -238,14 +238,14 @@
                 <!-- Custom Ask AI Prompt Area -->
                 <div class="space-y-2">
                     <label class="text-[11px] font-bold text-slate-300 flex items-center justify-between">
-                        <span>✦ Ask AI (Writes Directly into Canvas)</span>
+                        <span>✦ Ask AI (Writes Live into Editor)</span>
                         <span class="text-[9px] font-mono text-slate-500">Ctrl+K</span>
                     </label>
                     <textarea 
                         id="ai-command-prompt"
                         x-model="aiPrompt"
                         rows="3"
-                        placeholder="e.g. Create a comprehensive blog post about DeepSeek V4 Flash with performance specs and comparisons..."
+                        placeholder="e.g. create a full blog post about deepseek v4 flash with technical specs, pros/cons, and benchmarks..."
                         class="w-full bg-slate-900/90 border border-white/15 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 resize-none font-sans leading-relaxed shadow-inner"
                     ></textarea>
                     
@@ -255,7 +255,7 @@
                         :disabled="isTransforming || !aiPrompt.trim()"
                         class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
                     >
-                        <span x-show="!isTransforming">✍️ Write Directly to Editor</span>
+                        <span x-show="!isTransforming">✍️ Write Live to Editor</span>
                         <span x-show="isTransforming" class="animate-spin text-sm">⟳</span>
                         <span x-show="isTransforming">Streaming Tokens to Canvas...</span>
                     </button>
@@ -327,6 +327,20 @@
             <!-- Live Capability-Aware Formatting Ribbon -->
             <x-glass.card variant="standard" class="p-2 flex flex-wrap items-center justify-between gap-2 border border-white/10 sticky top-2 z-30 shadow-xl">
                 <div class="flex flex-wrap items-center gap-1 text-xs">
+                    <!-- Inline AI Trigger Button -->
+                    <button 
+                        type="button" 
+                        x-on:click="openInlineAiPrompt()" 
+                        class="px-2.5 py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white font-bold flex items-center gap-1 border border-indigo-500/30 transition-all shadow-sm"
+                        title="Open in-canvas AI Prompt Bar (Ctrl+K or /ai)"
+                    >
+                        <span class="text-xs">✦</span>
+                        <span>Ask AI</span>
+                        <span class="text-[9px] font-mono text-indigo-400 bg-indigo-950/80 px-1 py-0.2 rounded">/</span>
+                    </button>
+
+                    <span class="w-[1px] h-4 bg-white/10 mx-1"></span>
+
                     <!-- Rich-text controls -->
                     <template x-if="caps.richText">
                         <div class="flex flex-wrap items-center gap-1">
@@ -390,26 +404,95 @@
                 class="p-6 sm:p-10 min-h-[650px] border border-white/15 shadow-2xl relative"
                 @contextmenu.prevent="openContextMenu($event)"
             >
-                <!-- Live AI Stream Banner Indicator -->
+                <!-- In-Canvas Floating AI Prompt Bar (Cmd+K / /ai / Slash command) -->
+                <div 
+                    x-show="showInlineAiPrompt"
+                    x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0 -translate-y-3 scale-95"
+                    x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                    class="mb-6 p-4 rounded-3xl bg-slate-900/95 border-2 border-indigo-500/60 shadow-2xl backdrop-blur-2xl space-y-3 animate-in"
+                    style="display: none;"
+                >
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-pulse"></span>
+                            <span class="text-xs font-bold text-white flex items-center gap-1">
+                                <span>✦ In-Canvas AI Assistant</span>
+                                <span class="text-[10px] text-indigo-300 font-mono" x-text="'(' + aiModel + ')'"></span>
+                            </span>
+                        </div>
+                        <button type="button" x-on:click="showInlineAiPrompt = false" class="text-slate-400 hover:text-white text-xs">✕ Esc</button>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <input 
+                            id="inline-ai-input"
+                            type="text" 
+                            x-model="inlineAiPrompt" 
+                            x-on:keydown.enter="submitInlineAiPrompt()"
+                            placeholder="Instruct AI: e.g. Write an in-depth review with technical specs, pros/cons, and benchmarks..."
+                            class="flex-1 bg-slate-950/90 border border-white/15 rounded-2xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-sans shadow-inner"
+                        />
+                        <button 
+                            type="button" 
+                            x-on:click="submitInlineAiPrompt()"
+                            :disabled="isTransforming || !inlineAiPrompt.trim()"
+                            class="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 flex items-center gap-1.5 transition-all disabled:opacity-50"
+                        >
+                            <span x-show="!isTransforming">✦ Generate</span>
+                            <span x-show="isTransforming" class="animate-spin text-xs">⟳</span>
+                            <span x-show="isTransforming">Writing...</span>
+                        </button>
+                    </div>
+
+                    <!-- Quick Prompt Chips -->
+                    <div class="flex flex-wrap items-center gap-1.5 text-[10.5px]">
+                        <span class="text-slate-400 font-mono text-[10px]">Shortcuts:</span>
+                        <button type="button" x-on:click="inlineAiPrompt = 'Write a comprehensive introductory section with a quick answer box'; submitInlineAiPrompt();" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-indigo-600/30 text-slate-300 hover:text-indigo-200 border border-white/5 transition-colors">✨ Intro + Quick Answer</button>
+                        <button type="button" x-on:click="inlineAiPrompt = 'Create a high-impact technical comparison table with pros and cons'; submitInlineAiPrompt();" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-indigo-600/30 text-slate-300 hover:text-indigo-200 border border-white/5 transition-colors">📊 Comparison Table</button>
+                        <button type="button" x-on:click="inlineAiPrompt = 'Generate 4 high-value schema FAQ questions and authoritative answers'; submitInlineAiPrompt();" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-indigo-600/30 text-slate-300 hover:text-indigo-200 border border-white/5 transition-colors">❓ FAQ Block</button>
+                        <button type="button" x-on:click="inlineAiPrompt = 'Write an E-E-A-T testing methodology block with author credibility'; submitInlineAiPrompt();" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-indigo-600/30 text-slate-300 hover:text-indigo-200 border border-white/5 transition-colors">🏆 E-E-A-T Trust Box</button>
+                    </div>
+                </div>
+
+                <!-- Live AI Real-time Streaming Stream Canvas Container -->
                 <div 
                     x-show="showAiStreamBanner"
                     x-transition:enter="transition ease-out duration-200"
                     x-transition:enter-start="opacity-0 -translate-y-2"
                     x-transition:enter-end="opacity-100 translate-y-0"
-                    class="mb-4 p-3 rounded-2xl bg-indigo-950/60 border border-indigo-500/40 flex items-center justify-between shadow-xl backdrop-blur-xl"
+                    class="mb-6 p-4 rounded-3xl bg-indigo-950/40 border-2 border-indigo-500/50 shadow-2xl backdrop-blur-2xl space-y-3 animate-in"
                     style="display: none;"
                 >
-                    <div class="flex items-center gap-3">
-                        <span class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></span>
-                        <div>
-                            <div class="text-xs font-bold text-white flex items-center gap-2">
-                                <span>✦ AI Writing in Progress...</span>
-                                <span class="text-[10px] font-mono text-indigo-300 font-normal" x-text="'(' + routedModel + ')'"></span>
+                    <div class="flex items-center justify-between pb-2 border-b border-indigo-500/20">
+                        <div class="flex items-center gap-3">
+                            <span class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></span>
+                            <div>
+                                <div class="text-xs font-bold text-white flex items-center gap-2">
+                                    <span>✦ AI Live Streaming to Canvas</span>
+                                    <span class="text-[10px] font-mono text-indigo-300 font-normal" x-text="'(' + routedModel + ')'"></span>
+                                </div>
+                                <p class="text-[11px] text-slate-400">Tokens are rendering directly into the active document.</p>
                             </div>
-                            <p class="text-[11px] text-slate-400 truncate max-w-md" x-text="liveAiStreamText || 'Streaming tokens directly into editor canvas...'"></p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" x-on:click="abortAiTransform()" class="px-2.5 py-1 rounded-xl bg-red-600/30 hover:bg-red-600 text-red-300 hover:text-white text-xs font-bold">■ Stop</button>
                         </div>
                     </div>
-                    <button type="button" x-on:click="showAiStreamBanner = false" class="px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 text-xs">Dismiss</button>
+
+                    <!-- Live Streamed Text Preview with Blinking Cursor -->
+                    <div class="p-3 rounded-2xl bg-slate-950/80 border border-indigo-500/30 text-xs text-slate-200 font-sans leading-relaxed max-h-60 overflow-y-auto whitespace-pre-wrap">
+                        <span x-text="liveAiStreamText"></span><span x-show="isTransforming" class="inline-block w-2 h-4 ml-1 bg-indigo-400 animate-pulse align-middle"></span>
+                    </div>
+
+                    <!-- Post-Generation Action Ribbon -->
+                    <div x-show="!isTransforming && liveAiStreamText" class="flex items-center justify-between pt-1 text-xs">
+                        <span class="text-[10px] font-mono text-emerald-400 font-bold">✓ Generation Complete</span>
+                        <div class="flex items-center gap-2">
+                            <button type="button" x-on:click="copyStreamText()" class="px-2.5 py-1 rounded-lg bg-slate-900 border border-white/10 text-slate-300 hover:text-white text-xs">📋 Copy</button>
+                            <button type="button" x-on:click="acceptAiStream()" class="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs">✓ Keep & Insert to Canvas</button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Sleek Floating AI Selection Bar -->
@@ -446,6 +529,9 @@
                         <span class="text-slate-500 text-[9px]">Right-Click</span>
                     </div>
 
+                    <button type="button" x-on:click="openInlineAiPrompt()" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-indigo-300 font-bold flex items-center gap-2">
+                        <span>✦</span> <span>Ask AI Inline...</span>
+                    </button>
                     <button type="button" x-on:click="triggerAiTransform('rewrite')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2">
                         <span class="text-cyan-400">↻</span> <span>Rewrite & Polish</span>
                     </button>
@@ -644,7 +730,7 @@
                         <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
                             @if(!empty($aiMetaDescriptions))
                                 @foreach($aiMetaDescriptions as $idx => $sugMeta)
-                                    <div class="p-2.5 rounded-xl bg-slate-950/80 border border-white/5 space-y-1.5 group hover:border-purple-500/30 transition-all text-xs">
+                                    <div class="p-2.5 rounded-xl bg-slate-950/80 border border-purple-500/30 transition-all text-xs space-y-1.5">
                                         <div class="text-slate-200 text-[11.5px] leading-relaxed">{{ $sugMeta }}</div>
                                         <div class="flex items-center justify-between pt-1 border-t border-white/5">
                                             <span class="text-[10px] font-mono {{ mb_strlen($sugMeta) <= 160 ? 'text-emerald-400' : 'text-amber-400' }}">{{ mb_strlen($sugMeta) }} / 160 chars</span>
@@ -1004,6 +1090,8 @@ document.addEventListener('alpine:init', () => {
         lossyEngines: { plaintext: true, html: true },
 
         aiPrompt: '',
+        inlineAiPrompt: '',
+        showInlineAiPrompt: false,
         aiModel: 'Auto (OmniRoute)',
         aiContext: {
             currentDoc: true,
@@ -1019,6 +1107,7 @@ document.addEventListener('alpine:init', () => {
         routedModel: 'OmniRoute',
         liveAiStreamText: '',
         showAiStreamBanner: false,
+        abortController: null,
 
         showContextMenu: false,
         contextMenuX: 0,
@@ -1046,9 +1135,7 @@ document.addEventListener('alpine:init', () => {
                 }
                 if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
                     e.preventDefault();
-                    this.showLeftPanel = true;
-                    const p = document.getElementById('ai-command-prompt');
-                    if (p) p.focus();
+                    this.openInlineAiPrompt();
                 }
                 if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
                     e.preventDefault();
@@ -1056,6 +1143,7 @@ document.addEventListener('alpine:init', () => {
                 }
                 if (e.key === 'Escape') {
                     this.closeContextMenu();
+                    this.showInlineAiPrompt = false;
                 }
             });
         },
@@ -1068,7 +1156,7 @@ document.addEventListener('alpine:init', () => {
             const driverType = config.editorType || 'tiptap';
             this.editorInstance = window.HOA_EditorManager.createEditor(driverType, 'tiptap-content-target', {
                 initialContent: config.initialContent || '<p></p>',
-                placeholder: 'Type / for AI commands or begin writing...',
+                placeholder: 'Type / for AI commands or press Ctrl+K to ask AI...',
                 onStatsChange: (stats) => {
                     this.wordCount = stats.words;
                     this.characterCount = stats.characters;
@@ -1088,6 +1176,22 @@ document.addEventListener('alpine:init', () => {
                 this.caps = { ...this.caps, ...this.editorInstance.capabilities };
             }
             this.updateOutline();
+        },
+
+        openInlineAiPrompt() {
+            this.showInlineAiPrompt = true;
+            this.$nextTick(() => {
+                const el = document.getElementById('inline-ai-input');
+                if (el) el.focus();
+            });
+        },
+
+        submitInlineAiPrompt() {
+            if (!this.inlineAiPrompt.trim()) return;
+            const prompt = this.inlineAiPrompt;
+            this.inlineAiPrompt = '';
+            this.showInlineAiPrompt = false;
+            this.triggerAiTransform('custom', prompt);
         },
 
         openContextMenu(event) {
@@ -1140,6 +1244,28 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
+        acceptAiStream() {
+            if (this.liveAiStreamText) {
+                this.insertContentIntoCanvas(this.liveAiStreamText, true);
+                this.showAiStreamBanner = false;
+                this.liveAiStreamText = '';
+            }
+        },
+
+        copyStreamText() {
+            if (this.liveAiStreamText) {
+                navigator.clipboard.writeText(this.liveAiStreamText);
+                alert('Copied AI text to clipboard!');
+            }
+        },
+
+        abortAiTransform() {
+            if (this.abortController) {
+                this.abortController.abort();
+            }
+            this.isTransforming = false;
+        },
+
         applyFormat(action, param = null) {
             if (!this.editorInstance) return;
             if (action === 'heading')          this.editorInstance.toggleHeading?.(param);
@@ -1189,12 +1315,14 @@ document.addEventListener('alpine:init', () => {
 
         async triggerAiTransform(type, customInstruction = '') {
             this.closeContextMenu();
+            this.showInlineAiPrompt = false;
             const targetText = this.hasSelection ? this.selectedText : (this.editorInstance ? this.editorInstance.getText() : '');
             
             this.isTransforming = true;
             this.activeAction = type;
             this.liveAiStreamText = '';
             this.showAiStreamBanner = true;
+            this.abortController = new AbortController();
 
             const promptToSend = customInstruction || this.aiPrompt || type;
 
@@ -1211,7 +1339,8 @@ document.addEventListener('alpine:init', () => {
                         type: type,
                         custom_instruction: promptToSend,
                         model: this.aiModel
-                    })
+                    }),
+                    signal: this.abortController.signal
                 });
 
                 if (!response.ok) {
@@ -1250,6 +1379,7 @@ document.addEventListener('alpine:init', () => {
                     }
                 }
 
+                // DIRECT IN-CANVAS INTEGRATION
                 if (fullResult.trim().length > 0 && this.editorInstance) {
                     if (this.hasSelection && typeof this.editorInstance.replaceSelection === 'function') {
                         this.editorInstance.replaceSelection(fullResult);
@@ -1276,14 +1406,18 @@ document.addEventListener('alpine:init', () => {
                     this.aiPrompt = '';
                 }
             } catch (err) {
-                console.error(err);
-                alert('AI Generation notice: ' + err.message);
+                if (err.name !== 'AbortError') {
+                    console.error(err);
+                    alert('AI Generation notice: ' + err.message);
+                }
             } finally {
                 this.isTransforming = false;
                 this.activeAction = null;
                 setTimeout(() => {
-                    this.showAiStreamBanner = false;
-                }, 2500);
+                    if (!this.isTransforming) {
+                        this.showAiStreamBanner = false;
+                    }
+                }, 3000);
             }
         }
     }));
