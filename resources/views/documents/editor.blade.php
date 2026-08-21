@@ -25,294 +25,13 @@
 
 <div 
     class="space-y-4 min-h-screen flex flex-col justify-between"
-    x-data="{
-        editorInstance: null,
-        selectedText: '',
-        hasSelection: false,
-        wordCount: @entangle('wordCount'),
-        characterCount: @entangle('characterCount'),
-        readingTime: @entangle('readingTimeMinutes'),
-
-        // Layout Docking & Focus Mode
-        showLeftPanel: true,
-        showRightPanel: true,
-        rightTab: 'seo', // seo, titles_meta, ai_ideas, keywords, quality, outline, versions
-        targetWordGoal: 1200,
-        serpView: 'desktop', // desktop, mobile
-
-        // Capability flags
-        caps: { richText: true, blocks: true, markdown: false, undoRedo: true },
-
-        // Lossy Switch Guard
-        showLossyWarning: false,
-        pendingEngine: null,
-        lossyEngines: { plaintext: true, html: true },
-
-        // AI Command Center State
-        aiPrompt: '',
-        aiModel: 'Auto (OmniRoute)',
-        aiContext: {
-            currentDoc: true,
-            project: true,
-            brandVoice: true,
-            knowledgeBase: true,
-            webResearch: false
-        },
-        aiHistory: [
-            { id: 1, type: 'Outline Generation', prompt: 'Generate H1/H2/H3 structure for 2026 AI guide', time: 'Just now' },
-            { id: 2, type: 'Quick Answer', prompt: 'Create 2-paragraph TL;DR for search intent', time: '12m ago' },
-            { id: 3, type: 'FAQ Block', prompt: 'Generate 4 high-value schema FAQ pairs', time: '30m ago' }
-        ],
-
-        // Floating AI Selection Assistant State
-        isTransforming: false,
-        activeAction: null,
-        customPrompt: '',
-        showCustomInput: false,
-        showPreviewModal: false,
-        originalText: '',
-        aiResult: '',
-        routedModel: 'OmniRoute',
-        wordsCount: 0,
-        copied: false,
-
-        // Real-time Document Outline
-        docOutline: [],
-        updateOutline() {
-            if (!this.editorInstance) return;
-            const html = this.editorInstance.getHTML ? this.editorInstance.getHTML() : '';
-            const temp = document.createElement('div');
-            temp.innerHTML = html;
-            const headings = temp.querySelectorAll('h1, h2, h3');
-            this.docOutline = Array.from(headings).map(h => ({
-                level: parseInt(h.tagName[1]),
-                text: h.textContent.trim()
-            })).filter(h => h.text.length > 0);
-        },
-
-        scrollToHeading(text) {
-            const container = document.getElementById('tiptap-content-target');
-            if (!container) return;
-            const els = Array.from(container.querySelectorAll('h1, h2, h3, .gt-block, .notion-row'));
-            const match = els.find(el => el.textContent.trim().toLowerCase().includes(text.toLowerCase()));
-            if (match) {
-                match.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                match.classList.add('ring-2', 'ring-indigo-500/60', 'rounded-lg');
-                setTimeout(() => match.classList.remove('ring-2', 'ring-indigo-500/60', 'rounded-lg'), 1500);
-            }
-        },
-
-        insertContentIntoCanvas(htmlContent) {
-            if (!this.editorInstance) return;
-            if (typeof this.editorInstance.insertContent === 'function') {
-                this.editorInstance.insertContent(htmlContent);
-            } else if (typeof this.editorInstance.setContent === 'function') {
-                const current = this.editorInstance.getHTML ? this.editorInstance.getHTML() : '';
-                this.editorInstance.setContent(current + '<br>' + htmlContent);
-            }
-        },
-
-        setPromptPreset(text) {
-            this.aiPrompt = text;
-            const textarea = document.getElementById('ai-command-prompt');
-            if (textarea) textarea.focus();
-        },
-
-        toggleFocusMode() {
-            if (this.showLeftPanel || this.showRightPanel) {
-                this.showLeftPanel = false;
-                this.showRightPanel = false;
-            } else {
-                this.showLeftPanel = true;
-                this.showRightPanel = true;
-            }
-        },
-
-        initEditor() {
-            if (this.editorInstance) {
-                this.editorInstance.destroy();
-            }
-
-            const driverType = '{{ $editorType }}';
-            this.editorInstance = window.HOA_EditorManager.createEditor(driverType, 'tiptap-content-target', {
-                initialContent: @js($contentHtml),
-                placeholder: 'Type / for AI commands or write your content...',
-                onStatsChange: (stats) => {
-                    this.wordCount = stats.words;
-                    this.characterCount = stats.characters;
-                    this.readingTime = Math.max(1, Math.ceil(stats.words / 200));
-                    this.updateOutline();
-                },
-                onSelectionChange: ({ selectedText, isEmpty }) => {
-                    this.selectedText = selectedText;
-                    this.hasSelection = !isEmpty && selectedText.trim().length > 0;
-                },
-                onAutosave: (data) => {
-                    $wire.autosave(data.html, data.json ?? null);
-                }
-            });
-
-            if (this.editorInstance && this.editorInstance.capabilities) {
-                this.caps = { ...this.caps, ...this.editorInstance.capabilities };
-            }
-            this.updateOutline();
-        },
-
-        applyFormat(action, param = null) {
-            if (!this.editorInstance) return;
-            if (action === 'heading')          this.editorInstance.toggleHeading?.(param);
-            else if (action === 'bold')        this.editorInstance.toggleBold?.();
-            else if (action === 'italic')      this.editorInstance.toggleItalic?.();
-            else if (action === 'bulletList')  this.editorInstance.toggleBulletList?.();
-            else if (action === 'orderedList') this.editorInstance.toggleOrderedList?.();
-            else if (action === 'blockquote')  this.editorInstance.toggleBlockquote?.();
-            else if (action === 'codeBlock')   this.editorInstance.toggleCodeBlock?.();
-            else if (action === 'hr')          this.editorInstance.setHorizontalRule?.();
-            else if (action === 'undo')        this.editorInstance.undo?.();
-            else if (action === 'redo')        this.editorInstance.redo?.();
-        },
-
-        requestEngineSwitch(targetEngine) {
-            const currentRich = this.caps.richText || this.caps.blocks;
-            if (currentRich && this.lossyEngines[targetEngine]) {
-                this.pendingEngine = targetEngine;
-                this.showLossyWarning = true;
-            } else {
-                $wire.switchEditorType(targetEngine);
-            }
-        },
-        confirmLossySwitch() {
-            if (this.pendingEngine) $wire.switchEditorType(this.pendingEngine);
-            this.showLossyWarning = false;
-            this.pendingEngine = null;
-        },
-        cancelLossySwitch() {
-            this.showLossyWarning = false;
-            this.pendingEngine = null;
-        },
-
-        async triggerAiTransform(type, customInstruction = '') {
-            const targetText = this.hasSelection ? this.selectedText : (this.editorInstance ? this.editorInstance.getText() : '');
-            if (!targetText && type !== 'generate_outline' && type !== 'generate_faq' && type !== 'quick_answer') return;
-
-            this.isTransforming = true;
-            this.activeAction = type;
-            this.originalText = targetText || 'Document Context';
-            this.aiResult = '';
-            this.showPreviewModal = true;
-
-            try {
-                const response = await fetch('{{ route('ai.stream-transform') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'text/event-stream'
-                    },
-                    body: JSON.stringify({
-                        text: this.originalText,
-                        type: type,
-                        custom_instruction: customInstruction || this.customPrompt || this.aiPrompt,
-                        model: this.aiModel
-                    })
-                });
-
-                if (!response.ok) {
-                    const errData = await response.json().catch(() => ({}));
-                    throw new Error(errData.error || 'Server error while generating transformation.');
-                }
-
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder('utf-8');
-                let buffer = '';
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-
-                    buffer += decoder.decode(value, { stream: true });
-                    const lines = buffer.split('\n');
-                    buffer = lines.pop() || '';
-
-                    for (const line of lines) {
-                        if (line.startsWith('data: ')) {
-                            try {
-                                const parsed = JSON.parse(line.substring(6));
-                                if (parsed.token) this.aiResult += parsed.token;
-                                if (parsed.model) this.routedModel = parsed.model;
-                                if (parsed.result) this.aiResult = parsed.result;
-                                if (parsed.words_used) this.wordsCount = parsed.words_used;
-                            } catch (e) {}
-                        }
-                    }
-                }
-
-                this.aiHistory.unshift({
-                    id: Date.now(),
-                    type: type.replace('_', ' ').toUpperCase(),
-                    prompt: (customInstruction || this.aiPrompt || type).substring(0, 35) + '...',
-                    time: 'Just now'
-                });
-            } catch (err) {
-                console.error(err);
-                this.aiResult = 'Error during AI execution: ' + err.message;
-            } finally {
-                this.isTransforming = false;
-                this.activeAction = null;
-            }
-        },
-
-        applyReplace() {
-            if (!this.aiResult || !this.editorInstance) return;
-            if (this.hasSelection && typeof this.editorInstance.replaceSelection === 'function') {
-                this.editorInstance.replaceSelection(this.aiResult);
-            } else if (typeof this.editorInstance.setContent === 'function') {
-                this.editorInstance.setContent(this.aiResult);
-            }
-            this.showPreviewModal = false;
-        },
-
-        applyInsertBelow() {
-            if (!this.aiResult || !this.editorInstance) return;
-            this.insertContentIntoCanvas('<br><br>' + this.aiResult);
-            this.showPreviewModal = false;
-        },
-
-        copyToClipboard(text) {
-            const target = text || this.aiResult;
-            if (!target) return;
-            navigator.clipboard.writeText(target);
-            this.copied = true;
-            setTimeout(() => { this.copied = false; }, 2000);
-        }
-    }"
-    x-init="
-        initEditor();
-        $wire.on('editor:setContent', ({ content }) => {
-            if (editorInstance) editorInstance.setContent(content);
-        });
-        $wire.on('editor:reload', () => {
-            initEditor();
-        });
-
-        // Global productivity keyboard shortcuts
-        window.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
-                e.preventDefault();
-                $wire.saveExplicitSnapshot();
-            }
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-                e.preventDefault();
-                showLeftPanel = true;
-                const p = document.getElementById('ai-command-prompt');
-                if (p) p.focus();
-            }
-            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
-                e.preventDefault();
-                toggleFocusMode();
-            }
-        });
-    "
+    x-data="documentEditorComponent({
+        editorType: '{{ $editorType }}',
+        streamRoute: '{{ route('ai.stream-transform') }}',
+        csrfToken: '{{ csrf_token() }}',
+        initialContent: @js($contentHtml)
+    })"
+    x-init="init()"
 >
     <!-- ========================================================================= -->
     <!-- TOP DOCUMENT CONTROL & BREADCRUMB BAR                                     -->
@@ -500,14 +219,14 @@
                         <span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 animate-pulse"></span>
                         <h2 class="text-xs uppercase font-extrabold text-white tracking-wider">AI Command Center</h2>
                     </div>
-                    <span class="text-[10px] font-mono text-indigo-400 font-bold px-2 py-0.5 rounded-full bg-indigo-600/20 border border-indigo-500/30">OmniRoute v2.0</span>
+                    <span class="text-[10px] font-mono text-indigo-400 font-bold px-2 py-0.5 rounded-full bg-indigo-600/20 border border-indigo-500/30">Direct Canvas</span>
                 </div>
 
                 <!-- 1-Click God-Level Prompt Presets -->
                 <div class="space-y-1.5">
-                    <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Quick AI Pipelines</span>
+                    <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Direct Content Pipelines</span>
                     <div class="flex flex-wrap gap-1">
-                        <button type="button" x-on:click="triggerAiTransform('generate_outline')" class="px-2 py-1 rounded-lg bg-indigo-950/50 hover:bg-indigo-600/30 text-indigo-300 text-[10.5px] border border-indigo-500/30 transition-colors">📑 Article Outline</button>
+                        <button type="button" x-on:click="triggerAiTransform('generate_outline')" class="px-2 py-1 rounded-lg bg-indigo-950/50 hover:bg-indigo-600/30 text-indigo-300 text-[10.5px] border border-indigo-500/30 transition-colors">📑 Full Outline</button>
                         <button type="button" x-on:click="triggerAiTransform('quick_answer')" class="px-2 py-1 rounded-lg bg-indigo-950/50 hover:bg-indigo-600/30 text-indigo-300 text-[10.5px] border border-indigo-500/30 transition-colors">⚡ Quick Answer</button>
                         <button type="button" x-on:click="triggerAiTransform('generate_faq')" class="px-2 py-1 rounded-lg bg-indigo-950/50 hover:bg-indigo-600/30 text-indigo-300 text-[10.5px] border border-indigo-500/30 transition-colors">❓ FAQ Schema</button>
                         <button type="button" x-on:click="triggerAiTransform('content_gaps')" class="px-2 py-1 rounded-lg bg-indigo-950/50 hover:bg-indigo-600/30 text-indigo-300 text-[10.5px] border border-indigo-500/30 transition-colors">🔍 Content Gaps</button>
@@ -519,14 +238,14 @@
                 <!-- Custom Ask AI Prompt Area -->
                 <div class="space-y-2">
                     <label class="text-[11px] font-bold text-slate-300 flex items-center justify-between">
-                        <span>✦ Ask AI / Custom Workflow</span>
+                        <span>✦ Ask AI (Writes Directly into Canvas)</span>
                         <span class="text-[9px] font-mono text-slate-500">Ctrl+K</span>
                     </label>
                     <textarea 
                         id="ai-command-prompt"
                         x-model="aiPrompt"
                         rows="3"
-                        placeholder="Instruct AI: e.g. Write a search-intent optimized guide with quick answers, comparison tables, and E-E-A-T signals..."
+                        placeholder="e.g. Create a comprehensive blog post about DeepSeek V4 Flash with performance specs and comparisons..."
                         class="w-full bg-slate-900/90 border border-white/15 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 resize-none font-sans leading-relaxed shadow-inner"
                     ></textarea>
                     
@@ -536,9 +255,9 @@
                         :disabled="isTransforming || !aiPrompt.trim()"
                         class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
                     >
-                        <span x-show="!isTransforming">✦ Execute AI Command</span>
+                        <span x-show="!isTransforming">✍️ Write Directly to Editor</span>
                         <span x-show="isTransforming" class="animate-spin text-sm">⟳</span>
-                        <span x-show="isTransforming">Streaming Tokens...</span>
+                        <span x-show="isTransforming">Streaming Tokens to Canvas...</span>
                     </button>
                 </div>
 
@@ -593,11 +312,11 @@
                         x-model="aiModel" 
                         class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 font-mono"
                     >
-                        <option value="Auto (OmniRoute)">⚡ Auto (OmniRoute Intelligent Gateway)</option>
+                        <option value="Auto (OmniRoute)">⚡ Auto (OmniRoute Gateway)</option>
                         <option value="Claude 3.7 Sonnet">Claude 3.7 Sonnet (Anthropic)</option>
                         <option value="GPT-4o">GPT-4o (OpenAI)</option>
                         <option value="Gemini 2.0 Flash">Gemini 2.0 Flash (Google Deepmind)</option>
-                        <option value="DeepSeek-V3">DeepSeek-V3 (Local/Cloud)</option>
+                        <option value="DeepSeek-V3">DeepSeek-V3 (Cloud/Ollama)</option>
                     </select>
                 </div>
             </x-glass.card>
@@ -631,9 +350,9 @@
                     <template x-if="caps.markdown && !caps.richText">
                         <div class="flex items-center gap-1.5">
                             <span class="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 text-[11px] font-mono border border-indigo-500/20">📝 Markdown Active</span>
-                            <button type="button" x-on:click="if (editorInstance) editorInstance.insertContent ? editorInstance.insertContent('\n## ') : null" class="px-2 py-1 rounded hover:bg-white/10 text-slate-300 text-xs font-mono">## H2</button>
-                            <button type="button" x-on:click="if (editorInstance) editorInstance.insertContent ? editorInstance.insertContent('**bold**') : null" class="px-2 py-1 rounded hover:bg-white/10 text-slate-300 text-xs font-mono">**B**</button>
-                            <button type="button" x-on:click="if (editorInstance) editorInstance.insertContent ? editorInstance.insertContent('- [ ] ') : null" class="px-2 py-1 rounded hover:bg-white/10 text-slate-300 text-xs font-mono">✓ Todo</button>
+                            <button type="button" x-on:click="insertMarkdownHeading()" class="px-2 py-1 rounded hover:bg-white/10 text-slate-300 text-xs font-mono">## H2</button>
+                            <button type="button" x-on:click="insertMarkdownBold()" class="px-2 py-1 rounded hover:bg-white/10 text-slate-300 text-xs font-mono">**B**</button>
+                            <button type="button" x-on:click="insertMarkdownTodo()" class="px-2 py-1 rounded hover:bg-white/10 text-slate-300 text-xs font-mono">✓ Todo</button>
                             <span class="w-[1px] h-4 bg-white/10 mx-1"></span>
                         </div>
                     </template>
@@ -665,14 +384,37 @@
                 </div>
             </x-glass.card>
 
-            <!-- Main Editor Writing Surface with Live Diff Stream Modal & Floating Bubble -->
+            <!-- Main Editor Writing Surface with Live AI Stream Banner & Right-Click Context Menu -->
             <x-glass.card 
                 variant="elevated" 
                 class="p-6 sm:p-10 min-h-[650px] border border-white/15 shadow-2xl relative"
+                @contextmenu.prevent="openContextMenu($event)"
             >
-                <!-- Floating Contextual Selection Bubble -->
+                <!-- Live AI Stream Banner Indicator -->
                 <div 
-                    x-show="hasSelection && !showPreviewModal"
+                    x-show="showAiStreamBanner"
+                    x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0 -translate-y-2"
+                    x-transition:enter-end="opacity-100 translate-y-0"
+                    class="mb-4 p-3 rounded-2xl bg-indigo-950/60 border border-indigo-500/40 flex items-center justify-between shadow-xl backdrop-blur-xl"
+                    style="display: none;"
+                >
+                    <div class="flex items-center gap-3">
+                        <span class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></span>
+                        <div>
+                            <div class="text-xs font-bold text-white flex items-center gap-2">
+                                <span>✦ AI Writing in Progress...</span>
+                                <span class="text-[10px] font-mono text-indigo-300 font-normal" x-text="'(' + routedModel + ')'"></span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 truncate max-w-md" x-text="liveAiStreamText || 'Streaming tokens directly into editor canvas...'"></p>
+                        </div>
+                    </div>
+                    <button type="button" x-on:click="showAiStreamBanner = false" class="px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 text-xs">Dismiss</button>
+                </div>
+
+                <!-- Sleek Floating AI Selection Bar -->
+                <div 
+                    x-show="hasSelection && !showContextMenu"
                     x-transition:enter="transition ease-out duration-150"
                     x-transition:enter-start="opacity-0 translate-y-2 scale-95"
                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
@@ -680,7 +422,7 @@
                     style="display: none;"
                 >
                     <div class="flex items-center gap-1.5 px-2 py-1 bg-indigo-600/20 rounded-xl text-indigo-300 font-bold text-[11px]">
-                        <span>✦ AI Selection</span>
+                        <span>✦ Selection AI</span>
                     </div>
 
                     <button type="button" x-on:click="triggerAiTransform('improve')" class="px-2.5 py-1.5 rounded-xl hover:bg-white/10 text-slate-200 hover:text-white font-medium">✧ Polish</button>
@@ -690,50 +432,56 @@
                     <button type="button" x-on:click="triggerAiTransform('simplify')" class="px-2.5 py-1.5 rounded-xl hover:bg-white/10 text-slate-200 hover:text-white font-medium">◇ Simplify</button>
                 </div>
 
-                <!-- Live Stream AI Transformation Preview Modal -->
+                <!-- Custom Right-Click Context Menu -->
                 <div 
-                    x-show="showPreviewModal" 
+                    x-show="showContextMenu"
                     x-transition
-                    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md"
+                    :style="`position: fixed; left: ${contextMenuX}px; top: ${contextMenuY}px;`"
+                    class="z-50 bg-slate-900/95 border border-indigo-500/40 rounded-2xl shadow-2xl backdrop-blur-2xl p-1.5 min-w-[220px] text-xs font-sans space-y-0.5 animate-in zoom-in-95"
                     style="display: none;"
+                    x-on:click.outside="closeContextMenu()"
                 >
-                    <div class="w-full max-w-4xl rounded-3xl glass-elevated border border-white/15 p-6 space-y-6 shadow-2xl animate-in zoom-in-95">
-                        <div class="flex items-center justify-between pb-4 border-b border-white/10">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></span>
-                                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                                    <span>AI Content Transformation</span>
-                                    <span class="text-xs font-normal text-slate-400 font-mono" x-text="'(' + routedModel + ')'"></span>
-                                </h3>
-                            </div>
-                            <button type="button" x-on:click="showPreviewModal = false" class="text-slate-400 hover:text-white p-2">✕</button>
-                        </div>
+                    <div class="px-2.5 py-1.5 text-[10px] uppercase font-bold text-indigo-400 tracking-wider flex items-center justify-between border-b border-white/5 mb-1">
+                        <span>✦ AI Context Menu</span>
+                        <span class="text-slate-500 text-[9px]">Right-Click</span>
+                    </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="space-y-2">
-                                <span class="text-xs font-mono text-slate-400 font-semibold uppercase">Original Text</span>
-                                <div class="p-4 rounded-2xl bg-slate-900/80 border border-white/10 text-xs text-slate-300 font-sans leading-relaxed max-h-80 overflow-y-auto" x-text="originalText"></div>
-                            </div>
-                            <div class="space-y-2">
-                                <span class="text-xs font-mono text-indigo-400 font-semibold uppercase flex items-center justify-between">
-                                    <span>AI Generated Output</span>
-                                    <span x-show="isTransforming" class="text-[10px] text-amber-400 animate-pulse font-normal">Streaming tokens...</span>
-                                </span>
-                                <div class="p-4 rounded-2xl bg-indigo-950/20 border border-indigo-500/30 text-xs text-slate-100 font-sans leading-relaxed max-h-80 overflow-y-auto whitespace-pre-wrap" x-text="aiResult"></div>
-                            </div>
-                        </div>
+                    <button type="button" x-on:click="triggerAiTransform('rewrite')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2">
+                        <span class="text-cyan-400">↻</span> <span>Rewrite & Polish</span>
+                    </button>
+                    <button type="button" x-on:click="triggerAiTransform('expand')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2">
+                        <span class="text-violet-400">+</span> <span>Expand this Section</span>
+                    </button>
+                    <button type="button" x-on:click="triggerAiTransform('shorten')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2">
+                        <span class="text-amber-400">−</span> <span>Shorten & Condense</span>
+                    </button>
+                    <button type="button" x-on:click="triggerAiTransform('generate_faq')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2">
+                        <span class="text-indigo-400">❓</span> <span>Generate FAQ on this</span>
+                    </button>
+                    <button type="button" x-on:click="triggerAiTransform('key_takeaways')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2">
+                        <span class="text-pink-400">💡</span> <span>Extract Key Takeaways</span>
+                    </button>
+                    <button type="button" x-on:click="triggerAiTransform('seo_optimize')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2">
+                        <span class="text-emerald-400">⌁</span> <span>SEO Optimize Text</span>
+                    </button>
 
-                        <div class="flex items-center justify-between pt-4 border-t border-white/10">
-                            <button type="button" x-on:click="copyToClipboard()" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/10 text-slate-300 text-xs font-semibold">
-                                <span x-text="copied ? '✓ Copied' : '📋 Copy Output'"></span>
-                            </button>
-                            <div class="flex items-center gap-2">
-                                <button type="button" x-on:click="showPreviewModal = false" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/10 text-slate-400 text-xs font-semibold">✕ Discard</button>
-                                <button type="button" x-on:click="applyInsertBelow()" class="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-indigo-500/40 text-indigo-300 text-xs font-semibold">⬇ Insert Into Document</button>
-                                <button type="button" x-on:click="applyReplace()" class="px-4 py-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs font-bold shadow-lg shadow-violet-600/30">✓ Replace Selection</button>
-                            </div>
+                    <!-- Change Tone Submenu Trigger -->
+                    <div class="relative" x-data="{ toneSubOpen: false }">
+                        <button type="button" x-on:click="toneSubOpen = !toneSubOpen" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center justify-between">
+                            <span class="flex items-center gap-2"><span>🎨</span> <span>Change Tone</span></span>
+                            <span class="text-[10px] text-slate-400">▶</span>
+                        </button>
+                        <div x-show="toneSubOpen" class="mt-1 p-1 bg-slate-950 rounded-xl border border-white/10 space-y-0.5 text-xs">
+                            <button type="button" x-on:click="triggerAiTransform('tone:professional'); toneSubOpen = false" class="w-full text-left px-2 py-1 rounded hover:bg-white/10 text-slate-300">Executive & Professional</button>
+                            <button type="button" x-on:click="triggerAiTransform('tone:casual'); toneSubOpen = false" class="w-full text-left px-2 py-1 rounded hover:bg-white/10 text-slate-300">Warm & Conversational</button>
+                            <button type="button" x-on:click="triggerAiTransform('tone:persuasive'); toneSubOpen = false" class="w-full text-left px-2 py-1 rounded hover:bg-white/10 text-slate-300">High-Impact Persuasive</button>
                         </div>
                     </div>
+
+                    <div class="border-t border-white/5 my-1"></div>
+                    <button type="button" x-on:click="closeContextMenu()" class="w-full text-left px-2.5 py-1 rounded-xl hover:bg-white/5 text-slate-400 hover:text-slate-200 text-[11px]">
+                        ✕ Close Menu
+                    </button>
                 </div>
 
                 <!-- Active Editor Engine Canvas Mount Target (wire:ignore for lightspeed typing) -->
@@ -933,7 +681,7 @@
                                         @if(!empty($gap['suggested_h2']))
                                             <button 
                                                 type="button" 
-                                                x-on:click="insertContentIntoCanvas('<h2>' + @js($gap['suggested_h2']) + '</h2><p>Provide comprehensive insights on ' + @js($gap['topic']) + '...</p>')"
+                                                x-on:click="insertContentIntoCanvas('<h2>' + @js($gap['suggested_h2']) + '</h2><p>Comprehensive coverage of ' + @js($gap['topic']) + '...</p>', true)"
                                                 class="mt-1 px-2 py-0.5 rounded bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white text-[10px] font-mono font-bold"
                                             >
                                                 + Insert Section ({{ $gap['suggested_h2'] }})
@@ -964,7 +712,7 @@
                                         <p class="text-[11px] text-slate-300 leading-relaxed">{{ $faq['answer'] ?? '' }}</p>
                                         <button 
                                             type="button" 
-                                            x-on:click="insertContentIntoCanvas('<h3>' + @js($faq['question']) + '</h3><p>' + @js($faq['answer']) + '</p>')"
+                                            x-on:click="insertContentIntoCanvas('<h3>' + @js($faq['question']) + '</h3><p>' + @js($faq['answer']) + '</p>', true)"
                                             class="mt-1 px-2 py-0.5 rounded bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white text-[10px] font-mono font-bold"
                                         >
                                             + Insert Q&A into Editor
@@ -991,7 +739,7 @@
                                 <div>{!! $aiQuickAnswer !!}</div>
                                 <button 
                                     type="button" 
-                                    x-on:click="insertContentIntoCanvas('<blockquote><strong>Quick Summary:</strong> ' + @js($aiQuickAnswer) + '</blockquote>')"
+                                    x-on:click="insertContentIntoCanvas('<blockquote><strong>Quick Summary:</strong> ' + @js($aiQuickAnswer) + '</blockquote>', true)"
                                     class="mt-1 px-2.5 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white text-[10.5px] font-bold"
                                 >
                                     + Insert Quick Answer to Intro
@@ -1233,3 +981,311 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('documentEditorComponent', (config) => ({
+        editorInstance: null,
+        selectedText: '',
+        hasSelection: false,
+        wordCount: 0,
+        characterCount: 0,
+        readingTime: 1,
+
+        showLeftPanel: true,
+        showRightPanel: true,
+        rightTab: 'seo',
+        targetWordGoal: 1200,
+        serpView: 'desktop',
+
+        caps: { richText: true, blocks: true, markdown: false, undoRedo: true },
+        showLossyWarning: false,
+        pendingEngine: null,
+        lossyEngines: { plaintext: true, html: true },
+
+        aiPrompt: '',
+        aiModel: 'Auto (OmniRoute)',
+        aiContext: {
+            currentDoc: true,
+            project: true,
+            brandVoice: true,
+            knowledgeBase: true,
+            webResearch: false
+        },
+        aiHistory: [],
+
+        isTransforming: false,
+        activeAction: null,
+        routedModel: 'OmniRoute',
+        liveAiStreamText: '',
+        showAiStreamBanner: false,
+
+        showContextMenu: false,
+        contextMenuX: 0,
+        contextMenuY: 0,
+        docOutline: [],
+
+        init() {
+            this.initEditor();
+
+            Livewire.on('editor:setContent', ({ content }) => {
+                if (this.editorInstance) this.editorInstance.setContent(content);
+            });
+            Livewire.on('editor:reload', () => {
+                this.initEditor();
+            });
+
+            window.addEventListener('click', () => {
+                this.closeContextMenu();
+            });
+
+            window.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+                    e.preventDefault();
+                    Livewire.dispatch('saveExplicitSnapshot');
+                }
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                    e.preventDefault();
+                    this.showLeftPanel = true;
+                    const p = document.getElementById('ai-command-prompt');
+                    if (p) p.focus();
+                }
+                if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
+                    e.preventDefault();
+                    this.toggleFocusMode();
+                }
+                if (e.key === 'Escape') {
+                    this.closeContextMenu();
+                }
+            });
+        },
+
+        initEditor() {
+            if (this.editorInstance) {
+                this.editorInstance.destroy();
+            }
+
+            const driverType = config.editorType || 'tiptap';
+            this.editorInstance = window.HOA_EditorManager.createEditor(driverType, 'tiptap-content-target', {
+                initialContent: config.initialContent || '<p></p>',
+                placeholder: 'Type / for AI commands or begin writing...',
+                onStatsChange: (stats) => {
+                    this.wordCount = stats.words;
+                    this.characterCount = stats.characters;
+                    this.readingTime = Math.max(1, Math.ceil(stats.words / 200));
+                    this.updateOutline();
+                },
+                onSelectionChange: ({ selectedText, isEmpty }) => {
+                    this.selectedText = selectedText;
+                    this.hasSelection = !isEmpty && selectedText.trim().length > 0;
+                },
+                onAutosave: (data) => {
+                    Livewire.dispatch('autosave', { html: data.html, json: data.json ?? null });
+                }
+            });
+
+            if (this.editorInstance && this.editorInstance.capabilities) {
+                this.caps = { ...this.caps, ...this.editorInstance.capabilities };
+            }
+            this.updateOutline();
+        },
+
+        openContextMenu(event) {
+            this.contextMenuX = Math.min(event.clientX, window.innerWidth - 260);
+            this.contextMenuY = Math.min(event.clientY, window.innerHeight - 340);
+            this.showContextMenu = true;
+        },
+
+        closeContextMenu() {
+            this.showContextMenu = false;
+        },
+
+        updateOutline() {
+            if (!this.editorInstance) return;
+            const html = this.editorInstance.getHTML ? this.editorInstance.getHTML() : '';
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            const headings = temp.querySelectorAll('h1, h2, h3');
+            this.docOutline = Array.from(headings).map(h => ({
+                level: parseInt(h.tagName[1]),
+                text: h.textContent.trim()
+            })).filter(h => h.text.length > 0);
+        },
+
+        scrollToHeading(text) {
+            const container = document.getElementById('tiptap-content-target');
+            if (!container) return;
+            const els = Array.from(container.querySelectorAll('h1, h2, h3, .gt-block, .notion-row'));
+            const match = els.find(el => el.textContent.trim().toLowerCase().includes(text.toLowerCase()));
+            if (match) {
+                match.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                match.classList.add('ring-2', 'ring-indigo-500/60', 'rounded-lg');
+                setTimeout(() => match.classList.remove('ring-2', 'ring-indigo-500/60', 'rounded-lg'), 1500);
+            }
+        },
+
+        insertContentIntoCanvas(htmlContent, withHighlight = true) {
+            if (!this.editorInstance) return;
+            let wrappedContent = htmlContent;
+            if (withHighlight) {
+                const uniqueId = 'ai-highlight-' + Date.now();
+                wrappedContent = `<div id="${uniqueId}" class="ai-generated-highlight border-l-4 border-indigo-500 bg-indigo-950/25 rounded-r-2xl p-4 my-4 shadow-lg transition-all duration-1000">${htmlContent}<div class="mt-2 pt-2 border-t border-indigo-500/20 flex items-center justify-between text-[10px] font-mono text-indigo-300"><span>✦ Written by AI (${this.routedModel})</span><span class="text-slate-400">Auto-integrated</span></div></div><p></p>`;
+            }
+
+            if (typeof this.editorInstance.insertContent === 'function') {
+                this.editorInstance.insertContent(wrappedContent);
+            } else if (typeof this.editorInstance.setContent === 'function') {
+                const current = this.editorInstance.getHTML ? this.editorInstance.getHTML() : '';
+                this.editorInstance.setContent(current + '<br>' + wrappedContent);
+            }
+        },
+
+        applyFormat(action, param = null) {
+            if (!this.editorInstance) return;
+            if (action === 'heading')          this.editorInstance.toggleHeading?.(param);
+            else if (action === 'bold')        this.editorInstance.toggleBold?.();
+            else if (action === 'italic')      this.editorInstance.toggleItalic?.();
+            else if (action === 'bulletList')  this.editorInstance.toggleBulletList?.();
+            else if (action === 'orderedList') this.editorInstance.toggleOrderedList?.();
+            else if (action === 'blockquote')  this.editorInstance.toggleBlockquote?.();
+            else if (action === 'codeBlock')   this.editorInstance.toggleCodeBlock?.();
+            else if (action === 'hr')          this.editorInstance.setHorizontalRule?.();
+            else if (action === 'undo')        this.editorInstance.undo?.();
+            else if (action === 'redo')        this.editorInstance.redo?.();
+        },
+
+        insertMarkdownHeading() { if (this.editorInstance && this.editorInstance.insertContent) this.editorInstance.insertContent('\n## '); },
+        insertMarkdownBold() { if (this.editorInstance && this.editorInstance.insertContent) this.editorInstance.insertContent('**bold**'); },
+        insertMarkdownTodo() { if (this.editorInstance && this.editorInstance.insertContent) this.editorInstance.insertContent('- [ ] '); },
+
+        toggleFocusMode() {
+            if (this.showLeftPanel || this.showRightPanel) {
+                this.showLeftPanel = false;
+                this.showRightPanel = false;
+            } else {
+                this.showLeftPanel = true;
+                this.showRightPanel = true;
+            }
+        },
+
+        requestEngineSwitch(targetEngine) {
+            const currentRich = this.caps.richText || this.caps.blocks;
+            if (currentRich && this.lossyEngines[targetEngine]) {
+                this.pendingEngine = targetEngine;
+                this.showLossyWarning = true;
+            } else {
+                Livewire.dispatch('switchEditorType', { type: targetEngine });
+            }
+        },
+        confirmLossySwitch() {
+            if (this.pendingEngine) Livewire.dispatch('switchEditorType', { type: this.pendingEngine });
+            this.showLossyWarning = false;
+            this.pendingEngine = null;
+        },
+        cancelLossySwitch() {
+            this.showLossyWarning = false;
+            this.pendingEngine = null;
+        },
+
+        async triggerAiTransform(type, customInstruction = '') {
+            this.closeContextMenu();
+            const targetText = this.hasSelection ? this.selectedText : (this.editorInstance ? this.editorInstance.getText() : '');
+            
+            this.isTransforming = true;
+            this.activeAction = type;
+            this.liveAiStreamText = '';
+            this.showAiStreamBanner = true;
+
+            const promptToSend = customInstruction || this.aiPrompt || type;
+
+            try {
+                const response = await fetch(config.streamRoute, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': config.csrfToken,
+                        'Accept': 'text/event-stream'
+                    },
+                    body: JSON.stringify({
+                        text: targetText || 'Document Context',
+                        type: type,
+                        custom_instruction: promptToSend,
+                        model: this.aiModel
+                    })
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.error || 'Server error while generating transformation.');
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+                let buffer = '';
+                let fullResult = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const parsed = JSON.parse(line.substring(6));
+                                if (parsed.token) {
+                                    fullResult += parsed.token;
+                                    this.liveAiStreamText = fullResult;
+                                }
+                                if (parsed.model) this.routedModel = parsed.model;
+                                if (parsed.result) {
+                                    fullResult = parsed.result;
+                                    this.liveAiStreamText = fullResult;
+                                }
+                            } catch (e) {}
+                        }
+                    }
+                }
+
+                if (fullResult.trim().length > 0 && this.editorInstance) {
+                    if (this.hasSelection && typeof this.editorInstance.replaceSelection === 'function') {
+                        this.editorInstance.replaceSelection(fullResult);
+                    } else {
+                        const currentHtml = this.editorInstance.getHTML ? this.editorInstance.getHTML() : '';
+                        const isDocEmpty = !currentHtml || currentHtml === '<p></p>' || currentHtml.trim().length === 0;
+
+                        if (isDocEmpty) {
+                            this.editorInstance.setContent(fullResult);
+                        } else {
+                            this.insertContentIntoCanvas(fullResult, true);
+                        }
+                    }
+                }
+
+                this.aiHistory.unshift({
+                    id: Date.now(),
+                    type: type.replace('_', ' ').toUpperCase(),
+                    prompt: promptToSend.substring(0, 35) + '...',
+                    time: 'Just now'
+                });
+
+                if (type === 'custom') {
+                    this.aiPrompt = '';
+                }
+            } catch (err) {
+                console.error(err);
+                alert('AI Generation notice: ' + err.message);
+            } finally {
+                this.isTransforming = false;
+                this.activeAction = null;
+                setTimeout(() => {
+                    this.showAiStreamBanner = false;
+                }, 2500);
+            }
+        }
+    }));
+});
+</script>
