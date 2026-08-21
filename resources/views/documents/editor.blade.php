@@ -968,6 +968,76 @@
                     </div>
                 </div>
             </x-glass.card>
+
+            <!-- ─── TERMINAL UI: AI TELEMETRY & EXECUTION LOGS ───────────────────── -->
+            <div class="rounded-2xl bg-slate-950/95 border border-white/15 p-3.5 space-y-2.5 shadow-2xl font-mono text-xs overflow-hidden backdrop-blur-2xl">
+                <!-- Terminal Header Bar with Window Dots & Status -->
+                <div class="flex items-center justify-between pb-2 border-b border-white/10 select-none">
+                    <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-500/80"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500/80"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></span>
+                        </div>
+                        <span class="text-[10px] text-slate-300 font-bold tracking-tight">ai-telemetry.log</span>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/30 text-[9.5px] text-emerald-400 font-bold">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span>KERNEL LIVE</span>
+                        </span>
+                        <button type="button" x-on:click="clearLogs()" class="text-[10px] text-slate-500 hover:text-slate-300 transition-colors" title="Clear console">
+                            Clear
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Log Filter Bar -->
+                <div class="flex items-center justify-between text-[10px] text-slate-400 pt-0.5 font-mono">
+                    <div class="flex items-center gap-1">
+                        <button type="button" x-on:click="logFilter = 'ALL'" :class="logFilter === 'ALL' ? 'bg-indigo-600/30 text-indigo-300 font-bold border border-indigo-500/40' : 'hover:text-white'" class="px-1.5 py-0.5 rounded transition-all">ALL</button>
+                        <button type="button" x-on:click="logFilter = 'AI'" :class="logFilter === 'AI' ? 'bg-cyan-600/30 text-cyan-300 font-bold border border-cyan-500/40' : 'hover:text-white'" class="px-1.5 py-0.5 rounded transition-all">AI</button>
+                        <button type="button" x-on:click="logFilter = 'SEO'" :class="logFilter === 'SEO' ? 'bg-emerald-600/30 text-emerald-300 font-bold border border-emerald-500/40' : 'hover:text-white'" class="px-1.5 py-0.5 rounded transition-all">SEO</button>
+                        <button type="button" x-on:click="logFilter = 'ERR'" :class="logFilter === 'ERR' ? 'bg-red-600/30 text-red-300 font-bold border border-red-500/40' : 'hover:text-white'" class="px-1.5 py-0.5 rounded transition-all">ERR</button>
+                    </div>
+                    <span class="text-[9.5px] text-slate-500" x-text="filteredLogs.length + ' events'"></span>
+                </div>
+
+                <!-- Terminal Screen Log Stream with Auto-Scroll -->
+                <div 
+                    id="terminal-logs-screen"
+                    class="rounded-xl bg-slate-900/90 border border-white/10 p-2.5 max-h-48 overflow-y-auto space-y-1 text-[10.5px] font-mono leading-snug scrollbar-thin scrollbar-thumb-white/10 select-text"
+                >
+                    <template x-for="(log, idx) in filteredLogs" :key="idx">
+                        <div class="flex items-start gap-1.5 py-0.5 font-mono">
+                            <span class="text-slate-500 shrink-0 select-none text-[9.5px]" x-text="'[' + log.time + ']'"></span>
+                            <span 
+                                class="px-1 py-0.2 rounded text-[9px] font-bold shrink-0"
+                                :class="{
+                                    'bg-cyan-950 text-cyan-400 border border-cyan-500/30': log.level === 'SYSTEM' || log.level === 'INFO',
+                                    'bg-indigo-950 text-indigo-300 border border-indigo-500/30': log.level === 'STREAM' || log.level === 'GENERATE' || log.level === 'AI',
+                                    'bg-emerald-950 text-emerald-400 border border-emerald-500/30': log.level === 'SEO',
+                                    'bg-amber-950 text-amber-400 border border-amber-500/30': log.level === 'WARN',
+                                    'bg-red-950 text-red-400 border border-red-500/30': log.level === 'ERROR' || log.level === 'ERR'
+                                }"
+                                x-text="log.level"
+                            ></span>
+                            <span 
+                                class="break-words text-slate-300"
+                                :class="{
+                                    'text-indigo-200': log.level === 'STREAM' || log.level === 'GENERATE' || log.level === 'AI',
+                                    'text-emerald-300': log.level === 'SEO',
+                                    'text-amber-300': log.level === 'WARN',
+                                    'text-red-400 font-bold': log.level === 'ERROR' || log.level === 'ERR'
+                                }"
+                                x-text="log.msg"
+                            ></span>
+                        </div>
+                    </template>
+                    <div x-show="filteredLogs.length === 0" class="text-slate-600 italic py-1 text-[10px]">No logs recorded for this filter.</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1066,6 +1136,71 @@
             </div>
         </div>
     </div>
+
+    <!-- Custom Right-Click Context Menu (Root Level z-[999999]) -->
+<div 
+    x-show="showContextMenu"
+    x-cloak
+    x-transition:enter="transition ease-out duration-150"
+    x-transition:enter-start="opacity-0 scale-95"
+    x-transition:enter-end="opacity-100 scale-100"
+    x-transition:leave="transition ease-in duration-100"
+    x-transition:leave-start="opacity-100 scale-100"
+    x-transition:leave-end="opacity-0 scale-95"
+    :style="`position: fixed; left: ${contextMenuX}px; top: ${contextMenuY}px; z-index: 999999;`"
+    class="fixed z-[999999] bg-slate-900/98 border border-indigo-500/50 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] backdrop-blur-2xl p-1.5 min-w-[230px] text-xs font-sans space-y-0.5"
+    style="display: none;"
+    x-on:click.outside="closeContextMenu()"
+>
+    <div class="px-2.5 py-1.5 text-[10px] uppercase font-bold text-indigo-400 tracking-wider flex items-center justify-between border-b border-white/10 mb-1 select-none">
+        <span class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+            <span>✦ AI Actions</span>
+        </span>
+        <span class="text-slate-500 text-[9px] font-mono">Right-Click</span>
+    </div>
+
+    <button type="button" x-on:click="openInlineAiPrompt()" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/30 text-indigo-300 hover:text-white font-bold flex items-center gap-2 transition-colors">
+        <span class="text-indigo-400">✦</span> <span>Ask AI Inline (Ctrl+K)...</span>
+    </button>
+    <button type="button" x-on:click="triggerAiTransform('rewrite')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/30 text-slate-200 hover:text-white flex items-center gap-2 transition-colors">
+        <span class="text-cyan-400">↻</span> <span>Rewrite & Polish</span>
+    </button>
+    <button type="button" x-on:click="triggerAiTransform('expand')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/30 text-slate-200 hover:text-white flex items-center gap-2 transition-colors">
+        <span class="text-violet-400">+</span> <span>Expand this Section</span>
+    </button>
+    <button type="button" x-on:click="triggerAiTransform('shorten')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/30 text-slate-200 hover:text-white flex items-center gap-2 transition-colors">
+        <span class="text-amber-400">−</span> <span>Shorten & Condense</span>
+    </button>
+    <button type="button" x-on:click="triggerAiTransform('generate_faq')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/30 text-slate-200 hover:text-white flex items-center gap-2 transition-colors">
+        <span class="text-indigo-400">❓</span> <span>Generate FAQ on this</span>
+    </button>
+    <button type="button" x-on:click="triggerAiTransform('key_takeaways')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/30 text-slate-200 hover:text-white flex items-center gap-2 transition-colors">
+        <span class="text-pink-400">💡</span> <span>Extract Key Takeaways</span>
+    </button>
+    <button type="button" x-on:click="triggerAiTransform('seo_optimize')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/30 text-slate-200 hover:text-white flex items-center gap-2 transition-colors">
+        <span class="text-emerald-400">⌁</span> <span>SEO Optimize Text</span>
+    </button>
+
+    <!-- Change Tone Submenu Trigger -->
+    <div class="relative" x-data="{ toneSubOpen: false }">
+        <button type="button" x-on:click="toneSubOpen = !toneSubOpen" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/30 text-slate-200 hover:text-white flex items-center justify-between transition-colors">
+            <span class="flex items-center gap-2"><span>🎨</span> <span>Change Tone</span></span>
+            <span class="text-[10px] text-slate-400" x-text="toneSubOpen ? '▼' : '▶'"></span>
+        </button>
+        <div x-show="toneSubOpen" class="mt-1 p-1 bg-slate-950/95 rounded-xl border border-white/10 space-y-0.5 text-xs shadow-xl">
+            <button type="button" x-on:click="triggerAiTransform('tone:professional'); toneSubOpen = false" class="w-full text-left px-2 py-1 rounded hover:bg-white/10 text-slate-300 hover:text-white">Executive & Professional</button>
+            <button type="button" x-on:click="triggerAiTransform('tone:casual'); toneSubOpen = false" class="w-full text-left px-2 py-1 rounded hover:bg-white/10 text-slate-300 hover:text-white">Warm & Conversational</button>
+            <button type="button" x-on:click="triggerAiTransform('tone:persuasive'); toneSubOpen = false" class="w-full text-left px-2 py-1 rounded hover:bg-white/10 text-slate-300 hover:text-white">High-Impact Persuasive</button>
+        </div>
+    </div>
+
+    <div class="border-t border-white/10 my-1"></div>
+    <button type="button" x-on:click="closeContextMenu()" class="w-full text-left px-2.5 py-1 rounded-xl hover:bg-white/10 text-slate-400 hover:text-slate-200 text-[11px] transition-colors">
+        ✕ Close Menu (Esc)
+    </button>
+</div>
+
 </div>
 
 <script>
@@ -1114,14 +1249,48 @@ document.addEventListener('alpine:init', () => {
         contextMenuY: 0,
         docOutline: [],
 
+        // Terminal UI AI Telemetry Logs
+        aiLogs: [],
+        logFilter: 'ALL',
+
+        get filteredLogs() {
+            if (this.logFilter === 'ALL') return this.aiLogs;
+            if (this.logFilter === 'AI') return this.aiLogs.filter(l => l.level === 'AI' || l.level === 'STREAM' || l.level === 'GENERATE');
+            if (this.logFilter === 'SEO') return this.aiLogs.filter(l => l.level === 'SEO');
+            if (this.logFilter === 'ERR') return this.aiLogs.filter(l => l.level === 'ERROR' || l.level === 'ERR' || l.level === 'WARN');
+            return this.aiLogs;
+        },
+
+        addLog(level, msg) {
+            const now = new Date();
+            const timeStr = now.toTimeString().split(' ')[0];
+            this.aiLogs.unshift({ time: timeStr, level: level.toUpperCase(), msg: msg });
+            if (this.aiLogs.length > 50) this.aiLogs.pop();
+            this.$nextTick(() => {
+                const screen = document.getElementById('terminal-logs-screen');
+                if (screen) screen.scrollTop = 0;
+            });
+        },
+
+        clearLogs() {
+            this.aiLogs = [];
+            this.addLog('SYSTEM', 'Log buffer cleared.');
+        },
+
         init() {
+            this.addLog('SYSTEM', 'OmniRoute Gateway v2.0 kernel initialized.');
+            this.addLog('ENGINE', 'Editor driver mounted: ' + (config.editorType || 'tiptap').toUpperCase());
+            this.addLog('SEO', 'Real-time semantic SEO analyzer active.');
+
             this.initEditor();
 
             Livewire.on('editor:setContent', ({ content }) => {
                 if (this.editorInstance) this.editorInstance.setContent(content);
+                this.addLog('INFO', 'Canvas content reset via server action.');
             });
             Livewire.on('editor:reload', () => {
                 this.initEditor();
+                this.addLog('SYSTEM', 'Editor instance reloaded.');
             });
 
             window.addEventListener('click', () => {
@@ -1132,6 +1301,7 @@ document.addEventListener('alpine:init', () => {
                 if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
                     e.preventDefault();
                     Livewire.dispatch('saveExplicitSnapshot');
+                    this.addLog('INFO', 'Manual snapshot triggered via keyboard shortcut.');
                 }
                 if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
                     e.preventDefault();
@@ -1169,6 +1339,7 @@ document.addEventListener('alpine:init', () => {
                 },
                 onAutosave: (data) => {
                     Livewire.dispatch('autosave', { html: data.html, json: data.json ?? null });
+                    this.addLog('INFO', 'Autosaved (' + data.words + ' words, ' + data.chars + ' chars)');
                 }
             });
 
@@ -1180,6 +1351,7 @@ document.addEventListener('alpine:init', () => {
 
         openInlineAiPrompt() {
             this.showInlineAiPrompt = true;
+            this.addLog('AI', 'In-canvas AI prompt bar opened.');
             this.$nextTick(() => {
                 const el = document.getElementById('inline-ai-input');
                 if (el) el.focus();
@@ -1198,6 +1370,7 @@ document.addEventListener('alpine:init', () => {
             this.contextMenuX = Math.min(event.clientX, window.innerWidth - 260);
             this.contextMenuY = Math.min(event.clientY, window.innerHeight - 340);
             this.showContextMenu = true;
+            this.addLog('INFO', 'Context menu opened at (' + this.contextMenuX + ', ' + this.contextMenuY + ')');
         },
 
         closeContextMenu() {
@@ -1224,6 +1397,7 @@ document.addEventListener('alpine:init', () => {
             if (match) {
                 match.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 match.classList.add('ring-2', 'ring-indigo-500/60', 'rounded-lg');
+                this.addLog('INFO', 'Navigated to heading: "' + text + '"');
                 setTimeout(() => match.classList.remove('ring-2', 'ring-indigo-500/60', 'rounded-lg'), 1500);
             }
         },
@@ -1242,6 +1416,7 @@ document.addEventListener('alpine:init', () => {
                 const current = this.editorInstance.getHTML ? this.editorInstance.getHTML() : '';
                 this.editorInstance.setContent(current + '<br>' + wrappedContent);
             }
+            this.addLog('GENERATE', 'Content inserted into active canvas with ambient glow.');
         },
 
         acceptAiStream() {
@@ -1249,6 +1424,7 @@ document.addEventListener('alpine:init', () => {
                 this.insertContentIntoCanvas(this.liveAiStreamText, true);
                 this.showAiStreamBanner = false;
                 this.liveAiStreamText = '';
+                this.addLog('AI', 'User accepted live stream output.');
             }
         },
 
@@ -1256,6 +1432,7 @@ document.addEventListener('alpine:init', () => {
             if (this.liveAiStreamText) {
                 navigator.clipboard.writeText(this.liveAiStreamText);
                 alert('Copied AI text to clipboard!');
+                this.addLog('INFO', 'Copied generated tokens to clipboard.');
             }
         },
 
@@ -1264,6 +1441,7 @@ document.addEventListener('alpine:init', () => {
                 this.abortController.abort();
             }
             this.isTransforming = false;
+            this.addLog('WARN', 'AI token stream aborted by user.');
         },
 
         applyFormat(action, param = null) {
@@ -1288,9 +1466,11 @@ document.addEventListener('alpine:init', () => {
             if (this.showLeftPanel || this.showRightPanel) {
                 this.showLeftPanel = false;
                 this.showRightPanel = false;
+                this.addLog('INFO', 'Zen Focus Mode enabled.');
             } else {
                 this.showLeftPanel = true;
                 this.showRightPanel = true;
+                this.addLog('INFO', 'Zen Focus Mode exited.');
             }
         },
 
@@ -1299,18 +1479,24 @@ document.addEventListener('alpine:init', () => {
             if (currentRich && this.lossyEngines[targetEngine]) {
                 this.pendingEngine = targetEngine;
                 this.showLossyWarning = true;
+                this.addLog('WARN', 'Lossy engine switch warning prompted for: ' + targetEngine);
             } else {
                 Livewire.dispatch('switchEditorType', { type: targetEngine });
+                this.addLog('ENGINE', 'Switching engine to: ' + targetEngine);
             }
         },
         confirmLossySwitch() {
-            if (this.pendingEngine) Livewire.dispatch('switchEditorType', { type: this.pendingEngine });
+            if (this.pendingEngine) {
+                Livewire.dispatch('switchEditorType', { type: this.pendingEngine });
+                this.addLog('ENGINE', 'Confirmed lossy switch to: ' + this.pendingEngine);
+            }
             this.showLossyWarning = false;
             this.pendingEngine = null;
         },
         cancelLossySwitch() {
             this.showLossyWarning = false;
             this.pendingEngine = null;
+            this.addLog('INFO', 'Cancelled lossy switch.');
         },
 
         async triggerAiTransform(type, customInstruction = '') {
@@ -1325,6 +1511,7 @@ document.addEventListener('alpine:init', () => {
             this.abortController = new AbortController();
 
             const promptToSend = customInstruction || this.aiPrompt || type;
+            this.addLog('AI', 'Dispatched pipeline [' + type + '] to OmniRoute gateway.');
 
             try {
                 const response = await fetch(config.streamRoute, {
@@ -1348,6 +1535,7 @@ document.addEventListener('alpine:init', () => {
                     throw new Error(errData.error || 'Server error while generating transformation.');
                 }
 
+                this.addLog('STREAM', 'SSE stream connected. Receiving real-time tokens...');
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder('utf-8');
                 let buffer = '';
@@ -1383,14 +1571,17 @@ document.addEventListener('alpine:init', () => {
                 if (fullResult.trim().length > 0 && this.editorInstance) {
                     if (this.hasSelection && typeof this.editorInstance.replaceSelection === 'function') {
                         this.editorInstance.replaceSelection(fullResult);
+                        this.addLog('AI', 'Replaced selected range with ' + fullResult.length + ' chars (' + this.routedModel + ')');
                     } else {
                         const currentHtml = this.editorInstance.getHTML ? this.editorInstance.getHTML() : '';
                         const isDocEmpty = !currentHtml || currentHtml === '<p></p>' || currentHtml.trim().length === 0;
 
                         if (isDocEmpty) {
                             this.editorInstance.setContent(fullResult);
+                            this.addLog('GENERATE', 'Generated initial full post (' + fullResult.length + ' chars)');
                         } else {
                             this.insertContentIntoCanvas(fullResult, true);
+                            this.addLog('GENERATE', 'Appended generated block (' + fullResult.length + ' chars)');
                         }
                     }
                 }
@@ -1409,6 +1600,7 @@ document.addEventListener('alpine:init', () => {
                 if (err.name !== 'AbortError') {
                     console.error(err);
                     alert('AI Generation notice: ' + err.message);
+                    this.addLog('ERROR', 'AI Execution failed: ' + err.message);
                 }
             } finally {
                 this.isTransforming = false;
