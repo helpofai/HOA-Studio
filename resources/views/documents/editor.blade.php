@@ -26,6 +26,7 @@
 <div 
     class="space-y-4 min-h-screen flex flex-col justify-between"
     x-data="documentEditorComponent({
+        documentId: {{ $documentId }},
         editorType: '{{ $editorType }}',
         streamRoute: '{{ route('ai.stream-transform') }}',
         csrfToken: '{{ csrf_token() }}',
@@ -452,6 +453,31 @@
                         <button type="button" x-on:click="inlineAiPrompt = 'Create a high-impact technical comparison table with pros and cons'; submitInlineAiPrompt();" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-indigo-600/30 text-slate-300 hover:text-indigo-200 border border-white/5 transition-colors">📊 Comparison Table</button>
                         <button type="button" x-on:click="inlineAiPrompt = 'Generate 4 high-value schema FAQ questions and authoritative answers'; submitInlineAiPrompt();" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-indigo-600/30 text-slate-300 hover:text-indigo-200 border border-white/5 transition-colors">❓ FAQ Block</button>
                         <button type="button" x-on:click="inlineAiPrompt = 'Write an E-E-A-T testing methodology block with author credibility'; submitInlineAiPrompt();" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-indigo-600/30 text-slate-300 hover:text-indigo-200 border border-white/5 transition-colors">🏆 E-E-A-T Trust Box</button>
+                    </div>
+                </div>
+
+                                <!-- Local Draft Auto-Recovery Ambient Banner -->
+                <div 
+                    x-show="showRestoredDraftBanner" 
+                    x-transition
+                    class="mb-4 p-3 rounded-2xl bg-emerald-950/60 border border-emerald-500/40 shadow-xl backdrop-blur-xl flex flex-wrap items-center justify-between gap-3 text-xs font-sans animate-in"
+                    style="display: none;"
+                >
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="text-white font-medium">
+                            <strong class="text-emerald-300">✦ Unsaved Draft Auto-Restored:</strong>
+                            <span class="text-slate-300" x-text="'Recovered ' + restoredWordCount + ' words from local backup (' + restoredDraftTime + ')'"></span>
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-2 font-mono text-[11px]">
+                        <button type="button" x-on:click="dismissRestoredBanner()" class="px-2.5 py-1 rounded-xl bg-emerald-600/30 hover:bg-emerald-600 text-emerald-200 hover:text-white font-bold transition-colors">
+                            ✓ Keep & Sync
+                        </button>
+                        <button type="button" x-on:click="revertToServerBackup()" class="px-2.5 py-1 rounded-xl bg-slate-900 border border-white/10 text-slate-400 hover:text-red-400 transition-colors">
+                            Revert to Server
+                        </button>
                     </div>
                 </div>
 
@@ -1269,12 +1295,54 @@ document.addEventListener('alpine:init', () => {
             this.addLog('SYSTEM', 'Log buffer cleared.');
         },
 
+        showRestoredDraftBanner: false,
+        restoredDraftTime: '',
+        restoredWordCount: 0,
+        hasUnsavedChanges: false,
+        serverBackupContent: config.initialContent || '',
+
         init() {
             this.addLog('SYSTEM', 'OmniRoute Gateway v2.0 kernel initialized.');
             this.addLog('ENGINE', 'Editor driver mounted: ' + (config.editorType || 'tiptap').toUpperCase());
             this.addLog('SEO', 'Real-time semantic SEO analyzer active.');
 
-            this.initEditor();
+            // Check for Local Draft Recovery
+            const localDraftKey = 'hoa_doc_draft_' + config.documentId;
+            const savedDraft = localStorage.getItem(localDraftKey);
+            let contentToLoad = config.initialContent || '<p></p>';
+
+            if (savedDraft) {
+                try {
+                    const parsed = JSON.parse(savedDraft);
+                    const serverLength = (config.initialContent || '').replace(/<[^>]*>/g, '').trim().length;
+                    const draftLength = (parsed.html || '').replace(/<[^>]*>/g, '').trim().length;
+
+                    // If local backup has substantially more content than server initial (e.g. accidental reload after AI generation)
+                    if (draftLength > serverLength && draftLength > 50) {
+                        contentToLoad = parsed.html;
+                        this.showRestoredDraftBanner = true;
+                        this.restoredDraftTime = new Date(parsed.timestamp).toLocaleTimeString();
+                        this.restoredWordCount = (parsed.html.replace(/<[^>]*>/g, '').trim().split(/\s+/).filter(Boolean)).length;
+                        this.addLog('SYSTEM', '✦ Auto-recovered unsaved local draft (' + this.restoredWordCount + ' words)');
+                        
+                        // Sync recovered draft back to server immediately
+                        setTimeout(() => {
+                            Livewire.dispatch('autosave', { html: parsed.html, json: null });
+                        }, 1000);
+                    }
+                } catch (e) {}
+            }
+
+            this.initEditor(contentToLoad);
+
+            // Browser Accidental Close / Reload Protection Guard
+            window.addEventListener('beforeunload', (e) => {
+                if (this.isTransforming || this.hasUnsavedChanges) {
+                    e.preventDefault();
+                    e.returnValue = 'You have unsaved changes or active AI generation. Are you sure you want to leave?';
+                    return e.returnValue;
+                }
+            });
 
             Livewire.on('editor:setContent', ({ content }) => {
                 if (this.editorInstance) this.editorInstance.setContent(content);
@@ -1310,14 +1378,14 @@ document.addEventListener('alpine:init', () => {
             });
         },
 
-        initEditor() {
+        initEditor(customInitial = null) {
             if (this.editorInstance) {
                 this.editorInstance.destroy();
             }
 
             const driverType = config.editorType || 'tiptap';
             this.editorInstance = window.HOA_EditorManager.createEditor(driverType, 'tiptap-content-target', {
-                initialContent: config.initialContent || '<p></p>',
+                initialContent: customInitial || config.initialContent || '<p></p>',
                 placeholder: 'Type / for AI commands or press Ctrl+K to ask AI...',
                 onStatsChange: (stats) => {
                     this.wordCount = stats.words;
@@ -1331,6 +1399,8 @@ document.addEventListener('alpine:init', () => {
                 },
                 onAutosave: (data) => {
                     Livewire.dispatch('autosave', { html: data.html, json: data.json ?? null });
+                    this.saveLocalDraft(data.html);
+                    this.hasUnsavedChanges = false;
                     this.addLog('INFO', 'Autosaved (' + data.words + ' words, ' + data.chars + ' chars)');
                 }
             });
@@ -1339,6 +1409,33 @@ document.addEventListener('alpine:init', () => {
                 this.caps = { ...this.caps, ...this.editorInstance.capabilities };
             }
             this.updateOutline();
+        },
+
+                saveLocalDraft(html) {
+            if (!config.documentId) return;
+            const localDraftKey = 'hoa_doc_draft_' + config.documentId;
+            localStorage.setItem(localDraftKey, JSON.stringify({
+                html: html,
+                timestamp: Date.now()
+            }));
+            this.hasUnsavedChanges = true;
+        },
+
+        dismissRestoredBanner() {
+            this.showRestoredDraftBanner = false;
+            const html = this.editorInstance ? this.editorInstance.getHTML() : '';
+            Livewire.dispatch('autosave', { html: html, json: null });
+            this.addLog('INFO', 'Confirmed & synced restored draft to cloud database.');
+        },
+
+        revertToServerBackup() {
+            if (this.editorInstance && this.serverBackupContent) {
+                this.editorInstance.setContent(this.serverBackupContent);
+                const localDraftKey = 'hoa_doc_draft_' + config.documentId;
+                localStorage.removeItem(localDraftKey);
+                this.showRestoredDraftBanner = false;
+                this.addLog('WARN', 'Reverted to cloud database version.');
+            }
         },
 
         openInlineAiPrompt() {
