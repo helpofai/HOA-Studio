@@ -1335,6 +1335,17 @@ document.addEventListener('alpine:init', () => {
 
             this.initEditor(contentToLoad);
 
+            // Dynamic Engine Switching Listener
+            Livewire.on('editor:reload', (event) => {
+                const newEngine = (event && event.editorType) ? event.editorType : (event && event[0] && event[0].editorType ? event[0].editorType : null);
+                if (newEngine) {
+                    config.editorType = newEngine;
+                }
+                const currentHtml = this.editorInstance ? this.editorInstance.getHTML() : config.initialContent;
+                this.initEditor(currentHtml);
+                this.addLog('ENGINE', 'Mounted active driver: ' + (config.editorType || 'tiptap').toUpperCase());
+            });
+
             // Browser Accidental Close / Reload Protection Guard
             window.addEventListener('beforeunload', (e) => {
                 if (this.isTransforming || this.hasUnsavedChanges) {
@@ -1639,15 +1650,6 @@ document.addEventListener('alpine:init', () => {
                 let buffer = '';
                 let fullResult = '';
 
-                // Capture pre-stream document state for live in-canvas generation
-                const initialHtml = this.editorInstance ? this.editorInstance.getHTML() : '';
-                const isBlankDoc = !initialHtml || 
-                                   initialHtml === '<p></p>' || 
-                                   initialHtml === '<p>Start building your block content...</p>' || 
-                                   initialHtml.trim().length === 0;
-
-                let lastCanvasUpdate = 0;
-
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
@@ -1668,16 +1670,6 @@ document.addEventListener('alpine:init', () => {
                                 if (parsed.result) {
                                     fullResult = parsed.result;
                                     this.liveAiStreamText = fullResult;
-                                }
-
-                                // LIVE IN-CANVAS TOKEN STREAMING UPDATE (throttled every 60ms for smooth 60fps)
-                                const now = Date.now();
-                                if (now - lastCanvasUpdate > 60 && this.editorInstance) {
-                                    lastCanvasUpdate = now;
-                                    const liveContent = isBlankDoc ? fullResult : (initialHtml + '<p></p>' + fullResult);
-                                    if (typeof this.editorInstance.setContent === 'function') {
-                                        this.editorInstance.setContent(liveContent);
-                                    }
                                 }
                             } catch (e) {}
                         }

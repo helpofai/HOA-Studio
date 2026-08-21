@@ -373,12 +373,14 @@ class DocumentEditor extends Component
         session()->flash('status', 'Restored to Version #' . $version->version_number);
     }
 
-    public function switchEditorType(string $newType)
+    #[On('switchEditorType')]
+    public function switchEditorType(string $type = '', string $newType = '')
     {
-        if (EditorRegistry::isValidEditor($newType)) {
-            $this->editorType = $newType;
-            Document::where('id', $this->documentId)->update(['editor_type' => $newType]);
-            $this->dispatch('editor:reload');
+        $target = !empty($type) ? $type : $newType;
+        if (EditorRegistry::isValidEditor($target)) {
+            $this->editorType = $target;
+            Document::where('id', $this->documentId)->update(['editor_type' => $target]);
+            $this->dispatch('editor:reload', editorType: $target);
         }
     }
 
