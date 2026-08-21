@@ -1402,21 +1402,30 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
-        insertContentIntoCanvas(htmlContent, withHighlight = true) {
+                insertContentIntoCanvas(htmlContent, withHighlight = true) {
             if (!this.editorInstance) return;
-            let wrappedContent = htmlContent;
-            if (withHighlight) {
-                const uniqueId = 'ai-highlight-' + Date.now();
-                wrappedContent = `<div id="${uniqueId}" class="ai-generated-highlight border-l-4 border-indigo-500 bg-indigo-950/25 rounded-r-2xl p-4 my-4 shadow-lg transition-all duration-1000">${htmlContent}<div class="mt-2 pt-2 border-t border-indigo-500/20 flex items-center justify-between text-[10px] font-mono text-indigo-300"><span>✦ Written by AI (${this.routedModel})</span><span class="text-slate-400">Auto-integrated</span></div></div><p></p>`;
-            }
+            try {
+                if (typeof this.editorInstance.insertContent === 'function') {
+                    this.editorInstance.insertContent(htmlContent);
+                } else if (typeof this.editorInstance.setContent === 'function') {
+                    const current = this.editorInstance.getHTML ? this.editorInstance.getHTML() : '';
+                    this.editorInstance.setContent(current + '<p></p>' + htmlContent);
+                }
 
-            if (typeof this.editorInstance.insertContent === 'function') {
-                this.editorInstance.insertContent(wrappedContent);
-            } else if (typeof this.editorInstance.setContent === 'function') {
+                // Flash ambient glowing ring on active editor canvas
+                const canvas = document.getElementById('tiptap-content-target');
+                if (canvas) {
+                    canvas.classList.add('ring-2', 'ring-indigo-500/50', 'transition-all', 'duration-500');
+                    setTimeout(() => canvas.classList.remove('ring-2', 'ring-indigo-500/50'), 2500);
+                }
+
+                this.addLog('GENERATE', 'Content inserted into active canvas (' + this.routedModel + ')');
+            } catch (err) {
+                console.error('[insertContentIntoCanvas] Safe fallback:', err);
                 const current = this.editorInstance.getHTML ? this.editorInstance.getHTML() : '';
-                this.editorInstance.setContent(current + '<br>' + wrappedContent);
+                this.editorInstance.setContent(current + '<p></p>' + htmlContent);
+                this.addLog('WARN', 'Inserted via resilient content reset fallback.');
             }
-            this.addLog('GENERATE', 'Content inserted into active canvas with ambient glow.');
         },
 
         acceptAiStream() {

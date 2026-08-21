@@ -120,42 +120,44 @@ export class TiptapDriver {
         return this.editor && this.editor.storage.characterCount ? this.editor.storage.characterCount.words() : 0;
     }
 
-    setContent(content, emitUpdate = false) {
-        if (this.editor) {
-            this.editor.commands.setContent(content, emitUpdate);
+        setContent(content, emitUpdate = true) {
+        if (this.editor && !this.editor.isDestroyed) {
+            try {
+                this.editor.commands.setContent(content, emitUpdate);
+            } catch (e) {
+                console.warn('[TiptapDriver] setContent error recovery:', e);
+                const target = document.getElementById(this.elementId);
+                if (target) {
+                    this.editor.destroy();
+                    this.config.initialContent = content;
+                    this.init();
+                }
+            }
         }
     }
 
     insertContent(content) {
-        if (this.editor) {
-            this.editor.chain().focus().insertContent(content).run();
+        if (this.editor && !this.editor.isDestroyed) {
+            try {
+                this.editor.commands.insertContent(content);
+            } catch (e) {
+                console.warn('[TiptapDriver] insertContent fallback recovery:', e);
+                const current = this.getHTML();
+                this.setContent(current + '<p></p>' + content, true);
+            }
         }
     }
 
     replaceSelection(replacement) {
-        if (this.editor) {
-            this.editor.chain().focus().insertContent(replacement).run();
+        if (this.editor && !this.editor.isDestroyed) {
+            try {
+                this.editor.commands.insertContent(replacement);
+            } catch (e) {
+                console.warn('[TiptapDriver] replaceSelection fallback recovery:', e);
+                this.insertContent(replacement);
+            }
         }
     }
-
-    insertBelowSelection(content) {
-        if (this.editor) {
-            const { to } = this.editor.state.selection;
-            this.editor.chain().focus().setTextSelection(to).insertContent(`<p>${content}</p>`).run();
-        }
-    }
-
-    // Formatting Helpers
-    toggleBold() { this.editor?.chain().focus().toggleBold().run(); }
-    toggleItalic() { this.editor?.chain().focus().toggleItalic().run(); }
-    toggleHeading(level) { this.editor?.chain().focus().toggleHeading({ level }).run(); }
-    toggleBulletList() { this.editor?.chain().focus().toggleBulletList().run(); }
-    toggleOrderedList() { this.editor?.chain().focus().toggleOrderedList().run(); }
-    toggleBlockquote() { this.editor?.chain().focus().toggleBlockquote().run(); }
-    toggleCodeBlock() { this.editor?.chain().focus().toggleCodeBlock().run(); }
-    setHorizontalRule() { this.editor?.chain().focus().setHorizontalRule().run(); }
-    undo() { this.editor?.chain().focus().undo().run(); }
-    redo() { this.editor?.chain().focus().redo().run(); }
 
     destroy() {
         clearTimeout(this.saveTimeout);
