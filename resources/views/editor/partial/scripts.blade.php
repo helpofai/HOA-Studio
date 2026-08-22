@@ -233,6 +233,7 @@ document.addEventListener('alpine:init', () => {
 
         executeSlashAction(action) {
             this.showSlashMenu = false;
+            const ed = this.getEditor();
             if (action === 'ask_ai') {
                 this.openInlineAiPrompt();
             } else if (action === 'continue_writing') {
@@ -246,17 +247,17 @@ document.addEventListener('alpine:init', () => {
             } else if (action === 'comparison_table') {
                 this.triggerAiTransform('comparison_table');
             } else if (action === 'tip') {
-                this.editorInstance?.insertCallout?.('tip');
+                ed?.insertCallout?.('tip');
             } else if (action === 'warning') {
-                this.editorInstance?.insertCallout?.('warning');
+                ed?.insertCallout?.('warning');
             } else if (action === 'proscons') {
-                this.editorInstance?.insertProsCons?.();
+                ed?.insertProsCons?.();
             } else if (action === 'faq_accordion') {
-                this.editorInstance?.insertFaqAccordion?.();
+                ed?.insertFaqAccordion?.();
             } else if (action === 'trust_box') {
-                this.editorInstance?.insertTrustBox?.();
+                ed?.insertTrustBox?.();
             } else if (action === 'step_timeline') {
-                this.editorInstance?.insertStepTimeline?.();
+                ed?.insertStepTimeline?.();
             } else if (action === 'h1') {
                 this.applyFormat('heading', 1);
             } else if (action === 'h2') {
@@ -270,9 +271,9 @@ document.addEventListener('alpine:init', () => {
             } else if (action === 'number') {
                 this.applyFormat('orderedList');
             } else if (action === 'task') {
-                this.editorInstance?.toggleTaskList?.();
+                ed?.toggleTaskList?.();
             } else if (action === 'table') {
-                this.editorInstance?.insertTable?.({ rows: 3, cols: 3, withHeaderRow: true });
+                ed?.insertTable?.({ rows: 3, cols: 3, withHeaderRow: true });
             } else if (action === 'quote') {
                 this.applyFormat('blockquote');
             } else if (action === 'code') {
@@ -281,6 +282,13 @@ document.addEventListener('alpine:init', () => {
                 this.applyFormat('hr');
             }
             this.addLog('EDITOR', 'Executed command: ' + action);
+        },
+
+        getEditor() {
+            if (!window.hoaEditorInstance) return null;
+            return typeof Alpine !== 'undefined' && Alpine.raw 
+                ? Alpine.raw(window.hoaEditorInstance) 
+                : window.hoaEditorInstance;
         },
 
         // Active Formatting Status Map for Toolbar Highlighting
@@ -305,32 +313,34 @@ document.addEventListener('alpine:init', () => {
         },
 
         updateActiveFormats() {
-            if (!this.editorInstance) return;
+            const ed = this.getEditor();
+            if (!ed) return;
             this.activeFormats = {
-                heading1: this.editorInstance.isActive?.('heading', { level: 1 }) ?? false,
-                heading2: this.editorInstance.isActive?.('heading', { level: 2 }) ?? false,
-                heading3: this.editorInstance.isActive?.('heading', { level: 3 }) ?? false,
-                heading4: this.editorInstance.isActive?.('heading', { level: 4 }) ?? false,
-                bold: this.editorInstance.isActive?.('bold') ?? false,
-                italic: this.editorInstance.isActive?.('italic') ?? false,
-                underline: this.editorInstance.isActive?.('underline') ?? false,
-                strike: this.editorInstance.isActive?.('strike') ?? false,
-                subscript: this.editorInstance.isActive?.('subscript') ?? false,
-                superscript: this.editorInstance.isActive?.('superscript') ?? false,
-                highlight: this.editorInstance.isActive?.('highlight') ?? false,
-                bulletList: this.editorInstance.isActive?.('bulletList') ?? false,
-                orderedList: this.editorInstance.isActive?.('orderedList') ?? false,
-                taskList: this.editorInstance.isActive?.('taskList') ?? false,
-                table: this.editorInstance.isActive?.('table') ?? false,
-                blockquote: this.editorInstance.isActive?.('blockquote') ?? false,
-                codeBlock: this.editorInstance.isActive?.('codeBlock') ?? false
+                heading1: ed.isActive?.('heading', { level: 1 }) ?? false,
+                heading2: ed.isActive?.('heading', { level: 2 }) ?? false,
+                heading3: ed.isActive?.('heading', { level: 3 }) ?? false,
+                heading4: ed.isActive?.('heading', { level: 4 }) ?? false,
+                bold: ed.isActive?.('bold') ?? false,
+                italic: ed.isActive?.('italic') ?? false,
+                underline: ed.isActive?.('underline') ?? false,
+                strike: ed.isActive?.('strike') ?? false,
+                subscript: ed.isActive?.('subscript') ?? false,
+                superscript: ed.isActive?.('superscript') ?? false,
+                highlight: ed.isActive?.('highlight') ?? false,
+                bulletList: ed.isActive?.('bulletList') ?? false,
+                orderedList: ed.isActive?.('orderedList') ?? false,
+                taskList: ed.isActive?.('taskList') ?? false,
+                table: ed.isActive?.('table') ?? false,
+                blockquote: ed.isActive?.('blockquote') ?? false,
+                codeBlock: ed.isActive?.('codeBlock') ?? false
             };
         },
 
         initEditor(customInitial = null) {
-            if (this.editorInstance) {
+            const currentEd = this.getEditor();
+            if (currentEd) {
                 try {
-                    this.editorInstance.destroy();
+                    currentEd.destroy();
                 } catch (e) {}
             }
 
@@ -341,7 +351,8 @@ document.addEventListener('alpine:init', () => {
                 return;
             }
 
-            this.editorInstance = window.HOA_EditorManager.createEditor(driverType, 'tiptap-content-target', {
+            // Create and store on window.hoaEditorInstance outside Alpine reactive proxy
+            window.hoaEditorInstance = window.HOA_EditorManager.createEditor(driverType, 'tiptap-content-target', {
                 initialContent: customInitial || config.initialContent || '<p></p>',
                 placeholder: 'Type / for AI commands or press Ctrl+K to ask AI...',
                 onStatsChange: (stats) => {
@@ -366,10 +377,9 @@ document.addEventListener('alpine:init', () => {
                 }
             });
 
-            window.hoaEditorInstance = this.editorInstance;
-
-            if (this.editorInstance && this.editorInstance.capabilities) {
-                this.caps = { ...this.caps, ...this.editorInstance.capabilities };
+            const ed = this.getEditor();
+            if (ed && ed.capabilities) {
+                this.caps = { ...this.caps, ...ed.capabilities };
             }
             this.updateOutline();
             this.updateActiveFormats();
@@ -431,8 +441,9 @@ document.addEventListener('alpine:init', () => {
         },
 
         updateOutline() {
-            if (!this.editorInstance) return;
-            const html = this.editorInstance.getHTML ? this.editorInstance.getHTML() : '';
+            const ed = this.getEditor();
+            if (!ed) return;
+            const html = ed.getHTML ? ed.getHTML() : '';
             const temp = document.createElement('div');
             temp.innerHTML = html;
             const headings = temp.querySelectorAll('h1, h2, h3');
@@ -456,16 +467,17 @@ document.addEventListener('alpine:init', () => {
         },
 
         insertContentIntoCanvas(htmlContent, withHighlight = true) {
-            if (!this.editorInstance) return;
+            const ed = this.getEditor();
+            if (!ed) return;
             try {
-                if (typeof this.editorInstance.insertContent === 'function') {
-                    this.editorInstance.insertContent(htmlContent);
-                } else if (typeof this.editorInstance.setContent === 'function') {
-                    const current = this.editorInstance.getHTML ? this.editorInstance.getHTML() : '';
-                    this.editorInstance.setContent(current + '<p></p>' + htmlContent);
+                if (typeof ed.insertContent === 'function') {
+                    ed.insertContent(htmlContent);
+                } else if (typeof ed.setContent === 'function') {
+                    const current = ed.getHTML ? ed.getHTML() : '';
+                    ed.setContent(current + '<p></p>' + htmlContent);
                 }
 
-                const finalHtml = this.editorInstance.getHTML ? this.editorInstance.getHTML() : htmlContent;
+                const finalHtml = ed.getHTML ? ed.getHTML() : htmlContent;
                 Livewire.dispatch('autosave', { html: finalHtml, json: null });
                 this.saveLocalDraft(finalHtml);
                 this.updateOutline();
@@ -480,8 +492,8 @@ document.addEventListener('alpine:init', () => {
                 this.addLog('GENERATE', 'Content inserted into active canvas (' + this.routedModel + ')');
             } catch (err) {
                 console.error('[insertContentIntoCanvas] Safe fallback:', err);
-                const current = this.editorInstance.getHTML ? this.editorInstance.getHTML() : '';
-                this.editorInstance.setContent(current + '<p></p>' + htmlContent);
+                const current = ed.getHTML ? ed.getHTML() : '';
+                ed.setContent(current + '<p></p>' + htmlContent);
                 this.addLog('WARN', 'Inserted via resilient content reset fallback.');
             }
         },
@@ -489,20 +501,21 @@ document.addEventListener('alpine:init', () => {
         applyLiveStreamNow() {
             if (!this.liveAiStreamText || this.liveAiStreamText.trim().length === 0) return;
             const textToInsert = this.liveAiStreamText;
+            const ed = this.getEditor();
             
-            if (this.editorInstance) {
-                if (this.hasSelection && typeof this.editorInstance.replaceSelection === 'function') {
-                    this.editorInstance.replaceSelection(textToInsert);
+            if (ed) {
+                if (this.hasSelection && typeof ed.replaceSelection === 'function') {
+                    ed.replaceSelection(textToInsert);
                 } else {
-                    const currentHtml = this.editorInstance.getHTML ? this.editorInstance.getHTML() : '';
+                    const currentHtml = ed.getHTML ? ed.getHTML() : '';
                     const isDocEmpty = !currentHtml || currentHtml === '<p></p>' || currentHtml === '<p><br></p>' || currentHtml.trim().length === 0;
                     if (isDocEmpty) {
-                        this.editorInstance.setContent(textToInsert);
+                        ed.setContent(textToInsert);
                     } else {
                         this.insertContentIntoCanvas(textToInsert, true);
                     }
                 }
-                const finalHtml = this.editorInstance.getHTML ? this.editorInstance.getHTML() : textToInsert;
+                const finalHtml = ed.getHTML ? ed.getHTML() : textToInsert;
                 Livewire.dispatch('autosave', { html: finalHtml, json: null });
                 this.saveLocalDraft(finalHtml);
                 this.updateOutline();
@@ -525,7 +538,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         applyFormat(action, param = null) {
-            const instance = this.editorInstance || window.hoaEditorInstance;
+            const instance = this.getEditor();
             if (!instance) {
                 console.warn('[applyFormat] No editor instance available!');
                 return;
@@ -550,15 +563,16 @@ document.addEventListener('alpine:init', () => {
             this.updateOutline();
         },
 
-        insertMarkdownHeading() { if (this.editorInstance && this.editorInstance.insertContent) this.editorInstance.insertContent('\n## '); },
-        insertMarkdownBold() { if (this.editorInstance && this.editorInstance.insertContent) this.editorInstance.insertContent('**bold**'); },
-        insertMarkdownTodo() { if (this.editorInstance && this.editorInstance.insertContent) this.editorInstance.insertContent('- [ ] '); },
+        insertMarkdownHeading() { const ed = this.getEditor(); if (ed && ed.insertContent) ed.insertContent('\n## '); },
+        insertMarkdownBold() { const ed = this.getEditor(); if (ed && ed.insertContent) ed.insertContent('**bold**'); },
+        insertMarkdownTodo() { const ed = this.getEditor(); if (ed && ed.insertContent) ed.insertContent('- [ ] '); },
 
         insertImageFromUrl() {
-            if (!this.editorInstance) return;
+            const ed = this.getEditor();
+            if (!ed) return;
             const url = prompt('Enter image URL:', 'https://');
             if (url && url !== 'https://') {
-                this.editorInstance.setImage?.({ src: url, alt: 'Inserted image' });
+                ed.setImage?.({ src: url, alt: 'Inserted image' });
                 this.addLog('MEDIA', 'Image inserted: ' + url);
             }
         },

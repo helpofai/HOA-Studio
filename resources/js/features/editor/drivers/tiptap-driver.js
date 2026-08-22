@@ -420,16 +420,17 @@ export class TiptapDriver {
         
         if (this.editor && !this.editor.isDestroyed) {
             try {
-                const ok = this.editor.commands.setContent(cleanHtml, Boolean(emitUpdate));
-                if (ok) return true;
-            } catch (e) {}
-        }
-        
-        const el = document.getElementById(this.elementId);
-        const pm = el ? (el.querySelector('.ProseMirror') || el) : null;
-        if (pm) {
-            pm.innerHTML = cleanHtml;
-            return true;
+                return this.editor.commands.setContent(cleanHtml, Boolean(emitUpdate));
+            } catch (e) {
+                console.warn('[TiptapDriver] setContent error, retrying with parsed DOM:', e);
+                try {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(cleanHtml, 'text/html');
+                    return this.editor.commands.setContent(doc.body.innerHTML, Boolean(emitUpdate));
+                } catch (err) {
+                    console.error('[TiptapDriver] Failed to set content in active editor:', err);
+                }
+            }
         }
         return false;
     }
@@ -438,14 +439,10 @@ export class TiptapDriver {
         const cleanHtml = normalizeContentToHtml(content);
         if (this.editor && !this.editor.isDestroyed) {
             try {
-                return this.editor.commands.insertContent(cleanHtml);
-            } catch (e) {}
-        }
-        const el = document.getElementById(this.elementId);
-        const pm = el ? (el.querySelector('.ProseMirror') || el) : null;
-        if (pm) {
-            pm.innerHTML += cleanHtml;
-            return true;
+                return this.editor.chain().focus().insertContent(cleanHtml).run();
+            } catch (e) {
+                console.warn('[TiptapDriver] insertContent error:', e);
+            }
         }
         return false;
     }
@@ -455,9 +452,11 @@ export class TiptapDriver {
         if (this.editor && !this.editor.isDestroyed) {
             try {
                 return this.editor.chain().focus().deleteSelection().insertContent(cleanHtml).run();
-            } catch (e) {}
+            } catch (e) {
+                return this.setContent(cleanHtml);
+            }
         }
-        return this.setContent(cleanHtml);
+        return false;
     }
 
     appendContent(content) {
@@ -475,60 +474,125 @@ export class TiptapDriver {
         }
     }
 
-    // --- Core Formatting & Structure Commands with Resilient Execution ---
+    // --- Core Formatting & Structure Commands with Direct Chained Execution ---
     toggleHeading(level) { 
-        return this.execCommand(ed => ed.commands.toggleHeading({ level: parseInt(level) || 2 })); 
+        if (!this.editor || this.editor.isDestroyed) return false;
+        const res = this.editor.chain().focus().toggleHeading({ level: parseInt(level) || 2 }).run();
+        this.updateBubbleMenu(this.editor);
+        return res;
     }
     toggleBold() { 
-        return this.execCommand(ed => ed.commands.toggleBold()); 
+        if (!this.editor || this.editor.isDestroyed) return false;
+        const res = this.editor.chain().focus().toggleBold().run();
+        this.updateBubbleMenu(this.editor);
+        return res;
     }
     toggleItalic() { 
-        return this.execCommand(ed => ed.commands.toggleItalic()); 
+        if (!this.editor || this.editor.isDestroyed) return false;
+        const res = this.editor.chain().focus().toggleItalic().run();
+        this.updateBubbleMenu(this.editor);
+        return res;
     }
     toggleUnderline() { 
-        return this.execCommand(ed => ed.commands.toggleUnderline()); 
+        if (!this.editor || this.editor.isDestroyed) return false;
+        const res = this.editor.chain().focus().toggleUnderline().run();
+        this.updateBubbleMenu(this.editor);
+        return res;
     }
     toggleStrike() { 
-        return this.execCommand(ed => ed.commands.toggleStrike()); 
+        if (!this.editor || this.editor.isDestroyed) return false;
+        const res = this.editor.chain().focus().toggleStrike().run();
+        this.updateBubbleMenu(this.editor);
+        return res;
     }
     toggleSubscript() { 
-        return this.execCommand(ed => ed.commands.toggleSubscript()); 
+        if (!this.editor || this.editor.isDestroyed) return false;
+        const res = this.editor.chain().focus().toggleSubscript().run();
+        this.updateBubbleMenu(this.editor);
+        return res;
     }
     toggleSuperscript() { 
-        return this.execCommand(ed => ed.commands.toggleSuperscript()); 
+        if (!this.editor || this.editor.isDestroyed) return false;
+        const res = this.editor.chain().focus().toggleSuperscript().run();
+        this.updateBubbleMenu(this.editor);
+        return res;
     }
     toggleCode() { 
-        return this.execCommand(ed => ed.commands.toggleCode()); 
+        if (!this.editor || this.editor.isDestroyed) return false;
+        const res = this.editor.chain().focus().toggleCode().run();
+        this.updateBubbleMenu(this.editor);
+        return res;
     }
     toggleHighlight(color = null) { 
-        return this.execCommand(ed => color ? ed.commands.toggleHighlight({ color }) : ed.commands.toggleHighlight()); 
+        if (!this.editor || this.editor.isDestroyed) return false;
+        const res = color 
+            ? this.editor.chain().focus().toggleHighlight({ color }).run() 
+            : this.editor.chain().focus().toggleHighlight().run();
+        this.updateBubbleMenu(this.editor);
+        return res;
     }
     toggleBulletList() { 
-        return this.execCommand(ed => ed.commands.toggleBulletList()); 
+        if (!this.editor || this.editor.isDestroyed) return false;
+        const res = this.editor.chain().focus().toggleBulletList().run();
+        this.updateBubbleMenu(this.editor);
+        return res;
     }
     toggleOrderedList() { 
-        return this.execCommand(ed => ed.commands.toggleOrderedList()); 
+        if (!this.editor || this.editor.isDestroyed) return false;
+        const res = this.editor.chain().focus().toggleOrderedList().run();
+        this.updateBubbleMenu(this.editor);
+        return res;
     }
     toggleTaskList() { 
-        return this.execCommand(ed => ed.commands.toggleTaskList()); 
+        if (!this.editor || this.editor.isDestroyed) return false;
+        const res = this.editor.chain().focus().toggleTaskList().run();
+        this.updateBubbleMenu(this.editor);
+        return res;
     }
     toggleBlockquote() { 
-        return this.execCommand(ed => ed.commands.toggleBlockquote()); 
+        if (!this.editor || this.editor.isDestroyed) return false;
+        const res = this.editor.chain().focus().toggleBlockquote().run();
+        this.updateBubbleMenu(this.editor);
+        return res;
     }
     toggleCodeBlock() { 
-        return this.execCommand(ed => ed.commands.toggleCodeBlock()); 
+        if (!this.editor || this.editor.isDestroyed) return false;
+        const res = this.editor.chain().focus().toggleCodeBlock().run();
+        this.updateBubbleMenu(this.editor);
+        return res;
     }
     setHorizontalRule() { 
-        return this.execCommand(ed => ed.commands.setHorizontalRule()); 
+        if (!this.editor || this.editor.isDestroyed) return false;
+        const res = this.editor.chain().focus().setHorizontalRule().run();
+        this.updateBubbleMenu(this.editor);
+        return res;
     }
     setTextAlign(align) { 
-        return this.execCommand(ed => ed.commands.setTextAlign(align)); 
+        if (!this.editor || this.editor.isDestroyed) return false;
+        const res = this.editor.chain().focus().setTextAlign(align).run();
+        this.updateBubbleMenu(this.editor);
+        return res;
     }
-    setImage(attrs) { return this.execCommand(ed => ed.chain().focus().setImage(attrs).run()); }
-    setLink(attrs) { return this.execCommand(ed => ed.chain().focus().setLink(attrs).run()); }
-    clearFormatting() { return this.execCommand(ed => ed.chain().unsetAllMarks().clearNodes().run()); }
-    undo() { return this.execCommand(ed => ed.commands.undo()); }
-    redo() { return this.execCommand(ed => ed.commands.redo()); }
+    setImage(attrs) { 
+        if (!this.editor || this.editor.isDestroyed) return false;
+        return this.editor.chain().focus().setImage(attrs).run(); 
+    }
+    setLink(attrs) { 
+        if (!this.editor || this.editor.isDestroyed) return false;
+        return this.editor.chain().focus().setLink(attrs).run(); 
+    }
+    clearFormatting() { 
+        if (!this.editor || this.editor.isDestroyed) return false;
+        return this.editor.chain().focus().unsetAllMarks().clearNodes().run(); 
+    }
+    undo() { 
+        if (!this.editor || this.editor.isDestroyed) return false;
+        return this.editor.chain().focus().undo().run(); 
+    }
+    redo() { 
+        if (!this.editor || this.editor.isDestroyed) return false;
+        return this.editor.chain().focus().redo().run(); 
+    }
 
     // --- Table Management Commands ---
     insertTable(options = { rows: 3, cols: 3, withHeaderRow: true }) {

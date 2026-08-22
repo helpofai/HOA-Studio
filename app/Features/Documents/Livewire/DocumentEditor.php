@@ -130,6 +130,7 @@ class DocumentEditor extends Component
         }
     }
 
+    #[On('autosave')]
     public function autosave(string $html, ?array $json = null, ?SaveDocumentVersion $action = null)
     {
         $this->isSaving = true;
