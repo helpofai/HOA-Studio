@@ -82,6 +82,13 @@
         </x-glass.card>
     </div>
 
+    <!-- User Live AI Inference Telemetry Graph -->
+    <x-omniroute.telemetry-graph 
+        :graphData="$graphData" 
+        :timeRange="$graphTimeRange" 
+        :statusFilter="$graphStatusFilter" 
+    />
+
     <!-- 2 Column Section: Recent Documents & Quick AI Tools -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Recent Documents (2 Cols) -->

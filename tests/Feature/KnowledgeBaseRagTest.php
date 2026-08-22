@@ -27,14 +27,17 @@ class KnowledgeBaseRagTest extends TestCase
             'used_word_quota' => 0,
         ]);
 
-        AiProvider::create([
-            'name' => 'OmniRoute Gateway',
-            'slug' => 'omniroute',
-            'base_url' => 'http://localhost:20128/v1',
-            'api_key_encrypted' => 'test-key',
-            'is_local' => true,
-            'is_active' => true,
-        ]);
+        AiProvider::firstOrCreate(
+            ['slug' => 'omniroute'],
+            [
+                'name' => 'OmniRoute Gateway',
+                'slug' => 'omniroute',
+                'base_url' => 'http://localhost:20128/v1',
+                'api_key_encrypted' => 'test-key',
+                'is_local' => true,
+                'is_active' => true,
+            ]
+        );
     }
 
     public function test_user_can_view_knowledge_base_page(): void

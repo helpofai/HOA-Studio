@@ -109,7 +109,12 @@ class UserAiModelsCatalogTest extends TestCase
 
     public function test_user_can_save_and_manage_byok_keys_from_ai_models_catalog()
     {
-        $provider = AiProvider::where('slug', 'deepseek')->first();
+        $provider = AiProvider::firstOrCreate(['slug' => 'deepseek'], [
+            'name' => 'DeepSeek',
+            'slug' => 'deepseek',
+            'is_active' => true,
+            'allow_user_key' => true,
+        ]);
         $provider->allow_user_key = true;
         $provider->save();
 

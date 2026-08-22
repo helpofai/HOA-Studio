@@ -16,6 +16,12 @@ class AdminAiSettingsTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        app(\App\Features\Admin\Actions\SeedDefaultAiProviders::class)->execute();
+    }
+
     public function test_admin_can_view_ai_settings_hub(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
@@ -25,9 +31,9 @@ class AdminAiSettingsTest extends TestCase
             ->assertStatus(200)
             ->assertSee('AI Providers')
             ->assertSee('OmniRoute Gateway')
-            ->assertSee('DeepSeek Direct')
+            ->assertSee('DeepSeek')
             ->assertSee('OpenAI')
-            ->assertSee('Anthropic Claude');
+            ->assertSee('Anthropic');
     }
 
     public function test_standard_users_cannot_access_ai_settings(): void
@@ -44,12 +50,15 @@ class AdminAiSettingsTest extends TestCase
         $admin = User::factory()->create(['role' => 'admin']);
         $this->actingAs($admin);
 
-        $provider = AiProvider::create([
-            'name' => 'Test AI Cloud',
-            'slug' => 'test-ai',
-            'is_active' => true,
-            'allow_user_key' => true,
-        ]);
+        $provider = AiProvider::firstOrCreate(
+            ['slug' => 'test-ai'],
+            [
+                'name' => 'Test AI Cloud',
+                'slug' => 'test-ai',
+                'is_active' => true,
+                'allow_user_key' => true,
+            ]
+        );
 
         Livewire::test(AdminAiSettingsPage::class)
             ->call('toggleProviderActive', $provider->id);

@@ -26,14 +26,14 @@ class SecurityHardeningAndPerformanceTest extends TestCase
         parent::setUp();
 
         $this->user = User::factory()->create([
-            'email' => 'author@helpofai.com',
+            'email' => 'author_' . uniqid() . '@helpofai.com',
             'role' => 'user',
             'plan' => 'starter',
             'is_active' => true,
         ]);
 
         $this->otherUser = User::factory()->create([
-            'email' => 'other@helpofai.com',
+            'email' => 'other_' . uniqid() . '@helpofai.com',
             'role' => 'user',
             'plan' => 'starter',
             'is_active' => true,

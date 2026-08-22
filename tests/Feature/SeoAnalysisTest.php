@@ -44,14 +44,17 @@ class SeoAnalysisTest extends TestCase
             'content_plain' => 'The Complete Guide to AI Agents in 2026. AI agents are transforming how modern software systems coordinate complex tasks across distributed networks. Understanding Autonomous AI Agents. Here is an in-depth breakdown of how autonomous multi-agent systems operate efficiently with low latency. Key Architectural Benefits. Multi-model routing allows failover resilience and cost optimization across hundreds of LLMs.',
         ]);
 
-        AiProvider::create([
-            'name' => 'OmniRoute Gateway',
-            'slug' => 'omniroute',
-            'base_url' => 'http://localhost:20128/v1',
-            'api_key_encrypted' => 'test-key',
-            'is_local' => true,
-            'is_active' => true,
-        ]);
+        AiProvider::firstOrCreate(
+            ['slug' => 'omniroute'],
+            [
+                'name' => 'OmniRoute Gateway',
+                'slug' => 'omniroute',
+                'base_url' => 'http://localhost:20128/v1',
+                'api_key_encrypted' => 'test-key',
+                'is_local' => true,
+                'is_active' => true,
+            ]
+        );
     }
 
     public function test_seo_analyzer_evaluates_document_metrics_and_scores(): void

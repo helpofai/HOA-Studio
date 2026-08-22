@@ -67,6 +67,10 @@ class AdminOmniRouteSetupPage extends Component
     public ?string $saveStatus = null; // 'success', 'error', null
     public ?string $syncStatus = null; // 'success', 'error', null
 
+    // Telemetry Graph State
+    public int $graphTimeRange = 24; // 1, 5, 12, 24
+    public string $graphStatusFilter = 'all'; // 'all', 'pass', 'info', 'warning', 'fail'
+
     // Model Health Probe State
     public array $testingModelIds = [];
     public bool $isBatchTesting = false;
@@ -138,6 +142,25 @@ class AdminOmniRouteSetupPage extends Component
         $endpoints = OmniRouteUrlResolver::resolve($this->base_url);
         $start = microtime(true);
 
+        $parsedUrl = parse_url($endpoints['models_endpoint']);
+        $host = $parsedUrl['host'] ?? '127.0.0.1';
+        $port = $parsedUrl['port'] ?? 20128;
+        $isRemoteHttps = str_starts_with($endpoints['models_endpoint'], 'https://') && !str_contains($endpoints['models_endpoint'], 'localhost') && !str_contains($endpoints['models_endpoint'], '127.0.0.1');
+
+        if (!$isRemoteHttps) {
+            $ipToCheck = ($host === 'localhost') ? '127.0.0.1' : $host;
+            $fp = @fsockopen($ipToCheck, $port, $errno, $errstr, 0.4);
+            if (!$fp && $ipToCheck !== '127.0.0.1') {
+                $fp = @fsockopen('127.0.0.1', $port, $errno, $errstr, 0.4);
+            }
+            if (!$fp) {
+                $this->connectionStatus = false;
+                $this->pingLatencyMs = null;
+                return;
+            }
+            fclose($fp);
+        }
+
         try {
             $response = Http::withHeaders([
                 'Authorization' => "Bearer {$this->api_key}",
@@ -146,39 +169,22 @@ class AdminOmniRouteSetupPage extends Component
             ->withOptions([
                 'force_ip_resolve' => 'v4',
             ])
-            ->timeout(6)
+            ->connectTimeout(1.5)
+            ->timeout(4)
             ->get($endpoints['models_endpoint']);
 
-            if ($response->successful()) {
+            $this->pingLatencyMs = max(1, (int) round((microtime(true) - $start) * 1000));
+
+            if ($response->successful() || $response->status() === 200 || $response->status() === 304) {
                 $this->connectionStatus = true;
-                $this->pingLatencyMs = max(1, (int) round((microtime(true) - $start) * 1000));
             } elseif ($response->status() === 401 || $response->status() === 403) {
-                // Server is online but key is invalid
-                $this->connectionStatus = false;
-                $this->pingLatencyMs = (int) round((microtime(true) - $start) * 1000);
+                // Daemon is online, key may need update
+                $this->connectionStatus = true;
             } else {
-                // Check root base URL fallback
-                $rootRes = Http::withOptions(['force_ip_resolve' => 'v4'])->timeout(3)->get($endpoints['root_url']);
-                if ($rootRes->status() === 200 || $rootRes->status() === 307 || $rootRes->status() === 302) {
-                    $this->connectionStatus = true;
-                    $this->pingLatencyMs = max(1, (int) round((microtime(true) - $start) * 1000));
-                } else {
-                    $this->connectionStatus = false;
-                }
+                $this->connectionStatus = false;
             }
         } catch (Exception $e) {
-            // Check if root port is responding
-            try {
-                $rootRes = Http::withOptions(['force_ip_resolve' => 'v4'])->timeout(3)->get($endpoints['root_url']);
-                if ($rootRes->status() === 200 || $rootRes->status() === 307 || $rootRes->status() === 302) {
-                    $this->connectionStatus = true;
-                    $this->pingLatencyMs = max(1, (int) round((microtime(true) - $start) * 1000));
-                } else {
-                    $this->connectionStatus = false;
-                }
-            } catch (Exception $inner) {
-                $this->connectionStatus = false;
-            }
+            $this->connectionStatus = false;
         }
     }
 
@@ -386,15 +392,25 @@ class AdminOmniRouteSetupPage extends Component
             $this->progressCurrent = 4;
             $this->appendProgressLog('ok', 'COMBOS', "Ingested {$result['combos_count']} cascade combos and {$result['free_tier_count']} free tier pools.");
 
-            $this->connectionStatus = true;
-            $this->pingLatencyMs = $result['latency_ms'];
-            $this->syncTelemetry = $result;
-            $this->syncStatus = 'success';
+            if (!empty($result['is_offline_fallback'])) {
+                $this->connectionStatus = false;
+                $this->pingLatencyMs = $result['latency_ms'];
+                $this->syncTelemetry = $result;
+                $this->syncStatus = 'success';
+                $this->appendProgressLog('warn', 'OFFLINE', "OmniRoute daemon offline on {$this->base_url}. Ingested offline model catalog.");
+                $this->statusMessage = "OmniRoute daemon offline on port 20128. Ingested {$result['total_synced']} default models into database (Start OmniRoute Gateway for live sync).";
+                session()->flash('warning', $this->statusMessage);
+            } else {
+                $this->connectionStatus = true;
+                $this->pingLatencyMs = $result['latency_ms'];
+                $this->syncTelemetry = $result;
+                $this->syncStatus = 'success';
 
-            $pruneText = !empty($result['pruned_count']) ? " (Purged {$result['pruned_count']} stale models)" : "";
-            $this->appendProgressLog('info', 'COMPLETE', "✔ Dynamic synchronization complete! All {$result['total_synced']} active models updated{$pruneText}.");
-            $this->statusMessage = "OmniRoute Gateway Online ({$result['latency_ms']}ms). Dynamically synchronized {$result['total_synced']} models{$pruneText} ({$result['combos_count']} combos, {$result['free_tier_count']} free-tier pools)!";
-            session()->flash('status', $this->statusMessage);
+                $pruneText = !empty($result['pruned_count']) ? " (Purged {$result['pruned_count']} stale models)" : "";
+                $this->appendProgressLog('info', 'COMPLETE', "✔ Dynamic synchronization complete! All {$result['total_synced']} active models updated{$pruneText}.");
+                $this->statusMessage = "OmniRoute Gateway Online ({$result['latency_ms']}ms). Dynamically synchronized {$result['total_synced']} models{$pruneText} ({$result['combos_count']} combos, {$result['free_tier_count']} free-tier pools)!";
+                session()->flash('status', $this->statusMessage);
+            }
             $this->fetchConsoleLogs();
         } catch (Exception $e) {
             $this->connectionStatus = false;
@@ -581,6 +597,22 @@ class AdminOmniRouteSetupPage extends Component
             return true;
         })->values()->all();
 
+        $untestedCount = $provider ? AiModel::where('ai_provider_id', $provider->id)->where(function($q){ $q->whereNull('last_test_status')->orWhere('last_test_status', 'untested'); })->count() : AiModel::whereNull('last_test_status')->count();
+
+        $vendors = $provider ? AiModel::where('ai_provider_id', $provider->id)
+            ->select('owned_by', DB::raw('count(*) as count'))
+            ->whereNotNull('owned_by')
+            ->where('owned_by', '!=', '')
+            ->groupBy('owned_by')
+            ->orderBy('count', 'desc')
+            ->get() : collect();
+
+        $graphData = app(\App\Features\AI\Services\OmniRouteGraphTelemetryService::class)->generate(
+            $this->graphTimeRange,
+            null, // null = platform-wide admin metrics
+            $this->graphStatusFilter
+        );
+
         return view('admin.ai-settings.omniroute', [
             'provider' => $provider,
             'models' => $models,
@@ -592,8 +624,12 @@ class AdminOmniRouteSetupPage extends Component
             'reasoningCount' => $reasoningCount,
             'workingCount' => $workingCount,
             'failedCount' => $failedCount,
-            'modelUsage' => $modelUsage,
+            'untestedCount' => $untestedCount,
+            'prunedModelsCount' => $this->syncTelemetry['pruned_count'] ?? 0,
+            'vendors' => $vendors,
             'filteredLogs' => $filteredLogs,
+            'modelUsage' => $modelUsage,
+            'graphData' => $graphData,
         ]);
     }
 }

@@ -32,6 +32,13 @@
         </div>
     </div>
 
+    <!-- Platform-Wide Multi-Color Telemetry Graph -->
+    <x-omniroute.telemetry-graph 
+        :graphData="$graphData" 
+        :timeRange="$graphTimeRange" 
+        :statusFilter="$graphStatusFilter" 
+    />
+
     <!-- Filters -->
     <x-glass.card variant="subtle" class="p-4 flex flex-col sm:flex-row items-center gap-3">
         <div class="w-full sm:flex-1">

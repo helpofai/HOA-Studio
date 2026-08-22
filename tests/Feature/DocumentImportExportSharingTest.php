@@ -27,7 +27,7 @@ class DocumentImportExportSharingTest extends TestCase
         parent::setUp();
 
         $this->user = User::factory()->create([
-            'email' => 'author@example.com',
+            'email' => 'author_' . uniqid() . '@example.com',
             'role' => 'user',
         ]);
 

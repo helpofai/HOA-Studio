@@ -13,6 +13,12 @@ class OmniRouteClientTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->withoutMiddleware();
+    }
+
     public function test_omniroute_client_sends_headers_and_parses_telemetry(): void
     {
         Http::fake([
@@ -99,6 +105,7 @@ class OmniRouteClientTest extends TestCase
 
     public function test_transform_api_endpoint_returns_json_response(): void
     {
+        $this->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class);
         Http::fake([
             '*/v1/chat/completions' => Http::response([
                 'model' => 'cc/claude-3-7-sonnet',
@@ -133,6 +140,7 @@ class OmniRouteClientTest extends TestCase
 
     public function test_transform_fails_when_user_has_no_quota(): void
     {
+        $this->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class);
         $user = User::factory()->create([
             'monthly_word_quota' => 1000,
             'used_word_quota' => 1000, // No words left

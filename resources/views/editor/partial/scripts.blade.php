@@ -1,0 +1,788 @@
+{{--
+/*
+|--------------------------------------------------------------------------
+| HelpOfAi (HOA) Professional Software - Editor Alpine JS Engine Partial
+|--------------------------------------------------------------------------
+*/
+--}}
+
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('documentEditorComponent', (config) => ({
+        editorInstance: null,
+        selectedText: '',
+        hasSelection: false,
+        wordCount: 0,
+        characterCount: 0,
+        readingTime: 1,
+
+        showLeftPanel: true,
+        showRightPanel: true,
+        rightTab: 'seo',
+        targetWordGoal: 1200,
+        serpView: 'desktop',
+
+        caps: { richText: true, blocks: true, markdown: false, undoRedo: true },
+        showLossyWarning: false,
+        pendingEngine: null,
+        lossyEngines: { plaintext: true, html: true },
+
+        aiPrompt: '',
+        inlineAiPrompt: '',
+        showInlineAiPrompt: false,
+        aiModel: 'Auto (OmniRoute)',
+        aiContext: {
+            currentDoc: true,
+            project: true,
+            brandVoice: true,
+            knowledgeBase: true,
+            webResearch: false
+        },
+        aiHistory: [],
+
+        // Real-Time Token & Latency Telemetry
+        sendTokens: 0,
+        receivedTokens: 0,
+        totalTokens: 0,
+        streamLatencyMs: 12,
+        streamSpeedTokSec: 0,
+
+        // 15-Stage Enterprise Production Pipeline Matrix
+        pipelineStages: {
+            search_intent: { icon: '🔍', label: 'Search Intent Analysis', category: 'Analysis', enabled: true },
+            keyword_research: { icon: '🏷️', label: 'Keyword & Entity Research', category: 'Research', enabled: true },
+            serp_competitor: { icon: '🌐', label: 'SERP / Competitor Analysis', category: 'Intelligence', enabled: true },
+            content_gaps: { icon: '🎯', label: 'Content Gap Analysis', category: 'Strategy', enabled: true },
+            article_outline: { icon: '📑', label: 'Article Outline Architecture', category: 'Structure', enabled: true },
+            section_generation: { icon: '✍️', label: 'Section-by-Section Generation', category: 'Drafting', enabled: true },
+            fact_verification: { icon: '🛡️', label: 'Fact & Source Verification', category: 'Accuracy', enabled: true },
+            originality_check: { icon: '✨', label: 'Originality & Novelty Check', category: 'Uniqueness', enabled: true },
+            seo_optimization: { icon: '⌁', label: 'SEO Deep Optimization', category: 'Optimization', enabled: true },
+            readability_opt: { icon: '📖', label: 'Readability & Flow Optimization', category: 'Refinement', enabled: true },
+            internal_links: { icon: '🔗', label: 'Internal Link Suggestions', category: 'Linking', enabled: true },
+            media_suggestions: { icon: '🖼️', label: 'Media & Asset Suggestions', category: 'Assets', enabled: true },
+            schema_generation: { icon: '📋', label: 'Schema JSON-LD Generation', category: 'Schema', enabled: true },
+            quality_audit: { icon: '🏆', label: 'Final 10-Point Quality Audit', category: 'Audit', enabled: true },
+            publish_assembly: { icon: '🚀', label: 'Publish-Ready Assembly', category: 'Publish', enabled: true },
+        },
+
+        getSelectedStagesCount() {
+            return Object.values(this.pipelineStages).filter(s => s.enabled).length;
+        },
+
+        setPipelinePreset(preset) {
+            const allKeys = Object.keys(this.pipelineStages);
+            if (preset === 'all') {
+                allKeys.forEach(k => this.pipelineStages[k].enabled = true);
+                this.addLog('AI', 'Selected all 15 pipeline stages.');
+            } else if (preset === 'seo') {
+                allKeys.forEach(k => {
+                    this.pipelineStages[k].enabled = ['search_intent', 'keyword_research', 'content_gaps', 'article_outline', 'section_generation', 'seo_optimization', 'schema_generation', 'quality_audit'].includes(k);
+                });
+                this.addLog('AI', 'Applied SEO Authority pipeline preset (8 stages).');
+            } else if (preset === 'quick') {
+                allKeys.forEach(k => {
+                    this.pipelineStages[k].enabled = ['article_outline', 'section_generation', 'readability_opt'].includes(k);
+                });
+                this.addLog('AI', 'Applied Quick Draft pipeline preset (3 stages).');
+            } else if (preset === 'clear') {
+                allKeys.forEach(k => this.pipelineStages[k].enabled = false);
+                this.addLog('AI', 'Cleared all pipeline stages.');
+            }
+        },
+
+        isTransforming: false,
+        activeAction: null,
+        routedModel: 'OmniRoute',
+        liveAiStreamText: '',
+        showAiStreamBanner: false,
+        abortController: null,
+        streamDecorationId: null,
+
+        showContextMenu: false,
+        contextMenuX: 0,
+        contextMenuY: 0,
+        showSlashMenu: false,
+        slashMenuX: 0,
+        slashMenuY: 0,
+        docOutline: [],
+
+        // Terminal UI AI Telemetry Logs
+        aiLogs: [],
+        logFilter: 'ALL',
+
+        get filteredLogs() {
+            if (this.logFilter === 'ALL') return this.aiLogs;
+            if (this.logFilter === 'AI') return this.aiLogs.filter(l => l.level === 'AI' || l.level === 'STREAM' || l.level === 'GENERATE');
+            if (this.logFilter === 'SEO') return this.aiLogs.filter(l => l.level === 'SEO');
+            if (this.logFilter === 'ERR') return this.aiLogs.filter(l => l.level === 'ERROR' || l.level === 'ERR' || l.level === 'WARN');
+            return this.aiLogs;
+        },
+
+        addLog(level, msg) {
+            const now = new Date();
+            const timeStr = now.toTimeString().split(' ')[0];
+            this.aiLogs.unshift({ time: timeStr, level: level.toUpperCase(), msg: msg });
+            if (this.aiLogs.length > 50) this.aiLogs.pop();
+            this.$nextTick(() => {
+                const screen = document.getElementById('terminal-logs-screen');
+                if (screen) screen.scrollTop = 0;
+            });
+        },
+
+        clearLogs() {
+            this.aiLogs = [];
+            this.addLog('SYSTEM', 'Log buffer cleared.');
+        },
+
+        showRestoredDraftBanner: false,
+        restoredDraftTime: '',
+        restoredWordCount: 0,
+        hasUnsavedChanges: false,
+        serverBackupContent: config.initialContent || '',
+
+        init() {
+            this.addLog('SYSTEM', 'OmniRoute Gateway v2.0 kernel initialized.');
+            this.addLog('ENGINE', 'Editor driver mounted: ' + (config.editorType || 'tiptap').toUpperCase());
+            this.addLog('SEO', 'Real-time semantic SEO analyzer active.');
+
+            // Check for Local Draft Recovery
+            const localDraftKey = 'hoa_doc_draft_' + config.documentId;
+            const savedDraft = localStorage.getItem(localDraftKey);
+            let contentToLoad = config.initialContent || '<p></p>';
+
+            if (savedDraft) {
+                try {
+                    const parsed = JSON.parse(savedDraft);
+                    const serverLength = (config.initialContent || '').replace(/<[^>]*>/g, '').trim().length;
+                    const draftLength = (parsed.html || '').replace(/<[^>]*>/g, '').trim().length;
+
+                    if (draftLength > serverLength && draftLength > 50) {
+                        contentToLoad = parsed.html;
+                        this.showRestoredDraftBanner = true;
+                        this.restoredDraftTime = new Date(parsed.timestamp).toLocaleTimeString();
+                        this.restoredWordCount = (parsed.html.replace(/<[^>]*>/g, '').trim().split(/\s+/).filter(Boolean)).length;
+                        this.addLog('SYSTEM', '✦ Auto-recovered unsaved local draft (' + this.restoredWordCount + ' words)');
+                        
+                        setTimeout(() => {
+                            Livewire.dispatch('autosave', { html: parsed.html, json: null });
+                        }, 1000);
+                    }
+                } catch (e) {}
+            }
+
+            this.initEditor(contentToLoad);
+
+            // Dynamic Engine Switching Listener
+            Livewire.on('editor:reload', (event) => {
+                const newEngine = (event && event.editorType) ? event.editorType : (event && event[0] && event[0].editorType ? event[0].editorType : null);
+                if (newEngine) {
+                    config.editorType = newEngine;
+                }
+                const currentHtml = this.editorInstance ? this.editorInstance.getHTML() : config.initialContent;
+                this.initEditor(currentHtml);
+                this.addLog('ENGINE', 'Mounted active driver: ' + (config.editorType || 'tiptap').toUpperCase());
+            });
+
+            // Browser Accidental Close / Reload Protection Guard
+            window.addEventListener('beforeunload', (e) => {
+                if (this.isTransforming || this.hasUnsavedChanges) {
+                    e.preventDefault();
+                    e.returnValue = 'You have unsaved changes or active AI generation. Are you sure you want to leave?';
+                    return e.returnValue;
+                }
+            });
+
+            Livewire.on('editor:setContent', ({ content }) => {
+                if (this.editorInstance) this.editorInstance.setContent(content);
+                this.addLog('INFO', 'Canvas content reset via server action.');
+            });
+
+            window.addEventListener('click', () => {
+                this.closeContextMenu();
+            });
+
+            window.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+                    e.preventDefault();
+                    Livewire.dispatch('saveExplicitSnapshot');
+                    this.addLog('INFO', 'Manual snapshot triggered via keyboard shortcut.');
+                }
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                    e.preventDefault();
+                    this.openInlineAiPrompt();
+                }
+                if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'f') {
+                    e.preventDefault();
+                    this.toggleFocusMode();
+                }
+                if (e.key === 'Escape') {
+                    this.closeContextMenu();
+                    this.showInlineAiPrompt = false;
+                    this.showSlashMenu = false;
+                }
+            });
+
+            window.addEventListener('tiptap:slash', (e) => {
+                this.slashMenuX = Math.min(e.detail.x || (window.innerWidth / 2 - 140), window.innerWidth - 300);
+                this.slashMenuY = Math.min(e.detail.y || 200, window.innerHeight - 400);
+                this.showSlashMenu = true;
+                this.addLog('AI', 'Slash commands palette triggered at cursor.');
+            });
+        },
+
+        executeSlashAction(action) {
+            this.showSlashMenu = false;
+            if (action === 'ask_ai') {
+                this.openInlineAiPrompt();
+            } else if (action === 'continue_writing') {
+                this.triggerAiTransform('continue_writing');
+            } else if (action === 'generate_outline') {
+                this.triggerAiTransform('generate_outline');
+            } else if (action === 'quick_answer') {
+                this.triggerAiTransform('quick_answer');
+            } else if (action === 'faq') {
+                this.triggerAiTransform('generate_faq');
+            } else if (action === 'comparison_table') {
+                this.triggerAiTransform('comparison_table');
+            } else if (action === 'tip') {
+                this.editorInstance?.insertCallout?.('tip');
+            } else if (action === 'warning') {
+                this.editorInstance?.insertCallout?.('warning');
+            } else if (action === 'proscons') {
+                this.editorInstance?.insertProsCons?.();
+            } else if (action === 'faq_accordion') {
+                this.editorInstance?.insertFaqAccordion?.();
+            } else if (action === 'trust_box') {
+                this.editorInstance?.insertTrustBox?.();
+            } else if (action === 'step_timeline') {
+                this.editorInstance?.insertStepTimeline?.();
+            } else if (action === 'h1') {
+                this.applyFormat('heading', 1);
+            } else if (action === 'h2') {
+                this.applyFormat('heading', 2);
+            } else if (action === 'h3') {
+                this.applyFormat('heading', 3);
+            } else if (action === 'h4') {
+                this.applyFormat('heading', 4);
+            } else if (action === 'bullet') {
+                this.applyFormat('bulletList');
+            } else if (action === 'number') {
+                this.applyFormat('orderedList');
+            } else if (action === 'task') {
+                this.editorInstance?.toggleTaskList?.();
+            } else if (action === 'table') {
+                this.editorInstance?.insertTable?.({ rows: 3, cols: 3, withHeaderRow: true });
+            } else if (action === 'quote') {
+                this.applyFormat('blockquote');
+            } else if (action === 'code') {
+                this.applyFormat('codeBlock');
+            } else if (action === 'divider') {
+                this.applyFormat('hr');
+            }
+            this.addLog('EDITOR', 'Executed command: ' + action);
+        },
+
+        // Active Formatting Status Map for Toolbar Highlighting
+        activeFormats: {
+            heading1: false,
+            heading2: false,
+            heading3: false,
+            heading4: false,
+            bold: false,
+            italic: false,
+            underline: false,
+            strike: false,
+            subscript: false,
+            superscript: false,
+            highlight: false,
+            bulletList: false,
+            orderedList: false,
+            taskList: false,
+            table: false,
+            blockquote: false,
+            codeBlock: false
+        },
+
+        updateActiveFormats() {
+            if (!this.editorInstance) return;
+            this.activeFormats = {
+                heading1: this.editorInstance.isActive?.('heading', { level: 1 }) ?? false,
+                heading2: this.editorInstance.isActive?.('heading', { level: 2 }) ?? false,
+                heading3: this.editorInstance.isActive?.('heading', { level: 3 }) ?? false,
+                heading4: this.editorInstance.isActive?.('heading', { level: 4 }) ?? false,
+                bold: this.editorInstance.isActive?.('bold') ?? false,
+                italic: this.editorInstance.isActive?.('italic') ?? false,
+                underline: this.editorInstance.isActive?.('underline') ?? false,
+                strike: this.editorInstance.isActive?.('strike') ?? false,
+                subscript: this.editorInstance.isActive?.('subscript') ?? false,
+                superscript: this.editorInstance.isActive?.('superscript') ?? false,
+                highlight: this.editorInstance.isActive?.('highlight') ?? false,
+                bulletList: this.editorInstance.isActive?.('bulletList') ?? false,
+                orderedList: this.editorInstance.isActive?.('orderedList') ?? false,
+                taskList: this.editorInstance.isActive?.('taskList') ?? false,
+                table: this.editorInstance.isActive?.('table') ?? false,
+                blockquote: this.editorInstance.isActive?.('blockquote') ?? false,
+                codeBlock: this.editorInstance.isActive?.('codeBlock') ?? false
+            };
+        },
+
+        initEditor(customInitial = null) {
+            if (this.editorInstance) {
+                try {
+                    this.editorInstance.destroy();
+                } catch (e) {}
+            }
+
+            const driverType = config.editorType || 'tiptap';
+            if (!window.HOA_EditorManager) {
+                console.warn('[initEditor] HOA_EditorManager not ready, retrying in 50ms...');
+                setTimeout(() => this.initEditor(customInitial), 50);
+                return;
+            }
+
+            this.editorInstance = window.HOA_EditorManager.createEditor(driverType, 'tiptap-content-target', {
+                initialContent: customInitial || config.initialContent || '<p></p>',
+                placeholder: 'Type / for AI commands or press Ctrl+K to ask AI...',
+                onStatsChange: (stats) => {
+                    this.wordCount = stats.words;
+                    this.characterCount = stats.characters;
+                    this.readingTime = Math.max(1, Math.ceil(stats.words / 200));
+                    this.updateOutline();
+                },
+                onSelectionChange: ({ selectedText, isEmpty }) => {
+                    this.selectedText = selectedText;
+                    this.hasSelection = !isEmpty && selectedText.trim().length > 0;
+                    this.updateActiveFormats();
+                },
+                onFormatChange: () => {
+                    this.updateActiveFormats();
+                },
+                onAutosave: (data) => {
+                    Livewire.dispatch('autosave', { html: data.html, json: data.json ?? null });
+                    this.saveLocalDraft(data.html);
+                    this.hasUnsavedChanges = false;
+                    this.addLog('INFO', 'Autosaved (' + data.words + ' words, ' + data.chars + ' chars)');
+                }
+            });
+
+            window.hoaEditorInstance = this.editorInstance;
+
+            if (this.editorInstance && this.editorInstance.capabilities) {
+                this.caps = { ...this.caps, ...this.editorInstance.capabilities };
+            }
+            this.updateOutline();
+            this.updateActiveFormats();
+        },
+
+        saveLocalDraft(html) {
+            if (!config.documentId) return;
+            const localDraftKey = 'hoa_doc_draft_' + config.documentId;
+            localStorage.setItem(localDraftKey, JSON.stringify({
+                html: html,
+                timestamp: Date.now()
+            }));
+            this.hasUnsavedChanges = true;
+        },
+
+        dismissRestoredBanner() {
+            this.showRestoredDraftBanner = false;
+            const html = this.editorInstance ? this.editorInstance.getHTML() : '';
+            Livewire.dispatch('autosave', { html: html, json: null });
+            this.addLog('INFO', 'Confirmed & synced restored draft to cloud database.');
+        },
+
+        revertToServerBackup() {
+            if (this.editorInstance && this.serverBackupContent) {
+                this.editorInstance.setContent(this.serverBackupContent);
+                const localDraftKey = 'hoa_doc_draft_' + config.documentId;
+                localStorage.removeItem(localDraftKey);
+                this.showRestoredDraftBanner = false;
+                this.addLog('WARN', 'Reverted to cloud database version.');
+            }
+        },
+
+        openInlineAiPrompt() {
+            this.showInlineAiPrompt = true;
+            this.addLog('AI', 'In-canvas AI prompt bar opened.');
+            this.$nextTick(() => {
+                const el = document.getElementById('inline-ai-input');
+                if (el) el.focus();
+            });
+        },
+
+        submitInlineAiPrompt() {
+            if (!this.inlineAiPrompt.trim()) return;
+            const prompt = this.inlineAiPrompt;
+            this.inlineAiPrompt = '';
+            this.showInlineAiPrompt = false;
+            this.triggerAiTransform('custom', prompt);
+        },
+
+        openContextMenu(event) {
+            this.contextMenuX = Math.min(event.clientX, window.innerWidth - 260);
+            this.contextMenuY = Math.min(event.clientY, window.innerHeight - 340);
+            this.showContextMenu = true;
+            this.addLog('INFO', 'Context menu opened at (' + this.contextMenuX + ', ' + this.contextMenuY + ')');
+        },
+
+        closeContextMenu() {
+            this.showContextMenu = false;
+        },
+
+        updateOutline() {
+            if (!this.editorInstance) return;
+            const html = this.editorInstance.getHTML ? this.editorInstance.getHTML() : '';
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            const headings = temp.querySelectorAll('h1, h2, h3');
+            this.docOutline = Array.from(headings).map(h => ({
+                level: parseInt(h.tagName[1]),
+                text: h.textContent.trim()
+            })).filter(h => h.text.length > 0);
+        },
+
+        scrollToHeading(text) {
+            const container = document.getElementById('tiptap-content-target');
+            if (!container) return;
+            const els = Array.from(container.querySelectorAll('h1, h2, h3, .gt-block, .notion-row'));
+            const match = els.find(el => el.textContent.trim().toLowerCase().includes(text.toLowerCase()));
+            if (match) {
+                match.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                match.classList.add('ring-2', 'ring-indigo-500/60', 'rounded-lg');
+                this.addLog('INFO', 'Navigated to heading: "' + text + '"');
+                setTimeout(() => match.classList.remove('ring-2', 'ring-indigo-500/60', 'rounded-lg'), 1500);
+            }
+        },
+
+        insertContentIntoCanvas(htmlContent, withHighlight = true) {
+            if (!this.editorInstance) return;
+            try {
+                if (typeof this.editorInstance.insertContent === 'function') {
+                    this.editorInstance.insertContent(htmlContent);
+                } else if (typeof this.editorInstance.setContent === 'function') {
+                    const current = this.editorInstance.getHTML ? this.editorInstance.getHTML() : '';
+                    this.editorInstance.setContent(current + '<p></p>' + htmlContent);
+                }
+
+                const finalHtml = this.editorInstance.getHTML ? this.editorInstance.getHTML() : htmlContent;
+                Livewire.dispatch('autosave', { html: finalHtml, json: null });
+                this.saveLocalDraft(finalHtml);
+                this.updateOutline();
+                this.updateActiveFormats();
+
+                const canvas = document.getElementById('tiptap-content-target');
+                if (canvas) {
+                    canvas.classList.add('ring-2', 'ring-indigo-500/50', 'transition-all', 'duration-500');
+                    setTimeout(() => canvas.classList.remove('ring-2', 'ring-indigo-500/50'), 2500);
+                }
+
+                this.addLog('GENERATE', 'Content inserted into active canvas (' + this.routedModel + ')');
+            } catch (err) {
+                console.error('[insertContentIntoCanvas] Safe fallback:', err);
+                const current = this.editorInstance.getHTML ? this.editorInstance.getHTML() : '';
+                this.editorInstance.setContent(current + '<p></p>' + htmlContent);
+                this.addLog('WARN', 'Inserted via resilient content reset fallback.');
+            }
+        },
+
+        applyLiveStreamNow() {
+            if (!this.liveAiStreamText || this.liveAiStreamText.trim().length === 0) return;
+            const textToInsert = this.liveAiStreamText;
+            
+            if (this.editorInstance) {
+                if (this.hasSelection && typeof this.editorInstance.replaceSelection === 'function') {
+                    this.editorInstance.replaceSelection(textToInsert);
+                } else {
+                    const currentHtml = this.editorInstance.getHTML ? this.editorInstance.getHTML() : '';
+                    const isDocEmpty = !currentHtml || currentHtml === '<p></p>' || currentHtml === '<p><br></p>' || currentHtml.trim().length === 0;
+                    if (isDocEmpty) {
+                        this.editorInstance.setContent(textToInsert);
+                    } else {
+                        this.insertContentIntoCanvas(textToInsert, true);
+                    }
+                }
+                const finalHtml = this.editorInstance.getHTML ? this.editorInstance.getHTML() : textToInsert;
+                Livewire.dispatch('autosave', { html: finalHtml, json: null });
+                this.saveLocalDraft(finalHtml);
+                this.updateOutline();
+                this.updateActiveFormats();
+            }
+            
+            this.addLog('AI', 'Applied live stream tokens into canvas (' + textToInsert.length + ' chars)');
+            this.liveAiStreamText = '';
+        },
+
+        abortAiTransform() {
+            if (this.abortController) {
+                this.abortController.abort();
+            }
+            this.isTransforming = false;
+            if (this.liveAiStreamText && this.liveAiStreamText.trim().length > 0) {
+                this.applyLiveStreamNow();
+            }
+            this.addLog('WARN', 'AI token stream stopped. Preserved tokens into canvas.');
+        },
+
+        applyFormat(action, param = null) {
+            const instance = this.editorInstance || window.hoaEditorInstance;
+            if (!instance) {
+                console.warn('[applyFormat] No editor instance available!');
+                return;
+            }
+            if (action === 'heading')          instance.toggleHeading?.(param);
+            else if (action === 'bold')        instance.toggleBold?.();
+            else if (action === 'italic')      instance.toggleItalic?.();
+            else if (action === 'underline')   instance.toggleUnderline?.();
+            else if (action === 'strike')      instance.toggleStrike?.();
+            else if (action === 'subscript')   instance.toggleSubscript?.();
+            else if (action === 'superscript') instance.toggleSuperscript?.();
+            else if (action === 'highlight')   instance.toggleHighlight?.();
+            else if (action === 'bulletList')  instance.toggleBulletList?.();
+            else if (action === 'orderedList') instance.toggleOrderedList?.();
+            else if (action === 'taskList')    instance.toggleTaskList?.();
+            else if (action === 'blockquote')  instance.toggleBlockquote?.();
+            else if (action === 'codeBlock')   instance.toggleCodeBlock?.();
+            else if (action === 'hr')          instance.setHorizontalRule?.();
+            else if (action === 'undo')        instance.undo?.();
+            else if (action === 'redo')        instance.redo?.();
+            this.updateActiveFormats();
+            this.updateOutline();
+        },
+
+        insertMarkdownHeading() { if (this.editorInstance && this.editorInstance.insertContent) this.editorInstance.insertContent('\n## '); },
+        insertMarkdownBold() { if (this.editorInstance && this.editorInstance.insertContent) this.editorInstance.insertContent('**bold**'); },
+        insertMarkdownTodo() { if (this.editorInstance && this.editorInstance.insertContent) this.editorInstance.insertContent('- [ ] '); },
+
+        insertImageFromUrl() {
+            if (!this.editorInstance) return;
+            const url = prompt('Enter image URL:', 'https://');
+            if (url && url !== 'https://') {
+                this.editorInstance.setImage?.({ src: url, alt: 'Inserted image' });
+                this.addLog('MEDIA', 'Image inserted: ' + url);
+            }
+        },
+
+        toggleFocusMode() {
+            if (this.showLeftPanel || this.showRightPanel) {
+                this.showLeftPanel = false;
+                this.showRightPanel = false;
+                this.addLog('INFO', 'Zen Focus Mode enabled.');
+            } else {
+                this.showLeftPanel = true;
+                this.showRightPanel = true;
+                this.addLog('INFO', 'Zen Focus Mode exited.');
+            }
+        },
+
+        requestEngineSwitch(targetEngine) {
+            const currentRich = this.caps.richText || this.caps.blocks;
+            if (currentRich && this.lossyEngines[targetEngine]) {
+                this.pendingEngine = targetEngine;
+                this.showLossyWarning = true;
+                this.addLog('WARN', 'Lossy engine switch warning prompted for: ' + targetEngine);
+            } else {
+                Livewire.dispatch('switchEditorType', { type: targetEngine });
+                this.addLog('ENGINE', 'Switching engine to: ' + targetEngine);
+            }
+        },
+        confirmLossySwitch() {
+            if (this.pendingEngine) {
+                Livewire.dispatch('switchEditorType', { type: this.pendingEngine });
+                this.addLog('ENGINE', 'Confirmed lossy switch to: ' + this.pendingEngine);
+            }
+            this.showLossyWarning = false;
+            this.pendingEngine = null;
+        },
+        cancelLossySwitch() {
+            this.showLossyWarning = false;
+            this.pendingEngine = null;
+            this.addLog('INFO', 'Cancelled lossy switch.');
+        },
+
+        aiErrorMessage: '',
+
+        async triggerAiTransform(type, customInstruction = '') {
+            this.closeContextMenu();
+            this.showInlineAiPrompt = false;
+            this.aiErrorMessage = '';
+            const ed = this.editorInstance || window.hoaEditorInstance;
+            const targetText = this.hasSelection ? this.selectedText : (ed ? ed.getText() : '');
+            
+            this.isTransforming = true;
+            this.activeAction = type;
+            this.liveAiStreamText = '';
+            this.showAiStreamBanner = true;
+            this.abortController = new AbortController();
+
+            let promptToSend = customInstruction || this.aiPrompt;
+            if (!promptToSend || !promptToSend.trim()) {
+                promptToSend = type === 'custom' 
+                    ? 'Write a comprehensive, in-depth technical deep-dive article with benchmarks, architecture, code, and FAQs.' 
+                    : type;
+            }
+
+            this.sendTokens = Math.max(1, Math.round(promptToSend.length / 3.8));
+            this.receivedTokens = 0;
+            this.totalTokens = this.sendTokens;
+            this.streamSpeedTokSec = 0;
+            const startTime = performance.now();
+            let firstTokenReceived = false;
+
+            const selectedPipelineStages = Object.keys(this.pipelineStages).filter(k => this.pipelineStages[k].enabled);
+            this.addLog('AI', 'Dispatched pipeline [' + type + '] with ' + selectedPipelineStages.length + ' active stages to OmniRoute router.');
+
+            try {
+                const response = await fetch(config.streamRoute, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': config.csrfToken,
+                        'Accept': 'text/event-stream'
+                    },
+                    body: JSON.stringify({
+                        text: targetText || 'Document Context',
+                        type: type,
+                        custom_instruction: promptToSend,
+                        model: this.aiModel,
+                        pipeline_stages: selectedPipelineStages,
+                        context: this.aiContext
+                    }),
+                    signal: this.abortController.signal
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.error || 'Server error while generating transformation.');
+                }
+
+                this.addLog('STREAM', 'SSE stream connected. Receiving real-time tokens...');
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+                let buffer = '';
+                let fullResult = '';
+
+                const existingDocContent = (ed ? ed.getHTML() : '').trim();
+                const isDocEmpty = !existingDocContent || 
+                                   existingDocContent === '<p></p>' || 
+                                   existingDocContent === '<p><br></p>' || 
+                                   existingDocContent === '<p>Start building your block content...</p>';
+
+                let lastCanvasUpdate = 0;
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    if (!firstTokenReceived) {
+                        firstTokenReceived = true;
+                        this.streamLatencyMs = Math.round(performance.now() - startTime);
+                    }
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const parsed = JSON.parse(line.substring(6));
+                                if (parsed.token) {
+                                    fullResult += parsed.token;
+                                }
+                                if (parsed.model) this.routedModel = parsed.model;
+                                if (parsed.result) {
+                                    fullResult = parsed.result;
+                                }
+                                if (parsed.message) {
+                                    this.aiErrorMessage = parsed.message;
+                                }
+                            } catch (e) {}
+                        }
+                    }
+
+                    this.liveAiStreamText = fullResult;
+                    this.receivedTokens = Math.max(1, Math.round(fullResult.length / 3.8));
+                    this.totalTokens = this.sendTokens + this.receivedTokens;
+                    const elapsedSec = (performance.now() - startTime) / 1000;
+                    if (elapsedSec > 0.1) {
+                        this.streamSpeedTokSec = Math.round(this.receivedTokens / elapsedSec);
+                    }
+
+                    // STREAM DIRECTLY INTO TIPTAP PROSEMIRROR CANVAS (Throttled for 60fps smoothness)
+                    const now = performance.now();
+                    if (now - lastCanvasUpdate > 60 && ed && fullResult.length > 0) {
+                        lastCanvasUpdate = now;
+                        if (isDocEmpty) {
+                            ed.setContent(fullResult, false);
+                        } else {
+                            ed.setContent(existingDocContent + '<p></p>' + fullResult, false);
+                        }
+
+                        const targetEl = document.getElementById('tiptap-content-target');
+                        if (targetEl && targetEl.scrollHeight - targetEl.scrollTop < 1200) {
+                            targetEl.scrollTop = targetEl.scrollHeight;
+                        }
+                    }
+                }
+
+                this.isTransforming = false;
+                this.liveAiStreamText = '';
+
+                // FINAL PERSISTENCE & AUTOSAVE
+                if (fullResult.trim().length > 0 && ed) {
+                    const finalHtml = isDocEmpty 
+                        ? fullResult 
+                        : existingDocContent + '<p></p>' + fullResult;
+
+                    ed.setContent(finalHtml, true);
+                    const savedHtml = ed.getHTML ? ed.getHTML() : finalHtml;
+                    
+                    Livewire.dispatch('autosave', { html: savedHtml, json: null });
+                    this.saveLocalDraft(savedHtml);
+                    this.updateOutline();
+                    this.updateActiveFormats();
+                    this.addLog('GENERATE', 'Completed generation directly in canvas (' + fullResult.length + ' chars)');
+
+                    // Inferred Document Title Auto-Update
+                    const h1Match = fullResult.match(/<h1>(.*?)<\/h1>/i) || fullResult.match(/^#\s+(.*?)$/m);
+                    if (h1Match && h1Match[1]) {
+                        const extractedTitle = h1Match[1].replace(/<[^>]*>/g, '').trim();
+                        if (extractedTitle) {
+                            Livewire.dispatch('updateTitle', { newTitle: extractedTitle });
+                            this.addLog('SEO', 'Auto-applied document title: "' + extractedTitle.substring(0, 30) + '..."');
+                        }
+                    }
+                }
+
+                this.aiHistory.unshift({
+                    id: Date.now(),
+                    type: type.replace('_', ' ').toUpperCase(),
+                    prompt: promptToSend.substring(0, 35) + '...',
+                    tokens: this.totalTokens,
+                    time: 'Just now'
+                });
+
+                if (type === 'custom') {
+                    this.aiPrompt = '';
+                }
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    console.error(err);
+                    this.aiErrorMessage = err.message || 'AI Generation notice: Unable to complete request.';
+                    this.addLog('ERROR', 'AI Execution notice: ' + err.message);
+                    setTimeout(() => { this.aiErrorMessage = ''; }, 8000);
+                }
+            } finally {
+                this.isTransforming = false;
+                this.activeAction = null;
+                setTimeout(() => {
+                    if (!this.isTransforming) {
+                        this.showAiStreamBanner = false;
+                    }
+                }, 3000);
+            }
+        }
+    }));
+});
+</script>

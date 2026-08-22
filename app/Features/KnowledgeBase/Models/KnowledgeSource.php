@@ -60,6 +60,11 @@ class KnowledgeSource extends Model
 
     public function chunks(): HasMany
     {
+        return $this->hasMany(KnowledgeChunk::class);
+    }
+
+    public function orderedChunks(): HasMany
+    {
         return $this->hasMany(KnowledgeChunk::class)->orderBy('chunk_index', 'asc');
     }
 }

@@ -25,6 +25,7 @@
 
 namespace App\Features\Admin\Livewire;
 
+use App\Features\AI\Services\OmniRouteGraphTelemetryService;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -39,6 +40,8 @@ class AdminUsageLogsPage extends Component
 
     public string $search = '';
     public string $selectedModel = '';
+    public int $graphTimeRange = 24; // 1, 5, 12, 24
+    public string $graphStatusFilter = 'all'; // 'all', 'pass', 'info', 'warning', 'fail'
 
     public function updatingSearch()
     {
@@ -74,9 +77,16 @@ class AdminUsageLogsPage extends Component
             ->distinct()
             ->pluck('model_slug');
 
+        $graphData = app(OmniRouteGraphTelemetryService::class)->generate(
+            $this->graphTimeRange,
+            null, // Platform-wide across all users
+            $this->graphStatusFilter
+        );
+
         return view('admin.usage-logs', [
             'logs' => $logs,
             'models' => $models,
+            'graphData' => $graphData,
         ]);
     }
 }

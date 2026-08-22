@@ -25,6 +25,7 @@
 
 namespace App\Features\Admin\Livewire;
 
+use App\Features\AI\Services\OmniRouteGraphTelemetryService;
 use App\Features\Admin\Actions\GetAdminStats;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -34,12 +35,22 @@ use Livewire\Component;
 #[Title('Admin Overview — HelpOfAi Studio')]
 class AdminDashboardPage extends Component
 {
+    public int $graphTimeRange = 24; // 1, 5, 12, 24
+    public string $graphStatusFilter = 'all'; // 'all', 'pass', 'info', 'warning', 'fail'
+
     public function render(GetAdminStats $statsAction)
     {
         $stats = $statsAction->execute();
 
+        $graphData = app(OmniRouteGraphTelemetryService::class)->generate(
+            $this->graphTimeRange,
+            null, // Platform-wide admin telemetry
+            $this->graphStatusFilter
+        );
+
         return view('admin.dashboard', [
             'stats' => $stats,
+            'graphData' => $graphData,
         ]);
     }
 }

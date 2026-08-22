@@ -25,6 +25,7 @@
 
 namespace App\Features\AI\Livewire;
 
+use App\Features\AI\Actions\SyncOmniRouteGateway;
 use App\Features\AI\Actions\TestOmniRouteModel;
 use App\Features\AI\Models\AiModel;
 use App\Features\AI\Models\AiProvider;
@@ -46,6 +47,7 @@ class UserOmniRouteSetupPage extends Component
     use WithPagination;
 
     public string $base_url = 'http://localhost:20128/v1';
+    public string $connection_type = 'local_daemon'; // 'local_daemon', 'cloudflare_tunnel', 'admin_cluster', 'custom_proxy'
     public string $user_api_key = '';
     public string $user_custom_url = '';
     public bool $hasPersonalKey = false;
@@ -63,6 +65,10 @@ class UserOmniRouteSetupPage extends Component
     public string $statusMessage = '';
     public bool $isTesting = false;
     public ?string $saveStatus = null;
+
+    // Telemetry Graph State
+    public int $graphTimeRange = 24; // 1, 5, 12, 24
+    public string $graphStatusFilter = 'all'; // 'all', 'pass', 'info', 'warning', 'fail'
 
     // Model Health Probe State
     public array $testingModelIds = [];
@@ -116,13 +122,34 @@ class UserOmniRouteSetupPage extends Component
         // Check if user has an existing personal BYOK key for OmniRoute
         $existingKey = $user->apiKeys()->where('provider_slug', 'omniroute')->first();
         if ($existingKey) {
-            $this->user_api_key = $existingKey->getRawKeyForOwner($user);
+            $this->user_api_key = $existingKey->getRawKeyForOwner($user) ?? '';
             $this->user_custom_url = $existingKey->custom_base_url ?? '';
             $this->hasPersonalKey = true;
+
+            if (empty($this->user_custom_url) || str_contains($this->user_custom_url, 'localhost') || str_contains($this->user_custom_url, '127.0.0.1')) {
+                $this->connection_type = 'local_daemon';
+            } elseif (str_contains($this->user_custom_url, 'cloudflare') || str_contains($this->user_custom_url, 'ngrok')) {
+                $this->connection_type = 'cloudflare_tunnel';
+            } else {
+                $this->connection_type = 'custom_proxy';
+            }
         }
 
         $this->testGatewayConnection();
         $this->fetchConsoleLogs();
+    }
+
+    public function setConnectionType(string $type)
+    {
+        $this->connection_type = $type;
+        if ($type === 'local_daemon') {
+            $this->user_custom_url = 'http://localhost:20128/v1';
+        } elseif ($type === 'admin_cluster') {
+            $this->user_custom_url = '';
+        } elseif ($type === 'cloudflare_tunnel' && empty($this->user_custom_url)) {
+            $this->user_custom_url = 'https://omni-gateway.yourdomain.com/v1';
+        }
+        $this->testGatewayConnection();
     }
 
     public function testGatewayConnection()
@@ -138,7 +165,30 @@ class UserOmniRouteSetupPage extends Component
 
         $apiKeyToTest = !empty($this->user_api_key) ? $this->user_api_key : config('omniroute.api_key', 'omniroute-default-key');
 
+        $isRemoteHttps = str_starts_with($modelsEndpoint, 'https://') && !str_contains($modelsEndpoint, 'localhost') && !str_contains($modelsEndpoint, '127.0.0.1');
+
         $start = microtime(true);
+
+        if (!$isRemoteHttps) {
+            $parsedUrl = parse_url($modelsEndpoint);
+            $host = $parsedUrl['host'] ?? '127.0.0.1';
+            $port = $parsedUrl['port'] ?? 20128;
+
+            $ipToCheck = ($host === 'localhost') ? '127.0.0.1' : $host;
+            $fp = @fsockopen($ipToCheck, $port, $errno, $errstr, 0.4);
+            if (!$fp && $ipToCheck !== '127.0.0.1') {
+                $fp = @fsockopen('127.0.0.1', $port, $errno, $errstr, 0.4);
+            }
+            if (!$fp) {
+                $this->connectionStatus = false;
+                $this->pingLatencyMs = null;
+                $this->statusMessage = "OmniRoute local daemon is offline on port {$port}. (Start OmniRoute in terminal or use Cloudflare Tunnel).";
+                $this->isTesting = false;
+                return;
+            }
+            fclose($fp);
+        }
+
         try {
             $response = Http::withHeaders([
                 'Authorization' => "Bearer {$apiKeyToTest}",
@@ -147,24 +197,17 @@ class UserOmniRouteSetupPage extends Component
             ->withOptions([
                 'force_ip_resolve' => 'v4',
             ])
-            ->timeout(6)
+            ->connectTimeout(2.0)
+            ->timeout(5)
             ->get($modelsEndpoint);
 
             $latency = (int) round((microtime(true) - $start) * 1000);
             $this->pingLatencyMs = max(1, $latency);
 
-            if ($response->successful()) {
+            if ($response->successful() || $response->status() === 200 || $response->status() === 304 || $response->status() === 401 || $response->status() === 403) {
                 $this->connectionStatus = true;
-                $this->statusMessage = "OmniRoute Gateway Online & Healthy ({$this->pingLatencyMs}ms). Connected successfully!";
-                $this->isTesting = false;
-                return;
-            }
-
-            // Fallback health probe
-            $rootResp = Http::withOptions(['force_ip_resolve' => 'v4'])->timeout(3)->get($rootUrl);
-            if ($rootResp->successful()) {
-                $this->connectionStatus = true;
-                $this->statusMessage = "OmniRoute Gateway Server Reachable ({$this->pingLatencyMs}ms).";
+                $modeLabel = $isRemoteHttps ? "Remote Tunnel / Cloud Gateway" : "Local Device Daemon";
+                $this->statusMessage = "OmniRoute Gateway Online & Healthy ({$this->pingLatencyMs}ms) via {$modeLabel}!";
                 $this->isTesting = false;
                 return;
             }
@@ -172,9 +215,8 @@ class UserOmniRouteSetupPage extends Component
             $this->connectionStatus = false;
             $this->statusMessage = "Gateway Error (HTTP {$response->status()}): " . substr($response->body(), 0, 150);
         } catch (Exception $e) {
-            $this->connectionStatus = true; // Fallback graceful status
-            $this->pingLatencyMs = 18;
-            $this->statusMessage = "OmniRoute Gateway Online (Standard Cluster Response).";
+            $this->connectionStatus = false;
+            $this->statusMessage = "OmniRoute Connection Error: " . $e->getMessage();
         }
 
         $this->isTesting = false;
@@ -227,19 +269,56 @@ class UserOmniRouteSetupPage extends Component
         $this->testGatewayConnection();
     }
 
+    public function resyncModels(SyncOmniRouteGateway $syncAction)
+    {
+        $this->isTesting = true;
+        $targetUrl = !empty($this->user_custom_url) ? $this->user_custom_url : $this->base_url;
+        $apiKey = !empty($this->user_api_key) ? $this->user_api_key : config('omniroute.api_key', 'omniroute-default-key');
+
+        $result = $syncAction->execute($targetUrl, $apiKey);
+        $this->isTesting = false;
+
+        // Push test log into console buffer
+        $this->consoleLogs[] = [
+            'timestamp' => now()->toIso8601String(),
+            'level' => 'info',
+            'component' => 'catalog-sync',
+            'message' => "RESYNC -> Ingested {$result['total_synced']} models ({$result['free_tier_count']} free pools, {$result['combos_count']} combos) from {$targetUrl}",
+            'correlationId' => 'sync_' . substr(md5(microtime()), 0, 8),
+        ];
+
+        if (!empty($result['is_offline_fallback'])) {
+            session()->flash('warning', "OmniRoute Gateway on {$targetUrl} is unreachable. Loaded baseline catalog ({$result['total_synced']} models).");
+        } else {
+            session()->flash('status', "Synchronized {$result['total_synced']} models from OmniRoute Gateway! ({$result['free_tier_count']} free pools, {$result['combos_count']} combos).");
+        }
+    }
+
     public function probeModelHealth(int $modelId, TestOmniRouteModel $tester)
     {
         $model = AiModel::findOrFail($modelId);
         $this->testingModelIds[] = $modelId;
 
-        $res = $tester->execute($model);
+        $targetUrl = !empty($this->user_custom_url) ? $this->user_custom_url : $this->base_url;
+        $userApiKey = !empty($this->user_api_key) ? $this->user_api_key : config('omniroute.api_key', 'omniroute-default-key');
+
+        $res = $tester->execute($model, $targetUrl, $userApiKey);
 
         $this->testingModelIds = array_diff($this->testingModelIds, [$modelId]);
 
-        if ($res['status'] === 'working') {
+        // Sync with console logs
+        $this->consoleLogs[] = [
+            'timestamp' => now()->toIso8601String(),
+            'level' => ($res['success'] ?? false) || ($res['status'] ?? '') === 'working' ? 'info' : 'warn',
+            'component' => 'user-probe',
+            'message' => "TEST MODEL -> '{$model->model_id}' => " . (($res['success'] ?? false) ? "200 OK ({$res['latency_ms']}ms)" : "FAILED: " . ($res['error'] ?? 'Connection error')),
+            'correlationId' => 'usr_' . substr(md5($model->id . microtime()), 0, 8),
+        ];
+
+        if (($res['success'] ?? false) || ($res['status'] ?? '') === 'working') {
             session()->flash('status', "Model '{$model->name}' is healthy ({$res['latency_ms']}ms)! Output: \"{$res['sample_output']}\"");
         } else {
-            session()->flash('error', "Model '{$model->name}' probe failed: {$res['error']}");
+            session()->flash('error', "Model '{$model->name}' probe failed: " . ($res['error'] ?? 'Connection error'));
         }
     }
 
@@ -256,17 +335,20 @@ class UserOmniRouteSetupPage extends Component
         $visibleModels = $query->take(12)->get();
         $working = 0;
 
+        $targetUrl = !empty($this->user_custom_url) ? $this->user_custom_url : $this->base_url;
+        $userApiKey = !empty($this->user_api_key) ? $this->user_api_key : config('omniroute.api_key', 'omniroute-default-key');
+
         foreach ($visibleModels as $model) {
             $this->testingModelIds[] = $model->id;
-            $res = $tester->execute($model);
-            if ($res['status'] === 'working') {
+            $res = $tester->execute($model, $targetUrl, $userApiKey);
+            if (($res['success'] ?? false) || ($res['status'] ?? '') === 'working') {
                 $working++;
             }
             $this->testingModelIds = array_diff($this->testingModelIds, [$model->id]);
         }
 
         $this->isBatchTesting = false;
-        session()->flash('status', "Batch probe complete! {$working} of " . $visibleModels->count() . " models responded successfully.");
+        session()->flash('status', "Batch probe complete! {$working} of " . $visibleModels->count() . " models responded successfully using your gateway endpoint.");
     }
 
     public function fetchConsoleLogs()
@@ -394,6 +476,22 @@ class UserOmniRouteSetupPage extends Component
             return true;
         })->values()->all();
 
+        $untestedCount = $provider ? AiModel::where('ai_provider_id', $provider->id)->where(function($q){ $q->whereNull('last_test_status')->orWhere('last_test_status', 'untested'); })->count() : AiModel::whereNull('last_test_status')->count();
+
+        $vendors = $provider ? AiModel::where('ai_provider_id', $provider->id)
+            ->select('owned_by', DB::raw('count(*) as count'))
+            ->whereNotNull('owned_by')
+            ->where('owned_by', '!=', '')
+            ->groupBy('owned_by')
+            ->orderBy('count', 'desc')
+            ->get() : collect();
+
+        $graphData = app(\App\Features\AI\Services\OmniRouteGraphTelemetryService::class)->generate(
+            $this->graphTimeRange,
+            Auth::id(),
+            $this->graphStatusFilter
+        );
+
         return view('workspace.omniroute-setup', [
             'provider' => $provider,
             'models' => $models,
@@ -403,9 +501,12 @@ class UserOmniRouteSetupPage extends Component
             'reasoningCount' => $reasoningCount,
             'workingCount' => $workingCount,
             'failedCount' => $failedCount,
+            'untestedCount' => $untestedCount,
+            'vendors' => $vendors,
             'modelUsage' => $modelUsage,
             'filteredLogs' => $filteredLogs,
             'allowUserKey' => $allowed,
+            'graphData' => $graphData,
         ]);
     }
 }

@@ -26,32 +26,92 @@
 namespace App\Features\Documents\Adapters;
 
 use App\Features\Documents\Contracts\EditorAdapterInterface;
+use App\Features\Documents\Data\CanonicalDocumentSchema;
+use App\Features\Documents\Data\ConversionRiskAssessment;
 
 class NotionAdapter implements EditorAdapterInterface
 {
-    public function toCanonical(string $content): array
-    {
-        $plainText = strip_tags($content);
+    protected array $supportedNodeTypes = [
+        'doc', 'paragraph', 'heading', 'blockquote', 'code_block',
+        'bullet_list', 'ordered_list', 'list_item', 'horizontal_rule',
+        'image', 'link', 'callout', 'toggle'
+    ];
 
-        return [
-            'content_html' => $content,
-            'content_plain' => $plainText,
-            'content_markdown' => $this->blocksToMarkdown($content),
-        ];
+    protected array $supportedMarkTypes = [
+        'bold', 'italic', 'strike', 'code', 'link', 'highlight'
+    ];
+
+    public function toCanonical(string|array $content): array
+    {
+        $html = is_array($content) ? ($content['html'] ?? '') : $content;
+
+        // Notion API returns JSON blocks; this is simplified for HTML input
+        $canonical = CanonicalDocumentSchema::createDocument([
+            CanonicalDocumentSchema::createNode('paragraph', [], [
+                CanonicalDocumentSchema::createTextNode(strip_tags($html))
+            ])
+        ]);
+
+        $canonical['attrs']['source_editor'] = 'notion';
+        $canonical['attrs']['converted_at'] = now()->toISOString();
+
+        return $canonical;
     }
 
-    public function fromCanonical(array $canonical): string
+    public function fromCanonical(array $canonical): string|array
     {
-        return $canonical['content_html'] ?? '';
+        return '<p>' . ($this->extractPlainText($canonical)) . '</p>';
     }
 
-    protected function blocksToMarkdown(string $html): string
+    public function extractPlainText(string|array $editorContent): string
     {
-        $markdown = preg_replace('/<h[1-4]>(.*?)<\/h[1-4]>/i', "\n# $1\n", $html);
-        $markdown = preg_replace('/<p>(.*?)<\/p>/i', "$1\n\n", $markdown);
-        $markdown = preg_replace('/<strong>(.*?)<\/strong>/i', "**$1**", $markdown);
-        $markdown = preg_replace('/<em>(.*?)<\/em>/i', "*$1*", $markdown);
-        $markdown = preg_replace('/<li>(.*?)<\/li>/i', "* $1\n", $markdown);
-        return trim(strip_tags($markdown));
+        if (is_array($editorContent)) {
+            $text = $editorContent['text'] ?? '';
+            if (isset($editorContent['content']) && is_array($editorContent['content'])) {
+                foreach ($editorContent['content'] as $child) {
+                    $text .= ' ' . $this->extractPlainText($child);
+                }
+            }
+            return trim($text);
+        }
+        return strip_tags($editorContent);
+    }
+
+    public function getEditorKey(): string
+    {
+        return 'notion';
+    }
+
+    public function getDisplayName(): string
+    {
+        return 'Notion';
+    }
+
+    public function getSupportedNodeTypes(): array
+    {
+        return $this->supportedNodeTypes;
+    }
+
+    public function getSupportedMarkTypes(): array
+    {
+        return $this->supportedMarkTypes;
+    }
+
+    public function assessConversionRisk(array $canonicalAst): ConversionRiskAssessment
+    {
+        return new ConversionRiskAssessment(
+            ConversionRiskAssessment::RISK_MEDIUM,
+            ['Notion-specific blocks (callout, toggle) may not map 1:1.']
+        );
+    }
+
+    public function sanitize(string|array $editorContent): string|array
+    {
+        return is_array($editorContent) ? $editorContent : strip_tags($editorContent);
+    }
+
+    public function getSupportedSchemaVersion(): int
+    {
+        return CanonicalDocumentSchema::SCHEMA_VERSION;
     }
 }

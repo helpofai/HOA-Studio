@@ -25,6 +25,7 @@
 
 namespace App\Features\Dashboard\Livewire;
 
+use App\Features\AI\Services\OmniRouteGraphTelemetryService;
 use App\Features\Dashboard\Actions\GetDashboardStats;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -35,12 +36,23 @@ use Livewire\Component;
 #[Title('Dashboard — HelpOfAi Studio')]
 class DashboardPage extends Component
 {
+    public int $graphTimeRange = 24; // 1, 5, 12, 24
+    public string $graphStatusFilter = 'all'; // 'all', 'pass', 'info', 'warning', 'fail'
+
     public function render(GetDashboardStats $statsAction)
     {
-        $stats = $statsAction->execute(Auth::user());
+        $user = Auth::user();
+        $stats = $statsAction->execute($user);
+
+        $graphData = app(OmniRouteGraphTelemetryService::class)->generate(
+            $this->graphTimeRange,
+            $user->id,
+            $this->graphStatusFilter
+        );
 
         return view('dashboard.index', [
             'stats' => $stats,
+            'graphData' => $graphData,
         ]);
     }
 }

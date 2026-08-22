@@ -174,14 +174,15 @@ class DocumentEditor extends Component
         $analysis = $action->execute(
             $document,
             !empty($this->targetKeyword) ? $this->targetKeyword : null,
-            $this->secondaryKeywords
+            $this->secondaryKeywords,
+            $this->metaDescription ?? ''
         );
 
         $this->seoData = [
             'score' => $analysis->score,
             'readability_score' => $analysis->readability_score,
             'metrics' => $analysis->metrics,
-            'recommendations' => $analysis->recommendations,
+            'rank_math' => $analysis->recommendations,
         ];
 
         $this->isAnalyzingSeo = false;
@@ -444,11 +445,17 @@ class DocumentEditor extends Component
         $document = Document::with(['versions.creator', 'project'])->findOrFail($this->documentId);
         $projects = Project::where('user_id', Auth::id())->get();
         $availableEditors = EditorRegistry::getAvailableEditors();
+        
+        $availableAiModels = \App\Features\AI\Models\AiModel::where('is_active', true)
+            ->orderBy('is_combo', 'desc')
+            ->orderBy('id', 'asc')
+            ->get();
 
         return view('documents.editor', [
             'document' => $document,
             'projects' => $projects,
             'availableEditors' => $availableEditors,
+            'availableAiModels' => $availableAiModels,
         ]);
     }
 }

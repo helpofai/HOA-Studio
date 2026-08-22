@@ -29,16 +29,16 @@ class AuthTest extends TestCase
     public function test_user_can_register_with_default_quota(): void
     {
         Livewire::test(RegisterPage::class)
-            ->set('name', 'John Doe')
-            ->set('email', 'john@example.com')
-            ->set('password', 'password123')
-            ->set('password_confirmation', 'password123')
+            ->set('name', 'admin Doe')
+            ->set('email', 'admin@admin.com')
+            ->set('password', 'admin@admin.com')
+            ->set('password_confirmation', 'admin@admin.com')
             ->set('agree', true)
             ->call('register')
             ->assertRedirect('/dashboard');
 
         $this->assertDatabaseHas('users', [
-            'email' => 'john@example.com',
+            'email' => 'admin@admin.com',
             'role' => 'user',
             'plan' => 'starter',
             'monthly_word_quota' => 15000,
@@ -91,7 +91,9 @@ class AuthTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        $response = $this->post('/logout');
+        $response = $this->withSession([])->post('/logout', [
+            '_token' => csrf_token(),
+        ]);
         $response->assertRedirect('/');
         $this->assertGuest();
     }

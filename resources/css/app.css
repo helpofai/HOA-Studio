@@ -1,24 +1,10 @@
 /*
 |--------------------------------------------------------------------------
-| HelpOfAi (HOA) Professional Software
+| HelpOfAi (HOA) Professional Software - Master Stylesheet
 |--------------------------------------------------------------------------
 |
 | Copyright (c) 2026 Rajib Adhikary. All Rights Reserved.
 |
-| This file is part of the HelpOfAi Professional Software Suite.
-| Unauthorized copying, modification, redistribution, reverse engineering,
-| decompilation, or commercial use of this source code, in whole or in part,
-| is strictly prohibited without prior written permission from the copyright owner.
-|
-| Author      : Rajib Adhikary
-| Organization: HelpOfAi (HOA)
-| Website     : https://helpofai.com
-| Location    : Basta Purba Para, Aranghata, Nadia, West Bengal, India
-|
-| This source code contains proprietary and confidential information.
-| Any unauthorized access or distribution may violate applicable copyright laws.
-|
-|--------------------------------------------------------------------------
 */
 
 @import 'tailwindcss';
@@ -34,3 +20,493 @@
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
+/*
+|--------------------------------------------------------------------------
+| Enterprise Blog Typography & Complete Element Suite
+|--------------------------------------------------------------------------
+*/
+
+.tiptap.ProseMirror,
+#tiptap-content-target .ProseMirror,
+.hoa-editorial-canvas {
+    color: #cbd5e1;
+    font-size: 1.05rem;
+    line-height: 1.8;
+    letter-spacing: 0.012em;
+    outline: none !important;
+}
+
+/* Headings Hierarchy */
+.tiptap.ProseMirror h1,
+#tiptap-content-target h1 {
+    font-size: 2.25rem;
+    font-weight: 800;
+    line-height: 1.22;
+    color: #ffffff;
+    letter-spacing: -0.025em;
+    margin-top: 1.75rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tiptap.ProseMirror h2,
+#tiptap-content-target h2 {
+    font-size: 1.65rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #818cf8;
+    letter-spacing: -0.02em;
+    margin-top: 2.25rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tiptap.ProseMirror h3,
+#tiptap-content-target h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    line-height: 1.4;
+    color: #a78bfa;
+    letter-spacing: -0.015em;
+    margin-top: 1.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.tiptap.ProseMirror h4,
+#tiptap-content-target h4 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #c084fc;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Body Paragraphs & Leading */
+.tiptap.ProseMirror p,
+#tiptap-content-target p {
+    color: #cbd5e1;
+    font-size: 1.05rem;
+    line-height: 1.82;
+    margin-bottom: 1.35rem;
+}
+
+/* Text Marks (Bold, Italic, Underline, Strike, Sub/Sup) */
+.tiptap.ProseMirror strong,
+#tiptap-content-target strong {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.tiptap.ProseMirror em,
+#tiptap-content-target em {
+    color: #e0e7ff;
+    font-style: italic;
+}
+
+.tiptap.ProseMirror u,
+#tiptap-content-target u {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-color: #818cf8;
+}
+
+.tiptap.ProseMirror s,
+#tiptap-content-target s {
+    color: #94a3b8;
+    text-decoration: line-through;
+}
+
+.tiptap.ProseMirror mark,
+#tiptap-content-target mark {
+    background: rgba(234, 179, 8, 0.25);
+    color: #fef08a;
+    padding: 0.15rem 0.4rem;
+    border-radius: 0.375rem;
+    border: 1px solid rgba(234, 179, 8, 0.35);
+}
+
+.tiptap.ProseMirror sub,
+#tiptap-content-target sub {
+    font-size: 0.75em;
+    vertical-align: sub;
+    color: #a5b4fc;
+}
+
+.tiptap.ProseMirror sup,
+#tiptap-content-target sup {
+    font-size: 0.75em;
+    vertical-align: super;
+    color: #a5b4fc;
+}
+
+/* Standard Blockquotes */
+.tiptap.ProseMirror blockquote,
+#tiptap-content-target blockquote {
+    background: rgba(99, 102, 241, 0.08);
+    border-left: 4px solid #6366f1;
+    padding: 1.15rem 1.5rem;
+    border-radius: 0 1.25rem 1.25rem 0;
+    margin: 1.75rem 0;
+    color: #f1f5f9;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    backdrop-filter: blur(8px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.tiptap.ProseMirror blockquote p,
+#tiptap-content-target blockquote p {
+    margin-bottom: 0;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Advanced Rich Callout Boxes (Tip, Warning, Info, TLDR, Caution)
+|--------------------------------------------------------------------------
+*/
+
+.callout-box {
+    margin: 1.75rem 0;
+    padding: 1.25rem 1.5rem;
+    border-radius: 1.25rem;
+    border-width: 1px;
+    border-style: solid;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+.callout-tip {
+    background: rgba(6, 78, 59, 0.4);
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #a7f3d0;
+}
+.callout-tip .callout-title { color: #34d399; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+
+.callout-warning {
+    background: rgba(120, 53, 15, 0.4);
+    border-color: rgba(245, 158, 11, 0.4);
+    color: #fde68a;
+}
+.callout-warning .callout-title { color: #fbbf24; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+
+.callout-info {
+    background: rgba(14, 116, 144, 0.4);
+    border-color: rgba(6, 182, 212, 0.4);
+    color: #a5f3fc;
+}
+.callout-info .callout-title { color: #38bdf8; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+
+.callout-tldr {
+    background: rgba(49, 46, 129, 0.45);
+    border-color: rgba(99, 102, 241, 0.4);
+    color: #c7d2fe;
+}
+.callout-tldr .callout-title { color: #818cf8; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+
+.callout-caution {
+    background: rgba(136, 19, 55, 0.4);
+    border-color: rgba(244, 63, 94, 0.4);
+    color: #fecdd3;
+}
+.callout-caution .callout-title { color: #fb7185; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+
+/*
+|--------------------------------------------------------------------------
+| Interactive Dual Pros & Cons Matrix Card
+|--------------------------------------------------------------------------
+*/
+
+.pros-cons-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.75rem 0;
+}
+
+@media (max-width: 640px) {
+    .pros-cons-grid { grid-template-columns: 1fr; }
+}
+
+.pros-box {
+    background: rgba(6, 78, 59, 0.35);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 1.25rem;
+    padding: 1.25rem;
+}
+.pros-title { color: #34d399; font-weight: 700; font-size: 0.95rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem; }
+
+.cons-box {
+    background: rgba(136, 19, 55, 0.35);
+    border: 1px solid rgba(244, 63, 94, 0.3);
+    border-radius: 1.25rem;
+    padding: 1.25rem;
+}
+.cons-title { color: #fb7185; font-weight: 700; font-size: 0.95rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem; }
+
+/*
+|--------------------------------------------------------------------------
+| Interactive FAQ Accordions
+|--------------------------------------------------------------------------
+*/
+
+details.hoa-faq {
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+    transition: all 0.2s ease;
+}
+
+details.hoa-faq[open] {
+    background: rgba(30, 41, 59, 0.85);
+    border-color: rgba(99, 102, 241, 0.4);
+}
+
+details.hoa-faq summary {
+    font-weight: 700;
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    list-style: none;
+}
+
+details.hoa-faq summary::-webkit-details-marker { display: none; }
+
+details.hoa-faq p {
+    margin-top: 0.85rem;
+    margin-bottom: 0;
+    color: #cbd5e1;
+}
+
+/*
+|--------------------------------------------------------------------------
+| E-E-A-T Author & Testing Trust Card
+|--------------------------------------------------------------------------
+*/
+
+.eeat-trust-card {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.eeat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Step-by-Step Numbered Timeline Walkthrough
+|--------------------------------------------------------------------------
+*/
+
+.step-walkthrough {
+    position: relative;
+    padding-left: 2rem;
+    margin: 1.75rem 0;
+    border-left: 2px dashed rgba(99, 102, 241, 0.4);
+}
+
+.step-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.step-badge {
+    position: absolute;
+    left: -2.75rem;
+    top: 0;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 9999px;
+    background: #6366f1;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.6);
+}
+
+/* Unordered & Ordered Lists */
+.tiptap.ProseMirror ul,
+#tiptap-content-target ul {
+    list-style-type: disc;
+    padding-left: 1.75rem;
+    margin: 1.25rem 0 1.5rem 0;
+    space-y: 0.5rem;
+}
+
+.tiptap.ProseMirror ol,
+#tiptap-content-target ol {
+    list-style-type: decimal;
+    padding-left: 1.75rem;
+    margin: 1.25rem 0 1.5rem 0;
+    space-y: 0.5rem;
+}
+
+.tiptap.ProseMirror li,
+#tiptap-content-target li {
+    color: #cbd5e1;
+    line-height: 1.75;
+    margin-bottom: 0.4rem;
+    padding-left: 0.25rem;
+}
+
+.tiptap.ProseMirror li::marker,
+#tiptap-content-target li::marker {
+    color: #818cf8;
+}
+
+/* Interactive Task List */
+.tiptap.ProseMirror ul[data-type="taskList"],
+#tiptap-content-target ul[data-type="taskList"] {
+    list-style: none;
+    padding-left: 0;
+    margin: 1.25rem 0;
+}
+
+.tiptap.ProseMirror ul[data-type="taskList"] li,
+#tiptap-content-target ul[data-type="taskList"] li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    margin-bottom: 0.5rem;
+}
+
+.tiptap.ProseMirror ul[data-type="taskList"] input[type="checkbox"],
+#tiptap-content-target ul[data-type="taskList"] input[type="checkbox"] {
+    margin-top: 0.35rem;
+    accent-color: #6366f1;
+    cursor: pointer;
+}
+
+/* Tables & Comparison Matrices */
+.tiptap.ProseMirror table,
+#tiptap-content-target table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2rem 0;
+    border-radius: 1rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(15, 23, 42, 0.7);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.tiptap.ProseMirror th,
+#tiptap-content-target th {
+    background: rgba(99, 102, 241, 0.2);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.85rem 1.15rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: left;
+}
+
+.tiptap.ProseMirror td,
+#tiptap-content-target td {
+    padding: 0.85rem 1.15rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #e2e8f0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.tiptap.ProseMirror tr:hover,
+#tiptap-content-target tr:hover {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+/* Code Blocks & Inline Code */
+.tiptap.ProseMirror pre,
+#tiptap-content-target pre {
+    background: rgba(2, 6, 23, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 1rem;
+    padding: 1.25rem 1.5rem;
+    margin: 1.75rem 0;
+    overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.9rem;
+    color: #38bdf8;
+    line-height: 1.6;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.tiptap.ProseMirror code,
+#tiptap-content-target code {
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+    padding: 0.2rem 0.45rem;
+    border-radius: 0.4rem;
+    font-family: ui-monospace, monospace;
+    font-size: 0.88em;
+    border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.tiptap.ProseMirror pre code,
+#tiptap-content-target pre code {
+    background: transparent;
+    padding: 0;
+    border: none;
+    color: inherit;
+}
+
+/* Horizontal Rule Divider */
+.tiptap.ProseMirror hr,
+#tiptap-content-target hr {
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    margin: 2.75rem 0;
+}
+
+/* Images & Media */
+.tiptap.ProseMirror img,
+#tiptap-content-target img {
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 2rem auto;
+    box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.6);
+    max-width: 100%;
+    height: auto;
+}
+
+/* Custom Smooth Editor Scrollbar */
+.hoa-custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.hoa-custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 8px;
+}
+
+.hoa-custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.4);
+    border-radius: 8px;
+}
+
+.hoa-custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(129, 140, 248, 0.7);
+}

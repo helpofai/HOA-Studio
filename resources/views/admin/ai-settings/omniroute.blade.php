@@ -50,6 +50,13 @@
         </div>
     </div>
 
+    <!-- Live Telemetry Stream Graph & SLA Metrics -->
+    <x-omniroute.telemetry-graph 
+        :graphData="$graphData" 
+        :timeRange="$graphTimeRange" 
+        :statusFilter="$graphStatusFilter" 
+    />
+
     @if (session('status'))
         <div class="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 flex items-center gap-2">
             <span>✓</span>
@@ -275,13 +282,22 @@
 
         <!-- Live Diagnostics & Status (1 Col) -->
         <div class="space-y-6">
-            <x-glass.card variant="standard" class="p-6 space-y-4">
+            <x-glass.card variant="standard" class="p-6 space-y-4 border border-white/10" wire:poll.8s="pingGatewayHealth">
                 <h3 class="text-base font-bold text-white tracking-tight flex items-center justify-between">
-                    <span>Gateway Telemetry</span>
+                    <span class="flex items-center gap-2">
+                        <span>📊 Gateway Telemetry</span>
+                        <span class="text-[10px] font-mono font-normal text-slate-400 bg-white/5 px-2 py-0.5 rounded">Auto-Pulse 8s</span>
+                    </span>
                     @if($connectionStatus === true)
-                        <span class="w-3 h-3 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]"></span>
+                        <span class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono font-bold">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span>LIVE</span>
+                        </span>
                     @elseif($connectionStatus === false)
-                        <span class="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]"></span>
+                        <span class="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-mono font-bold">
+                            <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                            <span>STANDBY</span>
+                        </span>
                     @else
                         <span class="w-3 h-3 rounded-full bg-slate-500"></span>
                     @endif
@@ -290,8 +306,8 @@
                 <div class="space-y-3 text-xs">
                     <div class="flex items-center justify-between pb-2 border-b border-white/5">
                         <span class="text-slate-400">Gateway Status:</span>
-                        <span class="font-bold {{ $connectionStatus === true ? 'text-emerald-400' : ($connectionStatus === false ? 'text-red-400' : 'text-slate-400') }}">
-                            {{ $connectionStatus === true ? 'ONLINE' : ($connectionStatus === false ? 'OFFLINE / ERROR' : 'NOT TESTED') }}
+                        <span class="font-bold {{ $connectionStatus === true ? 'text-emerald-400' : ($connectionStatus === false ? 'text-amber-400' : 'text-slate-400') }}">
+                            {{ $connectionStatus === true ? 'ONLINE' : ($connectionStatus === false ? 'STANDBY / OFFLINE' : 'NOT TESTED') }}
                         </span>
                     </div>
 
@@ -317,11 +333,24 @@
                         <span class="font-mono font-bold text-purple-400">{{ $combosCount }} Cascades</span>
                     </div>
 
-                    <div class="flex items-center justify-between">
+                    <div class="flex items-center justify-between pb-2 border-b border-white/5">
                         <span class="text-slate-400">Reasoning Models:</span>
                         <span class="font-bold text-indigo-400">{{ $reasoningCount }} Models</span>
                     </div>
                 </div>
+
+                <!-- Status Guidance Tip -->
+                @if($connectionStatus === true)
+                    <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-300 flex items-center gap-2">
+                        <span>✓</span>
+                        <span>OmniRoute v3.8.50 Live Daemon Active & Connected.</span>
+                    </div>
+                @else
+                    <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-300 flex items-center gap-2">
+                        <span>💡</span>
+                        <span>Offline catalog active (23 models). Run <code class="font-mono bg-slate-900 px-1 py-0.5 rounded text-white">omniroute</code> in terminal for live proxy.</span>
+                    </div>
+                @endif
             </x-glass.card>
 
             <!-- Console Logs — Application Console Output & Debug Logs (Native OmniRoute ConsoleLogViewer Style) -->
@@ -496,8 +525,10 @@
         <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
             <div>
                 <h2 class="text-xl font-bold text-white tracking-tight flex items-center gap-2 flex-wrap">
-                    <span>Dynamic OmniRoute Catalog</span>
-                    <x-glass.badge variant="violet">{{ $models->total() }} Models</x-glass.badge>
+                    <span>⚡ Dynamic OmniRoute Catalog</span>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-violet-500/10 text-violet-300 border border-violet-500/30">
+                        {{ $models->total() }} Models
+                    </span>
                     @if($workingCount > 0)
                         <span class="px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-[11px] font-mono font-bold flex items-center gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
@@ -508,6 +539,12 @@
                         <span class="px-2 py-0.5 rounded-full bg-red-950/80 border border-red-500/40 text-red-300 text-[11px] font-mono font-bold flex items-center gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>
                             {{ $failedCount }} Failed
+                        </span>
+                    @endif
+                    @if($prunedModelsCount > 0)
+                        <span class="px-2 py-0.5 rounded-full bg-amber-950/80 border border-amber-500/40 text-amber-300 text-[11px] font-mono font-bold flex items-center gap-1">
+                            <span>🗑️</span>
+                            {{ $prunedModelsCount }} Pruned
                         </span>
                     @endif
                 </h2>
@@ -564,7 +601,7 @@
         </div>
 
         <!-- Filter & Search Toolbar -->
-        <x-glass.card variant="subtle" class="p-4 space-y-3">
+        <x-glass.card variant="subtle" class="p-4 space-y-3 border border-white/10">
             <div class="flex flex-col sm:flex-row items-center gap-3">
                 <!-- Search Input -->
                 <div class="w-full sm:flex-1">
@@ -580,7 +617,7 @@
                         <option value="all">All Models ({{ $totalModelsCount }})</option>
                         <option value="working">🟢 Working Models ({{ $workingCount }})</option>
                         <option value="failed">🔴 Failed Models ({{ $failedCount }})</option>
-                        <option value="untested">⚪ Untested Models</option>
+                        <option value="untested">⚪ Untested Models ({{ $untestedCount }})</option>
                         <option value="free_tier">⚡ Free Tier Pools ({{ $freeTierCount }})</option>
                         <option value="combos">🔀 Auto Combos ({{ $combosCount }})</option>
                         <option value="reasoning">🧠 Reasoning Engines ({{ $reasoningCount }})</option>
@@ -592,22 +629,54 @@
 
             <!-- Quick Engine & Capability Filter Pills -->
             <div class="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
-                <span class="text-[11px] text-slate-400 mr-1">Quick Filters:</span>
+                <span class="text-[11px] text-slate-400 mr-1 font-bold">Providers:</span>
                 
                 <button 
                     type="button" 
                     wire:click="$set('modelVendorFilter', '')" 
                     class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelVendorFilter === '' ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
                 >
-                    All Engines
+                    All Providers ({{ $totalModelsCount }})
                 </button>
+
+                @foreach($vendors as $v)
+                    @php
+                        $vendorSlug = strtolower($v->owned_by);
+                        $vendorIcon = match($vendorSlug) {
+                            'deepseek' => '🐋',
+                            'openai' => '🤖',
+                            'anthropic' => '🎭',
+                            'google' => '✨',
+                            'groq' => '⚡',
+                            'cerebras' => '🚀',
+                            'mistral' => '🌪️',
+                            'together' => '🤝',
+                            'omniroute' => '⚡',
+                            default => '🌐',
+                        };
+                    @endphp
+                    <button 
+                        type="button" 
+                        wire:click="$set('modelVendorFilter', '{{ $v->owned_by }}')" 
+                        class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] flex items-center gap-1 {{ $modelVendorFilter === $v->owned_by ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
+                    >
+                        <span>{{ $vendorIcon }}</span>
+                        <span>{{ ucfirst($v->owned_by) }}</span>
+                        <span class="text-[10px] opacity-75 font-mono">({{ $v->count }})</span>
+                    </button>
+                @endforeach
+            </div>
+
+            <!-- Capability Pills -->
+            <div class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-white/5 text-xs">
+                <span class="text-[11px] text-slate-400 mr-1 font-bold">Capabilities:</span>
 
                 <button 
                     type="button" 
                     wire:click="$set('modelStatusFilter', 'working')" 
                     class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelStatusFilter === 'working' ? 'bg-emerald-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-emerald-400 hover:text-white border border-emerald-500/20' }}"
                 >
-                    🟢 Working Only
+                    🟢 Working Only ({{ $workingCount }})
                 </button>
 
                 <button 
@@ -615,7 +684,7 @@
                     wire:click="$set('modelStatusFilter', 'free_tier')" 
                     class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelStatusFilter === 'free_tier' ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
                 >
-                    ⚡ Free Tier
+                    ⚡ Free Tier ({{ $freeTierCount }})
                 </button>
 
                 <button 
@@ -623,7 +692,7 @@
                     wire:click="$set('modelStatusFilter', 'reasoning')" 
                     class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelStatusFilter === 'reasoning' ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
                 >
-                    🧠 Reasoning
+                    🧠 Reasoning ({{ $reasoningCount }})
                 </button>
 
                 <button 
@@ -631,47 +700,7 @@
                     wire:click="$set('modelStatusFilter', 'combos')" 
                     class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelStatusFilter === 'combos' ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
                 >
-                    🔀 Combos
-                </button>
-
-                <button 
-                    type="button" 
-                    wire:click="$set('modelVendorFilter', 'deepseek')" 
-                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelVendorFilter === 'deepseek' ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
-                >
-                    🐋 DeepSeek
-                </button>
-
-                <button 
-                    type="button" 
-                    wire:click="$set('modelVendorFilter', 'cc')" 
-                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelVendorFilter === 'cc' ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
-                >
-                    🎭 Claude
-                </button>
-
-                <button 
-                    type="button" 
-                    wire:click="$set('modelVendorFilter', 'openai')" 
-                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelVendorFilter === 'openai' ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
-                >
-                    🤖 OpenAI
-                </button>
-
-                <button 
-                    type="button" 
-                    wire:click="$set('modelVendorFilter', 'groq')" 
-                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelVendorFilter === 'groq' ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
-                >
-                    ⚡ Groq Free
-                </button>
-
-                <button 
-                    type="button" 
-                    wire:click="$set('modelVendorFilter', 'glm')" 
-                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelVendorFilter === 'glm' ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
-                >
-                    ✨ GLM Flash
+                    🔀 Auto Combos ({{ $combosCount }})
                 </button>
             </div>
         </x-glass.card>

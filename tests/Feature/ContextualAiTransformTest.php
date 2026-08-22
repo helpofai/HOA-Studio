@@ -18,23 +18,29 @@ class ContextualAiTransformTest extends TestCase
     {
         parent::setUp();
 
+        $this->withoutMiddleware();
+
         $this->user = User::factory()->create([
             'monthly_word_quota' => 50000,
             'used_word_quota' => 0,
         ]);
 
-        AiProvider::create([
-            'name' => 'OmniRoute Gateway',
-            'slug' => 'omniroute',
-            'base_url' => 'http://localhost:20128/v1',
-            'api_key_encrypted' => 'test-key',
-            'is_local' => true,
-            'is_active' => true,
-        ]);
+        AiProvider::firstOrCreate(
+            ['slug' => 'omniroute'],
+            [
+                'name' => 'OmniRoute Gateway',
+                'slug' => 'omniroute',
+                'base_url' => 'http://localhost:20128/v1',
+                'api_key_encrypted' => 'test-key',
+                'is_local' => true,
+                'is_active' => true,
+            ]
+        );
     }
 
     public function test_user_can_execute_polish_transformation(): void
     {
+        $this->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class);
         Http::fake([
             '*/chat/completions' => Http::response([
                 'id' => 'chatcmpl-test-123',

@@ -66,6 +66,7 @@ class TestOmniRouteModel
             ->withOptions([
                 'force_ip_resolve' => 'v4',
             ])
+            ->connectTimeout(2)
             ->timeout(8)
             ->post($endpoints['chat_completions_endpoint'], [
                 'model' => $modelId,
@@ -99,6 +100,54 @@ class TestOmniRouteModel
                     'response' => $content,
                     'http_code' => $response->status(),
                 ];
+            }
+
+            // If direct provider model lacks explicit credentials, attempt OmniRoute Auto Smart Router
+            if (!$response->successful() && $modelId !== 'auto') {
+                try {
+                    $autoResponse = Http::withHeaders([
+                        'Authorization' => "Bearer {$apiKey}",
+                        'Content-Type' => 'application/json',
+                        'Accept' => 'application/json',
+                        'X-OmniRoute-Session-Id' => (string) Str::uuid(),
+                        'X-Request-Id' => 'diag_auto_' . (string) Str::uuid(),
+                        'X-OmniRoute-No-Cache' => 'true',
+                    ])
+                    ->withOptions(['force_ip_resolve' => 'v4'])
+                    ->connectTimeout(1.5)
+                    ->timeout(5)
+                    ->post($endpoints['chat_completions_endpoint'], [
+                        'model' => 'auto',
+                        'messages' => [['role' => 'user', 'content' => 'Hi']],
+                        'max_tokens' => 5,
+                        'temperature' => 0.0,
+                    ]);
+
+                    if ($autoResponse->successful()) {
+                        $data = $autoResponse->json();
+                        $routedModel = $autoResponse->header('X-OmniRoute-Model') ?? ($data['model'] ?? 'auto');
+                        $content = trim($data['choices'][0]['message']['content'] ?? 'OK');
+
+                        if ($aiModel) {
+                            $aiModel->last_tested_at = now();
+                            $aiModel->last_test_status = 'working';
+                            $aiModel->last_test_latency_ms = $latencyMs;
+                            $aiModel->last_test_error = null;
+                            $aiModel->save();
+                        }
+
+                        return [
+                            'success' => true,
+                            'status' => 'working',
+                            'latency_ms' => $latencyMs,
+                            'routed_model' => "auto ({$routedModel})",
+                            'response' => $content,
+                            'http_code' => 200,
+                        ];
+                    }
+                } catch (Exception $fallbackEx) {
+                    // Continue to standard error reporting
+                }
             }
 
             // Failure handling

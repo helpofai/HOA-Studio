@@ -76,10 +76,14 @@ class OmniRouteClient
             'x-omniroute-compression' => $options['compression'] ?? config('omniroute.compression', 'default'),
         ]);
 
+        $connectTimeout = $options['connect_timeout'] ?? config('omniroute.connect_timeout_seconds', 10);
+        $readTimeout = $options['timeout'] ?? config('omniroute.timeout_seconds', 120);
+
         try {
             $response = Http::withHeaders($headers)
                 ->withOptions(['force_ip_resolve' => 'v4'])
-                ->timeout(3)
+                ->connectTimeout($connectTimeout)
+                ->timeout($readTimeout)
                 ->post($this->endpoints['chat_completions_endpoint'], $payload);
 
             if ($response->successful()) {
@@ -102,7 +106,43 @@ class OmniRouteClient
                 ];
             }
         } catch (Exception $e) {
-            Log::info('[OmniRouteClient] Gateway offline, engaging neural synthesizer: ' . $e->getMessage());
+            Log::info('[OmniRouteClient] Primary model error: ' . $e->getMessage());
+        }
+
+        // Secondary Fallback Model Pool Attempt
+        $fallbackModels = ['deepseek/deepseek-chat', 'auto', 'cc/claude-3-7-sonnet'];
+        foreach ($fallbackModels as $fallbackModel) {
+            if ($fallbackModel === $model) continue;
+            try {
+                $fallbackPayload = $payload;
+                $fallbackPayload['model'] = $fallbackModel;
+                $fbResponse = Http::withHeaders($headers)
+                    ->withOptions(['force_ip_resolve' => 'v4'])
+                    ->connectTimeout(2)
+                    ->timeout(5)
+                    ->post($this->endpoints['chat_completions_endpoint'], $fallbackPayload);
+
+                if ($fbResponse->successful()) {
+                    $data = $fbResponse->json();
+                    $content = $data['choices'][0]['message']['content'] ?? '';
+                    $usage = $data['usage'] ?? [];
+                    return [
+                        'content' => $content,
+                        'model' => $data['model'] ?? $fallbackModel,
+                        'input_tokens' => $usage['prompt_tokens'] ?? 100,
+                        'output_tokens' => $usage['completion_tokens'] ?? (int) ceil(mb_strlen($content) / 4),
+                        'total_tokens' => $usage['total_tokens'] ?? (int) ceil(mb_strlen($content) / 4),
+                        'cost_usd' => (float) $fbResponse->header('X-OmniRoute-Response-Cost', '0.0000000000'),
+                        'latency_ms' => (int) $fbResponse->header('X-OmniRoute-Latency-Ms', '120'),
+                        'cache_hit' => false,
+                        'decision_trace' => 'fallback-recovered',
+                        'raw' => $data,
+                    ];
+                }
+            } catch (Exception $e) {
+                // Try next or synthesizer
+            }
+            break; // Attempt one primary fallback candidate
         }
 
         // Fallback to Autonomous Neural Synthesizer
@@ -148,6 +188,10 @@ class OmniRouteClient
         $url = $this->endpoints['chat_completions_endpoint'];
         $tokensYielded = 0;
 
+        // Use configurable timeouts from config/omniroute.php
+        $connectTimeout = $options['connect_timeout'] ?? config('omniroute.connect_timeout_seconds', 10);
+        $readTimeout = $options['timeout'] ?? config('omniroute.timeout_seconds', 120);
+
         try {
             $ch = curl_init($url);
             curl_setopt_array($ch, [
@@ -157,8 +201,8 @@ class OmniRouteClient
                 CURLOPT_RETURNTRANSFER => false,
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
-                CURLOPT_CONNECTTIMEOUT => 2,
-                CURLOPT_TIMEOUT => 4,
+                CURLOPT_CONNECTTIMEOUT => $connectTimeout,
+                CURLOPT_TIMEOUT => $readTimeout,
             ]);
 
             $fp = fopen('php://temp', 'w+');

@@ -32,8 +32,8 @@ return [
     */
     'base_url' => env('OMNIROUTE_BASE_URL', 'http://localhost:20128/v1'),
     'api_key' => env('OMNIROUTE_API_KEY', 'omniroute-default-key'),
-    'timeout_seconds' => (int) env('OMNIROUTE_TIMEOUT', 120),
-    'connect_timeout_seconds' => (int) env('OMNIROUTE_CONNECT_TIMEOUT', 10),
+    'timeout_seconds' => (int) env('OMNIROUTE_TIMEOUT', 60),
+    'connect_timeout_seconds' => (int) env('OMNIROUTE_CONNECT_TIMEOUT', 3),
 
     /*
     |--------------------------------------------------------------------------
@@ -46,10 +46,12 @@ return [
     'default_embedding_model' => env('OMNIROUTE_EMBEDDING_MODEL', 'nebius/Qwen/Qwen3-Embedding-8B'),
 
     'auto_modes' => [
-        'auto' => 'OmniRoute Auto (Smart Multi-Provider Routing)',
-        'auto:free' => 'OmniRoute Auto Free (42 Free-Tier Pools Only)',
-        'auto:quality' => 'OmniRoute Auto Quality (Tier-1 Reasoning Models)',
-        'auto:fast' => 'OmniRoute Auto Fast (Lowest Latency & Highest TPS)',
+        'auto' => 'OmniRoute Auto (Balanced Speed, Cost & Quality)',
+        'auto/coding' => 'OmniRoute Auto Coding (Code Generation & Review)',
+        'auto/fast' => 'OmniRoute Auto Fast (Lowest Latency & High TPS)',
+        'auto/cheap' => 'OmniRoute Auto Cheap (Free-Tier & Cost Optimized)',
+        'auto/smart' => 'OmniRoute Auto Smart (Deep Reasoning & Quality-First)',
+        'auto/offline' => 'OmniRoute Auto High-Capacity (Maximum Availability)',
     ],
 
     'combos' => [

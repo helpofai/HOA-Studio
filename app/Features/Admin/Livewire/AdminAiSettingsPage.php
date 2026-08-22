@@ -119,8 +119,52 @@ class AdminAiSettingsPage extends Component
         }
     }
 
+    public ?bool $gatewayOnline = null;
+    public ?int $gatewayLatencyMs = null;
+
+    public function pingGatewayHealth()
+    {
+        $omniProvider = AiProvider::where('slug', 'omniroute')->first();
+        $baseUrl = $omniProvider->base_url ?? config('omniroute.base_url', 'http://localhost:20128/v1');
+        
+        $parsed = parse_url($baseUrl);
+        $host = $parsed['host'] ?? '127.0.0.1';
+        $port = $parsed['port'] ?? 20128;
+        $isRemoteHttps = str_starts_with($baseUrl, 'https://') && !str_contains($baseUrl, 'localhost') && !str_contains($baseUrl, '127.0.0.1');
+
+        $start = microtime(true);
+
+        if (!$isRemoteHttps) {
+            $ipToCheck = ($host === 'localhost') ? '127.0.0.1' : $host;
+            $fp = @fsockopen($ipToCheck, $port, $errno, $errstr, 0.3);
+            if (!$fp && $ipToCheck !== '127.0.0.1') {
+                $fp = @fsockopen('127.0.0.1', $port, $errno, $errstr, 0.3);
+            }
+            if ($fp) {
+                fclose($fp);
+                $this->gatewayOnline = true;
+                $this->gatewayLatencyMs = max(1, (int) round((microtime(true) - $start) * 1000));
+                return;
+            }
+            $this->gatewayOnline = false;
+            $this->gatewayLatencyMs = null;
+            return;
+        }
+
+        try {
+            $res = \Illuminate\Support\Facades\Http::timeout(1.5)->get($baseUrl . '/models');
+            $this->gatewayOnline = $res->successful() || $res->status() === 200 || $res->status() === 401;
+            $this->gatewayLatencyMs = max(1, (int) round((microtime(true) - $start) * 1000));
+        } catch (\Exception $e) {
+            $this->gatewayOnline = false;
+            $this->gatewayLatencyMs = null;
+        }
+    }
+
     public function render(AiCircuitBreaker $breaker)
     {
+        $this->pingGatewayHealth();
+
         $providers = AiProvider::with('models')->get();
         $models = AiModel::with('provider')->orderByDesc('is_default')->orderBy('ai_provider_id')->get();
         $circuitStatus = $breaker->getStatus();
@@ -132,6 +176,14 @@ class AdminAiSettingsPage extends Component
             ->get()
             ->keyBy('model_slug');
 
+        // Calculate provider-level aggregated token usage
+        $providerUsage = DB::table('generation_usage')
+            ->join('ai_models', 'generation_usage.model_slug', '=', 'ai_models.model_id')
+            ->select('ai_models.ai_provider_id', DB::raw('SUM(generation_usage.words_used) as words'), DB::raw('SUM(generation_usage.tokens_used) as tokens'), DB::raw('COUNT(*) as calls'))
+            ->groupBy('ai_models.ai_provider_id')
+            ->get()
+            ->keyBy('ai_provider_id');
+
         $totalSystemWords = DB::table('generation_usage')->sum('words_used') ?? 0;
         $totalSystemTokens = DB::table('generation_usage')->sum('tokens_used') ?? 0;
 
@@ -140,8 +192,11 @@ class AdminAiSettingsPage extends Component
             'models' => $models,
             'circuitStatus' => $circuitStatus,
             'usageStats' => $usageStats,
+            'providerUsage' => $providerUsage,
             'totalSystemWords' => $totalSystemWords,
             'totalSystemTokens' => $totalSystemTokens,
+            'gatewayOnline' => $this->gatewayOnline,
+            'gatewayLatencyMs' => $this->gatewayLatencyMs,
         ]);
     }
 }

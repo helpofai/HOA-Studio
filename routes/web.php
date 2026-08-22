@@ -90,8 +90,10 @@ Route::get('/share/{token}/export/{format}', [ExportDocumentController::class, '
 Route::middleware('auth')->group(function () {
     Route::post('/logout', function () {
         Auth::logout();
-        request()->session()->invalidate();
-        request()->session()->regenerateToken();
+        if (request()->hasSession()) {
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+        }
 
         return redirect('/');
     })->name('logout');

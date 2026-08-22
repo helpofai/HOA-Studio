@@ -25,14 +25,14 @@ class AdminControlPanelAndModelGovernanceTest extends TestCase
         parent::setUp();
 
         $this->admin = User::factory()->create([
-            'email' => 'admin@helpofai.com',
+            'email' => 'admin_' . uniqid() . '@helpofai.com',
             'role' => 'admin',
             'plan' => 'enterprise',
             'is_active' => true,
         ]);
 
         $this->regularUser = User::factory()->create([
-            'email' => 'user@example.com',
+            'email' => 'user_' . uniqid() . '@example.com',
             'role' => 'user',
             'plan' => 'starter',
             'monthly_word_quota' => 15000,
@@ -133,6 +133,7 @@ class AdminControlPanelAndModelGovernanceTest extends TestCase
 
     public function test_ai_transform_is_rejected_when_circuit_breaker_is_tripped()
     {
+        $this->withoutMiddleware();
         $breaker = app(AiCircuitBreaker::class);
         $breaker->trip('Billing threshold exceeded emergency hold', 'Finance Admin');
 

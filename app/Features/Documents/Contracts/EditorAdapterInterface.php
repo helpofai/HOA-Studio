@@ -26,16 +26,33 @@
 namespace App\Features\Documents\Contracts;
 
 use App\Features\Documents\Models\Document;
+use App\Features\Documents\Data\ConversionRiskAssessment;
 
 interface EditorAdapterInterface
 {
     /**
      * Convert from this editor's format into the canonical database format.
      */
-    public function toCanonical(string $content): array;
+    public function toCanonical(string|array $content): array;
 
     /**
      * Convert from canonical format into this editor's expected format.
      */
-    public function fromCanonical(array $canonical): string;
+    public function fromCanonical(array $canonical): string|array;
+
+    public function extractPlainText(string|array $editorContent): string;
+
+    public function getEditorKey(): string;
+
+    public function getDisplayName(): string;
+
+    public function getSupportedNodeTypes(): array;
+
+    public function getSupportedMarkTypes(): array;
+
+    public function assessConversionRisk(array $canonicalAst): ConversionRiskAssessment;
+
+    public function sanitize(string|array $editorContent): string|array;
+
+    public function getSupportedSchemaVersion(): int;
 }

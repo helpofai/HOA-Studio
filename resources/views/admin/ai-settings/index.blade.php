@@ -121,52 +121,94 @@
     <!-- Provider Cards Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @foreach($providers as $provider)
-            <x-glass.card variant="standard" class="p-6 flex flex-col justify-between hover:border-violet-500/40 transition-all relative overflow-hidden group">
-                @if($provider->slug === 'omniroute')
-                    <div class="absolute top-0 right-0 px-3 py-1 bg-gradient-to-l from-violet-600 to-indigo-600 text-white font-mono text-[9px] font-bold uppercase rounded-bl-xl shadow-md">
-                        PRIMARY GATEWAY
+            @php
+                $isOmni = $provider->slug === 'omniroute';
+                $pUsage = $providerUsage->get($provider->id);
+                $pTokens = $pUsage->tokens ?? 0;
+                $pWords = $pUsage->words ?? 0;
+            @endphp
+            <x-glass.card variant="standard" class="p-6 flex flex-col justify-between hover:border-violet-500/40 transition-all relative overflow-hidden group {{ $isOmni ? 'border-violet-500/30 bg-violet-950/10 md:col-span-2 lg:col-span-1 shadow-lg shadow-violet-950/20' : '' }}">
+                @if($isOmni)
+                    <div class="absolute top-0 right-0 px-3 py-1 bg-gradient-to-l from-violet-600 to-indigo-600 text-white font-mono text-[9px] font-bold uppercase rounded-bl-xl shadow-md flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span>PRIMARY GATEWAY</span>
                     </div>
                 @endif
 
-                <div>
-                    <!-- Top Provider Title & Icon -->
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center text-xl shadow-inner shrink-0 group-hover:scale-105 transition-transform">
-                            {{ $provider->icon ?? '🤖' }}
+                <div class="space-y-4">
+                    <!-- Top Provider Title & Health Indicator -->
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-11 h-11 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center text-2xl shadow-inner shrink-0 group-hover:scale-105 transition-transform">
+                                {{ $provider->icon ?? '🤖' }}
+                            </div>
+                            <div class="truncate">
+                                <h3 class="text-base font-bold text-white tracking-tight flex items-center gap-2">
+                                    <span>{{ $provider->name }}</span>
+                                </h3>
+                                <span class="text-[11px] font-mono text-violet-400 truncate block">{{ $provider->slug }}</span>
+                            </div>
                         </div>
-                        <div class="truncate">
-                            <h3 class="text-base font-bold text-white tracking-tight truncate">{{ $provider->name }}</h3>
-                            <span class="text-[11px] font-mono text-slate-400 truncate block">{{ $provider->slug }}</span>
-                        </div>
+
+                        @if($isOmni)
+                            <div class="pt-6 sm:pt-0">
+                                @if(!$provider->is_active)
+                                    <span class="px-2 py-0.5 rounded-full bg-red-950/80 border border-red-500/40 text-red-400 text-[10px] font-mono font-bold flex items-center gap-1">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                        DEACTIVATED
+                                    </span>
+                                @elseif($gatewayOnline)
+                                    <span class="px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-[10px] font-mono font-bold flex items-center gap-1">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                        ONLINE ({{ $gatewayLatencyMs ?? 12 }}ms)
+                                    </span>
+                                @else
+                                    <span class="px-2 py-0.5 rounded-full bg-amber-950/80 border border-amber-500/40 text-amber-300 text-[10px] font-mono font-bold flex items-center gap-1">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                        STANDBY (FALLBACK)
+                                    </span>
+                                @endif
+                            </div>
+                        @endif
                     </div>
 
-                    <p class="text-xs text-slate-300 mb-5 leading-relaxed min-h-[36px]">
+                    <p class="text-xs text-slate-300 leading-relaxed min-h-[32px]">
                         {{ $provider->description }}
                     </p>
 
                     <!-- Provider Metrics Matrix -->
-                    <div class="grid grid-cols-2 gap-2 p-3 rounded-xl bg-slate-900/60 border border-white/5 text-xs mb-5">
+                    <div class="grid grid-cols-2 gap-2.5 p-3.5 rounded-xl bg-slate-900/70 border border-white/5 text-xs">
                         <div>
-                            <span class="text-[10px] text-slate-400 block uppercase">Models Registered</span>
-                            <span class="font-bold text-white font-mono">{{ $provider->models->count() }} Models</span>
+                            <span class="text-[10px] text-slate-400 block uppercase font-bold tracking-wider">Total Models</span>
+                            <span class="font-bold text-white font-mono text-sm">{{ $provider->models->count() }} In DB</span>
+                            <span class="text-[10px] text-emerald-400 block">{{ $provider->liveModelsCount() }} Active</span>
                         </div>
+
                         <div>
-                            <span class="text-[10px] text-slate-400 block uppercase">Live / Active</span>
-                            <span class="font-bold text-emerald-400 font-mono">{{ $provider->liveModelsCount() }} Active</span>
+                            <span class="text-[10px] text-slate-400 block uppercase font-bold tracking-wider">Tokens Streamed</span>
+                            <span class="font-bold text-violet-300 font-mono text-sm">{{ number_format($pTokens) }} tok</span>
+                            <span class="text-[10px] text-slate-400 block font-mono">{{ number_format($pWords) }} words</span>
                         </div>
+
                         <div class="pt-2 border-t border-white/5">
-                            <span class="text-[10px] text-slate-400 block uppercase">Endpoint Type</span>
-                            <span class="font-mono text-indigo-300 text-[11px]">{{ $provider->is_local ? 'Local Gateway' : 'Cloud API' }}</span>
+                            <span class="text-[10px] text-slate-400 block uppercase font-bold tracking-wider">Endpoint Type</span>
+                            <span class="font-mono text-indigo-300 text-[11px] font-semibold block">
+                                {{ $isOmni ? 'Local & Cloud Supported' : ($provider->is_local ? 'Local Gateway' : 'Cloud Remote API') }}
+                            </span>
+                            <span class="text-[9px] text-slate-500 font-mono truncate block">
+                                {{ $isOmni ? (str_starts_with($provider->base_url ?? '', 'https') ? 'HTTPS Cloud Tunnel' : '127.0.0.1:20128 Loopback') : ($provider->base_url ?? 'Default Endpoint') }}
+                            </span>
                         </div>
+
                         <div class="pt-2 border-t border-white/5 flex flex-col justify-between">
-                            <span class="text-[10px] text-slate-400 block uppercase">User BYOK Keys</span>
+                            <span class="text-[10px] text-slate-400 block uppercase font-bold tracking-wider">User BYOK Keys</span>
                             <button 
                                 type="button"
                                 wire:click="toggleAllowUserKey({{ $provider->id }})" 
-                                class="mt-1 flex items-center justify-between px-2 py-1 rounded-lg text-[10px] font-bold font-mono transition-all cursor-pointer {{ $provider->allow_user_key ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/25' : 'bg-slate-800 text-slate-400 border border-white/10 hover:bg-slate-700' }}"
-                                title="Toggle whether users can use their own API keys for this provider"
+                                class="mt-1 flex items-center justify-between px-2.5 py-1 rounded-lg text-[10px] font-bold font-mono transition-all cursor-pointer {{ $provider->allow_user_key ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/25' : 'bg-slate-800 text-slate-400 border border-white/10 hover:bg-slate-700' }}"
+                                title="Toggle whether users can configure their own personal API keys"
                             >
-                                <span>{{ $provider->allow_user_key ? '✓ Users Allowed' : '✕ Admin Only' }}</span>
+                                <span>{{ $provider->allow_user_key ? '✓ Users Allowed' : '✕ Admin Managed' }}</span>
                                 <span class="w-2 h-2 rounded-full {{ $provider->allow_user_key ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600' }}"></span>
                             </button>
                         </div>
@@ -174,24 +216,25 @@
                 </div>
 
                 <!-- Footer Action Buttons -->
-                <div class="pt-4 border-t border-white/5 flex items-center justify-between gap-3">
+                <div class="pt-4 border-t border-white/5 flex items-center justify-between gap-3 mt-4">
                     <button 
                         type="button"
                         wire:click="toggleProviderActive({{ $provider->id }})" 
-                        class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer {{ $provider->is_active ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30' : 'bg-red-500/10 text-red-400 border border-red-500/30' }}"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold uppercase transition-all cursor-pointer flex items-center gap-1.5 {{ $provider->is_active ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20' }}"
                     >
-                        {{ $provider->is_active ? '● Active' : '○ Offline' }}
+                        <span class="w-2 h-2 rounded-full {{ $provider->is_active ? 'bg-emerald-400' : 'bg-red-400' }}"></span>
+                        <span>{{ $provider->is_active ? 'Gateway Enabled' : 'Gateway Disabled' }}</span>
                     </button>
 
-                    @if($provider->slug === 'omniroute')
+                    @if($isOmni)
                         <a href="{{ route('admin.ai-settings.omniroute') }}" wire:navigate>
-                            <x-glass.button variant="primary" size="sm" class="gap-1 shadow-md shadow-violet-500/20">
+                            <x-glass.button variant="primary" size="sm" class="gap-1.5 shadow-md shadow-violet-500/25 font-bold text-xs">
                                 <span>⚡ Setup Gateway &rarr;</span>
                             </x-glass.button>
                         </a>
                     @else
                         <a href="{{ route('admin.ai-settings.omniroute') }}" wire:navigate>
-                            <x-glass.button variant="secondary" size="sm" class="gap-1">
+                            <x-glass.button variant="secondary" size="sm" class="gap-1 text-xs">
                                 <span>⚙️ Configure</span>
                             </x-glass.button>
                         </a>

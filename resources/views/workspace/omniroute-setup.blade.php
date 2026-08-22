@@ -67,6 +67,13 @@
         </div>
     </div>
 
+    <!-- Live Telemetry Stream Graph & SLA Metrics -->
+    <x-omniroute.telemetry-graph 
+        :graphData="$graphData" 
+        :timeRange="$graphTimeRange" 
+        :statusFilter="$graphStatusFilter" 
+    />
+
     <!-- Status Banner Alert -->
     @if(session('status') || $statusMessage)
         <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-300 flex items-center justify-between gap-3 shadow-lg">
@@ -95,17 +102,21 @@
         <!-- Left: Gateway Configuration & Telemetry (2 Cols) -->
         <div class="lg:col-span-2 space-y-6">
             <!-- Gateway Telemetry Metrics Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" wire:poll.8s="testGatewayConnection">
                 <x-glass.card variant="elevated" class="p-4 border border-white/10">
                     <div class="flex items-center justify-between text-slate-400 mb-1">
                         <span class="text-[11px] font-semibold uppercase tracking-wider">Gateway Status</span>
                         <span class="text-base">🌐</span>
                     </div>
-                    <div class="text-xl font-black text-emerald-400 flex items-center gap-1.5">
-                        <span>{{ $connectionStatus === true ? 'ONLINE' : ($connectionStatus === false ? 'OFFLINE' : 'ONLINE') }}</span>
-                        <span class="text-xs font-mono text-slate-400 font-normal">({{ $pingLatencyMs ?? 18 }}ms)</span>
+                    <div class="text-xl font-black flex items-center gap-1.5 {{ $connectionStatus === true ? 'text-emerald-400' : 'text-amber-400' }}">
+                        <span>{{ $connectionStatus === true ? 'ONLINE' : 'STANDBY / OFFLINE' }}</span>
+                        @if($pingLatencyMs !== null)
+                            <span class="text-xs font-mono text-slate-400 font-normal">({{ $pingLatencyMs }}ms)</span>
+                        @endif
                     </div>
-                    <div class="text-[10px] text-slate-400 mt-0.5">Dedicated OmniRoute Cluster</div>
+                    <div class="text-[10px] text-slate-400 mt-0.5">
+                        {{ $connection_type === 'cloudflare_tunnel' ? 'Cloudflare Tunnel (HTTPS)' : ($connection_type === 'local_daemon' ? 'Local Device Loopback' : 'Dedicated OmniRoute Cluster') }}
+                    </div>
                 </x-glass.card>
 
                 <x-glass.card variant="elevated" class="p-4 border border-white/10">
@@ -146,17 +157,38 @@
                         </p>
                     </div>
 
-                    @if($hasPersonalKey)
-                        <button 
-                            type="button" 
-                            wire:click="removeUserKey" 
-                            wire:confirm="Remove your personal OmniRoute API key and revert to managed platform key?"
-                            class="px-3 py-1.5 rounded-xl bg-red-500/10 text-red-300 border border-red-500/20 hover:bg-red-500/20 text-xs font-bold transition-all cursor-pointer"
-                        >
-                            ✕ Remove Personal Key
-                        </button>
-                    @endif
+                    <div class="flex items-center gap-2">
+                        @if($connectionStatus === true)
+                            <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-mono font-bold flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                <span>ONLINE ({{ $pingLatencyMs ?? 12 }}ms)</span>
+                            </span>
+                        @else
+                            <span class="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 text-xs font-mono font-bold flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                                <span>STANDBY / OFFLINE</span>
+                            </span>
+                        @endif
+
+                        @if($hasPersonalKey)
+                            <button 
+                                type="button" 
+                                wire:click="removeUserKey" 
+                                wire:confirm="Remove your personal OmniRoute API key and revert to managed platform key?"
+                                class="px-3 py-1.5 rounded-xl bg-red-500/10 text-red-300 border border-red-500/20 hover:bg-red-500/20 text-xs font-bold transition-all cursor-pointer"
+                            >
+                                ✕ Remove Key
+                            </button>
+                        @endif
+                    </div>
                 </div>
+
+                @if($statusMessage)
+                    <div class="p-3.5 rounded-xl text-xs flex items-center gap-2 {{ $connectionStatus === true ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-300' : 'bg-amber-500/10 border border-amber-500/20 text-amber-300' }}">
+                        <span>{{ $connectionStatus === true ? '✓' : 'ℹ️' }}</span>
+                        <span>{{ $statusMessage }}</span>
+                    </div>
+                @endif
 
                 @if(!$allowUserKey)
                     <div class="p-4 rounded-xl bg-slate-900/80 border border-white/10 text-xs text-slate-400 flex items-center gap-2.5">
@@ -164,6 +196,115 @@
                         <span>Personal BYOK keys for OmniRoute are currently managed exclusively by the platform administrator.</span>
                     </div>
                 @else
+                    <!-- Dynamic Multi-Type Connection Selector -->
+                    <div class="space-y-3">
+                        <label class="text-xs font-bold text-slate-300 block">
+                            Choose Gateway Connection Mode:
+                        </label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                            <!-- 1. Local Device Daemon -->
+                            <button 
+                                type="button" 
+                                wire:click="setConnectionType('local_daemon')" 
+                                class="p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between {{ $connection_type === 'local_daemon' ? 'bg-indigo-600/20 border-indigo-500 shadow-lg shadow-indigo-500/10 text-white' : 'bg-slate-900/60 border-white/10 text-slate-400 hover:border-white/20 hover:text-slate-200' }}"
+                            >
+                                <div>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-base">💻</span>
+                                        @if($connection_type === 'local_daemon')
+                                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                        @endif
+                                    </div>
+                                    <div class="text-xs font-bold text-white">Local Daemon</div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5 font-mono">localhost:20128</div>
+                                </div>
+                                <div class="text-[10px] text-emerald-400 mt-2 font-medium">Direct Browser Loopback</div>
+                            </button>
+
+                            <!-- 2. Cloudflare Tunnel / Ngrok -->
+                            <button 
+                                type="button" 
+                                wire:click="setConnectionType('cloudflare_tunnel')" 
+                                class="p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between {{ $connection_type === 'cloudflare_tunnel' ? 'bg-indigo-600/20 border-indigo-500 shadow-lg shadow-indigo-500/10 text-white' : 'bg-slate-900/60 border-white/10 text-slate-400 hover:border-white/20 hover:text-slate-200' }}"
+                            >
+                                <div>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-base">☁️</span>
+                                        @if($connection_type === 'cloudflare_tunnel')
+                                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                        @endif
+                                    </div>
+                                    <div class="text-xs font-bold text-white">Cloudflare Tunnel</div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5 font-mono">HTTPS Remote URL</div>
+                                </div>
+                                <div class="text-[10px] text-indigo-400 mt-2 font-medium">Mobile & VPS Access</div>
+                            </button>
+
+                            <!-- 3. Admin Platform Cluster -->
+                            <button 
+                                type="button" 
+                                wire:click="setConnectionType('admin_cluster')" 
+                                class="p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between {{ $connection_type === 'admin_cluster' ? 'bg-indigo-600/20 border-indigo-500 shadow-lg shadow-indigo-500/10 text-white' : 'bg-slate-900/60 border-white/10 text-slate-400 hover:border-white/20 hover:text-slate-200' }}"
+                            >
+                                <div>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-base">🏛️</span>
+                                        @if($connection_type === 'admin_cluster')
+                                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                        @endif
+                                    </div>
+                                    <div class="text-xs font-bold text-white">Platform Cluster</div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5 font-mono">Admin Managed</div>
+                                </div>
+                                <div class="text-[10px] text-amber-400 mt-2 font-medium">Zero Client Setup</div>
+                            </button>
+
+                            <!-- 4. Custom Enterprise Proxy -->
+                            <button 
+                                type="button" 
+                                wire:click="setConnectionType('custom_proxy')" 
+                                class="p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between {{ $connection_type === 'custom_proxy' ? 'bg-indigo-600/20 border-indigo-500 shadow-lg shadow-indigo-500/10 text-white' : 'bg-slate-900/60 border-white/10 text-slate-400 hover:border-white/20 hover:text-slate-200' }}"
+                            >
+                                <div>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-base">🌐</span>
+                                        @if($connection_type === 'custom_proxy')
+                                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                        @endif
+                                    </div>
+                                    <div class="text-xs font-bold text-white">Enterprise Proxy</div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5 font-mono">Custom HTTPS</div>
+                                </div>
+                                <div class="text-[10px] text-purple-400 mt-2 font-medium">Self-Hosted / BYOK</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Cloudflare Tunnel / Local Setup Helper -->
+                    @if($connection_type === 'cloudflare_tunnel')
+                        <div class="p-4 rounded-xl bg-indigo-950/40 border border-indigo-500/30 text-xs space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-indigo-300 flex items-center gap-1.5">
+                                    <span>☁️</span> How to connect your local OmniRoute via Cloudflare Tunnel (Free & Secure):
+                                </span>
+                                <span class="text-[10px] font-mono text-slate-400">No port forwarding needed</span>
+                            </div>
+                            <ol class="list-decimal list-inside space-y-1 text-slate-300 text-[11px] leading-relaxed">
+                                <li>Run OmniRoute in terminal: <code class="bg-slate-900 px-1.5 py-0.5 rounded text-amber-300 font-mono">omniroute</code></li>
+                                <li>In a second terminal, launch tunnel: <code class="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-300 font-mono">cloudflared tunnel --url http://localhost:20128</code></li>
+                                <li>Copy the generated <code class="text-indigo-300 font-mono">https://xyz.trycloudflare.com</code> URL and paste it below with <code class="text-indigo-300 font-mono">/v1</code> at the end.</li>
+                            </ol>
+                        </div>
+                    @elseif($connection_type === 'local_daemon')
+                        <div class="p-3.5 rounded-xl bg-slate-900/60 border border-white/10 text-xs flex items-center justify-between text-slate-300">
+                            <div class="flex items-center gap-2">
+                                <span>💻</span>
+                                <span>Running locally on your PC? Start daemon in PowerShell/CMD: <code class="bg-slate-950 px-2 py-0.5 rounded text-amber-300 font-mono font-bold">omniroute</code></span>
+                            </div>
+                            <span class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-bold">Direct Browser Loopback</span>
+                        </div>
+                    @endif
+
                     <form wire:submit="saveUserKey" x-data="{ showKey: false }" class="space-y-4">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <!-- Master Gateway API Key with Show/Hide Toggle -->
@@ -205,19 +346,32 @@
                             <!-- Custom Gateway URL (Optional) -->
                             <div>
                                 <label class="text-xs font-medium text-slate-300 block mb-1.5">
-                                    Custom Gateway Endpoint (Optional)
+                                    Gateway Endpoint URL
                                 </label>
                                 <input 
                                     type="text" 
                                     wire:model="user_custom_url" 
-                                    placeholder="http://localhost:20128/v1" 
+                                    placeholder="{{ $connection_type === 'cloudflare_tunnel' ? 'https://omni-gateway.yourdomain.com/v1' : 'http://localhost:20128/v1' }}" 
                                     class="w-full bg-slate-900 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
                                 />
                                 @error('user_custom_url') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-end gap-3 pt-3 border-t border-white/5">
+                        <div class="flex items-center justify-between gap-3 pt-3 border-t border-white/5">
+                            <button 
+                                type="button" 
+                                wire:click="testGatewayConnection"
+                                wire:loading.attr="disabled"
+                                class="px-4 py-2 rounded-xl bg-slate-900 border border-white/10 hover:border-emerald-500/50 hover:bg-emerald-950/30 text-slate-300 hover:text-emerald-300 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+                            >
+                                <span wire:loading.remove wire:target="testGatewayConnection">📡 Test Connection</span>
+                                <span wire:loading wire:target="testGatewayConnection" class="flex items-center gap-1.5 text-emerald-400">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                                    Testing...
+                                </span>
+                            </button>
+
                             <button 
                                 type="submit" 
                                 wire:loading.attr="disabled"
@@ -229,7 +383,7 @@
                                     @elseif($saveStatus === 'error')
                                         ✕ Save Failed
                                     @else
-                                        Save Gateway Key
+                                        💾 Save Gateway Key
                                     @endif
                                 </span>
                                 <span wire:loading wire:target="saveUserKey" class="inline-flex items-center gap-1.5">
@@ -350,6 +504,21 @@
                     </span>
                 </button>
 
+                <!-- Resync from Gateway Button -->
+                <button 
+                    type="button" 
+                    wire:click="resyncModels" 
+                    wire:loading.attr="disabled"
+                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-indigo-500/30 hover:border-indigo-500/60 text-indigo-300 hover:text-white text-xs font-semibold transition-all cursor-pointer"
+                    title="Re-synchronize catalog directly from OmniRoute /v1/models"
+                >
+                    <span wire:loading.remove wire:target="resyncModels">🔄 Resync Models</span>
+                    <span wire:loading wire:target="resyncModels" class="flex items-center gap-1.5">
+                        <span class="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-ping"></span>
+                        Syncing...
+                    </span>
+                </button>
+
                 <div class="flex items-center gap-1.5 text-xs text-slate-400">
                     <span class="text-[11px]">Per page:</span>
                     <select wire:model.live="perPage" class="bg-slate-900 border border-white/10 rounded-lg px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
@@ -390,22 +559,54 @@
 
             <!-- Quick Engine & Capability Filter Pills -->
             <div class="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
-                <span class="text-[11px] text-slate-400 mr-1">Quick Filters:</span>
+                <span class="text-[11px] text-slate-400 mr-1 font-bold">Providers:</span>
                 
                 <button 
                     type="button" 
                     wire:click="$set('modelVendorFilter', '')" 
                     class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelVendorFilter === '' ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
                 >
-                    All Engines
+                    All Providers ({{ $totalModelsCount }})
                 </button>
+
+                @foreach($vendors as $v)
+                    @php
+                        $vendorSlug = strtolower($v->owned_by);
+                        $vendorIcon = match($vendorSlug) {
+                            'deepseek' => '🐋',
+                            'openai' => '🤖',
+                            'anthropic' => '🎭',
+                            'google' => '✨',
+                            'groq' => '⚡',
+                            'cerebras' => '🚀',
+                            'mistral' => '🌪️',
+                            'together' => '🤝',
+                            'omniroute' => '⚡',
+                            default => '🌐',
+                        };
+                    @endphp
+                    <button 
+                        type="button" 
+                        wire:click="$set('modelVendorFilter', '{{ $v->owned_by }}')" 
+                        class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] flex items-center gap-1 {{ $modelVendorFilter === $v->owned_by ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
+                    >
+                        <span>{{ $vendorIcon }}</span>
+                        <span>{{ ucfirst($v->owned_by) }}</span>
+                        <span class="text-[10px] opacity-75 font-mono">({{ $v->count }})</span>
+                    </button>
+                @endforeach
+            </div>
+
+            <!-- Capability Pills -->
+            <div class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-white/5 text-xs">
+                <span class="text-[11px] text-slate-400 mr-1 font-bold">Capabilities:</span>
 
                 <button 
                     type="button" 
                     wire:click="$set('modelStatusFilter', 'working')" 
                     class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelStatusFilter === 'working' ? 'bg-emerald-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-emerald-400 hover:text-white border border-emerald-500/20' }}"
                 >
-                    🟢 Working Only
+                    🟢 Working Only ({{ $workingCount }})
                 </button>
 
                 <button 
@@ -413,7 +614,7 @@
                     wire:click="$set('modelStatusFilter', 'free_tier')" 
                     class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelStatusFilter === 'free_tier' ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
                 >
-                    ⚡ Free Tier
+                    ⚡ Free Tier ({{ $freeTierCount }})
                 </button>
 
                 <button 
@@ -421,7 +622,7 @@
                     wire:click="$set('modelStatusFilter', 'reasoning')" 
                     class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelStatusFilter === 'reasoning' ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
                 >
-                    🧠 Reasoning
+                    🧠 Reasoning ({{ $reasoningCount }})
                 </button>
 
                 <button 
@@ -429,47 +630,7 @@
                     wire:click="$set('modelStatusFilter', 'combos')" 
                     class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelStatusFilter === 'combos' ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
                 >
-                    🔀 Combos
-                </button>
-
-                <button 
-                    type="button" 
-                    wire:click="$set('modelVendorFilter', 'deepseek')" 
-                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelVendorFilter === 'deepseek' ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
-                >
-                    🐋 DeepSeek
-                </button>
-
-                <button 
-                    type="button" 
-                    wire:click="$set('modelVendorFilter', 'cc')" 
-                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelVendorFilter === 'cc' ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
-                >
-                    🎭 Claude
-                </button>
-
-                <button 
-                    type="button" 
-                    wire:click="$set('modelVendorFilter', 'openai')" 
-                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelVendorFilter === 'openai' ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
-                >
-                    🤖 OpenAI
-                </button>
-
-                <button 
-                    type="button" 
-                    wire:click="$set('modelVendorFilter', 'groq')" 
-                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelVendorFilter === 'groq' ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
-                >
-                    ⚡ Groq Free
-                </button>
-
-                <button 
-                    type="button" 
-                    wire:click="$set('modelVendorFilter', 'glm')" 
-                    class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelVendorFilter === 'glm' ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
-                >
-                    ✨ GLM Flash
+                    🔀 Auto Combos ({{ $combosCount }})
                 </button>
             </div>
         </x-glass.card>

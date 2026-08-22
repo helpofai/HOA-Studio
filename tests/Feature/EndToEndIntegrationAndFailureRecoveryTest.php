@@ -35,8 +35,10 @@ class EndToEndIntegrationAndFailureRecoveryTest extends TestCase
     {
         parent::setUp();
 
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+
         $this->user = User::factory()->create([
-            'email' => 'creator@helpofai.com',
+            'email' => 'creator_' . uniqid() . '@helpofai.com',
             'role' => 'user',
             'plan' => 'pro',
             'monthly_word_quota' => 50000,
@@ -45,7 +47,7 @@ class EndToEndIntegrationAndFailureRecoveryTest extends TestCase
         ]);
 
         $this->admin = User::factory()->create([
-            'email' => 'admin@helpofai.com',
+            'email' => 'admin_' . uniqid() . '@helpofai.com',
             'role' => 'admin',
             'plan' => 'enterprise',
             'is_active' => true,
@@ -233,6 +235,7 @@ class EndToEndIntegrationAndFailureRecoveryTest extends TestCase
 
     public function test_admin_model_governance_circuit_breaker_resilience()
     {
+        $this->withoutMiddleware();
         $breaker = app(AiCircuitBreaker::class);
         $breaker->trip('Scheduled server cluster migration', 'Lead Dev');
 

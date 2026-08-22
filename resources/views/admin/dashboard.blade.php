@@ -87,6 +87,13 @@
         </x-glass.card>
     </div>
 
+    <!-- Live System-Wide AI Telemetry & Inference Graph -->
+    <x-omniroute.telemetry-graph 
+        :graphData="$graphData" 
+        :timeRange="$graphTimeRange" 
+        :statusFilter="$graphStatusFilter" 
+    />
+
     <!-- 2 Column Section: Recent Users & Gateway Status -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Recent Users Table -->

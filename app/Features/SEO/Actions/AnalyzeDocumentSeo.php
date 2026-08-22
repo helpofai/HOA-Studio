@@ -35,12 +35,12 @@ class AnalyzeDocumentSeo
         protected SeoAnalyzer $analyzer
     ) {}
 
-    public function execute(Document $document, ?string $targetKeyword = null, array $secondaryKeywords = []): SeoAnalysis
+    public function execute(Document $document, ?string $targetKeyword = null, array $secondaryKeywords = [], string $metaDescription = ''): SeoAnalysis
     {
         $contentHtml = $document->content->content_html ?? '';
         $title = $document->title;
 
-        $results = $this->analyzer->analyze($contentHtml, $title, $targetKeyword, $secondaryKeywords);
+        $results = $this->analyzer->analyze($contentHtml, $title, $targetKeyword, $secondaryKeywords, $metaDescription);
 
         return SeoAnalysis::updateOrCreate(
             ['document_id' => $document->id],
@@ -50,7 +50,7 @@ class AnalyzeDocumentSeo
                 'target_keyword' => $targetKeyword,
                 'secondary_keywords' => $secondaryKeywords,
                 'metrics' => $results['metrics'],
-                'recommendations' => $results['recommendations'],
+                'recommendations' => $results['rank_math'] ?? [],
             ]
         );
     }

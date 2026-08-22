@@ -48,7 +48,7 @@ class EditorManager
         $this->registerAdapter('markdown', new MarkdownAdapter());
         $this->registerAdapter('markdown_split', new MarkdownAdapter());
         $this->registerAdapter('html', new HtmlAdapter());
-        $this->registerAdapter('plaintext', new PlainTextAdapter());
+        $this->registerAdapter('plain_text', new PlainTextAdapter());
     }
 
     public function registerAdapter(string $type, EditorAdapterInterface $adapter): void

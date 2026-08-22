@@ -145,8 +145,21 @@
         </div>
 
         @if($users->hasPages())
-            <div class="p-4 border-t border-white/5">
-                {{ $users->links() }}
+            <div class="p-4 border-t border-white/5 flex items-center justify-between text-xs text-slate-400 font-mono">
+                <div>Showing {{ $users->firstItem() ?? 0 }}–{{ $users->lastItem() ?? 0 }} of {{ $users->total() }} users</div>
+                <div class="flex items-center gap-1.5 font-sans">
+                    @if($users->onFirstPage())
+                        <span class="px-2.5 py-1 rounded-lg bg-slate-900/40 border border-white/5 text-slate-600 cursor-not-allowed text-xs">&larr; Previous</span>
+                    @else
+                        <button type="button" wire:click="previousPage" class="px-2.5 py-1 rounded-lg bg-slate-900 border border-white/10 hover:border-violet-500/40 text-slate-300 hover:text-white text-xs cursor-pointer transition-colors">&larr; Previous</button>
+                    @endif
+
+                    @if($users->hasMorePages())
+                        <button type="button" wire:click="nextPage" class="px-2.5 py-1 rounded-lg bg-slate-900 border border-white/10 hover:border-violet-500/40 text-slate-300 hover:text-white text-xs cursor-pointer transition-colors">Next &rarr;</button>
+                    @else
+                        <span class="px-2.5 py-1 rounded-lg bg-slate-900/40 border border-white/5 text-slate-600 cursor-not-allowed text-xs">Next &rarr;</span>
+                    @endif
+                </div>
             </div>
         @endif
     </x-glass.card>
