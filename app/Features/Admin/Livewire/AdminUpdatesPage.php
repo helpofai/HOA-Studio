@@ -117,6 +117,28 @@ class AdminUpdatesPage extends Component
         $this->feedbackMessage = $result['output'];
     }
 
+    public function downloadRestorePoint(string $restorePointId, CoreUpdateService $updateService)
+    {
+        $manifests = $updateService->getRestorePoints();
+        $target = null;
+        foreach ($manifests as $rp) {
+            if ($rp['id'] === $restorePointId) {
+                $target = $rp;
+                break;
+            }
+        }
+
+        if (!$target || empty($target['file_backup']) || !file_exists($target['file_backup'])) {
+            $this->feedbackType = 'error';
+            $this->feedbackMessage = "Snapshot archive file not found on disk.";
+            return;
+        }
+
+        return response()->download($target['file_backup'], basename($target['file_backup']), [
+            'Content-Type' => 'application/zip',
+        ]);
+    }
+
     public function deleteRestorePoint(string $restorePointId, CoreUpdateService $updateService)
     {
         try {

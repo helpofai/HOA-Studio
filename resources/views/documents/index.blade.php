@@ -71,19 +71,27 @@
         </div>
     </x-glass.card>
 
+    <!-- Loading Skeleton Grid (Instant UI during search / filters) -->
+    <div wire:loading.grid wire:target="search,selectedProject,selectedStatus" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        @for($i = 0; $i < 6; $i++)
+            <x-glass.skeleton type="card" />
+        @endfor
+    </div>
+
     <!-- Documents Listing Grid -->
-    @if($documents->isEmpty())
-        <x-glass.card variant="subtle" class="p-12 text-center max-w-md mx-auto">
-            <div class="text-4xl mb-3">📄</div>
-            <h3 class="text-base font-bold text-white mb-1">No Documents Found</h3>
-            <p class="text-xs text-slate-400 mb-6">Create a document to start writing with AI assistance.</p>
-            <x-glass.button variant="primary" size="sm" wire:click="openCreateModal">
-                Create First Document
-            </x-glass.button>
-        </x-glass.card>
-    @else
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            @foreach($documents as $doc)
+    <div wire:loading.remove wire:target="search,selectedProject,selectedStatus">
+        @if($documents->isEmpty())
+            <x-glass.card variant="subtle" class="p-12 text-center max-w-md mx-auto">
+                <div class="text-4xl mb-3">📄</div>
+                <h3 class="text-base font-bold text-white mb-1">No Documents Found</h3>
+                <p class="text-xs text-slate-400 mb-6">Create a document to start writing with AI assistance.</p>
+                <x-glass.button variant="primary" size="sm" wire:click="openCreateModal">
+                    Create First Document
+                </x-glass.button>
+            </x-glass.card>
+        @else
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                @foreach($documents as $doc)
                 <x-glass.card variant="standard" class="p-6 flex flex-col justify-between hover:border-indigo-500/40 hover:-translate-y-0.5 transition-all">
                     <div>
                         <div class="flex items-start justify-between gap-2 mb-3">
@@ -128,6 +136,7 @@
             </div>
         @endif
     @endif
+    </div>
 
     <!-- Create Document Modal -->
     <div 

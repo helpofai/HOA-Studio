@@ -316,18 +316,27 @@ class CoreUpdateService
                 $log('success', 'Extracted and synchronized release payload via Pure-PHP Driver.');
             }
 
-            // Step 4: Run Database Migrations
-            $log('command', 'Running database migrations: php artisan migrate --force');
+            // Step 4: Synchronize New .env Environment Variables (Preserve Production Keys)
+            $log('command', 'Analyzing .env.example for new environment variable specifications...');
+            $newEnvKeys = $this->syncEnvVariables();
+            if (!empty($newEnvKeys)) {
+                $log('success', 'Synchronized new environment variables into .env: ' . implode(', ', $newEnvKeys));
+            } else {
+                $log('info', 'Environment variables in .env are up to date.');
+            }
+
+            // Step 5: Run Database Migrations Safely
+            $log('command', 'Executing schema migrations: php artisan migrate --force');
             Artisan::call('migrate', ['--force' => true]);
             $migrateOutput = trim(Artisan::output());
             $log('success', !empty($migrateOutput) ? $migrateOutput : 'Database schema verified. All tables up to date.');
 
-            // Step 5: Clear and Recompile Caches
+            // Step 6: Clear and Recompile Caches
             $log('command', 'Synchronizing application caches: php artisan optimize:clear');
             Artisan::call('optimize:clear');
             $log('success', 'Caches, Blade views, and routes synchronized.');
 
-            // Step 6: Post-Update Synthetic Health Prober
+            // Step 7: Post-Update Synthetic Health Prober
             $log('command', 'Executing post-update synthetic health probe diagnostics...');
             $health = $this->healthProber->probeSystem();
             
@@ -340,7 +349,7 @@ class CoreUpdateService
                 throw new Exception('Post-update health checks failed. Triggering automatic self-healing rollback.');
             }
 
-            // Step 7: Update Success! Bring Site Back Online
+            // Step 8: Update Success! Bring Site Back Online
             $this->bringSiteOnline();
             $log('success', '🎉 Update applied & verified successfully. Website is online.');
 
@@ -559,6 +568,46 @@ class CoreUpdateService
 
             File::copy($item->getRealPath(), $targetPath);
         }
+    }
+
+    /**
+     * Safely merge missing environment keys from .env.example into production .env.
+     *
+     * @return array<string> List of newly appended environment variable keys
+     */
+    public function syncEnvVariables(): array
+    {
+        $envPath = base_path('.env');
+        $examplePath = base_path('.env.example');
+
+        if (!File::exists($envPath) || !File::exists($examplePath)) {
+            return [];
+        }
+
+        $currentEnv = File::get($envPath);
+        $exampleEnv = File::get($examplePath);
+
+        preg_match_all('/^([A-Z0-9_]+)=/m', $exampleEnv, $exampleMatches);
+        preg_match_all('/^([A-Z0-9_]+)=/m', $currentEnv, $currentMatches);
+
+        $exampleKeys = $exampleMatches[1] ?? [];
+        $currentKeys = $currentMatches[1] ?? [];
+
+        $missingKeys = array_diff($exampleKeys, $currentKeys);
+        $appendedKeys = [];
+
+        if (!empty($missingKeys)) {
+            $appendContent = "\n# --- Auto-Added by HOA Core Update System (" . date('Y-m-d H:i:s') . ") ---\n";
+            foreach ($missingKeys as $key) {
+                if (preg_match('/^(' . preg_quote($key, '/') . '=.*)$/m', $exampleEnv, $lineMatch)) {
+                    $appendContent .= $lineMatch[1] . "\n";
+                    $appendedKeys[] = $key;
+                }
+            }
+            File::append($envPath, $appendContent);
+        }
+
+        return $appendedKeys;
     }
 
     /**

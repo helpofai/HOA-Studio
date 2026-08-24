@@ -30,6 +30,7 @@ import './features/editor/drivers/markdown-driver.js';
 import './features/editor/drivers/markdown-split-driver.js';
 import './features/editor/drivers/html-driver.js';
 import './features/editor/drivers/plaintext-driver.js';
+import { initCursorSpotlight } from './features/ui/cursor-spotlight.js';
 import { createIcons, icons } from 'lucide';
 
 window.initLucideIcons = () => {
@@ -38,9 +39,11 @@ window.initLucideIcons = () => {
 
 document.addEventListener('DOMContentLoaded', () => {
     window.initLucideIcons();
+    initCursorSpotlight();
 });
 
 document.addEventListener('livewire:navigated', () => {
     window.initLucideIcons();
+    initCursorSpotlight();
 });
 

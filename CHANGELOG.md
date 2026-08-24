@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.1] - 2026-08-25
+
+### 🚀 Added
+- **Turbo Hover Prefetching Engine (`wire:navigate.hover`)**:
+  - Upgraded all navigation links across Workspace and Admin sidebars to instantly pre-fetch destination pages on 60ms cursor hover, eliminating perceived navigation delay.
+- **Glassmorphic Multi-Variant Skeleton Loader Suite (`<x-glass.skeleton />`)**:
+  - Built high-performance pulsating skeleton components for document cards, user lists, metrics, and data tables to eliminate Cumulative Layout Shift (CLS).
+- **Animated Conic Gradient Brand Logo (`<x-glass.logo />`)**:
+  - Created standalone CSS conic rotating border with dark glassmorphic inner box and shimmering typography (`HOA Studio` / `HOA Admin`).
+- **Hardware-Accelerated Cursor Glow Spotlight**:
+  - Implemented 60 FPS LERP trailing physics spotlight cursor across all dashboard viewports.
+
+### 🛠️ Changed & Polished
+- **Fixed-Coordinate Sidebar Icon Tracks**:
+  - Re-architected sidebar navigation geometry with fixed `w-8 h-8` icon containers and unified `px-3 py-2.5` padding, completely eliminating icon wobble during rapid expand/collapse actions.
+- **Top Navbar Header Collapse Trigger**:
+  - Moved desktop sidebar toggle button outside sidebar container into the top navigation header (Linear / VS Code pattern) for unobstructed brand logo visibility.
+- **Automated `.env` 3-Way Auto-Merge Engine**:
+  - Upgraded `CoreUpdateService` with safe `.env.example` key synchronization that preserves user database secrets and API tokens.
+
+---
+
 ## [2.5.0] - 2026-08-24
 
 ### 🚀 Added

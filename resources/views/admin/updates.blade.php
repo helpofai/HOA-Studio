@@ -67,8 +67,9 @@
     <div class="flex items-center gap-2 border-b border-white/10 pb-3">
         <button 
             type="button"
-            wire:click="$set('activeTab', 'core')"
-            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer {{ $activeTab === 'core' ? 'bg-violet-600/25 text-violet-200 border border-violet-500/40 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent' }}"
+            @click="activeTab = 'core'"
+            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
+            :class="activeTab === 'core' ? 'bg-violet-600/25 text-violet-200 border border-violet-500/40 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'"
         >
             <span>🚀</span>
             <span>Core Codebase Updates</span>
@@ -76,8 +77,9 @@
 
         <button 
             type="button"
-            wire:click="$set('activeTab', 'database')"
-            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer {{ $activeTab === 'database' ? 'bg-violet-600/25 text-violet-200 border border-violet-500/40 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent' }}"
+            @click="activeTab = 'database'"
+            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
+            :class="activeTab === 'database' ? 'bg-violet-600/25 text-violet-200 border border-violet-500/40 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'"
         >
             <span>🗄️</span>
             <span>Database Updates & Rollback</span>
@@ -86,8 +88,9 @@
 
         <button 
             type="button"
-            wire:click="$set('activeTab', 'health')"
-            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer {{ $activeTab === 'health' ? 'bg-violet-600/25 text-violet-200 border border-violet-500/40 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent' }}"
+            @click="activeTab = 'health'"
+            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
+            :class="activeTab === 'health' ? 'bg-violet-600/25 text-violet-200 border border-violet-500/40 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'"
         >
             <span>🛡️</span>
             <span>System Health Diagnostics</span>
@@ -316,6 +319,15 @@
                                     </td>
                                     <td class="p-4 text-right">
                                         <div class="flex items-center justify-end gap-2">
+                                            <button 
+                                                wire:click="downloadRestorePoint('{{ $rp['id'] }}')"
+                                                class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-white/10 hover:border-violet-500/40 text-slate-300 hover:text-white text-xs font-semibold shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
+                                                title="Download complete website zip archive"
+                                            >
+                                                <span>📥</span>
+                                                <span>Download</span>
+                                            </button>
+
                                             <button 
                                                 wire:click="rollbackTo('{{ $rp['id'] }}')"
                                                 wire:loading.attr="disabled"

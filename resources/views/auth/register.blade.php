@@ -28,11 +28,7 @@
         <!-- Logo Branding Header -->
         <div class="text-center mb-8">
             <a href="/" class="inline-flex items-center gap-3 group">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-cyan-400 p-[1px] shadow-xl shadow-indigo-500/25 group-hover:scale-105 transition-all">
-                    <div class="w-full h-full bg-slate-950 rounded-[15px] flex items-center justify-center">
-                        <span class="font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-300 text-sm">HOA</span>
-                    </div>
-                </div>
+                <x-glass.logo size="lg" text="HOA" />
             </a>
             <h2 class="text-2xl font-bold text-white tracking-tight mt-4">Create Account</h2>
             <p class="text-xs text-slate-400 mt-1">Get 15,000 monthly AI words & full editor access</p>

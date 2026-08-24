@@ -25,7 +25,7 @@
 
 <x-layouts.app :title="$title ?? 'Workspace — HelpOfAi Studio'">
     <div 
-        class="min-h-screen flex bg-slate-950 text-slate-100 selection:bg-indigo-500/30 selection:text-indigo-200" 
+        class="min-h-screen flex text-slate-100 selection:bg-indigo-500/30 selection:text-indigo-200" 
         x-data="{ 
             sidebarOpen: false, 
             collapsed: false,
@@ -73,11 +73,7 @@
                 <!-- Brand Header -->
                 <div class="h-16 px-4 flex items-center border-b border-white/5 shrink-0 transition-all duration-300" :class="collapsed ? 'justify-center' : 'justify-between'">
                     <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center gap-3 overflow-hidden group">
-                        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-cyan-400 p-[1px] shadow-md shadow-indigo-500/20 group-hover:scale-105 group-hover:shadow-indigo-500/40 transition-all duration-200 shrink-0">
-                            <div class="w-full h-full bg-slate-950 rounded-[11px] flex items-center justify-center font-black text-xs text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-300">
-                                HOA
-                            </div>
-                        </div>
+                        <x-glass.logo size="sm" text="HOA" />
                         <div 
                             x-show="!collapsed" 
                             x-transition:enter="transition-all duration-300 ease-out"
@@ -118,11 +114,10 @@
                         <!-- Dashboard -->
                         <a 
                             href="{{ route('dashboard') }}" 
-                            wire:navigate
-                            class="flex items-center rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('dashboard') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
-                            :class="collapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'"
+                            wire:navigate.hover
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('dashboard') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
-                            <span class="text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">📊</span>
+                            <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">📊</span>
                             <span 
                                 x-show="!collapsed" 
                                 x-transition:enter="transition-all duration-300 ease-out"
@@ -143,11 +138,10 @@
                         <!-- AI Text Editor -->
                         <a 
                             href="{{ route('editor') }}" 
-                            wire:navigate
-                            class="flex items-center rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('documents.editor') || request()->routeIs('editor') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
-                            :class="collapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'"
+                            wire:navigate.hover
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('documents.editor') || request()->routeIs('editor') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
-                            <span class="text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">✍️</span>
+                            <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">✍️</span>
                             <span 
                                 x-show="!collapsed" 
                                 x-transition:enter="transition-all duration-300 ease-out"
@@ -167,11 +161,10 @@
                         <!-- All Documents -->
                         <a 
                             href="{{ route('documents.index') }}" 
-                            wire:navigate
-                            class="flex items-center rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('documents.index') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
-                            :class="collapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'"
+                            wire:navigate.hover
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('documents.index') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
-                            <span class="text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">📄</span>
+                            <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">📄</span>
                             <span 
                                 x-show="!collapsed" 
                                 x-transition:enter="transition-all duration-300 ease-out"
@@ -191,11 +184,10 @@
                         <!-- Projects -->
                         <a 
                             href="{{ route('projects.index') }}" 
-                            wire:navigate
-                            class="flex items-center rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('projects.*') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
-                            :class="collapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'"
+                            wire:navigate.hover
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('projects.*') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
-                            <span class="text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">📁</span>
+                            <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">📁</span>
                             <span 
                                 x-show="!collapsed" 
                                 x-transition:enter="transition-all duration-300 ease-out"
@@ -229,11 +221,10 @@
                         <!-- Templates Hub -->
                         <a 
                             href="{{ route('templates.index') }}" 
-                            wire:navigate
-                            class="flex items-center rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('templates.*') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
-                            :class="collapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'"
+                            wire:navigate.hover
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('templates.*') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
-                            <span class="text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">⚡</span>
+                            <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">⚡</span>
                             <span 
                                 x-show="!collapsed" 
                                 x-transition:enter="transition-all duration-300 ease-out"
@@ -253,11 +244,10 @@
                         <!-- Brand Voices -->
                         <a 
                             href="{{ route('brand-voices.index') }}" 
-                            wire:navigate
-                            class="flex items-center rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('brand-voices.*') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
-                            :class="collapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'"
+                            wire:navigate.hover
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('brand-voices.*') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
-                            <span class="text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🎭</span>
+                            <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🎭</span>
                             <span 
                                 x-show="!collapsed" 
                                 x-transition:enter="transition-all duration-300 ease-out"
@@ -277,11 +267,10 @@
                         <!-- Knowledge Base -->
                         <a 
                             href="{{ route('knowledge-base.index') }}" 
-                            wire:navigate
-                            class="flex items-center rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('knowledge-base.*') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
-                            :class="collapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'"
+                            wire:navigate.hover
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('knowledge-base.*') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
-                            <span class="text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🧠</span>
+                            <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🧠</span>
                             <span 
                                 x-show="!collapsed" 
                                 x-transition:enter="transition-all duration-300 ease-out"
@@ -315,11 +304,10 @@
                         <!-- AI Models & OmniRoute Setup -->
                         <a 
                             href="{{ route('ai-models.index') }}" 
-                            wire:navigate
-                            class="flex items-center rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('ai-models.*') || request()->routeIs('ai-settings.*') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
-                            :class="collapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'"
+                            wire:navigate.hover
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('ai-models.*') || request()->routeIs('ai-settings.*') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
-                            <span class="text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🤖</span>
+                            <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🤖</span>
                             <span 
                                 x-show="!collapsed" 
                                 x-transition:enter="transition-all duration-300 ease-out"
@@ -339,11 +327,10 @@
                         <!-- Usage & Quotas -->
                         <a 
                             href="{{ route('usage.index') }}" 
-                            wire:navigate
-                            class="flex items-center rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('usage.*') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
-                            :class="collapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'"
+                            wire:navigate.hover
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('usage.*') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
-                            <span class="text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">📈</span>
+                            <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">📈</span>
                             <span 
                                 x-show="!collapsed" 
                                 x-transition:enter="transition-all duration-300 ease-out"
@@ -363,11 +350,10 @@
                         <!-- Profile & BYOK Keys / Account Settings -->
                         <a 
                             href="{{ route('profile') }}" 
-                            wire:navigate
-                            class="flex items-center rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('profile') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
-                            :class="collapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'"
+                            wire:navigate.hover
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('profile') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
-                            <span class="text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">⚙️</span>
+                            <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">⚙️</span>
                             <span 
                                 x-show="!collapsed" 
                                 x-transition:enter="transition-all duration-300 ease-out"
@@ -401,11 +387,10 @@
 
                             <a 
                                 href="{{ route('admin.dashboard') }}" 
-                                wire:navigate
-                                class="flex items-center rounded-xl bg-gradient-to-r from-violet-600/20 to-purple-600/10 text-violet-300 border border-violet-500/30 text-[13.5px] font-semibold hover:border-violet-400 shadow-lg shadow-violet-500/10 transition-all duration-200 group relative"
-                                :class="collapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'"
+                                wire:navigate.hover
+                                class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-violet-600/20 to-purple-600/10 text-violet-300 border border-violet-500/30 text-[13.5px] font-semibold hover:border-violet-400 shadow-lg shadow-violet-500/10 transition-all duration-200 group relative"
                             >
-                                <span class="text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🛡️</span>
+                                <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🛡️</span>
                                 <span 
                                     x-show="!collapsed" 
                                     x-transition:enter="transition-all duration-300 ease-out"

@@ -28,8 +28,17 @@
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
             <h1 class="text-2xl font-bold text-white tracking-tight">User & Quota Management</h1>
-            <p class="text-xs text-slate-400 mt-1">Manage user roles (Admin, Editor, Pro, User, Member), plans, and monthly word quotas.</p>
+            <p class="text-xs text-slate-400 mt-1">Manage user accounts, roles (Admin, Editor, Pro, User, Member), subscription tiers, and word quotas.</p>
         </div>
+
+        <button 
+            type="button" 
+            wire:click="openCreateModal"
+            class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-violet-500/25 transition-all flex items-center gap-2 cursor-pointer"
+        >
+            <span>➕</span>
+            <span>Add New User</span>
+        </button>
     </div>
 
     @if (session('status'))
@@ -134,8 +143,19 @@
                                         +10k
                                     </button>
                                     <x-glass.button size="sm" variant="secondary" wire:click="openEditModal({{ $user->id }})">
-                                        Edit &rarr;
+                                        Edit
                                     </x-glass.button>
+                                    @if($user->id !== auth()->id())
+                                        <button 
+                                            type="button"
+                                            wire:click="deleteUser({{ $user->id }})"
+                                            wire:confirm="Are you sure you want to permanently delete user '{{ $user->name }}'? This action cannot be undone."
+                                            class="px-2.5 py-1 rounded-lg bg-rose-950/60 border border-rose-500/30 text-rose-300 hover:bg-rose-900 hover:text-white text-[11px] font-semibold transition-all cursor-pointer"
+                                            title="Delete user permanently"
+                                        >
+                                            🗑️
+                                        </button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -163,6 +183,74 @@
             </div>
         @endif
     </x-glass.card>
+
+    <!-- Create User Modal -->
+    <div 
+        x-data="{ show: @entangle('showCreateModal') }" 
+        x-show="show" 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4" 
+        style="display: none;"
+    >
+        <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" x-on:click="show = false"></div>
+        <x-glass.card variant="elevated" class="w-full max-w-lg p-6 sm:p-8 z-10 border border-emerald-500/30 shadow-2xl relative">
+            <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <span>➕</span>
+                <span>Create New User</span>
+            </h3>
+
+            <form wire:submit="createUser" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-medium text-slate-300 block mb-1.5">Full Name</label>
+                        <x-glass.input wire:model="new_user_name" placeholder="John Doe" required :error="$errors->has('new_user_name')" />
+                        @error('new_user_name') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-medium text-slate-300 block mb-1.5">Email Address</label>
+                        <x-glass.input wire:model="new_user_email" type="email" placeholder="john@example.com" required :error="$errors->has('new_user_email')" />
+                        @error('new_user_email') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-medium text-slate-300 block mb-1.5">Password</label>
+                    <x-glass.input wire:model="new_user_password" type="password" placeholder="Minimum 8 characters" required :error="$errors->has('new_user_password')" />
+                    @error('new_user_password') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-medium text-slate-300 block mb-1.5">User Role</label>
+                        <select wire:model="new_user_role" class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-violet-500">
+                            @foreach($roles as $r)
+                                <option value="{{ $r->value }}">{{ $r->label() }} ({{ $r->value }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-medium text-slate-300 block mb-1.5">Subscription Plan</label>
+                        <select wire:model="new_user_plan" class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-violet-500">
+                            <option value="starter">Starter</option>
+                            <option value="pro">Pro</option>
+                            <option value="enterprise">Enterprise</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-medium text-slate-300 block mb-1.5">Monthly Word Quota</label>
+                    <x-glass.input wire:model="new_user_quota" type="number" required />
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+                    <x-glass.button type="button" variant="secondary" size="sm" x-on:click="show = false">Cancel</x-glass.button>
+                    <x-glass.button type="submit" variant="primary" size="sm">Create Account</x-glass.button>
+                </div>
+            </form>
+        </x-glass.card>
+    </div>
 
     <!-- Edit User Modal -->
     <div 

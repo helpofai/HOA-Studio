@@ -56,9 +56,56 @@ class AdminUsersPage extends Component
     public bool $is_active = true;
     public string $new_password = '';
 
+    // Create Modal state
+    public bool $showCreateModal = false;
+    public string $new_user_name = '';
+    public string $new_user_email = '';
+    public string $new_user_password = '';
+    public string $new_user_role = 'user';
+    public string $new_user_plan = 'starter';
+    public int $new_user_quota = 15000;
+
     public function updatingSearch()
     {
         $this->resetPage();
+    }
+
+    public function openCreateModal()
+    {
+        $this->new_user_name = '';
+        $this->new_user_email = '';
+        $this->new_user_password = '';
+        $this->new_user_role = 'user';
+        $this->new_user_plan = 'starter';
+        $this->new_user_quota = 15000;
+        $this->showCreateModal = true;
+    }
+
+    public function createUser()
+    {
+        $this->validate([
+            'new_user_name' => 'required|string|min:2|max:100',
+            'new_user_email' => 'required|email|max:255|unique:users,email',
+            'new_user_password' => 'required|string|min:8',
+            'new_user_role' => 'required|string|in:' . implode(',', UserRole::values()),
+            'new_user_plan' => 'required|string',
+            'new_user_quota' => 'required|integer|min:0',
+        ]);
+
+        $user = User::create([
+            'name' => $this->new_user_name,
+            'email' => $this->new_user_email,
+            'password' => $this->new_user_password,
+            'role' => $this->new_user_role,
+            'plan' => $this->new_user_plan,
+            'monthly_word_quota' => $this->new_user_quota,
+            'used_word_quota' => 0,
+            'bonus_word_quota' => 0,
+            'is_active' => true,
+        ]);
+
+        $this->showCreateModal = false;
+        session()->flash('status', "New user '{$user->name}' created successfully.");
     }
 
     public function openEditModal(int $userId)
@@ -107,6 +154,20 @@ class AdminUsersPage extends Component
 
         $this->showEditModal = false;
         session()->flash('status', "User '{$user->name}' updated successfully.");
+    }
+
+    public function deleteUser(int $userId)
+    {
+        $user = User::findOrFail($userId);
+        if ($user->id === Auth::id()) {
+            session()->flash('error', 'You cannot delete your own logged-in admin account.');
+            return;
+        }
+
+        $userName = $user->name;
+        $user->delete();
+
+        session()->flash('status', "User '{$userName}' has been permanently removed.");
     }
 
     public function toggleActive(int $userId)

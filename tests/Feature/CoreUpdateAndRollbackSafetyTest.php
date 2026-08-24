@@ -98,4 +98,12 @@ class CoreUpdateAndRollbackSafetyTest extends TestCase
         $this->assertArrayHasKey('has_update', $updateInfo);
         $this->assertArrayHasKey('release_notes', $updateInfo);
     }
+
+    public function test_env_variables_sync_detects_and_appends_missing_keys()
+    {
+        $service = app(CoreUpdateService::class);
+        $appended = $service->syncEnvVariables();
+
+        $this->assertIsArray($appended);
+    }
 }

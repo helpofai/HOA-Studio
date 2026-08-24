@@ -25,7 +25,7 @@
 
 <x-layouts.app :title="$title ?? 'Admin Control Center — HelpOfAi Studio'">
     <div 
-        class="min-h-screen flex bg-slate-950 text-slate-100 selection:bg-violet-500/30 selection:text-violet-200" 
+        class="min-h-screen flex text-slate-100 selection:bg-violet-500/30 selection:text-violet-200" 
         x-data="{ 
             sidebarOpen: false, 
             collapsed: false,
@@ -61,7 +61,7 @@
 
         <!-- Collapsible Admin Sidebar (Fixed Viewport Height) -->
         <aside 
-            class="fixed inset-y-0 left-0 z-50 glass-standard border-r border-violet-500/20 flex flex-col justify-between transition-all duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:z-30 select-none shrink-0 overflow-hidden"
+            class="fixed inset-y-0 left-0 z-50 glass-standard border-r border-violet-500/20 flex flex-col justify-between transition-[width,transform] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] lg:sticky lg:top-0 lg:h-screen lg:z-30 select-none shrink-0 overflow-hidden"
             :class="{
                 'w-64': !collapsed,
                 'w-20': collapsed,
@@ -70,40 +70,42 @@
             }"
         >
             <div class="flex flex-col h-full overflow-hidden min-h-0">
-                <!-- Brand & Collapse Header -->
-                <div class="h-16 px-4 flex items-center justify-between border-b border-white/5 bg-gradient-to-r from-violet-950/40 to-transparent shrink-0">
+                <!-- Brand Header -->
+                <div class="h-16 px-4 flex items-center border-b border-white/5 bg-gradient-to-r from-violet-950/40 to-transparent shrink-0 transition-all duration-300" :class="collapsed ? 'justify-center' : 'justify-between'">
                     <a href="{{ route('admin.dashboard') }}" wire:navigate class="flex items-center gap-3 overflow-hidden group">
-                        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-violet-500 to-indigo-500 flex items-center justify-center font-bold text-white text-xs shadow-md shadow-violet-500/30 group-hover:scale-105 transition-all shrink-0">
-                            🛡️
-                        </div>
-                        <div x-show="!collapsed" x-transition.opacity.duration.200ms class="truncate">
+                        <x-glass.logo size="sm" text="HOA" subtitle="ADMIN" />
+                        <div 
+                            x-show="!collapsed" 
+                            x-transition:enter="transition-all duration-300 ease-out"
+                            x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
+                            x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
+                            x-transition:leave="transition-all duration-150 ease-in"
+                            x-transition:leave-start="opacity-100 translate-x-0 max-w-[180px]"
+                            x-transition:leave-end="opacity-0 -translate-x-2 max-w-0"
+                            class="truncate min-w-0 overflow-hidden whitespace-nowrap"
+                        >
                             <span class="text-sm font-bold text-white tracking-tight block truncate">HOA Admin</span>
                             <span class="block text-[10px] text-violet-400 font-medium leading-none truncate">Control Center</span>
                         </div>
                     </a>
 
-                    <!-- Desktop Collapse Toggle Button -->
-                    <button 
-                        type="button"
-                        x-on:click="toggleCollapse()" 
-                        class="hidden lg:flex w-7 h-7 rounded-lg bg-slate-900 border border-white/10 text-slate-400 hover:text-white hover:border-violet-500/40 items-center justify-center text-xs transition-colors cursor-pointer"
-                        :title="collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
-                    >
-                        <span x-text="collapsed ? '⮞' : '⮜'"></span>
-                    </button>
-
                     <!-- Mobile Close Button -->
-                    <button x-on:click="sidebarOpen = false" class="lg:hidden text-slate-400 hover:text-white p-1">
+                    <button x-on:click="sidebarOpen = false" class="lg:hidden text-slate-400 hover:text-white p-1 hover:scale-110 active:scale-95 transition-all cursor-pointer">
                         ✕
                     </button>
                 </div>
 
                 <!-- Navigation Links List (SPA Mode with wire:navigate) -->
                 <nav class="sidebar-nav-menu p-3 space-y-2.5 overflow-y-auto overflow-x-hidden flex-1 scrollbar-none">
-                    
-                    <!-- 1. MANAGEMENT SECTION -->
+                                     <!-- 1. MANAGEMENT SECTION -->
                     <div class="sidebar-nav-section space-y-0.5">
-                        <div x-show="!collapsed" x-transition.opacity class="px-3 pt-2 pb-1 text-[9.5px] font-bold text-slate-500 uppercase tracking-widest flex items-center justify-between">
+                        <div 
+                            x-show="!collapsed" 
+                            x-transition:enter="transition-all duration-200"
+                            x-transition:enter-start="opacity-0"
+                            x-transition:enter-end="opacity-100"
+                            class="px-3 pt-2 pb-1 text-[9.5px] font-bold text-slate-500 uppercase tracking-widest flex items-center justify-between"
+                        >
                             <span>Management</span>
                         </div>
                         <div x-show="collapsed" class="py-0.5"></div>
@@ -111,43 +113,82 @@
                         <!-- System Overview -->
                         <a 
                             href="{{ route('admin.dashboard') }}" 
-                            wire:navigate
-                            class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13.5px] font-medium transition-all {{ request()->routeIs('admin.dashboard') ? 'bg-violet-600/25 text-violet-200 border border-violet-500/40 font-semibold shadow-sm shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
-                            :class="collapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'"
-                            :title="collapsed ? 'System Overview' : ''"
+                            wire:navigate.hover
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.dashboard') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
-                            <span class="text-lg shrink-0">📊</span>
-                            <span x-show="!collapsed" x-transition.opacity.duration.150ms class="truncate text-[13.5px]">Overview</span>
+                            <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">📊</span>
+                            <span 
+                                x-show="!collapsed" 
+                                x-transition:enter="transition-all duration-300 ease-out"
+                                x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
+                                x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
+                                x-transition:leave="transition-all duration-150 ease-in"
+                                x-transition:leave-start="opacity-100 translate-x-0 max-w-[180px]"
+                                x-transition:leave-end="opacity-0 -translate-x-2 max-w-0"
+                                class="truncate overflow-hidden whitespace-nowrap text-[13.5px]"
+                            >Overview</span>
+
+                            <div x-show="collapsed" class="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-900/95 border border-white/15 text-white text-xs font-semibold shadow-xl backdrop-blur-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 z-50 whitespace-nowrap">
+                                System Overview
+                            </div>
                         </a>
 
                         <!-- Users & Quotas -->
                         <a 
                             href="{{ route('admin.users') }}" 
-                            wire:navigate
-                            class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13.5px] font-medium transition-all {{ request()->routeIs('admin.users') ? 'bg-violet-600/25 text-violet-200 border border-violet-500/40 font-semibold shadow-sm shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
-                            :class="collapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'"
-                            :title="collapsed ? 'Users & Quotas' : ''"
+                            wire:navigate.hover
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.users') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
-                            <span class="text-lg shrink-0">👥</span>
-                            <span x-show="!collapsed" x-transition.opacity.duration.150ms class="truncate text-[13.5px]">Users & Quotas</span>
+                            <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">👥</span>
+                            <span 
+                                x-show="!collapsed" 
+                                x-transition:enter="transition-all duration-300 ease-out"
+                                x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
+                                x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
+                                x-transition:leave="transition-all duration-150 ease-in"
+                                x-transition:leave-start="opacity-100 translate-x-0 max-w-[180px]"
+                                x-transition:leave-end="opacity-0 -translate-x-2 max-w-0"
+                                class="truncate overflow-hidden whitespace-nowrap text-[13.5px]"
+                            >Users & Quotas</span>
+
+                            <div x-show="collapsed" class="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-900/95 border border-white/15 text-white text-xs font-semibold shadow-xl backdrop-blur-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 z-50 whitespace-nowrap">
+                                Users & Quotas
+                            </div>
                         </a>
 
                         <!-- AI Usage & Logs -->
                         <a 
                             href="{{ route('admin.usage') }}" 
-                            wire:navigate
-                            class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13.5px] font-medium transition-all {{ request()->routeIs('admin.usage') ? 'bg-violet-600/25 text-violet-200 border border-violet-500/40 font-semibold shadow-sm shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
-                            :class="collapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'"
-                            :title="collapsed ? 'AI Usage Logs' : ''"
+                            wire:navigate.hover
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.usage') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
-                            <span class="text-lg shrink-0">📈</span>
-                            <span x-show="!collapsed" x-transition.opacity.duration.150ms class="truncate text-[13.5px]">AI Usage & Logs</span>
+                            <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">📈</span>
+                            <span 
+                                x-show="!collapsed" 
+                                x-transition:enter="transition-all duration-300 ease-out"
+                                x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
+                                x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
+                                x-transition:leave="transition-all duration-150 ease-in"
+                                x-transition:leave-start="opacity-100 translate-x-0 max-w-[180px]"
+                                x-transition:leave-end="opacity-0 -translate-x-2 max-w-0"
+                                class="truncate overflow-hidden whitespace-nowrap text-[13.5px]"
+                            >AI Usage & Logs</span>
+
+                            <div x-show="collapsed" class="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-900/95 border border-white/15 text-white text-xs font-semibold shadow-xl backdrop-blur-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 z-50 whitespace-nowrap">
+                                AI Usage & Logs
+                            </div>
                         </a>
                     </div>
 
                     <!-- 2. AI INFRASTRUCTURE & TOOLS SECTION -->
                     <div class="sidebar-nav-section space-y-0.5 pt-1">
-                        <div x-show="!collapsed" x-transition.opacity class="px-3 pt-2 pb-1 text-[9.5px] font-bold text-slate-500 uppercase tracking-widest flex items-center justify-between">
+                        <div 
+                            x-show="!collapsed" 
+                            x-transition:enter="transition-all duration-200"
+                            x-transition:enter-start="opacity-0"
+                            x-transition:enter-end="opacity-100"
+                            class="px-3 pt-2 pb-1 text-[9.5px] font-bold text-slate-500 uppercase tracking-widest flex items-center justify-between"
+                        >
                             <span>AI Infrastructure</span>
                         </div>
                         <div x-show="collapsed" class="py-1 my-0.5 border-t border-white/5"></div>
@@ -155,31 +196,59 @@
                         <!-- AI Providers & Gateway -->
                         <a 
                             href="{{ route('admin.ai-settings.index') }}" 
-                            wire:navigate
-                            class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13.5px] font-medium transition-all {{ request()->routeIs('admin.ai-settings.index') ? 'bg-violet-600/25 text-violet-200 border border-violet-500/40 font-semibold shadow-sm shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
-                            :class="collapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'"
-                            :title="collapsed ? 'AI Providers & Gateway' : ''"
+                            wire:navigate.hover
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.ai-settings.index') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
-                            <span class="text-lg shrink-0">⚡</span>
-                            <span x-show="!collapsed" x-transition.opacity.duration.150ms class="truncate text-[13.5px]">AI Providers & Models</span>
+                            <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">⚡</span>
+                            <span 
+                                x-show="!collapsed" 
+                                x-transition:enter="transition-all duration-300 ease-out"
+                                x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
+                                x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
+                                x-transition:leave="transition-all duration-150 ease-in"
+                                x-transition:leave-start="opacity-100 translate-x-0 max-w-[180px]"
+                                x-transition:leave-end="opacity-0 -translate-x-2 max-w-0"
+                                class="truncate overflow-hidden whitespace-nowrap text-[13.5px]"
+                            >AI Providers & Models</span>
+
+                            <div x-show="collapsed" class="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-900/95 border border-white/15 text-white text-xs font-semibold shadow-xl backdrop-blur-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 z-50 whitespace-nowrap">
+                                AI Providers & Models
+                            </div>
                         </a>
 
                         <!-- OmniRoute Config -->
                         <a 
                             href="{{ route('admin.ai-settings.omniroute') }}" 
-                            wire:navigate
-                            class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13.5px] font-medium transition-all {{ request()->routeIs('admin.ai-settings.omniroute') ? 'bg-violet-600/25 text-violet-200 border border-violet-500/40 font-semibold shadow-sm shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
-                            :class="collapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'"
-                            :title="collapsed ? 'OmniRoute Gateway Setup' : ''"
+                            wire:navigate.hover
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.ai-settings.omniroute') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
-                            <span class="text-lg shrink-0">🤖</span>
-                            <span x-show="!collapsed" x-transition.opacity.duration.150ms class="truncate text-[13.5px]">OmniRoute Gateway</span>
+                            <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🤖</span>
+                            <span 
+                                x-show="!collapsed" 
+                                x-transition:enter="transition-all duration-300 ease-out"
+                                x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
+                                x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
+                                x-transition:leave="transition-all duration-150 ease-in"
+                                x-transition:leave-start="opacity-100 translate-x-0 max-w-[180px]"
+                                x-transition:leave-end="opacity-0 -translate-x-2 max-w-0"
+                                class="truncate overflow-hidden whitespace-nowrap text-[13.5px]"
+                            >OmniRoute Gateway</span>
+
+                            <div x-show="collapsed" class="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-900/95 border border-white/15 text-white text-xs font-semibold shadow-xl backdrop-blur-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 z-50 whitespace-nowrap">
+                                OmniRoute Gateway
+                            </div>
                         </a>
                     </div>
 
                     <!-- 3. GOVERNANCE & SETTINGS SECTION -->
                     <div class="sidebar-nav-section space-y-0.5 pt-1">
-                        <div x-show="!collapsed" x-transition.opacity class="px-3 pt-2 pb-1 text-[9.5px] font-bold text-slate-500 uppercase tracking-widest flex items-center justify-between">
+                        <div 
+                            x-show="!collapsed" 
+                            x-transition:enter="transition-all duration-200"
+                            x-transition:enter-start="opacity-0"
+                            x-transition:enter-end="opacity-100"
+                            class="px-3 pt-2 pb-1 text-[9.5px] font-bold text-slate-500 uppercase tracking-widest flex items-center justify-between"
+                        >
                             <span>Governance & Safety</span>
                         </div>
                         <div x-show="collapsed" class="py-1 my-0.5 border-t border-white/5"></div>
@@ -187,56 +256,129 @@
                         <!-- System Settings -->
                         <a 
                             href="{{ route('admin.settings') }}" 
-                            wire:navigate
-                            class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13.5px] font-medium transition-all {{ request()->routeIs('admin.settings') ? 'bg-violet-600/25 text-violet-200 border border-violet-500/40 font-semibold shadow-sm shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
-                            :class="collapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'"
-                            :title="collapsed ? 'System Settings' : ''"
+                            wire:navigate.hover
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.settings') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
-                            <span class="text-lg shrink-0">⚙️</span>
-                            <span x-show="!collapsed" x-transition.opacity.duration.150ms class="truncate text-[13.5px]">System Settings</span>
+                            <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">⚙️</span>
+                            <span 
+                                x-show="!collapsed" 
+                                x-transition:enter="transition-all duration-300 ease-out"
+                                x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
+                                x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
+                                x-transition:leave="transition-all duration-150 ease-in"
+                                x-transition:leave-start="opacity-100 translate-x-0 max-w-[180px]"
+                                x-transition:leave-end="opacity-0 -translate-x-2 max-w-0"
+                                class="truncate overflow-hidden whitespace-nowrap text-[13.5px]"
+                            >System Settings</span>
+
+                            <div x-show="collapsed" class="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-900/95 border border-white/15 text-white text-xs font-semibold shadow-xl backdrop-blur-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 z-50 whitespace-nowrap">
+                                System Settings
+                            </div>
+                        </a>
+
+                        <!-- System Info & Docs -->
+                        <a 
+                            href="{{ route('admin.system-info') }}" 
+                            wire:navigate.hover
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.system-info') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
+                        >
+                            <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">ℹ️</span>
+                            <span 
+                                x-show="!collapsed" 
+                                x-transition:enter="transition-all duration-300 ease-out"
+                                x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
+                                x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
+                                x-transition:leave="transition-all duration-150 ease-in"
+                                x-transition:leave-start="opacity-100 translate-x-0 max-w-[180px]"
+                                x-transition:leave-end="opacity-0 -translate-x-2 max-w-0"
+                                class="truncate overflow-hidden whitespace-nowrap text-[13.5px]"
+                            >System Info & Docs</span>
+
+                            <div x-show="collapsed" class="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-900/95 border border-white/15 text-white text-xs font-semibold shadow-xl backdrop-blur-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 z-50 whitespace-nowrap">
+                                System Info & Docs
+                            </div>
                         </a>
 
                         <!-- Core Updates & Time Machine -->
                         <a 
                             href="{{ route('admin.updates') }}" 
-                            wire:navigate
-                            class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13.5px] font-medium transition-all {{ request()->routeIs('admin.updates') ? 'bg-violet-600/25 text-violet-200 border border-violet-500/40 font-semibold shadow-sm shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
-                            :class="collapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'"
-                            :title="collapsed ? 'Core Updates & Time Machine' : ''"
+                            wire:navigate.hover
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.updates') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
-                            <span class="text-lg shrink-0">🔄</span>
-                            <span x-show="!collapsed" x-transition.opacity.duration.150ms class="truncate text-[13.5px]">Core Updates & Rollback</span>
+                            <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🔄</span>
+                            <span 
+                                x-show="!collapsed" 
+                                x-transition:enter="transition-all duration-300 ease-out"
+                                x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
+                                x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
+                                x-transition:leave="transition-all duration-150 ease-in"
+                                x-transition:leave-start="opacity-100 translate-x-0 max-w-[180px]"
+                                x-transition:leave-end="opacity-0 -translate-x-2 max-w-0"
+                                class="truncate overflow-hidden whitespace-nowrap text-[13.5px]"
+                            >Core Updates & Rollback</span>
+
+                            <div x-show="collapsed" class="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-900/95 border border-white/15 text-white text-xs font-semibold shadow-xl backdrop-blur-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 z-50 whitespace-nowrap">
+                                Core Updates & Rollback
+                            </div>
                         </a>
 
                         <!-- Circuit Breaker & Safety -->
                         <a 
                             href="{{ route('admin.ai-settings.index') }}#circuit-breaker" 
-                            wire:navigate
-                            class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13.5px] font-medium transition-all text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5"
-                            :class="collapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'"
-                            :title="collapsed ? 'Circuit Breaker & BYOK' : ''"
+                            wire:navigate.hover
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5"
                         >
-                            <span class="text-lg shrink-0">🛡️</span>
-                            <span x-show="!collapsed" x-transition.opacity.duration.150ms class="truncate text-[13.5px]">Circuit Breaker</span>
+                            <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🛡️</span>
+                            <span 
+                                x-show="!collapsed" 
+                                x-transition:enter="transition-all duration-300 ease-out"
+                                x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
+                                x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
+                                x-transition:leave="transition-all duration-150 ease-in"
+                                x-transition:leave-start="opacity-100 translate-x-0 max-w-[180px]"
+                                x-transition:leave-end="opacity-0 -translate-x-2 max-w-0"
+                                class="truncate overflow-hidden whitespace-nowrap text-[13.5px]"
+                            >Circuit Breaker</span>
+
+                            <div x-show="collapsed" class="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-900/95 border border-white/15 text-white text-xs font-semibold shadow-xl backdrop-blur-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 z-50 whitespace-nowrap">
+                                Circuit Breaker & BYOK
+                            </div>
                         </a>
                     </div>
 
                     <!-- 4. QUICK SWITCH -->
                     <div class="sidebar-nav-section pt-1">
-                        <div x-show="!collapsed" x-transition.opacity class="px-3 pt-2 pb-1 text-[9.5px] font-bold text-slate-500 uppercase tracking-widest">
+                        <div 
+                            x-show="!collapsed" 
+                            x-transition:enter="transition-all duration-200"
+                            x-transition:enter-start="opacity-0"
+                            x-transition:enter-end="opacity-100"
+                            class="px-3 pt-2 pb-1 text-[9.5px] font-bold text-slate-500 uppercase tracking-widest"
+                        >
                             Quick Switch
                         </div>
                         <div x-show="collapsed" class="py-1 my-0.5 border-t border-white/5"></div>
 
                         <a 
                             href="{{ route('dashboard') }}" 
-                            wire:navigate
-                            class="flex items-center rounded-xl text-[13.5px] font-medium text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5 transition-all"
-                            :class="collapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'"
-                            :title="collapsed ? 'Return to Studio Workspace' : ''"
+                            wire:navigate.hover
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5 transition-all duration-200 group relative"
                         >
-                            <span class="text-lg shrink-0">🚀</span>
-                            <span x-show="!collapsed" x-transition.opacity class="truncate text-[13.5px]">Studio Workspace</span>
+                            <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🚀</span>
+                            <span 
+                                x-show="!collapsed" 
+                                x-transition:enter="transition-all duration-300 ease-out"
+                                x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
+                                x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
+                                x-transition:leave="transition-all duration-150 ease-in"
+                                x-transition:leave-start="opacity-100 translate-x-0 max-w-[180px]"
+                                x-transition:leave-end="opacity-0 -translate-x-2 max-w-0"
+                                class="truncate overflow-hidden whitespace-nowrap text-[13.5px]"
+                            >Studio Workspace</span>
+
+                            <div x-show="collapsed" class="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-900/95 border border-white/15 text-white text-xs font-semibold shadow-xl backdrop-blur-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 z-50 whitespace-nowrap">
+                                Studio Workspace
+                            </div>
                         </a>
                     </div>
                 </nav>
@@ -244,11 +386,20 @@
 
             <!-- Sidebar Footer -->
             <div class="p-3 border-t border-white/5 flex items-center justify-between gap-2">
-                <a href="{{ route('profile') }}" wire:navigate class="flex items-center gap-2.5 overflow-hidden group flex-1">
-                    <div class="w-8 h-8 rounded-lg bg-violet-900/60 border border-violet-500/30 flex items-center justify-center text-xs font-bold text-violet-200 shrink-0 group-hover:border-violet-400">
+                <a href="{{ route('profile') }}" wire:navigate class="flex items-center gap-2.5 overflow-hidden group flex-1" :class="collapsed ? 'justify-center' : ''">
+                    <div class="w-8 h-8 rounded-lg bg-violet-900/60 border border-violet-500/30 flex items-center justify-center text-xs font-bold text-violet-200 shrink-0 group-hover:border-violet-400 group-hover:scale-105 transition-all duration-200 shadow-sm">
                         🛡️
                     </div>
-                    <div x-show="!collapsed" x-transition.opacity class="truncate min-w-0">
+                    <div 
+                        x-show="!collapsed" 
+                        x-transition:enter="transition-all duration-300 ease-out"
+                        x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
+                        x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
+                        x-transition:leave="transition-all duration-150 ease-in"
+                        x-transition:leave-start="opacity-100 translate-x-0 max-w-[180px]"
+                        x-transition:leave-end="opacity-0 -translate-x-2 max-w-0"
+                        class="truncate min-w-0 overflow-hidden whitespace-nowrap"
+                    >
                         <div class="text-xs font-medium text-white truncate">{{ auth()->user()->name }}</div>
                         <div class="text-[10px] text-violet-400 font-semibold uppercase">Admin</div>
                     </div>
@@ -256,7 +407,7 @@
 
                 <form method="POST" action="{{ route('logout') }}" x-show="!collapsed">
                     @csrf
-                    <button type="submit" title="Log Out" class="text-slate-400 hover:text-red-400 p-1.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
+                    <button type="submit" title="Log Out" class="text-slate-400 hover:text-red-400 p-1.5 rounded-lg hover:bg-white/5 hover:scale-110 active:scale-95 transition-all duration-150 cursor-pointer">
                         🚪
                     </button>
                 </form>
@@ -268,9 +419,22 @@
             <!-- Top Navbar -->
             <header class="h-16 border-b border-white/5 bg-slate-950/70 backdrop-blur-xl px-4 sm:px-8 flex items-center justify-between gap-4 sticky top-0 z-30 shadow-lg shadow-black/20">
                 <div class="flex items-center gap-3 min-w-0">
-                    <button x-on:click="sidebarOpen = true" class="lg:hidden text-slate-400 hover:text-white p-2 rounded-lg hover:bg-white/5 cursor-pointer">
+                    <button x-on:click="sidebarOpen = true" class="lg:hidden text-slate-400 hover:text-white p-2 rounded-lg hover:bg-white/5 hover:scale-105 active:scale-95 transition-all cursor-pointer">
                         ☰
                     </button>
+
+                    <!-- Desktop Toggle Button in Top Header (Linear / VS Code style, outside sidebar flex) -->
+                    <button 
+                        type="button" 
+                        x-on:click="toggleCollapse()" 
+                        class="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg bg-slate-900/80 border border-white/10 hover:border-violet-500/40 text-slate-400 hover:text-white hover:scale-105 active:scale-95 transition-all duration-150 cursor-pointer shadow-sm"
+                        :title="collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
+                    >
+                        <svg class="w-4 h-4 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                        </svg>
+                    </button>
+
                     <div class="flex items-center gap-2 truncate">
                         <span class="text-xs px-2 py-0.5 rounded-md bg-violet-500/20 text-violet-300 font-mono font-semibold border border-violet-500/30">ADMIN</span>
                         <span class="text-sm font-semibold text-white truncate">HelpOfAi Control Center</span>

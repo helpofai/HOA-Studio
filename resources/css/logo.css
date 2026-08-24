@@ -1,0 +1,103 @@
+/*
+|--------------------------------------------------------------------------
+| HelpOfAi (HOA) Professional Software - Animated Brand Logo Styles
+|--------------------------------------------------------------------------
+|
+| Copyright (c) 2026 Rajib Adhikary. All Rights Reserved.
+|
+| Author      : Rajib Adhikary
+| Organization: HelpOfAi (HOA)
+| Website     : https://helpofai.com
+| Location    : Basta Purba Para, Aranghata, Nadia, West Bengal, India
+|
+|--------------------------------------------------------------------------
+*/
+
+@keyframes hoaLogoRotateGradient {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes hoaLogoShimmer {
+  0%, 100% {
+    filter: brightness(1) drop-shadow(0 0 10px rgba(99, 102, 241, 0.4));
+  }
+  50% {
+    filter: brightness(1.25) drop-shadow(0 0 20px rgba(6, 182, 212, 0.6));
+  }
+}
+
+/* Outer Animated Spinning Conic Gradient Container */
+.hoa-animated-logo-outer {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  isolation: isolate;
+  box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.35);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+}
+
+.hoa-animated-logo-outer:hover {
+  transform: scale(1.06);
+  box-shadow: 0 15px 35px -5px rgba(168, 85, 247, 0.5), 0 0 20px rgba(6, 182, 212, 0.4);
+}
+
+.hoa-animated-logo-outer::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(
+    from 0deg,
+    #6366f1 0deg,
+    #a855f7 72deg,
+    #ec4899 144deg,
+    #06b6d4 216deg,
+    #3b82f6 288deg,
+    #6366f1 360deg
+  );
+  animation: hoaLogoRotateGradient 4s linear infinite;
+  z-index: -2;
+}
+
+/* Inner Box */
+.hoa-animated-logo-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #020617; /* Deep Slate 950 */
+  border-radius: 14.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+}
+
+.hoa-animated-logo-inner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top left, rgba(99, 102, 241, 0.15), transparent 70%);
+  pointer-events: none;
+}
+
+/* Typography Gradient Text */
+.hoa-animated-logo-text {
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  background: linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #22d3ee 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: hoaLogoShimmer 3s ease-in-out infinite;
+  user-select: none;
+}

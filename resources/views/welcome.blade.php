@@ -37,11 +37,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <!-- Brand Logo -->
             <a href="/" class="flex items-center gap-3 group">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-cyan-400 p-[1px] shadow-lg shadow-indigo-500/20 group-hover:shadow-indigo-500/40 transition-all duration-300">
-                    <div class="w-full h-full bg-slate-950 rounded-[11px] flex items-center justify-center">
-                        <span class="font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-300 tracking-wider text-xs">HOA</span>
-                    </div>
-                </div>
+                <x-glass.logo size="md" text="HOA" />
                 <div>
                     <div class="flex items-center gap-2">
                         <span class="text-base font-bold text-white tracking-tight group-hover:text-indigo-300 transition-colors">HelpOfAi Studio</span>
