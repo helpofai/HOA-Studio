@@ -94,6 +94,9 @@
         :statusFilter="$graphStatusFilter" 
     />
 
+    <!-- Multi-Agent Swarm Operational Activity Monitor -->
+    <x-ai.agent-activity-monitor />
+
     <!-- 2 Column Section: Recent Users & Gateway Status -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Recent Users Table -->

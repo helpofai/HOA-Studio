@@ -134,9 +134,11 @@ class SeoAnalyzer
             'density' => 0.0,
             'in_title' => false,
             'in_first_10_pct' => false,
+            'in_first_100_words' => false,
             'in_meta' => false,
             'in_url' => false,
             'in_h1' => false,
+            'in_h2' => false,
             'in_subheadings' => false,
             'in_img_alt' => false,
         ];
@@ -161,9 +163,11 @@ class SeoAnalyzer
             
             $kwData['in_title'] = mb_strpos($lowerTitle, $kw) !== false;
             $kwData['in_first_10_pct'] = mb_strpos($first10PctWords, $kw) !== false;
+            $kwData['in_first_100_words'] = $kwData['in_first_10_pct'] || (mb_strpos(mb_strtolower(implode(' ', array_slice($words, 0, 100))), $kw) !== false);
             $kwData['in_meta'] = !empty($metaDescription) && mb_strpos($lowerMeta, $kw) !== false;
             $kwData['in_url'] = mb_strpos($lowerSlug, str_replace(' ', ' ', $kw)) !== false || mb_strpos(Str::slug($title), Str::slug($kw)) !== false;
             $kwData['in_h1'] = mb_strpos($lowerH1, $kw) !== false;
+            $kwData['in_h2'] = mb_strpos(mb_strtolower(implode(' ', $h2List)), $kw) !== false;
             $kwData['in_subheadings'] = mb_strpos($lowerSubheadings, $kw) !== false;
             $kwData['in_img_alt'] = mb_strpos($lowerImgAlts, $kw) !== false;
         }
@@ -362,11 +366,13 @@ class SeoAnalyzer
 
         // Category pass counters
         $countPassed = fn($arr) => count(array_filter($arr, fn($c) => $c['pass']));
+        $allRecommendations = array_merge($basicChecks, $additionalChecks, $titleChecks, $contentReadabilityChecks);
 
         return [
             'score' => $rankMathScore,
             'readability_score' => $fleschScore,
             'reading_grade' => $readingGrade,
+            'recommendations' => $allRecommendations,
             'rank_math' => [
                 'basic_seo' => [
                     'title' => 'Basic SEO',

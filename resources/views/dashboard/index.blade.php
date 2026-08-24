@@ -89,6 +89,9 @@
         :statusFilter="$graphStatusFilter" 
     />
 
+    <!-- Multi-Agent Swarm Activity Monitor -->
+    <x-ai.agent-activity-monitor />
+
     <!-- 2 Column Section: Recent Documents & Quick AI Tools -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Recent Documents (2 Cols) -->

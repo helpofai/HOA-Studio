@@ -29,9 +29,9 @@
     x-transition:enter="transition ease-out duration-200"
     x-transition:enter-start="opacity-0 translate-x-4"
     x-transition:enter-end="opacity-100 translate-x-0"
-    class="space-y-4 lg:sticky lg:top-4"
+    class="space-y-4 h-full flex flex-col"
 >
-    <x-glass.card variant="standard" class="p-4 space-y-4 border border-white/10 shadow-xl">
+    <div class="editor-column hoa-custom-scrollbar">
         <!-- Main Header -->
         <div class="flex items-center justify-between pb-2 border-b border-white/10">
             <div class="flex items-center gap-2">
@@ -180,11 +180,11 @@
                                 <div class="flex items-center gap-1.5 pt-1 border-t border-white/5 font-mono text-[10.5px]">
                                     <button 
                                         type="button" 
-                                        x-on:click="triggerAiTransform('custom', @js($check['ai_prompt'] ?? 'Optimize ' . $check['title']))"
+                                        x-on:click="applyTargetedIntelligenceFix('{{ $check['id'] }}', @js($check['title']), @js($check['ai_prompt'] ?? 'Optimize ' . $check['title']), '{{ in_array($check['id'], ['kw_in_title', 'kw_at_beginning_of_title', 'title_has_number', 'title_has_power_word']) ? 'title' : ($check['id'] === 'kw_in_meta' ? 'meta' : ($check['id'] === 'kw_in_intro' ? 'intro' : 'insert')) }}')"
                                         class="px-2.5 py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white font-bold border border-indigo-500/30 transition-all flex items-center gap-1 cursor-pointer"
-                                        title="AI evaluates full document content and auto-implements the fix"
+                                        title="AI surgically optimizes only this section without rewriting the rest of the document"
                                     >
-                                        <span>⚡ AI Auto-Fix</span>
+                                        <span>⚡ AI Section Fix</span>
                                     </button>
                                     <button 
                                         type="button" 
@@ -262,10 +262,11 @@
                                 <div class="flex items-center gap-1.5 pt-1 border-t border-white/5 font-mono text-[10.5px]">
                                     <button 
                                         type="button" 
-                                        x-on:click="triggerAiTransform('custom', @js($check['ai_prompt'] ?? 'Fix ' . $check['title']))"
+                                        x-on:click="applyTargetedIntelligenceFix('{{ $check['id'] }}', @js($check['title']), @js($check['ai_prompt'] ?? 'Fix ' . $check['title']), 'insert')"
                                         class="px-2.5 py-1 rounded-lg bg-cyan-600/30 hover:bg-cyan-600 text-cyan-300 hover:text-white font-bold border border-cyan-500/30 transition-all flex items-center gap-1 cursor-pointer"
+                                        title="AI surgically generates and inserts only this specific element"
                                     >
-                                        <span>⚡ AI Auto-Fix</span>
+                                        <span>⚡ AI Section Fix</span>
                                     </button>
                                     <button 
                                         type="button" 
@@ -331,10 +332,11 @@
                                 <div class="flex items-center gap-1.5 pt-1 border-t border-white/5 font-mono text-[10.5px]">
                                     <button 
                                         type="button" 
-                                        x-on:click="triggerAiTransform('custom', @js($check['ai_prompt'] ?? 'Optimize Title'))"
+                                        x-on:click="applyTargetedIntelligenceFix('{{ $check['id'] }}', @js($check['title']), @js($check['ai_prompt'] ?? 'Optimize Title'), 'title')"
                                         class="px-2.5 py-1 rounded-lg bg-violet-600/30 hover:bg-violet-600 text-violet-300 hover:text-white font-bold border border-violet-500/30 transition-all flex items-center gap-1 cursor-pointer"
+                                        title="AI surgically optimizes headline without modifying canvas content"
                                     >
-                                        <span>⚡ AI Auto-Fix Title</span>
+                                        <span>⚡ AI Title Fix</span>
                                     </button>
                                     <button 
                                         type="button" 
@@ -397,10 +399,11 @@
                                 <div class="flex items-center gap-1.5 pt-1 border-t border-white/5 font-mono text-[10.5px]">
                                     <button 
                                         type="button" 
-                                        x-on:click="triggerAiTransform('custom', @js($check['ai_prompt'] ?? 'Optimize Readability'))"
+                                        x-on:click="applyTargetedIntelligenceFix('{{ $check['id'] }}', @js($check['title']), @js($check['ai_prompt'] ?? 'Optimize Readability'), 'insert')"
                                         class="px-2.5 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600 text-emerald-300 hover:text-white font-bold border border-emerald-500/30 transition-all flex items-center gap-1 cursor-pointer"
+                                        title="AI surgically generates structured elements without rewriting document"
                                     >
-                                        <span>⚡ AI Auto-Fix</span>
+                                        <span>⚡ AI Section Fix</span>
                                     </button>
                                     <button 
                                         type="button" 
@@ -938,7 +941,7 @@
                 </div>
             </div>
         </div>
-    </x-glass.card>
+    </div>
 
     <!-- Partial include for Terminal UI -->
     @include('editor.partial.terminal-ui')

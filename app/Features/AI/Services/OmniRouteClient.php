@@ -25,6 +25,8 @@
 
 namespace App\Features\AI\Services;
 
+use App\Core\Exceptions\AiProviderDownException;
+use App\Core\Exceptions\AiTokenLimitException;
 use Exception;
 use Generator;
 use Illuminate\Support\Facades\Http;
@@ -104,6 +106,14 @@ class OmniRouteClient
                     'decision_trace' => 'single',
                     'raw' => $data,
                 ];
+            }
+
+            // Handle specific error codes
+            if ($response->status() === 413) {
+                throw new AiTokenLimitException('Request too large', 0, 0);
+            }
+            if ($response->status() >= 500) {
+                throw new AiProviderDownException('Provider error', 'omniroute', 30);
             }
         } catch (Exception $e) {
             Log::info('[OmniRouteClient] Primary model error: ' . $e->getMessage());

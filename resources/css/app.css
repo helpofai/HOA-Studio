@@ -7,17 +7,79 @@
 |
 */
 
-@import 'tailwindcss';
-@import './design-system/tokens.css';
-@import './design-system/glass.css';
+@import "tailwindcss";
+@import "./design-system/tokens.css";
+@import "./design-system/glass.css";
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../views/**/*.blade.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans:
+        "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
+        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+        "Noto Color Emoji";
+    --radius-xs: 3px;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 9px;
+    --radius-2xl: 9px;
+    --radius-3xl: 9px;
+    --radius: 6px;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Global Design System: Minimum 3px to 9px Corner Radius Normalization
+|--------------------------------------------------------------------------
+*/
+
+.rounded-xs,
+.rounded-sm {
+    border-radius: 3px !important;
+}
+
+.rounded,
+.rounded-md {
+    border-radius: 3.5px !important;
+}
+
+.rounded-lg {
+    border-radius: 4px !important;
+}
+
+.rounded-xl,
+.rounded-2xl,
+.rounded-3xl {
+    border-radius: 5px !important;
+}
+
+.rounded-full {
+    border-radius: 9999px !important;
+}
+
+/*
+|--------------------------------------------------------------------------
+| Universal Element Corner Radius Guarantee (3px to 9px)
+|--------------------------------------------------------------------------
+*/
+
+button:not(.rounded-full),
+input:not(.rounded-full),
+select:not(.rounded-full),
+textarea:not(.rounded-full),
+kbd,
+pre,
+code,
+table,
+dialog,
+.glass-subtle,
+.glass-standard,
+.glass-elevated,
+.glass-premium {
+    border-radius: clamp(3px, var(--tw-border-radius, 6px), 9px);
 }
 
 /*
@@ -192,35 +254,70 @@
     border-color: rgba(16, 185, 129, 0.4);
     color: #a7f3d0;
 }
-.callout-tip .callout-title { color: #34d399; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.callout-tip .callout-title {
+    color: #34d399;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
 
 .callout-warning {
     background: rgba(120, 53, 15, 0.4);
     border-color: rgba(245, 158, 11, 0.4);
     color: #fde68a;
 }
-.callout-warning .callout-title { color: #fbbf24; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.callout-warning .callout-title {
+    color: #fbbf24;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
 
 .callout-info {
     background: rgba(14, 116, 144, 0.4);
     border-color: rgba(6, 182, 212, 0.4);
     color: #a5f3fc;
 }
-.callout-info .callout-title { color: #38bdf8; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.callout-info .callout-title {
+    color: #38bdf8;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
 
 .callout-tldr {
     background: rgba(49, 46, 129, 0.45);
     border-color: rgba(99, 102, 241, 0.4);
     color: #c7d2fe;
 }
-.callout-tldr .callout-title { color: #818cf8; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.callout-tldr .callout-title {
+    color: #818cf8;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
 
 .callout-caution {
     background: rgba(136, 19, 55, 0.4);
     border-color: rgba(244, 63, 94, 0.4);
     color: #fecdd3;
 }
-.callout-caution .callout-title { color: #fb7185; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.callout-caution .callout-title {
+    color: #fb7185;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
 
 /*
 |--------------------------------------------------------------------------
@@ -236,7 +333,9 @@
 }
 
 @media (max-width: 640px) {
-    .pros-cons-grid { grid-template-columns: 1fr; }
+    .pros-cons-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .pros-box {
@@ -245,7 +344,15 @@
     border-radius: 1.25rem;
     padding: 1.25rem;
 }
-.pros-title { color: #34d399; font-weight: 700; font-size: 0.95rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem; }
+.pros-title {
+    color: #34d399;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
 
 .cons-box {
     background: rgba(136, 19, 55, 0.35);
@@ -253,7 +360,15 @@
     border-radius: 1.25rem;
     padding: 1.25rem;
 }
-.cons-title { color: #fb7185; font-weight: 700; font-size: 0.95rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem; }
+.cons-title {
+    color: #fb7185;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
 
 /*
 |--------------------------------------------------------------------------
@@ -286,7 +401,9 @@ details.hoa-faq summary {
     list-style: none;
 }
 
-details.hoa-faq summary::-webkit-details-marker { display: none; }
+details.hoa-faq summary::-webkit-details-marker {
+    display: none;
+}
 
 details.hoa-faq p {
     margin-top: 0.85rem;
@@ -455,7 +572,8 @@ details.hoa-faq p {
     padding: 1.25rem 1.5rem;
     margin: 1.75rem 0;
     overflow-x: auto;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-family:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     font-size: 0.9rem;
     color: #38bdf8;
     line-height: 1.6;
@@ -500,22 +618,4 @@ details.hoa-faq p {
     height: auto;
 }
 
-/* Custom Smooth Editor Scrollbar */
-.hoa-custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
 
-.hoa-custom-scrollbar::-webkit-scrollbar-track {
-    background: rgba(15, 23, 42, 0.5);
-    border-radius: 8px;
-}
-
-.hoa-custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(99, 102, 241, 0.4);
-    border-radius: 8px;
-}
-
-.hoa-custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(129, 140, 248, 0.7);
-}

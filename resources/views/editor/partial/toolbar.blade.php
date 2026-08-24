@@ -6,7 +6,7 @@
 */
 --}}
 
-<div class="relative z-40 flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 rounded-2xl glass-elevated border border-white/10 shadow-xl">
+<div class="editor-toolbar">
     <div class="flex-1 flex flex-col sm:flex-row items-start sm:items-center gap-3">
         <a href="{{ route('documents.index') }}" class="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-colors flex items-center gap-1.5 text-xs font-semibold">
             &larr; Back to Documents

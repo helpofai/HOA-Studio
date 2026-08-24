@@ -167,26 +167,40 @@ class DocumentEditor extends Component
         $this->saveStatusText = 'Saved at ' . $this->lastSavedAt;
     }
 
-    public function runSeoAudit(AnalyzeDocumentSeo $action)
+    public function runSeoAudit(?SeoAnalyzer $analyzer = null)
     {
+        $analyzer = $analyzer ?? app(SeoAnalyzer::class);
         $this->isAnalyzingSeo = true;
-        $document = Document::with('content')->where('user_id', Auth::id())->findOrFail($this->documentId);
+        
+        try {
+            $this->seoData = $analyzer->analyze(
+                $this->contentHtml,
+                $this->title,
+                $this->targetKeyword ?: null,
+                $this->secondaryKeywords
+            );
+            
+            SeoAnalysis::updateOrCreate(
+                ['document_id' => $this->documentId],
+                [
+                    'target_keyword' => $this->targetKeyword,
+                    'secondary_keywords' => $this->secondaryKeywords,
+                    'score' => $this->seoData['score'] ?? 0,
+                    'readability_score' => $this->seoData['readability_score'] ?? 0,
+                    'metrics' => $this->seoData['metrics'] ?? [],
+                    'recommendations' => $this->seoData['recommendations'] ?? [],
+                ]
+            );
+        } catch (Exception $e) {
+            $this->seoErrorMessage = $e->getMessage();
+        } finally {
+            $this->isAnalyzingSeo = false;
+        }
+    }
 
-        $analysis = $action->execute(
-            $document,
-            !empty($this->targetKeyword) ? $this->targetKeyword : null,
-            $this->secondaryKeywords,
-            $this->metaDescription ?? ''
-        );
-
-        $this->seoData = [
-            'score' => $analysis->score,
-            'readability_score' => $analysis->readability_score,
-            'metrics' => $analysis->metrics,
-            'rank_math' => $analysis->recommendations,
-        ];
-
-        $this->isAnalyzingSeo = false;
+    public function queueSeoAudit()
+    {
+        $this->runSeoAudit();
     }
 
     public function addSecondaryKeyword()
@@ -195,7 +209,7 @@ class DocumentEditor extends Component
         if (!empty($kw) && !in_array($kw, $this->secondaryKeywords)) {
             $this->secondaryKeywords[] = $kw;
             $this->newSecondaryKeyword = '';
-            $this->runSeoAudit(app(AnalyzeDocumentSeo::class));
+            $this->queueSeoAudit();
         }
     }
 
@@ -204,7 +218,7 @@ class DocumentEditor extends Component
         if (isset($this->secondaryKeywords[$index])) {
             unset($this->secondaryKeywords[$index]);
             $this->secondaryKeywords = array_values($this->secondaryKeywords);
-            $this->runSeoAudit(app(AnalyzeDocumentSeo::class));
+            $this->queueSeoAudit();
         }
     }
 
@@ -324,7 +338,7 @@ class DocumentEditor extends Component
     {
         $this->title = $newTitle;
         Document::where('id', $this->documentId)->update(['title' => $newTitle]);
-        $this->runSeoAudit(app(AnalyzeDocumentSeo::class));
+        $this->queueSeoAudit();
     }
 
     public function applyMetaDescription(string $meta)
@@ -337,7 +351,7 @@ class DocumentEditor extends Component
     {
         if (!in_array($kw, $this->secondaryKeywords)) {
             $this->secondaryKeywords[] = $kw;
-            $this->runSeoAudit(app(AnalyzeDocumentSeo::class));
+            $this->queueSeoAudit();
         }
     }
 

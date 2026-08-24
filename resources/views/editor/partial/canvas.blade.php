@@ -18,7 +18,7 @@
 --}}
 
 <div 
-    class="glass-elevated rounded-2xl text-slate-100 transition-all duration-200 p-6 sm:p-10 min-h-[650px] border border-white/15 shadow-2xl relative"
+    class="editor-canvas"
     @contextmenu.prevent="openContextMenu($event)"
 >
     <!-- Collapsible In-Canvas Master Formatting Ribbon -->
@@ -31,7 +31,7 @@
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 -translate-y-3 scale-95"
         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-        class="mb-6 p-4 rounded-3xl bg-slate-900/95 border-2 border-indigo-500/60 shadow-2xl backdrop-blur-2xl space-y-3 animate-in"
+        class="editor-floating-panel mb-6"
         style="display: none;"
     >
         <div class="flex items-center justify-between">
@@ -45,13 +45,42 @@
             <button type="button" x-on:click="showInlineAiPrompt = false" class="text-slate-400 hover:text-white text-xs cursor-pointer">✕ Esc</button>
         </div>
 
+        <!-- Active Selection Targeting Banner -->
+        <template x-if="hasSelection && selectedText">
+            <div class="p-2 rounded-xl bg-indigo-950/80 border border-indigo-500/40 flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
+                <div class="flex items-center gap-1.5 truncate max-w-sm text-slate-300">
+                    <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+                    <span class="text-indigo-300 font-bold">Selection:</span>
+                    <span class="text-white italic truncate" x-text="'&ldquo;' + (selectedText.length > 50 ? selectedText.substring(0, 50) + '...' : selectedText) + '&rdquo;'"></span>
+                </div>
+                <div class="flex items-center gap-1 shrink-0 text-[10px]">
+                    <button 
+                        type="button" 
+                        x-on:click="inlineAiPlacement = 'replace'" 
+                        :class="inlineAiPlacement === 'replace' ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-900 text-slate-400 hover:text-white'"
+                        class="px-2 py-0.5 rounded-lg border border-white/10 transition-colors cursor-pointer"
+                    >
+                        ✓ Replace Selection
+                    </button>
+                    <button 
+                        type="button" 
+                        x-on:click="inlineAiPlacement = 'insert_below'" 
+                        :class="inlineAiPlacement === 'insert_below' ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-900 text-slate-400 hover:text-white'"
+                        class="px-2 py-0.5 rounded-lg border border-white/10 transition-colors cursor-pointer"
+                    >
+                        ↓ Insert Below
+                    </button>
+                </div>
+            </div>
+        </template>
+
         <div class="flex items-center gap-2">
             <input 
                 id="inline-ai-input"
                 type="text" 
                 x-model="inlineAiPrompt" 
-                x-on:keydown.enter="submitInlineAiPrompt()"
-                placeholder="Instruct AI: e.g. Write an in-depth review with technical specs, pros/cons, and benchmarks..."
+                x-on:keydown.enter="submitInlineAiPrompt()" 
+                placeholder="Instruct AI: e.g. Rewrite with technical depth, improve clarity, add comparison..."
                 class="flex-1 bg-slate-950/90 border border-white/15 rounded-2xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-sans shadow-inner"
             />
             <button 
@@ -69,10 +98,10 @@
         <!-- Quick Prompt Chips -->
         <div class="flex flex-wrap items-center gap-1.5 text-[10.5px]">
             <span class="text-slate-400 font-mono text-[10px]">Shortcuts:</span>
-            <button type="button" x-on:click="inlineAiPrompt = 'Write a comprehensive introductory section with a quick answer box'; submitInlineAiPrompt();" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-indigo-600/30 text-slate-300 hover:text-indigo-200 border border-white/5 transition-colors cursor-pointer">✨ Intro + Quick Answer</button>
-            <button type="button" x-on:click="inlineAiPrompt = 'Create a high-impact technical comparison table with pros and cons'; submitInlineAiPrompt();" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-indigo-600/30 text-slate-300 hover:text-indigo-200 border border-white/5 transition-colors cursor-pointer">📊 Comparison Table</button>
+            <button type="button" x-on:click="inlineAiPrompt = 'Polish and enhance the phrasing with authoritative technical depth'; submitInlineAiPrompt();" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-indigo-600/30 text-slate-300 hover:text-indigo-200 border border-white/5 transition-colors cursor-pointer">✨ Polish Phrasing</button>
+            <button type="button" x-on:click="inlineAiPrompt = 'Expand this section with detailed real-world examples and architecture'; submitInlineAiPrompt();" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-indigo-600/30 text-slate-300 hover:text-indigo-200 border border-white/5 transition-colors cursor-pointer">+ Expand Depth</button>
+            <button type="button" x-on:click="inlineAiPrompt = 'Create a structured comparison table analyzing pros, cons, and metrics'; submitInlineAiPrompt();" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-indigo-600/30 text-slate-300 hover:text-indigo-200 border border-white/5 transition-colors cursor-pointer">📊 Comparison Table</button>
             <button type="button" x-on:click="inlineAiPrompt = 'Generate 4 high-value schema FAQ questions and authoritative answers'; submitInlineAiPrompt();" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-indigo-600/30 text-slate-300 hover:text-indigo-200 border border-white/5 transition-colors cursor-pointer">❓ FAQ Block</button>
-            <button type="button" x-on:click="inlineAiPrompt = 'Write an E-E-A-T testing methodology block with author credibility'; submitInlineAiPrompt();" class="px-2 py-0.5 rounded-lg bg-white/5 hover:bg-indigo-600/30 text-slate-300 hover:text-indigo-200 border border-white/5 transition-colors cursor-pointer">🏆 E-E-A-T Trust Box</button>
         </div>
     </div>
 
@@ -141,7 +170,7 @@
     <div 
         id="tiptap-bubble-menu" 
         x-on:mousedown.prevent
-        class="bg-slate-950/98 border border-indigo-500/60 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.9)] backdrop-blur-2xl p-1.5 flex flex-wrap items-center gap-1 text-xs z-[999999]"
+        class="editor-floating-actions"
         style="display: none;"
     >
         <!-- AI Actions Dropdown Menu -->
@@ -220,61 +249,68 @@
         <button type="button" x-on:mousedown.prevent x-on:click="editorInstance?.setTextAlign?.('right')" class="px-1.5 py-1 rounded-lg text-slate-300 hover:bg-white/10 cursor-pointer" title="Align Right">⇥</button>
     </div>
 
-    <!-- Custom Right-Click Context Menu -->
-    <div 
-        x-show="showContextMenu"
-        x-cloak
-        x-transition
-        :style="`position: fixed; left: ${contextMenuX}px; top: ${contextMenuY}px; z-index: 99999;`"
-        class="z-50 bg-slate-900/98 border border-indigo-500/40 rounded-2xl shadow-2xl backdrop-blur-2xl p-1.5 min-w-[220px] text-xs font-sans space-y-0.5 animate-in zoom-in-95"
-        style="display: none;"
-        x-on:click.outside="closeContextMenu()"
-    >
-        <div class="px-2.5 py-1.5 text-[10px] uppercase font-bold text-indigo-400 tracking-wider flex items-center justify-between border-b border-white/5 mb-1 select-none">
-            <span>✦ AI Context Menu</span>
-            <span class="text-slate-500 text-[9px]">Right-Click</span>
-        </div>
-
-        <button type="button" x-on:click="openInlineAiPrompt()" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-indigo-300 font-bold flex items-center gap-2 cursor-pointer">
-            <span>✦</span> <span>Ask AI Inline...</span>
-        </button>
-        <button type="button" x-on:click="triggerAiTransform('rewrite')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer">
-            <span class="text-cyan-400">↻</span> <span>Rewrite & Polish</span>
-        </button>
-        <button type="button" x-on:click="triggerAiTransform('expand')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer">
-            <span class="text-violet-400">+</span> <span>Expand this Section</span>
-        </button>
-        <button type="button" x-on:click="triggerAiTransform('shorten')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer">
-            <span class="text-amber-400">−</span> <span>Shorten & Condense</span>
-        </button>
-        <button type="button" x-on:click="triggerAiTransform('generate_faq')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer">
-            <span class="text-indigo-400">❓</span> <span>Generate FAQ on this</span>
-        </button>
-        <button type="button" x-on:click="triggerAiTransform('key_takeaways')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer">
-            <span class="text-pink-400">💡</span> <span>Extract Key Takeaways</span>
-        </button>
-        <button type="button" x-on:click="triggerAiTransform('seo_optimize')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer">
-            <span class="text-emerald-400">⌁</span> <span>SEO Optimize Text</span>
-        </button>
-
-        <!-- Change Tone Submenu Trigger -->
-        <div class="relative" x-data="{ toneSubOpen: false }">
-            <button type="button" x-on:click="toneSubOpen = !toneSubOpen" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center justify-between cursor-pointer">
-                <span class="flex items-center gap-2"><span>🎨</span> <span>Change Tone</span></span>
-                <span class="text-[10px] text-slate-400">▶</span>
-            </button>
-            <div x-show="toneSubOpen" class="mt-1 p-1 bg-slate-950 rounded-xl border border-white/10 space-y-0.5 text-xs">
-                <button type="button" x-on:click="triggerAiTransform('tone:professional'); toneSubOpen = false" class="w-full text-left px-2 py-1 rounded hover:bg-white/10 text-slate-300 cursor-pointer">Executive & Professional</button>
-                <button type="button" x-on:click="triggerAiTransform('tone:casual'); toneSubOpen = false" class="w-full text-left px-2 py-1 rounded hover:bg-white/10 text-slate-300 cursor-pointer">Warm & Conversational</button>
-                <button type="button" x-on:click="triggerAiTransform('tone:persuasive'); toneSubOpen = false" class="w-full text-left px-2 py-1 rounded hover:bg-white/10 text-slate-300 cursor-pointer">High-Impact Persuasive</button>
+    <!-- Custom Right-Click Context Menu (Teleported to body to avoid backdrop-filter coordinate displacement) -->
+    <template x-teleport="body">
+        <div 
+            x-show="showContextMenu"
+            x-cloak
+            x-transition:enter="transition ease-out duration-150"
+            x-transition:enter-start="opacity-0 scale-95"
+            x-transition:enter-end="opacity-100 scale-100"
+            :style="`position: fixed; left: ${contextMenuX}px; top: ${contextMenuY}px; z-index: var(--z-index-overlay);`"
+            class="editor-floating-panel"
+            x-on:click.outside="closeContextMenu()"
+            x-on:contextmenu.prevent
+        >
+            <div class="px-2.5 py-1.5 text-[10px] uppercase font-bold text-indigo-400 tracking-wider flex items-center justify-between border-b border-white/10 mb-1 select-none">
+                <span class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></span>
+                    <span>✦ AI Context Menu</span>
+                </span>
+                <span class="text-slate-500 text-[9px]">Right-Click</span>
             </div>
-        </div>
 
-        <div class="border-t border-white/5 my-1"></div>
-        <button type="button" x-on:click="closeContextMenu()" class="w-full text-left px-2.5 py-1 rounded-xl hover:bg-white/5 text-slate-400 hover:text-slate-200 text-[11px] cursor-pointer">
-            ✕ Close Menu
-        </button>
-    </div>
+            <button type="button" x-on:click="closeContextMenu(); openInlineAiPrompt()" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/30 text-indigo-300 font-bold flex items-center gap-2 cursor-pointer">
+                <span>✦</span> <span>Ask AI Inline (Cmd+K)...</span>
+            </button>
+            <button type="button" x-on:click="closeContextMenu(); triggerAiTransform('rewrite')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer">
+                <span class="text-cyan-400">↻</span> <span>Rewrite & Polish Selection</span>
+            </button>
+            <button type="button" x-on:click="closeContextMenu(); triggerAiTransform('expand')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer">
+                <span class="text-violet-400">+</span> <span>Expand this Section</span>
+            </button>
+            <button type="button" x-on:click="closeContextMenu(); triggerAiTransform('shorten')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer">
+                <span class="text-amber-400">−</span> <span>Shorten & Condense</span>
+            </button>
+            <button type="button" x-on:click="closeContextMenu(); triggerAiTransform('generate_faq')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer">
+                <span class="text-indigo-400">❓</span> <span>Generate FAQ on this</span>
+            </button>
+            <button type="button" x-on:click="closeContextMenu(); triggerAiTransform('key_takeaways')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer">
+                <span class="text-pink-400">💡</span> <span>Extract Key Takeaways</span>
+            </button>
+            <button type="button" x-on:click="closeContextMenu(); triggerAiTransform('seo_optimize')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer">
+                <span class="text-emerald-400">⌁</span> <span>SEO Optimize Text</span>
+            </button>
+
+            <!-- Change Tone Submenu Trigger -->
+            <div class="relative" x-data="{ toneSubOpen: false }">
+                <button type="button" x-on:click.stop="toneSubOpen = !toneSubOpen" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center justify-between cursor-pointer">
+                    <span class="flex items-center gap-2"><span>🎨</span> <span>Change Tone</span></span>
+                    <span class="text-[10px] text-slate-400" x-text="toneSubOpen ? '▼' : '▶'"></span>
+                </button>
+                <div x-show="toneSubOpen" class="mt-1 p-1 bg-slate-950 rounded-xl border border-white/10 space-y-0.5 text-xs">
+                    <button type="button" x-on:click="closeContextMenu(); triggerAiTransform('tone:professional')" class="w-full text-left px-2 py-1 rounded hover:bg-white/10 text-slate-300 cursor-pointer">Executive & Professional</button>
+                    <button type="button" x-on:click="closeContextMenu(); triggerAiTransform('tone:casual')" class="w-full text-left px-2 py-1 rounded hover:bg-white/10 text-slate-300 cursor-pointer">Warm & Conversational</button>
+                    <button type="button" x-on:click="closeContextMenu(); triggerAiTransform('tone:persuasive')" class="w-full text-left px-2 py-1 rounded hover:bg-white/10 text-slate-300 cursor-pointer">High-Impact Persuasive</button>
+                </div>
+            </div>
+
+            <div class="border-t border-white/10 my-1"></div>
+            <button type="button" x-on:click="closeContextMenu()" class="w-full text-left px-2.5 py-1 rounded-xl hover:bg-white/5 text-slate-400 hover:text-slate-200 text-[11px] cursor-pointer">
+                ✕ Close Menu (Esc)
+            </button>
+        </div>
+    </template>
 
     <!-- Interactive Floating Slash Commands Palette (Triggered on '/') -->
     <div 
@@ -283,10 +319,10 @@
         x-transition:enter="transition ease-out duration-150"
         x-transition:enter-start="opacity-0 translate-y-2 scale-95"
         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-        :style="`position: fixed; left: ${slashMenuX}px; top: ${slashMenuY}px; z-index: 99999;`"
-        class="fixed bg-slate-900/98 border border-indigo-500/50 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.85)] backdrop-blur-2xl p-2 min-w-[280px] max-h-[380px] overflow-y-auto text-xs font-sans space-y-1 scrollbar-thin scrollbar-thumb-white/10"
-        x-on:click.outside="showSlashMenu = false"
-        style="display: none;"
+            :style="`position: fixed; left: ${slashMenuX}px; top: ${slashMenuY}px; z-index: var(--z-index-floating);`"
+            class="editor-floating-panel max-h-[380px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10"
+            x-on:click.outside="showSlashMenu = false"
+style="display: none;"
     >
         <div class="px-2.5 py-1 text-[10px] uppercase font-bold text-indigo-400 tracking-wider flex items-center justify-between border-b border-white/10 mb-1 select-none">
             <span class="flex items-center gap-1.5">
@@ -406,5 +442,5 @@
     </div>
 
     <!-- Active Editor Engine Canvas Mount Target (wire:ignore for zero-latency, error-free typing & high-capacity 10,000+ words scrollbar) -->
-    <div id="tiptap-content-target" class="min-h-[550px] max-h-[820px] overflow-y-auto hoa-custom-scrollbar pr-3 scroll-smooth" wire:ignore></div>
+    <div id="tiptap-content-target" class="flex-1 min-h-0 overflow-y-auto hoa-custom-scrollbar pr-3 scroll-smooth" wire:ignore></div>
 </div>

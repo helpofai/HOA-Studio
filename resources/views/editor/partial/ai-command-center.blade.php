@@ -19,9 +19,9 @@
     x-transition:enter="transition ease-out duration-200"
     x-transition:enter-start="opacity-0 -translate-x-4"
     x-transition:enter-end="opacity-100 translate-x-0"
-    class="space-y-4 lg:sticky lg:top-4"
+    class="space-y-4 h-full flex flex-col"
 >
-    <x-glass.card variant="standard" class="p-4 space-y-4 border border-white/10 shadow-xl">
+    <div class="editor-column hoa-custom-scrollbar">
         <!-- Main Header -->
         <div class="flex items-center justify-between pb-2 border-b border-white/10">
             <div class="flex items-center gap-2">
@@ -78,7 +78,69 @@
             </div>
         </div>
 
-        <!-- 2. REAL-TIME AI TOKENS & LATENCY TELEMETRY -->
+        <!-- 2. USER BRAIN & VECTOR MEMORY RAG INDICATOR -->
+        <div class="p-2.5 rounded-2xl bg-slate-900/90 border border-white/10 shadow-inner space-y-1.5 font-mono">
+            <div class="flex items-center justify-between text-[11px] font-bold text-white">
+                <span class="flex items-center gap-1.5 text-purple-300">
+                    <span>🧠</span> <span>User Brain & Vector Memory</span>
+                </span>
+                <span class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-purple-950 text-purple-300 border border-purple-500/30">
+                    <span class="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse"></span>
+                    HYBRID RAG
+                </span>
+            </div>
+            <div class="flex items-center justify-between text-[10px] text-slate-400">
+                <span>Multi-tier Vector Cache</span>
+                <a href="{{ route('knowledge-base.index') }}" target="_blank" class="text-indigo-400 hover:text-indigo-200 underline flex items-center gap-0.5">
+                    <span>Configure Brain</span>
+                    <span class="text-[8px]">↗</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- 3. MULTI-AGENT SWARM LIVE ACTIVITY MONITOR -->
+        <div class="p-2.5 rounded-2xl bg-slate-900/90 border border-indigo-500/30 shadow-inner space-y-2 font-mono">
+            <div class="flex items-center justify-between text-[11px] font-bold text-white">
+                <span class="flex items-center gap-1.5 text-indigo-300">
+                    <span>🤖</span> <span>Multi-Agent Swarm</span>
+                </span>
+                <span class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-500/30">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    10 AGENTS LIVE
+                </span>
+            </div>
+
+            <!-- Mini Swarm Chain -->
+            <div class="grid grid-cols-5 gap-1 text-center">
+                <div class="p-1 rounded bg-slate-950/80 border border-white/5" title="Agent 1: Master Orchestrator">
+                    <span class="text-xs block">🎯</span>
+                    <span class="text-[8px] text-indigo-300 block truncate">Orch</span>
+                </div>
+                <div class="p-1 rounded bg-slate-950/80 border border-white/5" title="Agent 2: Vector RAG Researcher">
+                    <span class="text-xs block">🔎</span>
+                    <span class="text-[8px] text-purple-300 block truncate">RAG</span>
+                </div>
+                <div class="p-1 rounded bg-slate-950/80 border border-white/5" title="Agent 5: Deep Section Draftsman">
+                    <span class="text-xs block">✍️</span>
+                    <span class="text-[8px] text-emerald-300 block truncate">Draft</span>
+                </div>
+                <div class="p-1 rounded bg-slate-950/80 border border-white/5" title="Agent 8: Rank Math 100/100 Optimizer">
+                    <span class="text-xs block">⌁</span>
+                    <span class="text-[8px] text-teal-300 block truncate">SEO</span>
+                </div>
+                <div class="p-1 rounded bg-slate-950/80 border border-white/5" title="Agent 10: TipTap Block Assembler">
+                    <span class="text-xs block">🚀</span>
+                    <span class="text-[8px] text-violet-300 block truncate">TipTap</span>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between text-[9.5px] text-slate-400 pt-0.5 border-t border-white/5">
+                <span>Handoff: <strong class="text-white">4.2ms</strong></span>
+                <span class="text-emerald-400">Zero-Loss Handshake</span>
+            </div>
+        </div>
+
+        <!-- 3. REAL-TIME AI TOKENS & LATENCY TELEMETRY -->
         <div class="p-3 rounded-2xl bg-slate-900/90 border border-white/10 shadow-inner space-y-2 font-mono">
             <div class="flex items-center justify-between text-[11px] font-bold text-white">
                 <span class="flex items-center gap-1.5 text-violet-300">
@@ -169,17 +231,29 @@
                 </div>
             </div>
 
-            <!-- Write Live Button -->
-            <button 
-                type="button" 
-                x-on:click="triggerAiTransform('custom', aiPrompt)"
-                :disabled="isTransforming"
-                class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
-            >
-                <span x-show="!isTransforming">✍️ Write Live to Editor</span>
-                <span x-show="isTransforming" class="animate-spin text-sm">⟳</span>
-                <span x-show="isTransforming">Streaming Tokens to Canvas...</span>
-            </button>
+            <!-- Action Buttons: Write Live & Multi-Agent Swarm -->
+            <div class="space-y-1.5 pt-1">
+                <button 
+                    type="button" 
+                    x-on:click="runMultiAgentPipeline(aiPrompt)"
+                    :disabled="isTransforming"
+                    class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-xs font-black shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
+                >
+                    <span x-show="!isTransforming">🤖 Run Multi-Agent Swarm (Full Article)</span>
+                    <span x-show="isTransforming" class="animate-spin text-sm">⟳</span>
+                    <span x-show="isTransforming" x-text="swarmStatusMessage || 'Swarm Collaborating...'"></span>
+                </button>
+
+                <button 
+                    type="button" 
+                    x-on:click="triggerAiTransform('custom', aiPrompt)"
+                    :disabled="isTransforming"
+                    class="w-full py-2 px-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold border border-white/10 flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer"
+                >
+                    <span x-show="!isTransforming">✍️ Direct Draft Stream</span>
+                    <span x-show="isTransforming">Streaming Tokens...</span>
+                </button>
+            </div>
         </div>
 
         <!-- 4. CONTEXTUAL GROUNDING SECTION -->
@@ -241,5 +315,5 @@
                 </button>
             </div>
         </div>
-    </x-glass.card>
+    </div>
 </div>

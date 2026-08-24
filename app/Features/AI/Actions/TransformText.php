@@ -95,13 +95,21 @@ EOT;
 
             // God-Tier SEO & Blog Creation Pipeline
             'generate_outline' => "You are an elite SEO content architect. Create a logical, comprehensive, and search-intent optimized article outline featuring one primary H1, multiple descriptive H2 sections with nested H3 subsections, an FAQ section, and a decision-oriented conclusion. Output clean markdown outline with #, ##, ###, and - bullet items.",
-            'generate_faq' => "Generate 4-5 high-value, genuine search questions and clear, authoritative answers. Format cleanly as:\n### Question text here\nAnswer paragraph with bold key terms.",
-            'quick_answer' => "Generate a concise, high-value search-intent quick answer callout box.\nFormat cleanly as: > **Quick Answer:** [Clear 2-3 sentence answer satisfying user intent].",
+            'generate_faq' => "Generate 4-5 high-value, genuine search questions and clear, authoritative answers. Format cleanly as:\n### Question text here\nAnswer paragraph with bold key terms. Output ONLY the FAQ section.",
+            'quick_answer' => "Generate a concise, high-value search-intent quick answer callout box.\nFormat cleanly as: > **Quick Answer:** [Clear 2-3 sentence answer satisfying user intent]. Output ONLY the callout box.",
             'content_gaps' => 'Identify 3-5 critical missing subtopics, unanswered questions, or competitive angles required to make this the definitive resource on the web. Output as clear bullet points with explanations.',
-            'key_takeaways' => "Extract 4-5 actionable, high-impact key takeaways. Format as a clean bulleted list with bold leading concepts.",
-            'eeat_trust' => "Generate a professional 'Experience, Expertise & Testing Methodology' trust block including author credentials, testing metrics, and device matrix. Format with blockquote, table, and bulleted criteria.",
+            'key_takeaways' => "Extract 4-5 actionable, high-impact key takeaways. Format as a clean bulleted list with bold leading concepts. Output ONLY the list.",
+            'eeat_trust' => "Generate a professional 'Experience, Expertise & Testing Methodology' trust block including author credentials, testing metrics, and device matrix. Format with blockquote, table, and bulleted criteria. Output ONLY the trust block.",
             'search_intent' => 'Identify the primary search intent (Informational, Commercial, Transactional, Navigational), target audience persona, and the optimal content angle to satisfy user expectations.',
-            'comparison_table' => "Generate a structured comparison table comparing key features, pros, cons, and performance metrics across top options. Output as a clean markdown table with | Header 1 | Header 2 | Header 3 |.",
+            'comparison_table' => "Generate a structured comparison table comparing key features, pros, cons, and performance metrics across top options. Output ONLY a clean HTML table (<table>...</table>).",
+
+            // Content Intelligence Surgical Section-Specific Actions
+            'seo_fix_intro' => "You are an elite SEO copy editor. Your task is to rewrite ONLY the introductory 1-2 paragraphs of the document to naturally front-load the target keyword within the opening 2 sentences. DO NOT write the rest of the document. Output ONLY the 1-2 opening paragraphs in clean HTML.",
+            'seo_fix_subheadings' => "You are an SEO content architect. Add keyword-optimized H2 and H3 subheadings with concise transition paragraphs. Output ONLY the subheadings and short sections to be inserted, not the full document.",
+            'seo_fix_citations' => "Generate an authoritative 'References & External Citations' block with 2-3 credible citations, links, and study references. Output ONLY the citation list/callout in clean HTML.",
+            'seo_fix_density' => "Surgically adjust the provided text snippet so the target focus keyword is naturally integrated without keyword stuffing. Preserve the existing text and output ONLY the updated snippet.",
+            'seo_fix_title' => "Generate an optimized, high-CTR headline incorporating the target keyword. Output ONLY the single headline title as plain text.",
+            'seo_fix_meta' => "Generate a punchy, click-optimized 150-160 character meta description featuring the focus keyword. Output ONLY the meta description as plain text.",
 
             // Custom Instruction & Full Publication Directives
             'custom' => !empty($customInstruction) 

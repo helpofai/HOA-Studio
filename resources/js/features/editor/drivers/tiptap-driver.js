@@ -300,6 +300,20 @@ export class TiptapDriver {
                 attributes: {
                     class: 'prose prose-invert max-w-none focus:outline-none min-h-[500px] text-slate-200 leading-relaxed text-base font-normal tracking-wide',
                 },
+                handleDOMEvents: {
+                    contextmenu: (view, event) => {
+                        event.preventDefault();
+                        window.dispatchEvent(new CustomEvent('editor:contextmenu', {
+                            detail: {
+                                clientX: event.clientX,
+                                clientY: event.clientY,
+                                x: event.clientX,
+                                y: event.clientY
+                            }
+                        }));
+                        return true;
+                    }
+                },
                 handleKeyDown: (view, event) => {
                     if (event.key === '/' && !event.ctrlKey && !event.metaKey && !event.altKey) {
                         setTimeout(() => {

@@ -352,79 +352,78 @@
             @endif
 
             <!-- Interactive Cursor Tracking Line -->
-            <template x-if="activePoint">
-                <g>
-                    <!-- Vertical Crosshair Line -->
-                    <line 
-                        :x1="activePoint.x" 
-                        y1="10" 
-                        :x2="activePoint.x" 
-                        y2="155" 
-                        stroke="rgba(255, 255, 255, 0.4)" 
-                        stroke-width="1.5" 
-                        stroke-dasharray="3 3" 
-                    />
-                    <!-- Outer Glowing Ring -->
-                    <circle 
-                        :cx="activePoint.x" 
-                        :cy="activePoint.y" 
-                        r="7" 
-                        fill="none" 
-                        stroke="{{ $activeTheme['stroke'] }}" 
-                        stroke-width="2.5" 
-                        class="animate-ping"
-                    />
-                    <!-- Inner Solid Dot -->
-                    <circle 
-                        :cx="activePoint.x" 
-                        :cy="activePoint.y" 
-                        r="5" 
-                        fill="#ffffff" 
-                        stroke="{{ $activeTheme['stroke'] }}" 
-                        stroke-width="2.5" 
-                    />
-                </g>
-            </template>
+            <g x-show="activePoint !== null" style="display: none;">
+                <!-- Vertical Crosshair Line -->
+                <line 
+                    :x1="activePoint?.x ?? 0" 
+                    y1="10" 
+                    :x2="activePoint?.x ?? 0" 
+                    y2="155" 
+                    stroke="rgba(255, 255, 255, 0.4)" 
+                    stroke-width="1.5" 
+                    stroke-dasharray="3 3" 
+                />
+                <!-- Outer Glowing Ring -->
+                <circle 
+                    :cx="activePoint?.x ?? 0" 
+                    :cy="activePoint?.y ?? 0" 
+                    r="7" 
+                    fill="none" 
+                    stroke="{{ $activeTheme['stroke'] }}" 
+                    stroke-width="2.5" 
+                    class="animate-ping"
+                />
+                <!-- Inner Solid Dot -->
+                <circle 
+                    :cx="activePoint?.x ?? 0" 
+                    :cy="activePoint?.y ?? 0" 
+                    r="5" 
+                    fill="#ffffff" 
+                    stroke="{{ $activeTheme['stroke'] }}" 
+                    stroke-width="2.5" 
+                />
+            </g>
         </svg>
 
         <!-- Floating Live HUD Tooltip -->
-        <template x-if="activePoint">
-            <div 
-                class="absolute z-30 pointer-events-none min-w-[170px] p-3 rounded-xl bg-slate-900/95 border border-violet-500/40 shadow-2xl text-xs font-mono text-white backdrop-blur-xl transition-all duration-75"
-                :style="`top: 10px; left: ${Math.min(80, Math.max(10, (activePoint.x / 800) * 100))}%; transform: translateX(-50%);`"
-            >
-                <div class="font-bold text-violet-300 pb-1.5 mb-1.5 border-b border-white/10 flex items-center justify-between">
-                    <span x-text="'🕒 ' + activePoint.bucket.time_label"></span>
-                    <span class="text-emerald-400 font-bold" x-text="activePoint.bucket.avg_latency + 'ms'"></span>
+        <div 
+            x-show="activePoint !== null && activePoint?.bucket"
+            x-cloak
+            class="absolute z-30 pointer-events-none min-w-[170px] p-3 rounded-xl bg-slate-900/95 border border-violet-500/40 shadow-2xl text-xs font-mono text-white backdrop-blur-xl transition-all duration-75"
+            :style="`top: 10px; left: ${activePoint ? Math.min(80, Math.max(10, (activePoint.x / 800) * 100)) : 50}%; transform: translateX(-50%);`"
+            style="display: none;"
+        >
+            <div class="font-bold text-violet-300 pb-1.5 mb-1.5 border-b border-white/10 flex items-center justify-between">
+                <span x-text="'🕒 ' + (activePoint?.bucket?.time_label ?? '')"></span>
+                <span class="text-emerald-400 font-bold" x-text="(activePoint?.bucket?.avg_latency ?? 0) + 'ms'"></span>
+            </div>
+            <div class="space-y-1 text-[11px]">
+                <div class="flex items-center justify-between text-slate-300">
+                    <span>Total Calls:</span>
+                    <span class="font-bold text-white" x-text="activePoint?.bucket?.total_requests ?? 0"></span>
                 </div>
-                <div class="space-y-1 text-[11px]">
-                    <div class="flex items-center justify-between text-slate-300">
-                        <span>Total Calls:</span>
-                        <span class="font-bold text-white" x-text="activePoint.bucket.total_requests"></span>
-                    </div>
-                    <div class="flex items-center justify-between text-emerald-400">
-                        <span>🟢 Pass (200 OK):</span>
-                        <span class="font-bold" x-text="activePoint.bucket.pass"></span>
-                    </div>
-                    <div class="flex items-center justify-between text-sky-400">
-                        <span>🔵 Info (Routed):</span>
-                        <span class="font-bold" x-text="activePoint.bucket.info"></span>
-                    </div>
-                    <div class="flex items-center justify-between text-amber-400">
-                        <span>🟡 Warn (Retried):</span>
-                        <span class="font-bold" x-text="activePoint.bucket.warning"></span>
-                    </div>
-                    <div class="flex items-center justify-between text-rose-400">
-                        <span>🔴 Fail (Error):</span>
-                        <span class="font-bold" x-text="activePoint.bucket.fail"></span>
-                    </div>
-                    <div class="flex items-center justify-between text-violet-300 pt-1 border-t border-white/5 font-semibold">
-                        <span>Tokens Streamed:</span>
-                        <span x-text="Number(activePoint.bucket.tokens).toLocaleString()"></span>
-                    </div>
+                <div class="flex items-center justify-between text-emerald-400">
+                    <span>🟢 Pass (200 OK):</span>
+                    <span class="font-bold" x-text="activePoint?.bucket?.pass ?? 0"></span>
+                </div>
+                <div class="flex items-center justify-between text-sky-400">
+                    <span>🔵 Info (Routed):</span>
+                    <span class="font-bold" x-text="activePoint?.bucket?.info ?? 0"></span>
+                </div>
+                <div class="flex items-center justify-between text-amber-400">
+                    <span>🟡 Warn (Retried):</span>
+                    <span class="font-bold" x-text="activePoint?.bucket?.warning ?? 0"></span>
+                </div>
+                <div class="flex items-center justify-between text-rose-400">
+                    <span>🔴 Fail (Error):</span>
+                    <span class="font-bold" x-text="activePoint?.bucket?.fail ?? 0"></span>
+                </div>
+                <div class="flex items-center justify-between text-violet-300 pt-1 border-t border-white/5 font-semibold">
+                    <span>Tokens Streamed:</span>
+                    <span x-text="Number(activePoint?.bucket?.tokens ?? 0).toLocaleString()"></span>
                 </div>
             </div>
-        </template>
+        </div>
     </div>
 
     <!-- Time Axis Footer & Multi-Color Legend -->

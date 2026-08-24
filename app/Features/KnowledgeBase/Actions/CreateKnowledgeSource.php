@@ -41,9 +41,11 @@ class CreateKnowledgeSource
             'project_id' => $data['project_id'] ?? null,
             'title' => $data['title'],
             'source_type' => $data['source_type'] ?? 'text',
+            'category' => $data['category'] ?? 'general_docs',
             'file_path' => $data['file_path'] ?? null,
             'content' => $data['content'],
             'status' => 'pending',
+            'is_active' => true,
         ]);
 
         $this->processAction->execute($source);

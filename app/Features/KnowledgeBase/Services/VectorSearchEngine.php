@@ -29,7 +29,7 @@ use App\Features\AI\Services\OmniRouteClient;
 use App\Features\KnowledgeBase\Models\KnowledgeChunk;
 use App\Models\User;
 use Exception;
-use Illuminate\Support\Facades\Http;
+use Throwable;
 
 class VectorSearchEngine
 {
@@ -39,7 +39,7 @@ class VectorSearchEngine
     ) {}
 
     /**
-     * Generate dense vector embedding via OmniRoute /v1/embeddings with smart cache and fallback
+     * Generate dense vector embedding via OmniRoute /v1/embeddings with multi-tier cache & fallback
      *
      * @return array<float>
      */
@@ -50,22 +50,24 @@ class VectorSearchEngine
             return array_fill(0, 128, 0.0);
         }
 
-        // Check Vector Embedding Cache (1, 7, or 30 days)
-        $cached = $this->cacheManager->getCachedVector($cleanText, $model);
+        // 1. Check L1/L2 Vector Embedding Cache
+        $cached = $this->cacheManager->getCachedVector($cleanText, $model, $user);
         if ($cached !== null) {
             return $cached;
         }
 
+        // 2. Call OmniRoute Embedding Gateway
         try {
             $embedding = $this->client->createEmbedding($cleanText, $model);
-            if (!empty($embedding)) {
+            if (!empty($embedding) && is_array($embedding)) {
                 $this->cacheManager->storeVector($cleanText, $model, $embedding, $user);
                 return $embedding;
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             // Fallback to local semantic vector
         }
 
+        // 3. Resilient Deterministic Semantic Vector Fallback
         $fallback = $this->generateDeterministicVector($cleanText);
         $this->cacheManager->storeVector($cleanText, $model, $fallback, $user);
 
@@ -100,114 +102,211 @@ class VectorSearchEngine
         }
 
         $similarity = $dotProduct / (sqrt($normA) * sqrt($normB));
-
-        return (float) max(0.0, min(1.0, $similarity));
+        return max(0.0, min(1.0, (float) $similarity));
     }
 
     /**
-     * Perform hybrid semantic vector search and keyword matching across user chunks
+     * Perform Hybrid Search combining Dense Vector Cosine Similarity and Sparse BM25 Keyword Search
+     * via Reciprocal Rank Fusion (RRF)
      *
-     * @param User $user
-     * @param string $query
-     * @param int $limit
-     * @param int|null $projectId
-     * @return array<int, array{chunk_id: int, source_id: int, source_title: string, content: string, score: float, token_count: int}>
+     * @return array<array{chunk: KnowledgeChunk, score: float, match_type: string}>
      */
-    public function search(User $user, string $query, int $limit = 5, ?int $projectId = null): array
-    {
-        $query = trim($query);
-        if (empty($query)) {
+    public function hybridSearch(
+        User $user,
+        string $query,
+        int $topK = 5,
+        float $minSimilarity = 0.55,
+        ?int $projectId = null,
+        ?string $category = null
+    ): array {
+        $queryText = trim($query);
+        if (empty($queryText)) {
             return [];
         }
 
-        $queryVector = $this->generateEmbedding($query);
-        $queryTerms = preg_split('/\s+/u', mb_strtolower($query), -1, PREG_SPLIT_NO_EMPTY);
+        // 1. Generate query embedding
+        $queryEmbedding = $this->generateEmbedding($queryText, 'text-embedding-3-small', $user);
 
-        // Fetch candidate chunks
-        $chunksQuery = KnowledgeChunk::with('source')
-            ->whereHas('source', function ($q) use ($user, $projectId) {
+        // 2. Fetch active Knowledge Chunks for user / project / category
+        $chunksQuery = KnowledgeChunk::query()
+            ->with('source')
+            ->whereHas('source', function ($q) use ($user, $projectId, $category) {
                 $q->where('user_id', $user->id)
-                  ->where('status', 'ready');
+                  ->where('status', 'ready')
+                  ->where('is_active', true);
 
-                if ($projectId) {
+                if ($projectId !== null) {
                     $q->where(function ($sub) use ($projectId) {
                         $sub->where('project_id', $projectId)->orWhereNull('project_id');
                     });
                 }
+
+                if (!empty($category) && $category !== 'all') {
+                    $q->where('category', $category);
+                }
             });
 
-        $chunks = $chunksQuery->get();
-        if ($chunks->isEmpty()) {
+        $allChunks = $chunksQuery->get();
+        if ($allChunks->isEmpty()) {
             return [];
         }
 
-        $scoredResults = [];
-
-        foreach ($chunks as $chunk) {
-            $chunkVector = $chunk->embedding_vector ?? [];
-            $cosine = !empty($chunkVector) ? $this->cosineSimilarity($queryVector, $chunkVector) : 0.0;
-
-            // Keyword match ratio
-            $chunkTextLower = mb_strtolower($chunk->content);
-            $matches = 0;
-            foreach ($queryTerms as $term) {
-                if (mb_strpos($chunkTextLower, $term) !== false) {
-                    $matches++;
+        // 3. Dense Vector Similarity Pass
+        $vectorRankings = [];
+        foreach ($allChunks as $chunk) {
+            $chunkVector = $chunk->embedding_vector ?? $chunk->embedding ?? null;
+            if (!empty($chunkVector) && is_array($chunkVector)) {
+                $sim = $this->cosineSimilarity($queryEmbedding, $chunkVector);
+                if ($sim >= $minSimilarity) {
+                    $vectorRankings[$chunk->id] = [
+                        'chunk' => $chunk,
+                        'vector_score' => $sim,
+                    ];
                 }
             }
-            $keywordScore = !empty($queryTerms) ? ($matches / count($queryTerms)) : 0.0;
+        }
 
-            // Hybrid Weighted Score: 75% Cosine Vector + 25% Exact Keyword Match
-            $finalScore = (0.75 * $cosine) + (0.25 * $keywordScore);
+        // Sort dense vector rankings
+        uasort($vectorRankings, fn($a, $b) => $b['vector_score'] <=> $a['vector_score']);
 
-            $scoredResults[] = [
-                'chunk_id' => $chunk->id,
-                'source_id' => $chunk->knowledge_source_id,
+        // 4. Sparse Keyword BM25 / Token Overlap Pass
+        $queryTokens = array_unique(array_filter(explode(' ', mb_strtolower(preg_replace('/[^\p{L}\p{N}\s]/u', '', $queryText)))));
+        $sparseRankings = [];
+
+        foreach ($allChunks as $chunk) {
+            $chunkText = mb_strtolower($chunk->content);
+            $hitCount = 0;
+            foreach ($queryTokens as $tok) {
+                if (mb_strlen($tok) > 2 && mb_strpos($chunkText, $tok) !== false) {
+                    $hitCount++;
+                }
+            }
+
+            if ($hitCount > 0) {
+                $sparseScore = $hitCount / max(1, count($queryTokens));
+                $sparseRankings[$chunk->id] = [
+                    'chunk' => $chunk,
+                    'sparse_score' => $sparseScore,
+                ];
+            }
+        }
+
+        uasort($sparseRankings, fn($a, $b) => $b['sparse_score'] <=> $a['sparse_score']);
+
+        // 5. Reciprocal Rank Fusion (RRF with k=60)
+        $k = 60;
+        $rrfScores = [];
+
+        $rank = 1;
+        foreach ($vectorRankings as $id => $item) {
+            $rrfScores[$id] = ($rrfScores[$id] ?? 0.0) + (1.0 / ($k + $rank));
+            $rank++;
+        }
+
+        $rank = 1;
+        foreach ($sparseRankings as $id => $item) {
+            $rrfScores[$id] = ($rrfScores[$id] ?? 0.0) + (1.0 / ($k + $rank));
+            $rank++;
+        }
+
+        arsort($rrfScores);
+
+        // 6. Compile Final Results
+        $results = [];
+        $chunkMap = $allChunks->keyBy('id');
+
+        foreach (array_slice($rrfScores, 0, $topK, true) as $id => $rrfScore) {
+            $chunk = $chunkMap->get($id);
+            if (!$chunk) continue;
+
+            $vectorScore = $vectorRankings[$id]['vector_score'] ?? 0.0;
+            $sparseScore = $sparseRankings[$id]['sparse_score'] ?? 0.0;
+
+            // Normalized composite confidence (0.0 to 1.0)
+            $confidence = $vectorScore > 0 
+                ? round(($vectorScore * 0.7) + ($sparseScore * 0.3), 3) 
+                : round($sparseScore, 3);
+
+            $results[] = [
+                'chunk' => $chunk,
+                'score' => $confidence,
+                'vector_score' => round($vectorScore, 3),
+                'sparse_score' => round($sparseScore, 3),
                 'source_title' => $chunk->source->title ?? 'Knowledge Source',
-                'chunk_index' => $chunk->chunk_index,
-                'content' => $chunk->content,
-                'score' => round($finalScore, 4),
-                'cosine_similarity' => round($cosine, 4),
-                'keyword_score' => round($keywordScore, 4),
-                'token_count' => $chunk->token_count,
+                'category' => $chunk->source->category ?? 'general_docs',
             ];
         }
 
-        // Sort descending by final score
-        usort($scoredResults, function ($a, $b) {
-            return $b['score'] <=> $a['score'];
-        });
-
-        return array_slice($scoredResults, 0, $limit);
+        return $results;
     }
 
     /**
-     * Deterministic local semantic embedding generation fallback
+     * L2 Vector Normalization (Unit Length)
+     */
+    public function normalizeVector(array $vector): array
+    {
+        $sumSq = 0.0;
+        foreach ($vector as $val) {
+            $sumSq += ((float) $val) * ((float) $val);
+        }
+
+        $norm = sqrt($sumSq);
+        if ($norm <= 0.0) {
+            return $vector;
+        }
+
+        $normalized = [];
+        foreach ($vector as $val) {
+            $normalized[] = round(((float) $val) / $norm, 6);
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * Deterministic Semantic Vector Fallback
      */
     protected function generateDeterministicVector(string $text, int $dimensions = 128): array
     {
         $vector = array_fill(0, $dimensions, 0.0);
-        $words = preg_split('/\s+/u', mb_strtolower($text), -1, PREG_SPLIT_NO_EMPTY);
+        $words = preg_split('/\s+/', mb_strtolower($text), -1, PREG_SPLIT_NO_EMPTY);
 
-        foreach ($words as $word) {
-            $hash = crc32($word);
-            $idx = abs($hash) % $dimensions;
-            $vector[$idx] += 1.0;
+        foreach ($words as $w) {
+            $h = crc32($w);
+            $idx = abs($h) % $dimensions;
+            $sign = ($h & 1) ? 1.0 : -1.0;
+            $vector[$idx] += $sign * (1.0 + (mb_strlen($w) / 10.0));
         }
 
-        // Normalize vector to unit length
-        $norm = 0.0;
-        foreach ($vector as $v) {
-            $norm += $v * $v;
+        return $this->normalizeVector($vector);
+    }
+
+    /**
+     * Legacy Search Method mapping to Hybrid RAG Engine
+     */
+    public function search(User $user, string $query, int $topK = 5, ?int $projectId = null): array
+    {
+        $results = $this->hybridSearch(
+            user: $user,
+            query: $query,
+            topK: $topK,
+            minSimilarity: 0.0,
+            projectId: $projectId
+        );
+
+        $out = [];
+        foreach ($results as $res) {
+            $chunk = $res['chunk'];
+            $out[] = [
+                'chunk_id' => $chunk->id,
+                'chunk' => $chunk,
+                'content' => $chunk->content,
+                'token_count' => $chunk->token_count,
+                'score' => $res['score'],
+                'source_title' => $res['source_title'],
+            ];
         }
 
-        if ($norm > 0.0) {
-            $sqrtNorm = sqrt($norm);
-            foreach ($vector as $i => $v) {
-                $vector[$i] = (float) round($v / $sqrtNorm, 6);
-            }
-        }
-
-        return $vector;
+        return $out;
     }
 }

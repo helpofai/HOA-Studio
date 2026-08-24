@@ -10,8 +10,29 @@
 document.addEventListener('alpine:init', () => {
     Alpine.data('documentEditorComponent', (config) => ({
         editorInstance: null,
+        isDirty: false,
+        autosaveTimeout: null,
+        leftPanelLoaded: false,
+        rightPanelLoaded: false,
+        
+        debouncedAutosave() {
+            if (this.autosaveTimeout) clearTimeout(this.autosaveTimeout);
+            this.autosaveTimeout = setTimeout(() => {
+                this.performAutosave();
+            }, 2000); // 2 second debounce
+        },
+
+        performAutosave() {
+            if (!this.isDirty) return;
+            
+            const html = this.editorInstance ? this.editorInstance.getHTML() : '';
+            Livewire.dispatch('autosave', { html: html, json: null });
+            this.saveLocalDraft(html);
+            this.hasUnsavedChanges = false;
+            this.isDirty = false;
+        },
         selectedText: '',
-        hasSelection: false,
+hasSelection: false,
         wordCount: 0,
         characterCount: 0,
         readingTime: 1,
@@ -29,6 +50,7 @@ document.addEventListener('alpine:init', () => {
 
         aiPrompt: '',
         inlineAiPrompt: '',
+        inlineAiPlacement: 'replace', // 'replace' or 'insert_below'
         showInlineAiPrompt: false,
         aiModel: 'Auto (OmniRoute)',
         aiContext: {
@@ -198,7 +220,13 @@ document.addEventListener('alpine:init', () => {
                 this.addLog('INFO', 'Canvas content reset via server action.');
             });
 
-            window.addEventListener('click', () => {
+            window.addEventListener('editor:contextmenu', (e) => {
+                const detail = e.detail || {};
+                this.openContextMenu(detail);
+            });
+
+            window.addEventListener('click', (e) => {
+                if (e.target && e.target.closest('[x-show="showContextMenu"]')) return;
                 this.closeContextMenu();
             });
 
@@ -360,6 +388,10 @@ document.addEventListener('alpine:init', () => {
                     this.characterCount = stats.characters;
                     this.readingTime = Math.max(1, Math.ceil(stats.words / 200));
                     this.updateOutline();
+                    
+                    // Trigger dirty state and debounced autosave
+                    this.isDirty = true;
+                    this.debouncedAutosave();
                 },
                 onSelectionChange: ({ selectedText, isEmpty }) => {
                     this.selectedText = selectedText;
@@ -370,6 +402,9 @@ document.addEventListener('alpine:init', () => {
                     this.updateActiveFormats();
                 },
                 onAutosave: (data) => {
+                    // Prevent duplicate autosaves if our new debounced mechanism is active
+                    if (this.isDirty) return; 
+                    
                     Livewire.dispatch('autosave', { html: data.html, json: data.json ?? null });
                     this.saveLocalDraft(data.html);
                     this.hasUnsavedChanges = false;
@@ -378,8 +413,15 @@ document.addEventListener('alpine:init', () => {
             });
 
             const ed = this.getEditor();
-            if (ed && ed.capabilities) {
-                this.caps = { ...this.caps, ...ed.capabilities };
+            if (ed) {
+                const initialText = ed.getText() || '';
+                this.wordCount = initialText.trim().split(/\s+/).filter(Boolean).length;
+                this.characterCount = initialText.length;
+                this.readingTime = Math.max(1, Math.ceil(this.wordCount / 200));
+
+                if (ed.capabilities) {
+                    this.caps = { ...this.caps, ...ed.capabilities };
+                }
             }
             this.updateOutline();
             this.updateActiveFormats();
@@ -424,16 +466,24 @@ document.addEventListener('alpine:init', () => {
         submitInlineAiPrompt() {
             if (!this.inlineAiPrompt.trim()) return;
             const prompt = this.inlineAiPrompt;
+            const placement = (this.hasSelection && this.selectedText) ? this.inlineAiPlacement : 'auto';
             this.inlineAiPrompt = '';
             this.showInlineAiPrompt = false;
-            this.triggerAiTransform('custom', prompt);
+            this.triggerAiTransform('custom', prompt, placement);
         },
 
         openContextMenu(event) {
-            this.contextMenuX = Math.min(event.clientX, window.innerWidth - 260);
-            this.contextMenuY = Math.min(event.clientY, window.innerHeight - 340);
+            if (!event) return;
+            const clientX = (event.clientX !== undefined) ? event.clientX : (event.x !== undefined ? event.x : window.innerWidth / 2);
+            const clientY = (event.clientY !== undefined) ? event.clientY : (event.y !== undefined ? event.y : window.innerHeight / 2);
+            
+            const menuWidth = 240;
+            const menuHeight = 340;
+            
+            this.contextMenuX = Math.max(10, Math.min(clientX, window.innerWidth - menuWidth - 10));
+            this.contextMenuY = Math.max(10, Math.min(clientY, window.innerHeight - menuHeight - 10));
             this.showContextMenu = true;
-            this.addLog('INFO', 'Context menu opened at (' + this.contextMenuX + ', ' + this.contextMenuY + ')');
+            this.addLog('INFO', 'AI Context menu opened at (' + this.contextMenuX + ', ' + this.contextMenuY + ')');
         },
 
         closeContextMenu() {
@@ -529,12 +579,11 @@ document.addEventListener('alpine:init', () => {
         abortAiTransform() {
             if (this.abortController) {
                 this.abortController.abort();
+                this.abortController = null;
             }
             this.isTransforming = false;
-            if (this.liveAiStreamText && this.liveAiStreamText.trim().length > 0) {
-                this.applyLiveStreamNow();
-            }
-            this.addLog('WARN', 'AI token stream stopped. Preserved tokens into canvas.');
+            // Removed automatic apply to allow user to decide
+            this.addLog('WARN', 'AI transformation stopped by user.');
         },
 
         applyFormat(action, param = null) {
@@ -615,19 +664,361 @@ document.addEventListener('alpine:init', () => {
         },
 
         aiErrorMessage: '',
+        activeSwarmAgent: null,
+        swarmStepIndex: 0,
+        swarmTotalSteps: 5,
+        swarmStatusMessage: '',
 
-        async triggerAiTransform(type, customInstruction = '') {
+        async runMultiAgentPipeline(userTopic = '') {
+            const prompt = userTopic || this.aiPrompt;
+            if (!prompt || !prompt.trim()) {
+                this.addLog('WARN', 'Please provide a topic or prompt for the Multi-Agent Swarm.');
+                return;
+            }
+
+            const ed = this.getEditor();
+            if (!ed) return;
+
+            this.isTransforming = true;
+            this.showAiStreamBanner = true;
+            this.activeAction = 'multi_agent_swarm';
+            this.swarmTotalSteps = 5;
+
+            try {
+                // STEP 1: RESEARCHER & STRATEGIST (Grounding & SEO Target)
+                this.swarmStepIndex = 1;
+                this.activeSwarmAgent = 'researcher';
+                this.swarmStatusMessage = 'Agent 2 & 3 (Researcher & SEO Strategist) analyzing search intent & vector cache...';
+                this.addLog('AGENT', '🎯 Swarm Step 1: Agent [Researcher & SEO Strategist] querying Vector Knowledge Base.');
+                
+                let targetKw = this.targetKeyword;
+                if (!targetKw) {
+                    const kwMatch = prompt.match(/(?:for|on|about|review|guide to)\s+([^,.;\n]+)/i);
+                    targetKw = kwMatch ? kwMatch[1].trim() : prompt.split(/\s+/).slice(0, 4).join(' ');
+                    this.targetKeyword = targetKw;
+                    Livewire.dispatch('applyTargetKeyword', { keyword: targetKw });
+                }
+
+                // STEP 2: OUTLINER & ORCHESTRATOR (Title & Heading Tree)
+                this.swarmStepIndex = 2;
+                this.activeSwarmAgent = 'outliner';
+                this.swarmStatusMessage = 'Agent 4 (Outline Architect) creating H1/H2/H3 hierarchy & optimizing Title...';
+                this.addLog('AGENT', '📑 Swarm Step 2: Agent [Outline Architect] structuring headings tree.');
+
+                const titleResp = await fetch(config.transformRoute, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': config.csrfToken },
+                    body: JSON.stringify({
+                        text: prompt,
+                        type: 'seo_fix_title',
+                        custom_instruction: "Generate a high-CTR, SEO-optimized title for: '" + prompt + "' frontloading '" + targetKw + "'",
+                        model: this.aiModel
+                    })
+                });
+                const titleData = await titleResp.json();
+                if (titleData.success && titleData.result) {
+                    const cleanTitle = titleData.result.replace(/^["'#\s]+|["'\s]+$/g, '').trim();
+                    this.title = cleanTitle;
+                    Livewire.dispatch('applyTitle', { title: cleanTitle });
+                    this.addLog('SEO', 'Agent [Outline Architect] applied optimized Title: "' + cleanTitle + '"');
+                }
+
+                // STEP 3: DRAFTSMAN (Full Technical Deep-Dive Synthesis)
+                this.swarmStepIndex = 3;
+                this.activeSwarmAgent = 'draftsman';
+                this.swarmStatusMessage = 'Agent 5 (Deep Section Draftsman) drafting comprehensive technical sections...';
+                this.addLog('AGENT', '✍️ Swarm Step 3: Agent [Draftsman] synthesizing comprehensive sections...');
+
+                await this.triggerAiTransform('custom', "Write an authoritative, technical long-form masterclass guide on: '" + prompt + "'. Include introduction with quick answer box, structured H2 and H3 headings, technical architecture, and real-world implementation details.", 'document');
+
+                // STEP 4: RICH MEDIA & DATA ENGINEER (Comparison Table & FAQ Block)
+                this.swarmStepIndex = 4;
+                this.activeSwarmAgent = 'rich_media';
+                this.swarmStatusMessage = 'Agent 6 (Rich Media Engineer) generating technical comparison table & FAQ schema...';
+                this.addLog('AGENT', '▦ Swarm Step 4: Agent [Rich Media & Data Engineer] building comparison table & schema FAQ.');
+
+                const tableResp = await fetch(config.transformRoute, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': config.csrfToken },
+                    body: JSON.stringify({
+                        text: ed.getText().substring(0, 1500),
+                        type: 'comparison_table',
+                        custom_instruction: "Create a feature comparison matrix table with technical specs, pros/cons, and metrics for '" + targetKw + "'",
+                        model: this.aiModel
+                    })
+                });
+                const tableData = await tableResp.json();
+                if (tableData.success && tableData.result) {
+                    this.insertContentIntoCanvas('<p></p>' + tableData.result, true);
+                    this.addLog('ASSETS', 'Agent [Rich Media Engineer] inserted interactive comparison table.');
+                }
+
+                // STEP 5: RANK MATH 100/100 & META OPTIMIZER (Meta Description & Final Assembly)
+                this.swarmStepIndex = 5;
+                this.activeSwarmAgent = 'rankmath_optimizer';
+                this.swarmStatusMessage = 'Agent 8 & 10 (Rank Math Optimizer & Assembler) finalizing 100/100 SEO & Meta...';
+                this.addLog('AGENT', '⌁ Swarm Step 5: Agent [Rank Math Optimizer] generating meta description & verifying SEO score.');
+
+                const metaResp = await fetch(config.transformRoute, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': config.csrfToken },
+                    body: JSON.stringify({
+                        text: ed.getText().substring(0, 1200),
+                        type: 'seo_fix_meta',
+                        custom_instruction: "Generate a punchy 155-character meta description with focus keyword '" + targetKw + "'",
+                        model: this.aiModel
+                    })
+                });
+                const metaData = await metaResp.json();
+                if (metaData.success && metaData.result) {
+                    const cleanMeta = metaData.result.replace(/^["'\s]+|["'\s]+$/g, '').trim();
+                    this.metaDescription = cleanMeta;
+                    Livewire.dispatch('applyMetaDescription', { metaDescription: cleanMeta });
+                    this.addLog('SEO', 'Agent [Rank Math Optimizer] generated Meta Description (' + cleanMeta.length + ' chars).');
+                }
+
+                const finalHtml = ed.getHTML();
+                Livewire.dispatch('autosave', { html: finalHtml, json: null });
+                this.saveLocalDraft(finalHtml);
+                this.updateOutline();
+                this.updateActiveFormats();
+                this.addLog('SYSTEM', '🚀 Multi-Agent Swarm successfully published complete human-grade article!');
+            } catch (e) {
+                this.aiErrorMessage = e.message;
+                this.addLog('ERROR', 'Swarm execution interrupted: ' + e.message);
+            } finally {
+                this.isTransforming = false;
+                this.activeSwarmAgent = null;
+                this.swarmStatusMessage = '';
+            }
+        },
+
+        async applyTargetedIntelligenceFix(checkId, title, aiPrompt, targetType = 'insert') {
+            this.closeContextMenu();
+            this.showInlineAiPrompt = false;
+            this.aiErrorMessage = '';
+            const ed = this.getEditor();
+            if (!ed) return;
+
+            this.isTransforming = true;
+            this.activeAction = checkId;
+            this.showAiStreamBanner = true;
+            this.liveAiStreamText = '';
+            this.abortController = new AbortController();
+
+            const currentFullHtml = ed.getHTML ? ed.getHTML() : '';
+            const currentText = ed.getText ? ed.getText() : '';
+
+            // 1. SURGICAL TARGET: DOCUMENT TITLE
+            if (targetType === 'title' || checkId === 'kw_in_title' || checkId === 'kw_at_beginning_of_title' || checkId === 'title_has_number' || checkId === 'title_has_power_word') {
+                this.addLog('SEO', 'Surgically optimizing Title for focus keyword: ' + this.targetKeyword);
+                try {
+                    const resp = await fetch(config.transformRoute, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': config.csrfToken
+                        },
+                        body: JSON.stringify({
+                            text: this.title || currentText.substring(0, 300) || 'Untitled Document',
+                            type: 'seo_fix_title',
+                            custom_instruction: aiPrompt || ("Rewrite the title to naturally front-load '" + this.targetKeyword + "'"),
+                            model: this.aiModel
+                        })
+                    });
+                    const data = await resp.json();
+                    if (data.success && data.result) {
+                        const cleanTitle = data.result.replace(/^["'#\s]+|["'\s]+$/g, '').trim();
+                        this.title = cleanTitle;
+                        if (window.Livewire) {
+                            Livewire.dispatch('applyTitle', { title: cleanTitle });
+                        }
+                        this.addLog('SEO', 'Updated Title to: ' + cleanTitle);
+                    }
+                } catch (e) {
+                    this.aiErrorMessage = e.message;
+                } finally {
+                    this.isTransforming = false;
+                    this.showAiStreamBanner = false;
+                }
+                return;
+            }
+
+            // 2. SURGICAL TARGET: META DESCRIPTION
+            if (targetType === 'meta' || checkId === 'kw_in_meta') {
+                this.addLog('SEO', 'Surgically generating Meta Description...');
+                try {
+                    const resp = await fetch(config.transformRoute, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': config.csrfToken
+                        },
+                        body: JSON.stringify({
+                            text: currentText.substring(0, 1000) || this.title || 'Document Context',
+                            type: 'seo_fix_meta',
+                            custom_instruction: aiPrompt || ("Generate a 155-character meta description featuring '" + this.targetKeyword + "'"),
+                            model: this.aiModel
+                        })
+                    });
+                    const data = await resp.json();
+                    if (data.success && data.result) {
+                        const cleanMeta = data.result.replace(/^["'\s]+|["'\s]+$/g, '').trim();
+                        this.metaDescription = cleanMeta;
+                        if (window.Livewire) {
+                            Livewire.dispatch('applyMetaDescription', { metaDescription: cleanMeta });
+                        }
+                        this.addLog('SEO', 'Updated Meta Description (' + cleanMeta.length + ' chars)');
+                    }
+                } catch (e) {
+                    this.aiErrorMessage = e.message;
+                } finally {
+                    this.isTransforming = false;
+                    this.showAiStreamBanner = false;
+                }
+                return;
+            }
+
+            // 3. SURGICAL TARGET: INTRODUCTION PARAGRAPHS ONLY (Preserves rest of canvas)
+            if (targetType === 'intro' || checkId === 'kw_in_intro') {
+                this.addLog('SEO', 'Surgically rewriting opening introduction paragraphs only...');
+                
+                const parser = new DOMParser();
+                const docDom = parser.parseFromString(currentFullHtml || '<p></p>', 'text/html');
+                const paragraphs = docDom.querySelectorAll('p');
+                let openingHtml = '';
+                let count = 0;
+                paragraphs.forEach(p => {
+                    if (count < 2) {
+                        openingHtml += p.outerHTML;
+                        count++;
+                    }
+                });
+                if (!openingHtml) {
+                    openingHtml = '<p>' + currentText.substring(0, 300) + '</p>';
+                }
+
+                try {
+                    const resp = await fetch(config.transformRoute, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': config.csrfToken
+                        },
+                        body: JSON.stringify({
+                            text: openingHtml,
+                            type: 'seo_fix_intro',
+                            custom_instruction: aiPrompt || ("Rewrite only these opening paragraphs to front-load '" + this.targetKeyword + "'"),
+                            model: this.aiModel
+                        })
+                    });
+                    const data = await resp.json();
+                    if (data.success && data.result) {
+                        const newIntro = data.result.trim();
+                        
+                        let remainingHtml = '';
+                        let skipped = 0;
+                        docDom.body.childNodes.forEach(node => {
+                            if (node.nodeName.toLowerCase() === 'p' && skipped < 2) {
+                                skipped++;
+                            } else {
+                                remainingHtml += (node.outerHTML || node.textContent || '');
+                            }
+                        });
+
+                        const finalCleanHtml = newIntro + (remainingHtml ? '<p></p>' + remainingHtml : '');
+                        ed.setContent(finalCleanHtml, true);
+                        Livewire.dispatch('autosave', { html: finalCleanHtml, json: null });
+                        this.saveLocalDraft(finalCleanHtml);
+                        this.updateOutline();
+                        this.addLog('SEO', 'Surgically updated introduction. Rest of document 100% preserved.');
+                    }
+                } catch (e) {
+                    this.aiErrorMessage = e.message;
+                } finally {
+                    this.isTransforming = false;
+                    this.showAiStreamBanner = false;
+                }
+                return;
+            }
+
+            // 4. SURGICAL TARGET: INSERT COMPONENT / BLOCK ONLY (Tables, FAQ, Citations, Callouts)
+            this.addLog('SEO', 'Generating targeted section element [' + checkId + '] without rewriting document...');
+            try {
+                let promptType = 'custom';
+                if (checkId === 'comparison_table' || checkId === 'rich_media') promptType = 'comparison_table';
+                else if (checkId === 'generate_faq' || checkId === 'faq') promptType = 'generate_faq';
+                else if (checkId === 'external_links') promptType = 'seo_fix_citations';
+                else if (checkId === 'kw_in_subheadings' || checkId === 'headings_toc') promptType = 'seo_fix_subheadings';
+                else if (checkId === 'quick_answer') promptType = 'quick_answer';
+
+                const resp = await fetch(config.transformRoute, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': config.csrfToken
+                    },
+                    body: JSON.stringify({
+                        text: this.hasSelection ? this.selectedText : currentText.substring(0, 1500),
+                        type: promptType,
+                        custom_instruction: aiPrompt || 'Generate only the requested component in clean HTML',
+                        model: this.aiModel
+                    })
+                });
+
+                const data = await resp.json();
+                if (data.success && data.result) {
+                    const blockToInsert = data.result.trim();
+                    
+                    if (this.hasSelection && typeof ed.replaceSelection === 'function') {
+                        ed.replaceSelection(blockToInsert);
+                        this.addLog('SEO', 'Surgically replaced selected paragraph with AI optimization.');
+                    } else {
+                        this.insertContentIntoCanvas(blockToInsert, true);
+                        this.addLog('SEO', 'Surgically inserted ' + title + ' into document.');
+                    }
+
+                    const finalHtml = ed.getHTML ? ed.getHTML() : '';
+                    Livewire.dispatch('autosave', { html: finalHtml, json: null });
+                    this.saveLocalDraft(finalHtml);
+                    this.updateOutline();
+                }
+            } catch (e) {
+                this.aiErrorMessage = e.message;
+            } finally {
+                this.isTransforming = false;
+                this.showAiStreamBanner = false;
+            }
+        },
+
+        async triggerAiTransform(type, customInstruction = '', placementMode = 'auto') {
             this.closeContextMenu();
             this.showInlineAiPrompt = false;
             this.aiErrorMessage = '';
             const ed = this.editorInstance || window.hoaEditorInstance;
-            const targetText = this.hasSelection ? this.selectedText : (ed ? ed.getText() : '');
+            const hadSelection = !!(this.hasSelection && this.selectedText && this.selectedText.trim().length > 0);
+            const targetText = hadSelection ? this.selectedText : (ed ? ed.getText() : '');
+
+            // Determine explicit surgical placement
+            let effectivePlacement = placementMode;
+            if (effectivePlacement === 'auto') {
+                if (hadSelection) {
+                    if (['continue', 'generate_faq', 'comparison_table', 'key_takeaways', 'quick_answer', 'action_items', 'insert_below'].includes(type)) {
+                        effectivePlacement = 'insert_below';
+                    } else {
+                        effectivePlacement = 'replace_selection';
+                    }
+                } else {
+                    effectivePlacement = 'document';
+                }
+            }
             
             this.isTransforming = true;
             this.activeAction = type;
             this.liveAiStreamText = '';
             this.showAiStreamBanner = true;
             this.abortController = new AbortController();
+            const signal = this.abortController.signal;
 
             let promptToSend = customInstruction || this.aiPrompt;
             if (!promptToSend || !promptToSend.trim()) {
@@ -644,7 +1035,7 @@ document.addEventListener('alpine:init', () => {
             let firstTokenReceived = false;
 
             const selectedPipelineStages = Object.keys(this.pipelineStages).filter(k => this.pipelineStages[k].enabled);
-            this.addLog('AI', 'Dispatched pipeline [' + type + '] with ' + selectedPipelineStages.length + ' active stages to OmniRoute router.');
+            this.addLog('AI', 'Dispatched pipeline [' + type + '] (' + effectivePlacement + ') with ' + selectedPipelineStages.length + ' active stages to OmniRoute.');
 
             try {
                 const response = await fetch(config.streamRoute, {
@@ -724,8 +1115,9 @@ document.addEventListener('alpine:init', () => {
                     }
 
                     // STREAM DIRECTLY INTO TIPTAP PROSEMIRROR CANVAS (Throttled for 60fps smoothness)
+                    // Only stream into full canvas if not currently replacing a localized selection
                     const now = performance.now();
-                    if (now - lastCanvasUpdate > 60 && ed && fullResult.length > 0) {
+                    if (now - lastCanvasUpdate > 60 && ed && fullResult.length > 0 && effectivePlacement === 'document') {
                         lastCanvasUpdate = now;
                         if (isDocEmpty) {
                             ed.setContent(fullResult, false);
@@ -743,30 +1135,47 @@ document.addEventListener('alpine:init', () => {
                 this.isTransforming = false;
                 this.liveAiStreamText = '';
 
-                // FINAL PERSISTENCE & AUTOSAVE
+                // FINAL PERSISTENCE & SURGICAL PLACEMENT
                 if (fullResult.trim().length > 0 && ed) {
-                    const finalHtml = isDocEmpty 
-                        ? fullResult 
-                        : existingDocContent + '<p></p>' + fullResult;
+                    if (hadSelection && effectivePlacement === 'replace_selection') {
+                        // 1. SURGICALLY REPLACE ONLY THE SELECTED TEXT (Rest of document 100% untouched)
+                        if (typeof ed.replaceSelection === 'function') {
+                            ed.replaceSelection(fullResult);
+                        } else if (typeof ed.insertContent === 'function') {
+                            ed.insertContent(fullResult);
+                        }
+                        this.addLog('AI', 'Surgically replaced selected text with AI transformation.');
+                    } else if (hadSelection && effectivePlacement === 'insert_below') {
+                        // 2. INSERT IMMEDIATELY BELOW SELECTION
+                        this.insertContentIntoCanvas('<p></p>' + fullResult, true);
+                        this.addLog('AI', 'Inserted AI section immediately below selected text.');
+                    } else {
+                        // 3. FULL CANVAS LEVEL GENERATION
+                        const finalHtml = isDocEmpty 
+                            ? fullResult 
+                            : existingDocContent + '<p></p>' + fullResult;
 
-                    ed.setContent(finalHtml, true);
-                    const savedHtml = ed.getHTML ? ed.getHTML() : finalHtml;
-                    
+                        ed.setContent(finalHtml, true);
+                        this.addLog('GENERATE', 'Completed generation in canvas (' + fullResult.length + ' chars)');
+
+                        // Inferred Document Title Auto-Update only if document was initially empty
+                        if (isDocEmpty) {
+                            const h1Match = fullResult.match(/<h1>(.*?)<\/h1>/i) || fullResult.match(/^#\s+(.*?)$/m);
+                            if (h1Match && h1Match[1]) {
+                                const extractedTitle = h1Match[1].replace(/<[^>]*>/g, '').trim();
+                                if (extractedTitle) {
+                                    Livewire.dispatch('updateTitle', { newTitle: extractedTitle });
+                                    this.addLog('SEO', 'Auto-applied document title: "' + extractedTitle.substring(0, 30) + '..."');
+                                }
+                            }
+                        }
+                    }
+
+                    const savedHtml = ed.getHTML ? ed.getHTML() : '';
                     Livewire.dispatch('autosave', { html: savedHtml, json: null });
                     this.saveLocalDraft(savedHtml);
                     this.updateOutline();
                     this.updateActiveFormats();
-                    this.addLog('GENERATE', 'Completed generation directly in canvas (' + fullResult.length + ' chars)');
-
-                    // Inferred Document Title Auto-Update
-                    const h1Match = fullResult.match(/<h1>(.*?)<\/h1>/i) || fullResult.match(/^#\s+(.*?)$/m);
-                    if (h1Match && h1Match[1]) {
-                        const extractedTitle = h1Match[1].replace(/<[^>]*>/g, '').trim();
-                        if (extractedTitle) {
-                            Livewire.dispatch('updateTitle', { newTitle: extractedTitle });
-                            this.addLog('SEO', 'Auto-applied document title: "' + extractedTitle.substring(0, 30) + '..."');
-                        }
-                    }
                 }
 
                 this.aiHistory.unshift({
@@ -790,6 +1199,7 @@ document.addEventListener('alpine:init', () => {
             } finally {
                 this.isTransforming = false;
                 this.activeAction = null;
+                this.abortController = null;
                 setTimeout(() => {
                     if (!this.isTransforming) {
                         this.showAiStreamBanner = false;

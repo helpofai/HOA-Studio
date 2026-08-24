@@ -25,6 +25,9 @@
 
 namespace App\Features\AI\Http\Controllers;
 
+use App\Core\Exceptions\AiProviderDownException;
+use App\Core\Exceptions\AiRateLimitException;
+use App\Core\Exceptions\AiTokenLimitException;
 use App\Features\AI\Actions\RecordGenerationUsage;
 use App\Features\AI\Actions\TransformText;
 use App\Features\AI\Services\AiCircuitBreaker;
@@ -214,6 +217,10 @@ class AiStreamController extends Controller
                     ob_flush();
                 }
                 flush();
+            } catch (AiTokenLimitException $e) {
+                echo "event: error\ndata: " . json_encode(['message' => 'Token limit exceeded.']) . "\n\n";
+            } catch (AiProviderDownException $e) {
+                echo "event: error\ndata: " . json_encode(['message' => 'Provider unavailable.']) . "\n\n";
             } catch (Exception $e) {
                 echo "event: error\n";
                 echo "data: " . json_encode(['message' => $e->getMessage()]) . "\n\n";
@@ -304,6 +311,10 @@ class AiStreamController extends Controller
                     ob_flush();
                 }
                 flush();
+            } catch (AiTokenLimitException $e) {
+                echo "event: error\ndata: " . json_encode(['message' => 'Token limit exceeded.']) . "\n\n";
+            } catch (AiProviderDownException $e) {
+                echo "event: error\ndata: " . json_encode(['message' => 'Provider unavailable.']) . "\n\n";
             } catch (Exception $e) {
                 echo "event: error\n";
                 echo "data: " . json_encode(['message' => $e->getMessage()]) . "\n\n";

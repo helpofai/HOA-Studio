@@ -25,54 +25,38 @@
 
 namespace App\Features\KnowledgeBase\Models;
 
-use App\Features\Projects\Models\Project;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class KnowledgeSource extends Model
+class VectorEmbeddingCache extends Model
 {
     use HasFactory;
 
-    protected $table = 'knowledge_sources';
+    protected $table = 'vector_embeddings_cache';
 
     protected $fillable = [
         'user_id',
-        'project_id',
-        'title',
-        'source_type',
-        'category',
-        'file_path',
-        'content',
-        'status',
-        'is_active',
-        'metadata',
+        'hash',
+        'model',
+        'dimensions',
+        'vector',
+        'token_count',
+        'hit_count',
+        'last_accessed_at',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
-        'metadata' => 'array',
+        'vector' => 'array',
+        'dimensions' => 'integer',
+        'token_count' => 'integer',
+        'hit_count' => 'integer',
+        'last_accessed_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function project(): BelongsTo
-    {
-        return $this->belongsTo(Project::class);
-    }
-
-    public function chunks(): HasMany
-    {
-        return $this->hasMany(KnowledgeChunk::class);
-    }
-
-    public function orderedChunks(): HasMany
-    {
-        return $this->hasMany(KnowledgeChunk::class)->orderBy('chunk_index', 'asc');
     }
 }

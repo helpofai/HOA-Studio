@@ -57,12 +57,15 @@
          }"
     >
         <!-- COLUMN 1: AI COMMAND CENTER (Desktop inline / Mobile Drawer) -->
-        <div 
+        <div
             x-show="showLeftPanel"
             x-transition
             class="order-2 lg:order-1"
+            x-init="leftPanelLoaded = true"
         >
-            <x-editor.ai-command-center :availableAiModels="$availableAiModels" />
+            <template x-if="leftPanelLoaded">
+                @include('editor.partial.ai-command-center')
+            </template>
         </div>
 
         <!-- COLUMN 2: MAIN WRITING WORKSPACE (Central Focus) -->
@@ -71,12 +74,15 @@
         </div>
 
         <!-- COLUMN 3: CONTENT INTELLIGENCE & SEO AUDIT (Desktop inline / Mobile Drawer) -->
-        <div 
+        <div
             x-show="showRightPanel"
             x-transition
             class="order-3"
+            x-init="rightPanelLoaded = true"
         >
-            @include('editor.partial.content-intelligence')
+            <template x-if="rightPanelLoaded">
+                @include('editor.partial.content-intelligence')
+            </template>
         </div>
     </div>
 

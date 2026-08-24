@@ -47,7 +47,11 @@ class ProcessKnowledgeSource
         $chunksData = $this->chunker->chunk($source->content);
 
         foreach ($chunksData as $c) {
-            $embedding = $this->vectorEngine->generateEmbedding($c['content']);
+            $embedding = $this->vectorEngine->generateEmbedding(
+                text: $c['content'],
+                model: 'text-embedding-3-small',
+                user: $source->user
+            );
 
             KnowledgeChunk::create([
                 'knowledge_source_id' => $source->id,

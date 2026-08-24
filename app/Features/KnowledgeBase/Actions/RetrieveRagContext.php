@@ -35,13 +35,26 @@ class RetrieveRagContext
     ) {}
 
     /**
-     * Retrieve matching knowledge base chunks and format as a structured RAG context prompt block
+     * Retrieve matching knowledge base chunks via Hybrid Search and format as a structured RAG context prompt block
      */
-    public function execute(User $user, string $query, int $limit = 4, ?int $projectId = null): array
-    {
-        $chunks = $this->vectorEngine->search($user, $query, $limit, $projectId);
+    public function execute(
+        User $user,
+        string $query,
+        int $limit = 4,
+        ?int $projectId = null,
+        ?string $category = null,
+        float $minSimilarity = 0.50
+    ): array {
+        $results = $this->vectorEngine->hybridSearch(
+            user: $user,
+            query: $query,
+            topK: $limit,
+            minSimilarity: $minSimilarity,
+            projectId: $projectId,
+            category: $category
+        );
 
-        if (empty($chunks)) {
+        if (empty($results)) {
             return [
                 'has_context' => false,
                 'prompt_snippet' => '',
@@ -51,23 +64,40 @@ class RetrieveRagContext
         }
 
         $totalTokens = 0;
-        $snippet = "=== RETRIEVED KNOWLEDGE BASE CONTEXT ===\n";
-        $snippet .= "Use the following verified company knowledge and reference data to answer or generate content accurately:\n\n";
+        $snippet = "=== RETRIEVED USER BRAIN & KNOWLEDGE BASE CONTEXT ===\n";
+        $snippet .= "Use the following verified user knowledge, brand facts, and reference data to ground your content accurately:\n\n";
 
-        foreach ($chunks as $idx => $chunk) {
+        $formattedChunks = [];
+        foreach ($results as $idx => $item) {
             $sourceNum = $idx + 1;
-            $snippet .= "[Source {$sourceNum}: {$chunk['source_title']} (Relevance: " . round($chunk['score'] * 100) . "%)]\n";
-            $snippet .= trim($chunk['content']) . "\n\n";
-            $totalTokens += $chunk['token_count'];
+            $chunk = $item['chunk'];
+            $title = $item['source_title'] ?? 'Knowledge Source';
+            $categoryName = strtoupper($item['category'] ?? 'GENERAL');
+            $relevancePercent = round(($item['score'] ?? 0.8) * 100);
+
+            $snippet .= "[Source {$sourceNum}: {$title} | {$categoryName} | Match: {$relevancePercent}%]\n";
+            $snippet .= trim($chunk->content) . "\n\n";
+            
+            $tokens = $chunk->token_count > 0 ? $chunk->token_count : (int) ceil(mb_strlen($chunk->content) / 4);
+            $totalTokens += $tokens;
+
+            $formattedChunks[] = [
+                'id' => $chunk->id,
+                'source_title' => $title,
+                'category' => $item['category'] ?? 'general_docs',
+                'content' => $chunk->content,
+                'score' => $item['score'],
+                'token_count' => $tokens,
+            ];
         }
 
-        $snippet .= "=== END KNOWLEDGE CONTEXT ===\n";
-        $snippet .= "Strictly ground your response in the provided knowledge base facts. Do not fabricate information.";
+        $snippet .= "=== END USER BRAIN CONTEXT ===\n";
+        $snippet .= "Strictly maintain accuracy based on the provided facts and brand tone. Do not fabricate unverifiable claims.\n";
 
         return [
             'has_context' => true,
             'prompt_snippet' => $snippet,
-            'chunks' => $chunks,
+            'chunks' => $formattedChunks,
             'total_tokens' => $totalTokens,
         ];
     }

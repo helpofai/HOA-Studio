@@ -51,3 +51,82 @@
   box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
+/* ==========================================
+   EDITOR COMPONENT UTILITIES
+   ========================================== */
+
+/* Main editor column container (left/right sidebars) */
+@utility editor-column {
+  @apply glass-standard rounded-xl text-slate-100 transition-all duration-200 p-4 space-y-4 border border-white/10 shadow-xl flex flex-col justify-between overflow-y-auto;
+  
+  /* Custom scrollbar applied via class */
+  &.hoa-custom-scrollbar {
+    &::-webkit-scrollbar { width: 6px; height: 6px; }
+    &::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); border-radius: 8px; }
+    &::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.4); border-radius: 8px; }
+    &::-webkit-scrollbar-thumb:hover { background: rgba(129, 140, 248, 0.7); }
+  }
+  
+  max-height: var(--editor-max-height);
+  min-height: var(--editor-min-height);
+}
+
+/* Toolbar container (top bar) */
+@utility editor-toolbar {
+  @apply glass-elevated rounded-2xl border border-white/10 shadow-xl p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4;
+  z-index: var(--z-index-toolbar);
+}
+
+/* Floating AI command center / floating toolbars */
+@utility editor-floating-panel {
+  @apply glass-elevated rounded-2xl border border-indigo-500/50 shadow-[0_25px_60px_rgba(0,0,0,0.95)] backdrop-blur-2xl p-1.5 min-w-[240px] text-xs font-sans space-y-0.5 select-none;
+  z-index: var(--z-index-floating);
+}
+
+/* Floating button group (e.g., floating action buttons) */
+@utility editor-floating-actions {
+  @apply glass-premium rounded-2xl border border-indigo-500/60 shadow-[0_25px_60px_rgba(0,0,0,0.9)] backdrop-blur-2xl p-1.5 flex flex-wrap items-center gap-1 text-xs;
+  z-index: var(--z-index-floating);
+}
+
+/* Status bar at bottom of editor */
+@utility editor-statusbar {
+  @apply glass-elevated rounded-2xl border border-white/10 p-3 flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-slate-400 sticky bottom-0 z-20 mt-4;
+}
+
+/* ==========================================
+   EDITOR LAYOUT GRID UTILITIES
+   ========================================== */
+
+@utility editor-grid {
+  @apply grid grid-cols-1 gap-4 items-stretch;
+}
+
+@utility layout-three-panel {
+  @apply lg:grid-cols-[320px_1fr_360px] xl:grid-cols-[340px_1fr_380px];
+}
+
+@utility layout-left-only {
+  @apply lg:grid-cols-[320px_1fr] xl:grid-cols-[340px_1fr];
+}
+
+@utility layout-right-only {
+  @apply lg:grid-cols-[1fr_360px] xl:grid-cols-[1fr_380px];
+}
+
+@utility layout-center-only {
+  @apply lg:grid-cols-1 max-w-5xl mx-auto w-full;
+}
+
+/* Main editor canvas area */
+@utility editor-canvas {
+  @apply glass-elevated rounded-2xl border border-white/15 shadow-2xl relative flex flex-col;
+  max-height: var(--editor-max-height);
+  min-height: var(--editor-min-height);
+}
+
+/* Overlay/drawer base (mobile drawers) */
+@utility editor-overlay {
+  @apply fixed inset-0 glass-premium;
+  z-index: var(--z-index-overlay);
+}
