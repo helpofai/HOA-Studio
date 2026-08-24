@@ -19,8 +19,12 @@
         documentId: {{ $documentId }},
         editorType: '{{ $editorType }}',
         streamRoute: '{{ route('ai.stream-transform') }}',
+        transformRoute: '{{ route('ai.transform') }}',
         csrfToken: '{{ csrf_token() }}',
-        initialContent: @js($contentHtml)
+        initialContent: @js($contentHtml),
+        providers: @js($availableProviders),
+        initialModels: @js($availableAiModels->map(fn($m) => ['id' => $m->model_id, 'name' => $m->name, 'provider_slug' => $m->provider?->slug ?? 'omniroute'])),
+        modelsUrl: '{{ route('ai.providers.models') }}'
     })"
     x-init="init()"
 >
@@ -62,7 +66,7 @@
             x-transition
             class="order-2 lg:order-1 h-full flex flex-col"
         >
-            <x-editor.ai-command-center :availableAiModels="$availableAiModels" />
+            @include('editor.partial.ai-command-center')
         </div>
 
         <!-- COLUMN 2: MAIN WRITING WORKSPACE (Central Focus) -->

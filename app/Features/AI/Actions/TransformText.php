@@ -132,6 +132,20 @@ EOT;
         $customInstruction = $options['custom_instruction'] ?? null;
         $systemPrompt = $this->getSystemPrompt($transformationType, $customInstruction);
 
+        $context = $options['context'] ?? [];
+        $fullDocText = $context['full_document_text'] ?? null;
+        $targetKeyword = $context['target_keyword'] ?? null;
+        $docTitle = $context['document_title'] ?? null;
+
+        if ($fullDocText && trim($fullDocText) !== '') {
+            $systemPrompt .= "\n\n=== CURRENT FULL DOCUMENT CONTEXT ===\n";
+            if ($docTitle) $systemPrompt .= "Document Title: " . $docTitle . "\n";
+            if ($targetKeyword) $systemPrompt .= "Focus SEO Keyword: " . $targetKeyword . "\n";
+            $systemPrompt .= "Full Article Body:\n\"\"\"\n" . mb_substr($fullDocText, 0, 15000) . "\n\"\"\"\n";
+            $systemPrompt .= "=== END OF FULL DOCUMENT CONTEXT ===\n\n";
+            $systemPrompt .= "CRITICAL INSTRUCTION: Write ONLY the rewritten/transformed output for the target text snippet. Do NOT reproduce or repeat the full article.";
+        }
+
         // Ground with Knowledge Base RAG context if available
         try {
             $ragAction = app(\App\Features\KnowledgeBase\Actions\RetrieveRagContext::class);

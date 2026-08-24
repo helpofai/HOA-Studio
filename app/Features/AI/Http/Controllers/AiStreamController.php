@@ -73,11 +73,21 @@ class AiStreamController extends Controller
             'temperature' => 'nullable|numeric|min:0|max:2',
         ]);
 
+        $context = $request->input('context', []);
+        $fullDocText = $context['full_document_text'] ?? null;
+        $targetKeyword = $context['target_keyword'] ?? null;
+        $docTitle = $context['document_title'] ?? null;
+
         try {
             $result = $action->execute($user, $validated['text'], $validated['type'], [
                 'model' => $validated['model'] ?? null,
                 'custom_instruction' => $validated['custom_instruction'] ?? null,
                 'temperature' => $validated['temperature'] ?? 0.7,
+                'context' => [
+                    'full_document_text' => $fullDocText,
+                    'target_keyword' => $targetKeyword,
+                    'document_title' => $docTitle,
+                ]
             ]);
 
             return response()->json([
@@ -149,11 +159,34 @@ class AiStreamController extends Controller
             ]);
         }
 
-        $userContent = !empty($validated['custom_instruction']) && ($validated['text'] === 'Document Context' || empty(trim($validated['text'])))
-            ? $validated['custom_instruction']
-            : ($validated['text'] . (!empty($validated['custom_instruction']) ? "\n\nInstruction: " . $validated['custom_instruction'] : ''));
+        $context = $request->input('context', []);
+        $hasSelection = !empty($context['has_selection']) && !empty($context['selected_text']);
+        $fullDocText = $context['full_document_text'] ?? null;
+        $targetKeyword = $context['target_keyword'] ?? null;
+        $docTitle = $context['document_title'] ?? null;
 
         $systemPrompt = $action->getSystemPrompt($validated['type'], $validated['custom_instruction'] ?? null);
+
+        // Ground with full editor state so AI knows every line, keyword, and tone of the whole article
+        if ($fullDocText && trim($fullDocText) !== '') {
+            $systemPrompt .= "\n\n=== CURRENT FULL DOCUMENT CONTEXT ===\n";
+            if ($docTitle) $systemPrompt .= "Document Title: " . $docTitle . "\n";
+            if ($targetKeyword) $systemPrompt .= "Focus SEO Keyword: " . $targetKeyword . "\n";
+            $systemPrompt .= "Full Article Body:\n\"\"\"\n" . mb_substr($fullDocText, 0, 15000) . "\n\"\"\"\n";
+            $systemPrompt .= "=== END OF FULL DOCUMENT CONTEXT ===\n\n";
+        }
+
+        if ($hasSelection) {
+            $systemPrompt .= "CRITICAL INSTRUCTION: The user has selected a specific section/phrase in their document. Your task is to ONLY write the rewritten, improved, or expanded content for this SELECTED SECTION. Do NOT rewrite the entire article or repeat preceding/succeeding sections. Seamlessly match the tone, terminology, and flow of the surrounding full document.";
+            $userContent = "SELECTED TARGET TEXT TO TRANSFORM:\n\"\"\"\n" . $context['selected_text'] . "\n\"\"\"";
+            if (!empty($validated['custom_instruction'])) {
+                $userContent .= "\n\nSpecific Transformation Directive: " . $validated['custom_instruction'];
+            }
+        } else {
+            $userContent = !empty($validated['custom_instruction']) && ($validated['text'] === 'Document Context' || empty(trim($validated['text'])))
+                ? $validated['custom_instruction']
+                : ($validated['text'] . (!empty($validated['custom_instruction']) ? "\n\nInstruction: " . $validated['custom_instruction'] : ''));
+        }
 
         // Ground with Knowledge Base RAG context if available
         try {

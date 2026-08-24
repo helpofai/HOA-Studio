@@ -219,6 +219,17 @@ export class TiptapDriver {
                 return;
             }
 
+            // Check if user has custom dragged the bubble menu
+            const alpineData = window.Alpine && document.querySelector('[x-data]') ? window.Alpine.$data(document.querySelector('[x-data]')) : null;
+            if (alpineData && alpineData.bubblePos && alpineData.bubblePos.x !== null && alpineData.bubblePos.y !== null) {
+                bubbleMenuEl.style.display = 'flex';
+                bubbleMenuEl.style.position = 'fixed';
+                bubbleMenuEl.style.left = `${alpineData.bubblePos.x}px`;
+                bubbleMenuEl.style.top = `${alpineData.bubblePos.y}px`;
+                bubbleMenuEl.style.zIndex = '999999';
+                return;
+            }
+
             const parentContainer = bubbleMenuEl.offsetParent || document.body;
             const parentRect = parentContainer.getBoundingClientRect();
 

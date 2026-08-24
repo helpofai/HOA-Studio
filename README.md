@@ -9,7 +9,7 @@
 [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-v4.0-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![Vite](https://img.shields.io/badge/Vite-8.x-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
 [![OmniRoute](https://img.shields.io/badge/OmniRoute-v3.8.50_Ready-8B5CF6?style=for-the-badge&logo=openai&logoColor=white)](http://127.0.0.1:20128)
-[![Tests](https://img.shields.io/badge/Tests-102%20Passed%20(100%25)-10B981?style=for-the-badge&logo=githubactions&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-115%20Passed%20(100%25)-10B981?style=for-the-badge&logo=githubactions&logoColor=white)](tests/)
 [![License](https://img.shields.io/badge/License-Proprietary-blue?style=for-the-badge)](LICENSE)
 
 <p align="center">
@@ -24,19 +24,23 @@
 
 ## 🌟 Key Features
 
-### 📝 1. Tiptap Pro Rich-Text Editor
-- **Distraction-Free Workspace**: Hardware-accelerated 60fps glassmorphism UI with collapsible sidebar navigation and floating tooltips.
-- **Real-Time Autosave**: Non-blocking background debounced persistence (1500ms) storing structured HTML and ProseMirror JSON schemas.
-- **Milestone Version History**: Create immutable snapshots, inspect version diffs, and restore previous versions with automated rollback safeties.
-- **Reading Time & Telemetry**: Live telemetry calculating total words, character count, and estimated reading time.
+### 📝 1. Tiptap Pro Rich-Text Editor & Multi-Driver Canvas
+- **Multi-Engine Drivers**: Seamlessly switch between **TipTap ProseMirror**, **Notion Block Canvas**, **Gutenberg Block Canvas**, **Markdown Split Screen**, and **Raw HTML** modes.
+- **Granular Git-Style Word Diffing**: Dynamic Programming Longest Common Subsequence (LCS) engine highlights exact word-level deletions (`<del>`) and insertions (`<ins>`) in both **Split** and **Unified** views.
+- **Real-Time Autosave & Local Draft Recovery**: Non-blocking background debounced persistence (1500ms) with automatic browser localStorage backup recovery.
+- **Snapshot Time-Machine Diff**: Milestone version history with inline word-by-word diff comparisons and 1-click snapshot restoration.
+- **Inline Ghost Auto-Completion**: Real-time Copilot/Cursor-style sentence auto-completion with `Tab` to accept and `Esc` to dismiss.
 
-### 🪄 2. Contextual AI Action Suite (SSE Streaming)
+### 🪄 2. Contextual AI Action Suite (SSE Streaming & Multi-Candidate)
+- **Multi-Candidate Generation (Choice Variations)**: Generate and switch between variation candidates (`#1`, `#2`, `#3`) with live style preset regeneration.
+- **Interactive Transform Modifiers**: Live slider controls for Creativity Intensity (`0.3` to `1.0`), Tone Personas (*Professional, Casual, Persuasive, Academic*), and Target Length (*Shorter, Same, Longer*).
 - **15+ Inline AI Operations**:
   - *Rewrite & Polish*: Polish, structural rewrite, and proofreading.
   - *Length & Flow*: Expand, shorten, continuous co-authoring, and TL;DR synthesis.
   - *Tone Shifter*: Professional, Casual, Persuasive, Friendly, Academic, and Direct.
   - *Extraction & Strategy*: Action items checklist extraction, 8th-grade reading simplification, and SEO keyword optimization.
-- **Live SSE Token Streaming**: Server-Sent Events (SSE) deliver sub-50ms Time-To-First-Token (TTFT) rendering directly inside the document.
+- **Live Before-vs-After Telemetry Delta**: Real-time inspection measuring word deltas, Flesch-Kincaid scannability gains, focus keyword frequencies, and power copy verbs before applying.
+- **Live SSE Token Streaming**: Server-Sent Events (SSE) deliver sub-50ms Time-To-First-Token (TTFT) rendering directly inside the document with movable floating actions.
 
 ### 🧠 3. Knowledge Base & RAG Vector Pipeline
 - **Multi-Source Ingestion**: Ingest raw text files, notes, policy manuals, and live web URLs.
@@ -102,19 +106,250 @@
 
 ```mermaid
 erDiagram
-    USERS ||--o{ PROJECTS : owns
-    USERS ||--o{ DOCUMENTS : creates
-    USERS ||--o{ BRAND_PROFILES : defines
-    USERS ||--o{ KNOWLEDGE_SOURCES : uploads
-    USERS ||--o{ GENERATIONS : executes
-    USERS ||--o{ USER_API_KEYS : stores
-    PROJECTS ||--o{ DOCUMENTS : categorizes
-    DOCUMENTS ||--o{ DOCUMENT_VERSIONS : tracks
-    DOCUMENTS ||--o{ DOCUMENT_SHARES : shares
-    DOCUMENTS ||--o{ SEO_ANALYSES : evaluates
-    KNOWLEDGE_SOURCES ||--o{ KNOWLEDGE_CHUNKS : splits
-    TEMPLATES ||--o{ GENERATIONS : generates
-    AI_PROVIDERS ||--o{ AI_MODELS : provides
+    USERS ||--o{ PROJECTS : "owns"
+    USERS ||--o{ DOCUMENTS : "creates"
+    USERS ||--o{ BRAND_PROFILES : "defines"
+    USERS ||--o{ KNOWLEDGE_SOURCES : "uploads"
+    USERS ||--o{ GENERATIONS : "executes"
+    USERS ||--o{ USER_API_KEYS : "stores BYOK"
+    USERS ||--o{ USAGE_LOGS : "records"
+    USERS ||--o{ AUDIT_LOGS : "triggers"
+
+    PROJECTS ||--o{ DOCUMENTS : "categorizes"
+    
+    DOCUMENTS ||--|| DOCUMENT_CONTENTS : "persists html/json"
+    DOCUMENTS ||--o{ DOCUMENT_VERSIONS : "milestone snapshots"
+    DOCUMENTS ||--o{ DOCUMENT_SHARES : "secure public links"
+    DOCUMENTS ||--o{ SEO_ANALYSES : "Rank Math audits"
+    DOCUMENTS ||--o{ DOCUMENT_TAGS : "tagged with"
+
+    TAGS ||--o{ DOCUMENT_TAGS : "classifies"
+
+    KNOWLEDGE_SOURCES ||--o{ KNOWLEDGE_CHUNKS : "semantic chunks (500 tok)"
+    KNOWLEDGE_CHUNKS ||--o{ VECTOR_EMBEDDINGS_CACHE : "vector hash cache"
+
+    TEMPLATE_CATEGORIES ||--o{ TEMPLATES : "groups"
+    TEMPLATES ||--o{ GENERATIONS : "executes"
+
+    AI_PROVIDERS ||--o{ AI_MODELS : "offers"
+    AI_PROVIDERS ||--o{ USER_API_KEYS : "authenticated by"
+    AI_MODELS ||--o{ GENERATIONS : "routed via"
+    AI_MODELS ||--o{ GATEWAY_TELEMETRY_LOGS : "benchmarks latency/health"
+
+    USERS {
+        bigint id PK
+        string name
+        string email UK
+        string password
+        string role "admin, user"
+        string plan "starter, pro, enterprise"
+        integer word_quota
+        integer words_used
+        integer bonus_words
+        timestamp created_at
+    }
+
+    PROJECTS {
+        bigint id PK
+        bigint user_id FK
+        string name
+        string slug UK
+        string description
+        string color
+        timestamp created_at
+    }
+
+    DOCUMENTS {
+        bigint id PK
+        bigint user_id FK
+        bigint project_id FK
+        bigint current_version_id FK
+        string title
+        string slug UK
+        string editor_type "tiptap, notion, gutenberg, markdown"
+        string status "draft, published, archived"
+        integer word_count
+        integer character_count
+        integer reading_time_minutes
+        timestamp updated_at
+    }
+
+    DOCUMENT_CONTENTS {
+        bigint id PK
+        bigint document_id FK
+        longtext content_html
+        json content_json
+    }
+
+    DOCUMENT_VERSIONS {
+        bigint id PK
+        bigint document_id FK
+        integer version_number
+        string summary
+        longtext content_html
+        json content_json
+        integer word_count
+        timestamp created_at
+    }
+
+    DOCUMENT_SHARES {
+        bigint id PK
+        bigint document_id FK
+        string share_token UK
+        string password_hash
+        boolean allow_download
+        boolean allow_copy
+        timestamp expires_at
+        integer view_count
+    }
+
+    SEO_ANALYSES {
+        bigint id PK
+        bigint document_id FK
+        string target_keyword
+        json secondary_keywords
+        integer score "0-100"
+        integer readability_score "0-100"
+        json metrics "headings, images, links, density"
+        json recommendations "Rank Math 4-pillar checks"
+    }
+
+    BRAND_PROFILES {
+        bigint id PK
+        bigint user_id FK
+        string name
+        text description
+        string tone "professional, casual, persuasive"
+        text target_audience
+        text style_guidelines
+        boolean is_default
+    }
+
+    KNOWLEDGE_SOURCES {
+        bigint id PK
+        bigint user_id FK
+        string name
+        string source_type "text, file, url"
+        string cache_ttl "1d, 7d, 30d"
+        integer total_tokens
+    }
+
+    KNOWLEDGE_CHUNKS {
+        bigint id PK
+        bigint knowledge_source_id FK
+        integer chunk_index
+        text chunk_text
+        string embedding_hash UK
+    }
+
+    VECTOR_EMBEDDINGS_CACHE {
+        bigint id PK
+        string hash_key UK
+        json embedding_vector
+        timestamp expires_at
+    }
+
+    TEMPLATE_CATEGORIES {
+        bigint id PK
+        string name
+        string slug UK
+        string icon
+    }
+
+    TEMPLATES {
+        bigint id PK
+        bigint category_id FK
+        string title
+        string slug UK
+        text prompt_template
+        json schema_fields
+        boolean is_active
+    }
+
+    GENERATIONS {
+        bigint id PK
+        bigint user_id FK
+        bigint template_id FK
+        bigint ai_model_id FK
+        text input_prompt
+        longtext output_result
+        integer prompt_tokens
+        integer completion_tokens
+        integer total_words
+        float execution_time_sec
+    }
+
+    USAGE_LOGS {
+        bigint id PK
+        bigint user_id FK
+        bigint generation_id FK
+        string action_type "transform, stream, template"
+        integer words_billed
+        string provider_slug
+        string model_id
+        timestamp created_at
+    }
+
+    AUDIT_LOGS {
+        bigint id PK
+        bigint user_id FK
+        string event "auth, quota, config, admin"
+        string ip_address
+        string user_agent
+        json metadata
+        timestamp created_at
+    }
+
+    TAGS {
+        bigint id PK
+        string name
+        string slug UK
+        string color
+    }
+
+    DOCUMENT_TAGS {
+        bigint id PK
+        bigint document_id FK
+        bigint tag_id FK
+    }
+
+    AI_PROVIDERS {
+        bigint id PK
+        string name
+        string slug UK
+        boolean is_active
+        boolean allow_user_key
+    }
+
+    AI_MODELS {
+        bigint id PK
+        bigint provider_id FK
+        string name
+        string model_id UK
+        integer context_window
+        json capabilities "vision, reasoning, streaming"
+        string health_status "healthy, degraded, offline"
+        integer latency_ms
+        boolean is_active
+    }
+
+    USER_API_KEYS {
+        bigint id PK
+        bigint user_id FK
+        bigint provider_id FK
+        string key_hash
+        text encrypted_api_key "AES-256-GCM"
+        timestamp last_used_at
+    }
+
+    GATEWAY_TELEMETRY_LOGS {
+        bigint id PK
+        bigint model_id FK
+        integer response_time_ms
+        integer status_code
+        string error_message
+        timestamp probed_at
+    }
 ```
 
 ---
@@ -280,7 +515,7 @@ data: {"word_count": 10, "quota_remaining": 49820}
 | Command | Description |
 | :--- | :--- |
 | `php artisan hoa:verify-production` | Runs full system diagnostics for production readiness |
-| `php artisan test` | Runs the 102-test automated test suite (100% passing) |
+| `php artisan test` | Runs the 115-test automated test suite (100% passing) |
 | `php artisan optimize:clear` | Flushes all compiled routes, configs, and blade views |
 | `php artisan config:cache` | Caches all configuration files for production speed |
 | `php artisan route:cache` | Compiles all application routes for fast dispatching |
@@ -311,7 +546,7 @@ php artisan test
  PASS  Tests\Feature\TemplateEngineTest
  PASS  Tests\Feature\UsageTrackingAndQuotasTest
 
-Tests:    102 passed (434 assertions)
+Tests:    115 passed (481 assertions)
 Duration: 24.42s
 Result:   100% Green
 ```

@@ -41,15 +41,95 @@
             <span class="text-[10px] font-mono text-emerald-400 font-bold px-2 py-0.5 rounded-full bg-emerald-600/15 border border-emerald-500/30" x-text="'Goal: ' + Math.min(100, Math.round((wordCount/targetWordGoal)*100)) + '%'"></span>
         </div>
 
-        <!-- Scrollable Tab Navigation Bar -->
-        <div class="flex items-center gap-1.5 p-1.5 rounded-2xl bg-slate-950/80 border border-white/10 text-xs font-mono select-none overflow-x-auto scrollbar-thin scrollbar-thumb-indigo-500/30 whitespace-nowrap shadow-inner">
-            <button type="button" x-on:click="rightTab = 'seo'" :class="rightTab === 'seo' ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold shadow-lg shadow-indigo-600/30 border border-indigo-400/40' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" class="shrink-0 px-3 py-1.5 rounded-xl text-center transition-all cursor-pointer">🎯 Rank Math SEO</button>
-            <button type="button" x-on:click="rightTab = 'titles_meta'" :class="rightTab === 'titles_meta' ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold shadow-lg shadow-indigo-600/30 border border-indigo-400/40' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" class="shrink-0 px-3 py-1.5 rounded-xl text-center transition-all cursor-pointer">✨ Titles & Meta</button>
-            <button type="button" x-on:click="rightTab = 'ai_ideas'" :class="rightTab === 'ai_ideas' ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold shadow-lg shadow-indigo-600/30 border border-indigo-400/40' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" class="shrink-0 px-3 py-1.5 rounded-xl text-center transition-all cursor-pointer">💡 Gaps & FAQs</button>
-            <button type="button" x-on:click="rightTab = 'keywords'" :class="rightTab === 'keywords' ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold shadow-lg shadow-indigo-600/30 border border-indigo-400/40' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" class="shrink-0 px-3 py-1.5 rounded-xl text-center transition-all cursor-pointer">🏷️ Keywords</button>
-            <button type="button" x-on:click="rightTab = 'quality'" :class="rightTab === 'quality' ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold shadow-lg shadow-indigo-600/30 border border-indigo-400/40' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" class="shrink-0 px-3 py-1.5 rounded-xl text-center transition-all cursor-pointer">🏆 E-E-A-T Audit</button>
-            <button type="button" x-on:click="rightTab = 'outline'" :class="rightTab === 'outline' ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold shadow-lg shadow-indigo-600/30 border border-indigo-400/40' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" class="shrink-0 px-3 py-1.5 rounded-xl text-center transition-all cursor-pointer">📑 Outline</button>
-            <button type="button" x-on:click="rightTab = 'versions'" :class="rightTab === 'versions' ? 'bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold shadow-lg shadow-indigo-600/30 border border-indigo-400/40' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" class="shrink-0 px-3 py-1.5 rounded-xl text-center transition-all cursor-pointer">🕒 Snapshots</button>
+        <!-- Responsive Multi-Row Tab Navigation Grid -->
+        <div class="grid grid-cols-4 gap-1 p-1.5 rounded-2xl bg-slate-950/90 border border-white/10 text-xs font-mono select-none shadow-inner backdrop-blur-md">
+            <button 
+                type="button" 
+                x-on:click="rightTab = 'seo'" 
+                :class="rightTab === 'seo' ? 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-white font-bold shadow-md shadow-indigo-600/30 border border-indigo-400/50' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" 
+                class="py-2 px-1 rounded-xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5"
+                title="Rank Math 100/100 SEO Audit"
+            >
+                <span class="text-sm">🎯</span>
+                <span class="text-[10px] font-bold truncate w-full">SEO</span>
+            </button>
+
+            <button 
+                type="button" 
+                x-on:click="rightTab = 'titles_meta'" 
+                :class="rightTab === 'titles_meta' ? 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-white font-bold shadow-md shadow-indigo-600/30 border border-indigo-400/50' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" 
+                class="py-2 px-1 rounded-xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5"
+                title="Viral Titles & Meta Descriptions"
+            >
+                <span class="text-sm">✨</span>
+                <span class="text-[10px] font-bold truncate w-full">Titles</span>
+            </button>
+
+            <button 
+                type="button" 
+                x-on:click="rightTab = 'ai_ideas'" 
+                :class="rightTab === 'ai_ideas' ? 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-white font-bold shadow-md shadow-indigo-600/30 border border-indigo-400/50' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" 
+                class="py-2 px-1 rounded-xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5"
+                title="Content Gaps & FAQ Schema"
+            >
+                <span class="text-sm">💡</span>
+                <span class="text-[10px] font-bold truncate w-full">Gaps</span>
+            </button>
+
+            <button 
+                type="button" 
+                x-on:click="rightTab = 'keywords'" 
+                :class="rightTab === 'keywords' ? 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-white font-bold shadow-md shadow-indigo-600/30 border border-indigo-400/50' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" 
+                class="py-2 px-1 rounded-xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5"
+                title="Secondary & LSI Keywords"
+            >
+                <span class="text-sm">🏷️</span>
+                <span class="text-[10px] font-bold truncate w-full">Keywords</span>
+            </button>
+
+            <button 
+                type="button" 
+                x-on:click="rightTab = 'quality'" 
+                :class="rightTab === 'quality' ? 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-white font-bold shadow-md shadow-indigo-600/30 border border-indigo-400/50' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" 
+                class="py-2 px-1 rounded-xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5"
+                title="E-E-A-T Quality Audit"
+            >
+                <span class="text-sm">🏆</span>
+                <span class="text-[10px] font-bold truncate w-full">Audit</span>
+            </button>
+
+            <button 
+                type="button" 
+                x-on:click="rightTab = 'outline'" 
+                :class="rightTab === 'outline' ? 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-white font-bold shadow-md shadow-indigo-600/30 border border-indigo-400/50' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" 
+                class="py-2 px-1 rounded-xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5"
+                title="Interactive Document Outline"
+            >
+                <span class="text-sm">📑</span>
+                <span class="text-[10px] font-bold truncate w-full">Outline</span>
+            </button>
+
+            <button 
+                type="button" 
+                x-on:click="rightTab = 'versions'" 
+                :class="rightTab === 'versions' ? 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-white font-bold shadow-md shadow-indigo-600/30 border border-indigo-400/50' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" 
+                class="py-2 px-1 rounded-xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5"
+                title="Version Snapshots Timeline"
+            >
+                <span class="text-sm">🕒</span>
+                <span class="text-[10px] font-bold truncate w-full">History</span>
+            </button>
+
+            <button 
+                type="button" 
+                x-on:click="showTerminalModal = true" 
+                :class="showTerminalModal ? 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-white font-bold shadow-md shadow-indigo-600/30 border border-indigo-400/50' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" 
+                class="py-2 px-1 rounded-xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 active:scale-95"
+                title="Launch Floating AI Telemetry Terminal"
+            >
+                <span class="text-sm">📟</span>
+                <span class="text-[10px] font-bold truncate w-full">Terminal</span>
+            </button>
         </div>
 
         <!-- ─── TAB 1: RANK MATH ENTERPRISE SEO ENGINE ───────────────────────── -->
@@ -907,17 +987,51 @@
             </div>
         </div>
 
-        <!-- ─── TAB 7: SNAPSHOT VERSIONS TIMELINE ────────────────────────────── -->
-        <div x-show="rightTab === 'versions'" class="space-y-3" style="display: none;">
+        <!-- ─── TAB 7: SNAPSHOT VERSIONS TIMELINE & TIME-MACHINE DIFF ───────── -->
+        <div x-show="rightTab === 'versions'" class="space-y-3" style="display: none;" x-data="{ selectedSnapshot: null, showSnapshotDiff: false, snapshotDiffHtml: '' }">
             <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-white/10 space-y-2.5 shadow-inner">
                 <div class="flex items-center justify-between pb-1 border-b border-white/5">
                     <span class="text-xs font-bold text-white flex items-center gap-1.5">
                         <span class="text-indigo-400">🕒</span>
-                        <span>Snapshot Timeline</span>
+                        <span>Version History & Time-Machine</span>
                     </span>
                     <button type="button" wire:click="saveExplicitSnapshot" class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-[10px] font-bold shadow-md cursor-pointer">+ New Snapshot</button>
                 </div>
 
+                <!-- Interactive Snapshot Version Diff Modal / Flyout -->
+                <div x-show="showSnapshotDiff && selectedSnapshot" class="p-3 rounded-xl bg-slate-950 border border-indigo-500/40 space-y-2.5" style="display: none;">
+                    <div class="flex items-center justify-between border-b border-white/10 pb-1.5 select-none">
+                        <div class="flex items-center gap-1.5 font-bold text-xs text-white">
+                            <span>🔍 Comparing vs</span>
+                            <span class="text-indigo-400 font-mono" x-text="'Version #' + selectedSnapshot?.version_number"></span>
+                        </div>
+                        <button type="button" x-on:click="showSnapshotDiff = false; selectedSnapshot = null;" class="text-slate-400 hover:text-white text-xs cursor-pointer">✕ Close</button>
+                    </div>
+
+                    <p class="text-[10px] text-slate-400 leading-snug">Review differences between your live canvas and this snapshot:</p>
+                    
+                    <!-- Word Level Diff Box -->
+                    <div class="max-h-48 overflow-y-auto hoa-custom-scrollbar p-2 rounded-lg bg-slate-900/90 border border-white/5 font-mono text-[11px] leading-relaxed select-text" x-html="computeWordDiff(selectedSnapshot?.content_html || '', editorInstance?.getHTML ? editorInstance.getHTML() : '').unifiedHtml"></div>
+
+                    <div class="flex items-center justify-between pt-1 border-t border-white/5 font-mono text-[10.5px]">
+                        <button 
+                            type="button" 
+                            x-on:click="$wire.restoreVersion(selectedSnapshot.id); showSnapshotDiff = false;" 
+                            class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition-colors cursor-pointer"
+                        >
+                            ✓ Restore This Snapshot
+                        </button>
+                        <button 
+                            type="button" 
+                            x-on:click="showSnapshotDiff = false;" 
+                            class="px-2 py-1 rounded-lg bg-slate-900 hover:bg-white/10 text-slate-300 transition-colors cursor-pointer"
+                        >
+                            Keep Current Live
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Snapshot List -->
                 <div class="space-y-2 max-h-96 overflow-y-auto pr-1">
                     @forelse($document->versions as $v)
                         <div class="p-3 rounded-xl {{ $document->current_version_id === $v->id ? 'bg-indigo-600/20 border border-indigo-500/40' : 'bg-slate-950/80 border border-white/5' }} space-y-1 text-xs">
@@ -928,11 +1042,21 @@
                             <p class="text-[11px] text-slate-300 truncate">{{ $v->summary ?? 'Saved snapshot' }}</p>
                             <div class="flex items-center justify-between pt-1.5 text-[10px] text-slate-400 font-mono border-t border-white/5">
                                 <span>{{ number_format($v->word_count) }} words</span>
-                                @if($document->current_version_id !== $v->id)
-                                    <button type="button" wire:click="restoreVersion({{ $v->id }})" class="px-2 py-0.5 rounded bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white font-bold transition-colors cursor-pointer">Restore &rarr;</button>
-                                @else
-                                    <span class="text-emerald-400 font-bold">Active</span>
-                                @endif
+                                <div class="flex items-center gap-1.5">
+                                    <button 
+                                        type="button" 
+                                        x-on:click="selectedSnapshot = { id: {{ $v->id }}, version_number: {{ $v->version_number }}, content_html: @js($v->content_html ?? '') }; showSnapshotDiff = true;" 
+                                        class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                                        title="Compare snapshot diff against current canvas"
+                                    >
+                                        🔍 Diff
+                                    </button>
+                                    @if($document->current_version_id !== $v->id)
+                                        <button type="button" wire:click="restoreVersion({{ $v->id }})" class="px-2 py-0.5 rounded bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white font-bold transition-colors cursor-pointer">Restore</button>
+                                    @else
+                                        <span class="text-emerald-400 font-bold">Active</span>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     @empty
@@ -942,7 +1066,4 @@
             </div>
         </div>
     </div>
-
-    <!-- Partial include for Terminal UI -->
-    @include('editor.partial.terminal-ui')
 </div>

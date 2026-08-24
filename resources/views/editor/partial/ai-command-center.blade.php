@@ -32,48 +32,52 @@
         </div>
 
         <!-- 1. AI ROUTER & PROVIDER GATEWAY SECTION -->
-        <div class="space-y-2 p-3 rounded-2xl bg-slate-900/90 border border-white/10 shadow-inner">
+        <div class="space-y-3 p-4 rounded-2xl bg-slate-950 border border-white/10 shadow-inner">
             <div class="flex items-center justify-between">
                 <span class="text-[11px] font-bold text-white flex items-center gap-1.5">
                     <span class="text-indigo-400">⚡</span>
-                    <span>AI Router & Gateway</span>
+                    <span>AI Gateway Configuration</span>
                 </span>
                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-mono font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    ONLINE (12ms)
+                    ONLINE
                 </span>
             </div>
 
-            <div class="space-y-1.5">
-                <select 
-                    x-model="aiModel" 
-                    class="w-full bg-slate-950 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 font-mono shadow-inner cursor-pointer"
-                >
-                    <option value="Auto (OmniRoute)">⚡ Auto (OmniRoute Smart Router)</option>
-                    @if(!empty($availableAiModels) && $availableAiModels->count() > 0)
-                        <optgroup label="Available AI Models & Combos">
-                            @foreach($availableAiModels as $model)
-                                <option value="{{ $model->model_id }}">
-                                    {{ $model->name }} ({{ strtoupper($model->provider_family ?? 'Cloud') }})
-                                </option>
-                            @endforeach
-                        </optgroup>
-                    @else
-                        <optgroup label="Standard Gateway Models">
-                            <option value="Claude 3.7 Sonnet">Claude 3.7 Sonnet (Anthropic)</option>
-                            <option value="GPT-4o">GPT-4o (OpenAI)</option>
-                            <option value="Gemini 2.0 Flash">Gemini 2.0 Flash (Google Deepmind)</option>
-                            <option value="DeepSeek-V3">DeepSeek-V3 (Cloud/Ollama)</option>
-                        </optgroup>
-                    @endif
-                </select>
+            <div class="space-y-3">
+                <!-- 1st Field: AI Provider Select (OmniRoute, OpenAI, DeepSeek, Anthropic, etc.) -->
+                <div class="space-y-1">
+                    <div class="flex items-center justify-between">
+                        <label class="text-[9px] uppercase font-bold text-slate-400 tracking-wider">1. AI Provider (Configured & Active)</label>
+                        <span class="text-[9px] font-mono text-indigo-400" x-text="availableProviders.length + ' Available'"></span>
+                    </div>
+                    <select 
+                        x-model="selectedProvider" 
+                        x-on:change="fetchModelsForProvider($event.target.value)"
+                        class="w-full bg-slate-900 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 font-mono shadow-inner cursor-pointer"
+                    >
+                        <option value="">⚡ Select Provider...</option>
+                        <template x-for="provider in availableProviders" :key="provider.id || provider.slug">
+                            <option :value="provider.slug" x-text="provider.name + (provider.is_local ? ' (Local)' : ' (Cloud)')"></option>
+                        </template>
+                    </select>
+                </div>
 
-                <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 pt-0.5 px-0.5">
-                    <span class="flex items-center gap-1">
-                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
-                        <span>Multi-Modal Fallback: <strong class="text-emerald-400">ON</strong></span>
-                    </span>
-                    <span class="text-slate-500">Auto-Cascade</span>
+                <!-- 2nd Field: AI Model Select (Filtered for that specific Provider only) -->
+                <div class="space-y-1">
+                    <div class="flex items-center justify-between">
+                        <label class="text-[9px] uppercase font-bold text-slate-400 tracking-wider">2. Provider Models</label>
+                        <span class="text-[9px] font-mono text-emerald-400" x-text="availableModels.length + ' Models'"></span>
+                    </div>
+                    <select 
+                        x-model="aiModel" 
+                        class="w-full bg-slate-900 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 font-mono shadow-inner cursor-pointer"
+                    >
+                        <option value="auto">⚡ Auto (OmniRoute Smart Router)</option>
+                        <template x-for="model in availableModels" :key="model.id">
+                            <option :value="model.id" x-text="model.name"></option>
+                        </template>
+                    </select>
                 </div>
             </div>
         </div>

@@ -48,12 +48,12 @@
     @include('editor.partial.toolbar')
 
     <!-- RESPONSIVE WORKSPACE LAYOUT -->
-    <div class="grid grid-cols-1 gap-4 items-start"
+    <div class="grid grid-cols-1 gap-4 items-start lg:grid-cols-[320px_1fr_360px] xl:grid-cols-[340px_1fr_380px]"
          :class="{
-             'lg:grid-cols-[320px_1fr_360px] xl:grid-cols-[340px_1fr_380px]': showLeftPanel && showRightPanel,
-             'lg:grid-cols-[320px_1fr] xl:grid-cols-[340px_1fr]': showLeftPanel && !showRightPanel,
-             'lg:grid-cols-[1fr_360px] xl:grid-cols-[1fr_380px]': !showLeftPanel && showRightPanel,
-             'lg:grid-cols-1 max-w-5xl mx-auto w-full': !showLeftPanel && !showRightPanel
+             'lg:!grid-cols-[320px_1fr_360px] xl:!grid-cols-[340px_1fr_380px]': showLeftPanel && showRightPanel,
+             'lg:!grid-cols-[320px_1fr] xl:!grid-cols-[340px_1fr]': showLeftPanel && !showRightPanel,
+             'lg:!grid-cols-[1fr_360px] xl:!grid-cols-[1fr_380px]': !showLeftPanel && showRightPanel,
+             'lg:!grid-cols-1 max-w-5xl mx-auto w-full': !showLeftPanel && !showRightPanel
          }"
     >
         <!-- COLUMN 1: AI COMMAND CENTER (Desktop inline / Mobile Drawer) -->
@@ -61,15 +61,12 @@
             x-show="showLeftPanel"
             x-transition
             class="order-2 lg:order-1"
-            x-init="leftPanelLoaded = true"
         >
-            <template x-if="leftPanelLoaded">
-                @include('editor.partial.ai-command-center')
-            </template>
+            @include('editor.partial.ai-command-center')
         </div>
 
         <!-- COLUMN 2: MAIN WRITING WORKSPACE (Central Focus) -->
-        <div class="space-y-4 order-1 lg:order-2 w-full min-w-0">
+        <div class="space-y-4 order-1 lg:order-2 w-full min-w-0 h-full flex flex-col">
             @include('editor.partial.canvas')
         </div>
 
@@ -78,11 +75,8 @@
             x-show="showRightPanel"
             x-transition
             class="order-3"
-            x-init="rightPanelLoaded = true"
         >
-            <template x-if="rightPanelLoaded">
-                @include('editor.partial.content-intelligence')
-            </template>
+            @include('editor.partial.content-intelligence')
         </div>
     </div>
 

@@ -25,6 +25,7 @@
 
 namespace App\Features\Documents\Livewire;
 
+use App\Features\AI\Models\AiProvider;
 use App\Features\Documents\Actions\CreateDocumentShare;
 use App\Features\Documents\Actions\RestoreDocumentVersion;
 use App\Features\Documents\Actions\RevokeDocumentShare;
@@ -455,22 +456,27 @@ class DocumentEditor extends Component
         session()->flash('share_status', 'Share link has been revoked.');
     }
 
-    public function render()
+public function render()
     {
         $document = Document::with(['versions.creator', 'project'])->findOrFail($this->documentId);
         $projects = Project::where('user_id', Auth::id())->get();
         $availableEditors = EditorRegistry::getAvailableEditors();
-        
+
         $availableAiModels = \App\Features\AI\Models\AiModel::where('is_active', true)
             ->orderBy('is_combo', 'desc')
             ->orderBy('id', 'asc')
             ->get();
+
+        $availableProviders = AiProvider::where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'slug', 'is_local']);
 
         return view('documents.editor', [
             'document' => $document,
             'projects' => $projects,
             'availableEditors' => $availableEditors,
             'availableAiModels' => $availableAiModels,
+            'availableProviders' => $availableProviders,
         ]);
     }
 }

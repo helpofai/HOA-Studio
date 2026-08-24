@@ -28,6 +28,7 @@ use App\Features\Admin\Livewire\AdminSettingsPage;
 use App\Features\Admin\Livewire\AdminUsageLogsPage;
 use App\Features\Admin\Livewire\AdminUsersPage;
 use App\Features\AI\Http\Controllers\AiStreamController;
+use App\Features\AI\Http\Controllers\AiProviderController;
 use App\Features\Auth\Livewire\ForgotPasswordPage;
 use App\Features\Auth\Livewire\LoginPage;
 use App\Features\Auth\Livewire\ProfilePage;
@@ -80,6 +81,7 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::post('/api/ai/transform', [AiStreamController::class, 'transform'])->name('ai.transform');
     Route::post('/api/ai/stream-transform', [AiStreamController::class, 'streamTransform'])->name('ai.stream-transform');
     Route::post('/api/ai/stream', [AiStreamController::class, 'stream'])->name('ai.stream');
+    Route::get('/api/ai/providers/models', [AiProviderController::class, 'getModels'])->name('ai.providers.models');
 });
 
 // Public Document Sharing Routes
