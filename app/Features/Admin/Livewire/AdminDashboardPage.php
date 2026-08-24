@@ -51,6 +51,8 @@ class AdminDashboardPage extends Component
         return view('admin.dashboard', [
             'stats' => $stats,
             'graphData' => $graphData,
+            'graphTimeRange' => $this->graphTimeRange,
+            'graphStatusFilter' => $this->graphStatusFilter,
         ]);
     }
 }

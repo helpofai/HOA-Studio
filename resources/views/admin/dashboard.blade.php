@@ -130,9 +130,9 @@
                                             {{ ucfirst($user->role) }}
                                         </x-glass.badge>
                                     </td>
-                                    <td class="p-4 uppercase font-mono text-[11px] text-indigo-300">{{ $user->plan }}</td>
-                                    <td class="p-4 font-mono">{{ number_format($user->used_word_quota) }} / {{ number_format($user->monthly_word_quota) }}</td>
-                                    <td class="p-4 text-slate-400">{{ $user->created_at->diffForHumans() }}</td>
+                                    <td class="p-4 uppercase font-mono text-[11px] text-indigo-300">{{ $user->plan ?? 'STARTER' }}</td>
+                                    <td class="p-4 font-mono">{{ number_format($user->used_word_quota ?? 0) }} / {{ number_format($user->monthly_word_quota ?? 15000) }}</td>
+                                    <td class="p-4 text-slate-400">{{ $user->created_at ? $user->created_at->diffForHumans() : 'Recently' }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

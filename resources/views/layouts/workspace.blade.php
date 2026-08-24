@@ -59,9 +59,9 @@
             style="display: none;"
         ></div>
 
-        <!-- Sleek Collapsible Sidebar Navigation -->
+        <!-- Sleek Collapsible Sidebar Navigation (Fixed Viewport Height) -->
         <aside 
-            class="fixed inset-y-0 left-0 z-50 glass-standard border-r border-white/10 flex flex-col justify-between transition-[width,transform] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] lg:static lg:z-0 select-none shrink-0"
+            class="fixed inset-y-0 left-0 z-50 glass-standard border-r border-white/10 flex flex-col justify-between transition-[width,transform] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] lg:sticky lg:top-0 lg:h-screen lg:z-30 select-none shrink-0 overflow-hidden"
             :class="{
                 'w-64': !collapsed,
                 'w-20': collapsed,
@@ -69,7 +69,7 @@
                 '-translate-x-full lg:translate-x-0': !sidebarOpen
             }"
         >
-            <div class="flex flex-col h-full overflow-hidden">
+            <div class="flex flex-col h-full overflow-hidden min-h-0">
                 <!-- Brand Header -->
                 <div class="h-16 px-4 flex items-center border-b border-white/5 shrink-0 transition-all duration-300" :class="collapsed ? 'justify-center' : 'justify-between'">
                     <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center gap-3 overflow-hidden group">
@@ -100,10 +100,10 @@
                 </div>
 
                 <!-- Navigation Links List (SPA Mode with wire:navigate) -->
-                <nav class="p-3 space-y-3 overflow-y-auto flex-1 scrollbar-none">
+                <nav class="sidebar-nav-menu p-3 space-y-2.5 overflow-y-auto overflow-x-hidden flex-1 scrollbar-none">
                     
-                    <!-- 1. WORKSPACE & CREATION SECTION -->
-                    <div class="space-y-1">
+                    <!-- 1. WORKSPACE SECTION -->
+                    <div class="sidebar-nav-section space-y-0.5">
                         <div 
                             x-show="!collapsed" 
                             x-transition:enter="transition-all duration-200"
@@ -115,6 +115,7 @@
                         </div>
                         <div x-show="collapsed" class="py-0.5"></div>
 
+                        <!-- Dashboard -->
                         <a 
                             href="{{ route('dashboard') }}" 
                             wire:navigate
@@ -139,6 +140,7 @@
                             </div>
                         </a>
 
+                        <!-- AI Text Editor -->
                         <a 
                             href="{{ route('editor') }}" 
                             wire:navigate
@@ -162,6 +164,7 @@
                             </div>
                         </a>
 
+                        <!-- All Documents -->
                         <a 
                             href="{{ route('documents.index') }}" 
                             wire:navigate
@@ -178,13 +181,14 @@
                                 x-transition:leave-start="opacity-100 translate-x-0 max-w-[180px]"
                                 x-transition:leave-end="opacity-0 -translate-x-2 max-w-0"
                                 class="truncate overflow-hidden whitespace-nowrap text-[13.5px]"
-                            >Documents</span>
+                            >All Documents</span>
 
                             <div x-show="collapsed" class="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-900/95 border border-white/15 text-white text-xs font-semibold shadow-xl backdrop-blur-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 z-50 whitespace-nowrap">
-                                Documents
+                                All Documents
                             </div>
                         </a>
 
+                        <!-- Projects -->
                         <a 
                             href="{{ route('projects.index') }}" 
                             wire:navigate
@@ -209,8 +213,8 @@
                         </a>
                     </div>
 
-                    <!-- 2. AI POWER TOOLS SECTION -->
-                    <div class="space-y-1 pt-1">
+                    <!-- 2. TOOLS MANAGEMENT SECTION -->
+                    <div class="sidebar-nav-section space-y-0.5 pt-1">
                         <div 
                             x-show="!collapsed" 
                             x-transition:enter="transition-all duration-200"
@@ -218,10 +222,11 @@
                             x-transition:enter-end="opacity-100"
                             class="px-3 pt-2 pb-1 text-[9.5px] font-bold text-slate-500 uppercase tracking-widest flex items-center justify-between"
                         >
-                            <span>AI Power Tools</span>
+                            <span>Tools Management</span>
                         </div>
                         <div x-show="collapsed" class="py-1 my-0.5 border-t border-white/5"></div>
 
+                        <!-- Templates Hub -->
                         <a 
                             href="{{ route('templates.index') }}" 
                             wire:navigate
@@ -245,6 +250,7 @@
                             </div>
                         </a>
 
+                        <!-- Brand Voices -->
                         <a 
                             href="{{ route('brand-voices.index') }}" 
                             wire:navigate
@@ -268,6 +274,7 @@
                             </div>
                         </a>
 
+                        <!-- Knowledge Base -->
                         <a 
                             href="{{ route('knowledge-base.index') }}" 
                             wire:navigate
@@ -290,14 +297,29 @@
                                 Knowledge Base
                             </div>
                         </a>
+                    </div>
 
+                    <!-- 3. SETTINGS & ACCOUNT SECTION -->
+                    <div class="sidebar-nav-section space-y-0.5 pt-1">
+                        <div 
+                            x-show="!collapsed" 
+                            x-transition:enter="transition-all duration-200"
+                            x-transition:enter-start="opacity-0"
+                            x-transition:enter-end="opacity-100"
+                            class="px-3 pt-2 pb-1 text-[9.5px] font-bold text-slate-500 uppercase tracking-widest flex items-center justify-between"
+                        >
+                            <span>Settings</span>
+                        </div>
+                        <div x-show="collapsed" class="py-1 my-0.5 border-t border-white/5"></div>
+
+                        <!-- AI Models & OmniRoute Setup -->
                         <a 
                             href="{{ route('ai-models.index') }}" 
                             wire:navigate
-                            class="flex items-center rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('ai-models.*') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
+                            class="flex items-center rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('ai-models.*') || request()->routeIs('ai-settings.*') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                             :class="collapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'"
                         >
-                            <span class="text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">⚡</span>
+                            <span class="text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🤖</span>
                             <span 
                                 x-show="!collapsed" 
                                 x-transition:enter="transition-all duration-300 ease-out"
@@ -307,27 +329,14 @@
                                 x-transition:leave-start="opacity-100 translate-x-0 max-w-[180px]"
                                 x-transition:leave-end="opacity-0 -translate-x-2 max-w-0"
                                 class="truncate overflow-hidden whitespace-nowrap text-[13.5px]"
-                            >AI Models & Catalog</span>
+                            >AI Models & Tools</span>
 
                             <div x-show="collapsed" class="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-900/95 border border-white/15 text-white text-xs font-semibold shadow-xl backdrop-blur-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 z-50 whitespace-nowrap">
-                                AI Models & Catalog
+                                AI Models & Tools
                             </div>
                         </a>
-                    </div>
 
-                    <!-- 3. ACCOUNT & USAGE SECTION -->
-                    <div class="space-y-1 pt-1">
-                        <div 
-                            x-show="!collapsed" 
-                            x-transition:enter="transition-all duration-200"
-                            x-transition:enter-start="opacity-0"
-                            x-transition:enter-end="opacity-100"
-                            class="px-3 pt-2 pb-1 text-[9.5px] font-bold text-slate-500 uppercase tracking-widest flex items-center justify-between"
-                        >
-                            <span>Account & Quotas</span>
-                        </div>
-                        <div x-show="collapsed" class="py-1 my-0.5 border-t border-white/5"></div>
-
+                        <!-- Usage & Quotas -->
                         <a 
                             href="{{ route('usage.index') }}" 
                             wire:navigate
@@ -344,20 +353,21 @@
                                 x-transition:leave-start="opacity-100 translate-x-0 max-w-[180px]"
                                 x-transition:leave-end="opacity-0 -translate-x-2 max-w-0"
                                 class="truncate overflow-hidden whitespace-nowrap text-[13.5px]"
-                            >Usage & Quotas</span>
+                            >Usage & Quota</span>
 
                             <div x-show="collapsed" class="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-900/95 border border-white/15 text-white text-xs font-semibold shadow-xl backdrop-blur-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 z-50 whitespace-nowrap">
-                                Usage & Quotas
+                                Usage & Quota
                             </div>
                         </a>
 
+                        <!-- Profile & BYOK Keys / Account Settings -->
                         <a 
                             href="{{ route('profile') }}" 
                             wire:navigate
                             class="flex items-center rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('profile') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                             :class="collapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'"
                         >
-                            <span class="text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🔑</span>
+                            <span class="text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">⚙️</span>
                             <span 
                                 x-show="!collapsed" 
                                 x-transition:enter="transition-all duration-300 ease-out"
@@ -367,17 +377,17 @@
                                 x-transition:leave-start="opacity-100 translate-x-0 max-w-[180px]"
                                 x-transition:leave-end="opacity-0 -translate-x-2 max-w-0"
                                 class="truncate overflow-hidden whitespace-nowrap text-[13.5px]"
-                            >Profile & BYOK Keys</span>
+                            >Account & BYOK Keys</span>
 
                             <div x-show="collapsed" class="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-900/95 border border-white/15 text-white text-xs font-semibold shadow-xl backdrop-blur-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 z-50 whitespace-nowrap">
-                                Profile & BYOK Keys
+                                Account & BYOK Keys
                             </div>
                         </a>
                     </div>
 
                     <!-- 4. ADMINISTRATION (Admins Only) -->
                     @if(auth()->user()->isAdmin())
-                        <div class="space-y-1 pt-1">
+                        <div class="sidebar-nav-section space-y-1 pt-1">
                             <div 
                                 x-show="!collapsed" 
                                 x-transition:enter="transition-all duration-200"

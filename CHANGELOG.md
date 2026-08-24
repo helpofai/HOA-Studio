@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.0] - 2026-08-24
+
+### 🚀 Added
+- **Advanced Core Update & Self-Healing Rollback Engine**:
+  - Dual-Engine Update Architecture supporting **Native Git** (VPS/CLI) and **Pure-PHP Zip Archive** (Shared Hosting / cPanel).
+  - Pre-flight automated snapshots: creates immutable point-in-time codebase `.zip` backups and database `.sql` dumps in `storage/app/updates/backups/`.
+  - Automated post-update synthetic diagnostics via `HealthProberService` (testing database tables, user model connectivity, write permissions, and Vite manifest).
+  - Instant self-healing auto-rollback triggered automatically if any post-update health check fails or throws an exception.
+- **Admin Time-Machine Rollback Control Center (`/admin/updates`)**:
+  - Live version checker with GitHub release notes, 1-Click Update, manual snapshot creation, and 1-Click Rollback to any historical restore point.
+- **Offline Disaster Recovery Script (`public/hoa-rescue.php`)**:
+  - Standalone, zero-dependency recovery tool protected by `RESCUE_SECRET` enabling admins to force sites online, flush corrupted caches, or unpack restore points directly via native PHP.
+
+---
+
 ## [2.4.0] - 2026-08-24
 
 ### 🚀 Added

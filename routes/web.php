@@ -103,6 +103,7 @@ Route::middleware('auth')->group(function () {
 
 use App\Features\Admin\Livewire\AdminAiSettingsPage;
 use App\Features\Admin\Livewire\AdminOmniRouteSetupPage;
+use App\Features\Admin\Livewire\AdminUpdatesPage;
 
 // Admin Control Center Routes (Role: Admin) (/admin/*)
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
@@ -112,6 +113,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/ai-settings/omniroute', AdminOmniRouteSetupPage::class)->name('ai-settings.omniroute');
     Route::get('/usage', AdminUsageLogsPage::class)->name('usage');
     Route::get('/settings', AdminSettingsPage::class)->name('settings');
+    Route::get('/updates', AdminUpdatesPage::class)->name('updates');
     Route::get('/api/terminal-logs', \App\Features\Admin\Controllers\AdminTerminalLogsController::class)->name('api.terminal-logs');
 });
 
