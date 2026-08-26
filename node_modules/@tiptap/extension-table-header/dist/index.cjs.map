@@ -1,0 +1,1 @@
+{"version":3,"file":"index.cjs","names":["TableHeader"],"sources":["../src/index.ts"],"sourcesContent":["import { TableHeader } from '@tiptap/extension-table'\n\nexport type { TableHeaderOptions } from '@tiptap/extension-table'\nexport { TableHeader } from '@tiptap/extension-table'\n\nexport default TableHeader\n"],"mappings":";;;;;;AAKA,IAAA,cAAeA,wBAAAA"}

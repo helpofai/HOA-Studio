@@ -1,0 +1,1 @@
+{"version":3,"file":"index.js","names":["TableRow"],"sources":["../src/index.ts"],"sourcesContent":["import { TableRow } from '@tiptap/extension-table'\n\nexport type { TableRowOptions } from '@tiptap/extension-table'\nexport { TableRow } from '@tiptap/extension-table'\n\nexport default TableRow\n"],"mappings":";;AAKA,IAAA,cAAeA"}
