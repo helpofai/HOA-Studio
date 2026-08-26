@@ -20,6 +20,7 @@
     RewriteRule ^ index.php [L]
 </IfModule>
 
+
 # Disable Buffer in LiteSpeed / Apache for Real-Time SSE AI Streaming
 <IfModule mod_litespeed.c>
     CacheLookup off

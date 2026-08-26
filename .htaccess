@@ -5,7 +5,21 @@
     RewriteRule ^(\.env|\.git|composer\.(json|lock)|package(-lock)?\.json|vite\.config\.js|tailwind\.config\.js|\.system_generated) - [F,L,NC]
     RewriteRule ^(app|bootstrap|config|database|resources|routes|storage/logs|tests|vendor)/ - [F,L,NC]
 
-    # Forward all other traffic to the public directory
+    # ─── SUBDIRECTORY ROUTING FIX ───────────────────────────────────────────────
+    # This app lives in a subdirectory on the server (e.g. public_html/studio/).
+    # Apache passes REQUEST_URI as /studio/login. We strip the leading folder name
+    # so that only the remaining path (e.g. /login) goes to public/index.php,
+    # and Laravel's router can match it correctly.
+    #
+    # Rule 1: /studio/some/path → public/some/path
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^[^/]+/(.+)$ public/$1 [L,QSA]
+
+    # Rule 2: /studio or /studio/ → public/index.php
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^[^/]+/?$ public/index.php [L,QSA]
+
+    # Fallback for anything else not already in public/
     RewriteCond %{REQUEST_URI} !^/public/
     RewriteRule ^(.*)$ public/$1 [L,QSA]
 </IfModule>
