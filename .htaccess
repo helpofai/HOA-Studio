@@ -5,22 +5,21 @@
     RewriteRule ^(\.env|\.git|composer\.(json|lock)|package(-lock)?\.json|vite\.config\.js|tailwind\.config\.js|\.system_generated) - [F,L,NC]
     RewriteRule ^(app|bootstrap|config|database|resources|routes|storage/logs|tests|vendor)/ - [F,L,NC]
 
-    # ─── SUBDIRECTORY ROUTING FIX ───────────────────────────────────────────────
-    # This app lives in a subdirectory on the server (e.g. public_html/studio/).
-    # Apache passes REQUEST_URI as /studio/login. We strip the leading folder name
-    # so that only the remaining path (e.g. /login) goes to public/index.php,
-    # and Laravel's router can match it correctly.
+    # ─── MAP TO PUBLIC DIRECTORY ─────────────────────────────────────────────────
+    # Server structure:
+    #   public_html/helpofai.com/studio/          ← Laravel app root (this .htaccess)
+    #   public_html/helpofai.com/studio/public/   ← Laravel web root (index.php here)
     #
-    # Rule 1: /studio/some/path → public/some/path
-    RewriteCond %{REQUEST_URI} !^/public/
-    RewriteRule ^[^/]+/(.+)$ public/$1 [L,QSA]
-
-    # Rule 2: /studio or /studio/ → public/index.php
-    RewriteCond %{REQUEST_URI} !^/public/
-    RewriteRule ^[^/]+/?$ public/index.php [L,QSA]
-
-    # Fallback for anything else not already in public/
-    RewriteCond %{REQUEST_URI} !^/public/
+    # Apache's RewriteRule in .htaccess context matches the path RELATIVE to the
+    # current directory. For request /studio/login, the pattern sees just "login".
+    #
+    # If the path is already a real file or directory (e.g. public/build/app.css),
+    # skip the rewrite and let Apache serve it directly.
+    # Otherwise, forward everything to public/ — public/.htaccess then routes to
+    # index.php, and index.php strips /studio from REQUEST_URI before Laravel boots.
+    # ─────────────────────────────────────────────────────────────────────────────
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^(.*)$ public/$1 [L,QSA]
 </IfModule>
 
