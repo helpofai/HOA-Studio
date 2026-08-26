@@ -52,12 +52,6 @@ class AppServiceProvider extends ServiceProvider
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
 
-        // Support custom subdirectory installations (e.g. https://helpofai.com/studio)
-        $appUrl = (string) config('app.url');
-        if ($appUrl && parse_url($appUrl, PHP_URL_PATH)) {
-            \Illuminate\Support\Facades\URL::forceRootUrl($appUrl);
-        }
-
         \Livewire\Livewire::component('admin.notification-bell', \App\Features\Admin\Livewire\NotificationBell::class);
     }
 }
