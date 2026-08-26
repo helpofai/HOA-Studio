@@ -1,34 +1,29 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Block direct access to hidden files, sensitive configs, and environment files
+    # ── Security: block direct access to sensitive files ──────────────────────
     RewriteRule ^(\.env|\.git|composer\.(json|lock)|package(-lock)?\.json|vite\.config\.js|tailwind\.config\.js|\.system_generated) - [F,L,NC]
     RewriteRule ^(app|bootstrap|config|database|resources|routes|storage/logs|tests|vendor)/ - [F,L,NC]
 
-    # ─── MAP TO PUBLIC DIRECTORY ─────────────────────────────────────────────────
-    # Server structure:
-    #   public_html/helpofai.com/studio/          ← Laravel app root (this .htaccess)
-    #   public_html/helpofai.com/studio/public/   ← Laravel web root (index.php here)
+    # ── Route to smart router (index.php at app root) ─────────────────────────
     #
-    # HOW mod_rewrite CYCLES WORK (critical to understand):
-    #   When a rule rewrites a path, mod_rewrite starts a NEW CYCLE through all
-    #   rules with the updated path. Without a guard, this causes an infinite loop:
+    # Server layout:
+    #   public_html/helpofai.com/studio/          ← Laravel app root  (this .htaccess + index.php)
+    #   public_html/helpofai.com/studio/public/   ← Laravel web root  (assets, install.php, etc.)
     #
-    #   Cycle 1: "login"        → RewriteRule fires → "public/login"   [L, new cycle]
-    #   Cycle 2: "public/login" → RewriteRule fires → "public/public/login" [LOOP!]
+    # PATTERN: identical to Laravel's own public/.htaccess — proven and simple.
     #
-    # GUARD RULE: If path already starts with "public/", stop immediately.
-    #   Cycle 1: "login"        → guard skips → RewriteRule fires → "public/login"
-    #   Cycle 2: "public/login" → guard fires [L] → STOP. Apache serves studio/public/login
-    #   public/.htaccess then routes "login" → index.php ✅
-    # ─────────────────────────────────────────────────────────────────────────────
-
-    # GUARD: already in public/ directory — stop rewriting, let public/.htaccess handle it
-    RewriteRule ^public(/.*)?$ - [L]
-
-    # Forward all other requests to public/ (skip only real files to allow asset serving)
+    # If the requested path is a REAL FILE (e.g. studio/somefile.txt), serve it directly.
+    # If the requested path is a REAL DIRECTORY, serve it directly.
+    # Everything else → index.php (our smart router) which handles:
+    #   • Stripping /studio prefix from REQUEST_URI
+    #   • Serving public/ PHP files (install.php, hoa-rescue.php)
+    #   • Serving public/ static assets (CSS, JS, images, fonts)
+    #   • Passing dynamic routes to Laravel
+    # ──────────────────────────────────────────────────────────────────────────
+    RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteRule ^(.*)$ public/$1 [L,QSA]
+    RewriteRule ^ index.php [L]
 </IfModule>
 
 # Disable Directory Browsing
