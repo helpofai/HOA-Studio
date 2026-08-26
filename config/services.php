@@ -58,4 +58,19 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Anti-Bot Protection (Cloudflare Turnstile)
+    |--------------------------------------------------------------------------
+    |
+    | Cloudflare Turnstile provides smart, invisible bot protection without
+    | frustrating user CAPTCHAs. Keys are optional and degrade gracefully.
+    |
+    */
+    'turnstile' => [
+        'site_key' => env('CLOUDFLARE_TURNSTILE_SITE_KEY'),
+        'secret_key' => env('CLOUDFLARE_TURNSTILE_SECRET_KEY'),
+        'strict' => env('CLOUDFLARE_TURNSTILE_STRICT', false),
+    ],
+
 ];

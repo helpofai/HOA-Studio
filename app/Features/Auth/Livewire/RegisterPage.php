@@ -26,6 +26,8 @@
 namespace App\Features\Auth\Livewire;
 
 use App\Features\Auth\Actions\RegisterUser;
+use App\Features\Auth\Services\AuthSecurityService;
+use Illuminate\Validation\Rules\Password;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -40,15 +42,58 @@ class RegisterPage extends Component
     public string $password_confirmation = '';
     public bool $agree = false;
 
-    protected array $rules = [
-        'name' => 'required|string|min:2|max:100',
-        'email' => 'required|email|max:255|unique:users,email',
-        'password' => 'required|string|min:8|confirmed',
-        'agree' => 'accepted',
+    // Security & Anti-Bot Properties
+    public string $honeypot = ''; // Hidden anti-bot trap field
+    public ?int $formLoadedAt = null;
+    public ?string $turnstileToken = null;
+
+    public function mount()
+    {
+        $this->formLoadedAt = time();
+    }
+
+    protected function rules(): array
+    {
+        $passwordRule = Password::min(8)
+            ->letters()
+            ->mixedCase()
+            ->numbers()
+            ->symbols();
+
+        // Only enforce HaveIBeenPwned network lookup if not in local unit tests
+        if (!app()->runningUnitTests()) {
+            $passwordRule->uncompromised(3);
+        }
+
+        return [
+            'name' => ['required', 'string', 'min:2', 'max:70'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+            ],
+            'agree' => ['accepted'],
+        ];
+    }
+
+    protected array $messages = [
+        'name.regex' => 'Name may only contain letters, spaces, and hyphens.',
+        'email.email' => 'Please provide a valid, deliverable email address.',
     ];
 
-    public function register(RegisterUser $action)
+    public function register(RegisterUser $action, AuthSecurityService $security)
     {
+        // 0. Check if client IP is blocked
+        $security->checkIpBlock();
+
+        // 1. Verify Anti-Bot Honeypot and speed
+        $security->verifyHoneypot($this->honeypot, $this->formLoadedAt);
+
+        // 2. Verify Cloudflare Turnstile token if enabled
+        $security->verifyTurnstile($this->turnstileToken);
+
         $this->validate();
 
         $action->execute([
@@ -64,6 +109,11 @@ class RegisterPage extends Component
 
     public function render()
     {
-        return view('auth.register');
+        $siteKey = \App\Features\Auth\Services\AuthSecurityService::getTurnstileSiteKey();
+        $isEnabled = \App\Features\Auth\Services\AuthSecurityService::isTurnstileEnabled();
+
+        return view('auth.register', [
+            'turnstileSiteKey' => $isEnabled ? $siteKey : '',
+        ]);
     }
 }

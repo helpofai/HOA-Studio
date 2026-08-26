@@ -43,6 +43,12 @@
                     </div>
                 @endif
 
+                <!-- 🛡️ Invisible Honeypot Anti-Bot Trap (Hidden from real users via absolute off-screen positioning) -->
+                <div class="absolute -left-[9999px] -top-[9999px] opacity-0 pointer-events-none" aria-hidden="true" tabindex="-1">
+                    <label for="auth_hp_field">Website</label>
+                    <input type="text" id="auth_hp_field" wire:model="honeypot" name="company_website_url" autocomplete="off" tabindex="-1">
+                </div>
+
                 <div>
                     <label class="text-xs font-medium text-slate-300 block mb-1.5">Email Address</label>
                     <x-glass.input
@@ -51,6 +57,7 @@
                         placeholder="you@example.com"
                         required
                         autofocus
+                        autocomplete="email"
                         :error="$errors->has('email')"
                     />
                     @error('email')
@@ -70,6 +77,7 @@
                         type="password"
                         placeholder="••••••••"
                         required
+                        autocomplete="current-password"
                         :error="$errors->has('password')"
                     />
                     @error('password')
@@ -83,6 +91,43 @@
                         <span class="text-xs text-slate-400">Remember me</span>
                     </label>
                 </div>
+
+                <!-- Cloudflare Turnstile Challenge (Renders if site key is configured) -->
+                @if (!empty($turnstileSiteKey))
+                    <div 
+                        x-data="{
+                            initTurnstile() {
+                                if (window.turnstile) {
+                                    window.turnstile.render(this.$refs.turnstileContainer, {
+                                        sitekey: '{{ $turnstileSiteKey }}',
+                                        theme: 'dark',
+                                        callback: (token) => {
+                                            $wire.set('turnstileToken', token);
+                                        }
+                                    });
+                                }
+                            }
+                        }"
+                        x-init="
+                            if (!window.turnstile) {
+                                let script = document.createElement('script');
+                                script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+                                script.async = true;
+                                script.defer = true;
+                                script.onload = () => initTurnstile();
+                                document.head.appendChild(script);
+                            } else {
+                                initTurnstile();
+                            }
+                        "
+                        class="flex flex-col items-center justify-center my-2"
+                    >
+                        <div x-ref="turnstileContainer"></div>
+                        @error('turnstile')
+                            <p class="text-xs text-red-400 mt-1 text-center">{{ $message }}</p>
+                        @enderror
+                    </div>
+                @endif
 
                 <x-glass.button type="submit" variant="primary" size="md" class="w-full shadow-lg shadow-indigo-500/25 mt-2">
                     <span wire:loading.remove wire:target="login">Sign In to Studio</span>

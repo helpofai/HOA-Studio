@@ -69,6 +69,3 @@
         </div>
     </div>
 </div>
-
-<!-- Floating Draggable Terminal Telemetry Modal -->
-@include('editor.partial.terminal-ui')

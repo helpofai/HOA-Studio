@@ -14,13 +14,7 @@
 */
 --}}
 
-<div 
-    x-show="showLeftPanel" 
-    x-transition:enter="transition ease-out duration-200"
-    x-transition:enter-start="opacity-0 -translate-x-4"
-    x-transition:enter-end="opacity-100 translate-x-0"
-    class="space-y-4 h-full flex flex-col"
->
+<div class="space-y-4 h-full flex flex-col">
     <div class="editor-column hoa-custom-scrollbar">
         <!-- Main Header -->
         <div class="flex items-center justify-between pb-2 border-b border-white/10">

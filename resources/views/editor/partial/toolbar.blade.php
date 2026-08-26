@@ -85,7 +85,7 @@
         <div class="flex items-center rounded-xl bg-slate-900/90 border border-white/10 p-0.5 shadow-inner">
             <button 
                 type="button" 
-                x-on:click="showLeftPanel = !showLeftPanel" 
+                x-on:click="toggleLeftPanel()" 
                 :class="showLeftPanel ? 'bg-indigo-600/30 text-indigo-300 font-bold border border-indigo-500/30' : 'text-slate-400 hover:text-white border border-transparent'"
                 class="px-2 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer" 
                 title="Toggle AI Command Center (Ctrl+K)"
@@ -103,7 +103,7 @@
             </button>
             <button 
                 type="button" 
-                x-on:click="showRightPanel = !showRightPanel" 
+                x-on:click="toggleRightPanel()" 
                 :class="showRightPanel ? 'bg-indigo-600/30 text-indigo-300 font-bold border border-indigo-500/30' : 'text-slate-400 hover:text-white border border-transparent'"
                 class="px-2 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer" 
                 title="Toggle Content Intelligence"

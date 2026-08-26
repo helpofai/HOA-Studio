@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.2] - 2026-08-26
+
+### 🚀 Added & Architectural Improvements
+- **Thin Master Scripts Engine Refactor (`resources/views/editor/partial/`)**:
+  - Refactored monolithic `scripts.blade.php` into a thin master orchestrator delegating to 5 feature-oriented sub-script blades:
+    - `scripts-core.blade.php`: Lifecycle, model fetching, autosave engine, and draft disaster recovery.
+    - `scripts-canvas.blade.php`: ProseMirror / TipTap editor instance, formatting status, context menus, and outline navigation.
+    - `scripts-ai.blade.php`: Server-Sent Events (SSE) AI streaming, multi-agent swarm, and targeted SEO fixes.
+    - `scripts-diff.blade.php`: Visual LCS diff review, candidate variations, ghost completion, and metrics calculation.
+    - `scripts-telemetry.blade.php`: Floating bubble dragging, system logging, and memory buffer.
+
+### 🛠️ Fixed & Polished
+- **AI Content Direct Persistence & Anti-Cut Protection**:
+  - Eliminated unwanted modal/diff review popups during full-document generation by adding strict active DOM selection validation.
+  - Streamed AI content now always commits directly to the editor canvas with immediate autosave and disaster draft persistence.
+- **Panel Visibility Persistence**:
+  - User manual toggle choices for AI Command Center (`showLeftPanel`) and Content Intelligence (`showRightPanel`) are now persisted in browser `localStorage` and will not reset during AI transforms or Livewire renders.
+- **Removal of Legacy Telemetry Modal**:
+  - Cleaned up all remaining references to the floating telemetry terminal modal (`terminal-ui.blade.php` and `showTerminalModal`).
+
+---
+
 ## [2.5.1] - 2026-08-25
 
 ### 🚀 Added

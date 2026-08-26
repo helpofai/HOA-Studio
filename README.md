@@ -571,6 +571,8 @@ Result:   100% Green
 - [x] **Phase 14**: Security Hardening & BYOK Cryptography *(AES-256-GCM Keys, Dynamic Limits)*
 - [x] **Phase 15**: Automated Testing & Failure Recovery *(Outage Cascades, 3-Attempt Retries)*
 - [x] **Phase 16**: Shared-Hosting Production Deployment Verification *(.htaccess, Caching)*
+- [ ] **Phase 17 (Planned)**: Session Hijacking Defense & Concurrent Device Management *(Browser/Device fingerprinting, Token Revocation, "Log Out All Other Devices" hub)*
+- [ ] **Phase 18 (Planned)**: Honeytoken Decoy Infrastructure & Account Lockout Security Alerts *(Fake credential trap auto-blacklisting, real-time brute-force lockout email alerts)*
 
 ---
 

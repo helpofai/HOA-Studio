@@ -104,8 +104,22 @@ class AdminUsersPage extends Component
             'is_active' => true,
         ]);
 
+        // Send Account Details Email with credentials
+        try {
+            \Illuminate\Support\Facades\Mail::to($user->email)->send(
+                new \App\Features\Admin\Mail\TemplateMailable('account_details', [
+                    '{user_name}' => $user->name,
+                    '{user_email}' => $user->email,
+                    '{user_role}' => strtoupper($user->role),
+                    '{plan_name}' => strtoupper($user->plan),
+                    '{monthly_words}' => number_format($user->monthly_word_quota),
+                    '{temporary_password}' => $this->new_user_password,
+                ])
+            );
+        } catch (\Throwable $e) {}
+
         $this->showCreateModal = false;
-        session()->flash('status', "New user '{$user->name}' created successfully.");
+        session()->flash('status', "New user '{$user->name}' created successfully and welcome credentials dispatched.");
     }
 
     public function openEditModal(int $userId)
@@ -181,6 +195,18 @@ class AdminUsersPage extends Component
         $user->is_active = !$user->is_active;
         $user->save();
 
+        // Dispatch account ban or unban notification email
+        try {
+            $template = $user->is_active ? 'account_unbanned' : 'account_banned';
+            \Illuminate\Support\Facades\Mail::to($user->email)->send(
+                new \App\Features\Admin\Mail\TemplateMailable($template, [
+                    '{user_name}' => $user->name,
+                    '{ban_reason}' => 'Administrative review or policy suspension',
+                    '{timestamp}' => now()->toDayDateTimeString(),
+                ])
+            );
+        } catch (\Throwable $e) {}
+
         session()->flash('status', "User '{$user->name}' status toggled to " . ($user->is_active ? 'Active' : 'Inactive') . ".");
     }
 
@@ -189,6 +215,18 @@ class AdminUsersPage extends Component
         $user = User::findOrFail($userId);
         $user->bonus_word_quota = ($user->bonus_word_quota ?? 0) + $amount;
         $user->save();
+
+        // Dispatch Plan Upgrade / Quota Granted Notification
+        try {
+            \Illuminate\Support\Facades\Mail::to($user->email)->send(
+                new \App\Features\Admin\Mail\TemplateMailable('plan_upgraded', [
+                    '{user_name}' => $user->name,
+                    '{new_plan}' => strtoupper($user->plan),
+                    '{monthly_words}' => number_format($user->monthly_word_quota),
+                    '{bonus_words}' => number_format($amount),
+                ])
+            );
+        } catch (\Throwable $e) {}
 
         session()->flash('status', "Granted +" . number_format($amount) . " bonus words to '{$user->name}'.");
     }

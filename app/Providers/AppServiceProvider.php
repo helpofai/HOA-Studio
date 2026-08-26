@@ -46,5 +46,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Schema::defaultStringLength(191);
+
+        \Livewire\Livewire::component('admin.notification-bell', \App\Features\Admin\Livewire\NotificationBell::class);
     }
 }

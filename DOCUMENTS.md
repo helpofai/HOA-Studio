@@ -237,3 +237,16 @@ Accept: application/json
 ### Shared Document Export API
 `GET /share/{token}/export/{format}`
 - **Formats:** `markdown`, `html`, `txt`, `docx`
+
+---
+
+## 13. Security Roadmap & Future Specifications
+
+### 13.1 Session Hijacking Defense & Concurrent Device Management (Phase 17)
+- **Device & Browser Fingerprinting**: Cryptographic hash pairing `SHA-256(User-Agent + Client IP + Subnet)` evaluated on every incoming authenticated session request.
+- **Mid-Session Hijack Invalidation**: If a high-entropy signature shift occurs mid-session, invalidate session tokens and force password re-authentication.
+- **Concurrent Device Dashboard**: Display active devices (OS, Browser, IP, Country, Last Active) in the user profile with 1-click **"Log Out All Other Devices"** (revoking foreign session IDs from `sessions` table).
+
+### 13.2 Honeytoken Accounts & Account Lockout Security Alerts (Phase 18)
+- **Honeytoken Decoy Traps**: Seed system with inert decoy accounts (e.g. `admin@helpofai.com`, `root@helpofai.com`, `test@helpofai.com`). Any login attempt targeting a honeytoken immediately blacklists the originating IP in `blocked_ips` with zero tolerance.
+- **Brute-Force Account Lockout Email Notifications**: When an authentic user account hits the 5-failure lockout limit, dispatch an automated high-priority alert email informing the owner with incident timestamp, IP address, and 1-click password reset link.

@@ -49,7 +49,7 @@
         <!-- SEO Score Badge (Clickable to open SEO Drawer, Livewire Reactive) -->
         <button 
             type="button" 
-            x-on:click="showRightPanel = true; rightTab = 'seo'"
+            x-on:click="if (!showRightPanel) { toggleRightPanel(); } rightTab = 'seo'"
             class="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-900/80 hover:bg-white/10 border border-white/5 transition-colors cursor-pointer group text-[11px] sm:text-xs"
             title="Click to open Real-Time SEO Analyzer"
         >
@@ -88,7 +88,7 @@
         <!-- Active Model Indicator (Clickable to open AI Center) -->
         <button 
             type="button" 
-            x-on:click="showLeftPanel = true" 
+            x-on:click="if (!showLeftPanel) { toggleLeftPanel(); }" 
             class="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-900/80 hover:bg-white/10 border border-white/5 text-slate-300 hover:text-white transition-colors cursor-pointer text-[11px] sm:text-xs"
             title="Click to configure AI Router"
         >
@@ -133,21 +133,6 @@
             :title="showLeftPanel || showRightPanel ? 'Enable Zen Focus Mode (Hide Panels)' : 'Exit Focus Mode'"
         >
             <span x-text="showLeftPanel || showRightPanel ? '⛶' : '🗗'"></span>
-        </button>
-
-        <span class="text-slate-700 hidden xs:inline">&bull;</span>
-
-        <!-- Floating Movable Log Terminal Toggle Button -->
-        <button 
-            type="button" 
-            x-on:click="showTerminalModal = !showTerminalModal" 
-            class="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 rounded-xl text-[11px] sm:text-xs font-mono font-bold transition-all cursor-pointer shadow-sm active:scale-95"
-            :class="showTerminalModal ? 'bg-indigo-600 text-white shadow-indigo-600/30 border border-indigo-400/50' : 'bg-slate-900/90 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10'"
-            title="Open Live Movable AI Telemetry Terminal"
-        >
-            <span class="text-xs">📟</span>
-            <span class="hidden xs:inline">Logs</span>
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
         </button>
     </div>
 </div>

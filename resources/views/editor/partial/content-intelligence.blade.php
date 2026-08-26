@@ -24,13 +24,7 @@
 */
 --}}
 
-<div 
-    x-show="showRightPanel" 
-    x-transition:enter="transition ease-out duration-200"
-    x-transition:enter-start="opacity-0 translate-x-4"
-    x-transition:enter-end="opacity-100 translate-x-0"
-    class="space-y-4 h-full flex flex-col"
->
+<div class="space-y-4 h-full flex flex-col">
     <div class="editor-column hoa-custom-scrollbar">
         <!-- Main Header -->
         <div class="flex items-center justify-between pb-2 border-b border-white/10">
@@ -118,17 +112,6 @@
             >
                 <span class="text-sm">🕒</span>
                 <span class="text-[10px] font-bold truncate w-full">History</span>
-            </button>
-
-            <button 
-                type="button" 
-                x-on:click="showTerminalModal = true" 
-                :class="showTerminalModal ? 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-white font-bold shadow-md shadow-indigo-600/30 border border-indigo-400/50' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" 
-                class="py-2 px-1 rounded-xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 active:scale-95"
-                title="Launch Floating AI Telemetry Terminal"
-            >
-                <span class="text-sm">📟</span>
-                <span class="text-[10px] font-bold truncate w-full">Terminal</span>
             </button>
         </div>
 

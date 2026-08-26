@@ -37,6 +37,12 @@
         <!-- Glass Register Card -->
         <x-glass.card variant="elevated" class="p-6 sm:p-8 border border-white/15 shadow-2xl">
             <form wire:submit="register" class="space-y-4">
+                <!-- 🛡️ Invisible Honeypot Anti-Bot Trap (Hidden from real users via absolute off-screen positioning) -->
+                <div class="absolute -left-[9999px] -top-[9999px] opacity-0 pointer-events-none" aria-hidden="true" tabindex="-1">
+                    <label for="auth_hp_field_reg">Website</label>
+                    <input type="text" id="auth_hp_field_reg" wire:model="honeypot" name="user_website_trap" autocomplete="off" tabindex="-1">
+                </div>
+
                 <div>
                     <label class="text-xs font-medium text-slate-300 block mb-1.5">Full Name</label>
                     <x-glass.input
@@ -45,6 +51,7 @@
                         placeholder="Alex Morgan"
                         required
                         autofocus
+                        autocomplete="name"
                         :error="$errors->has('name')"
                     />
                     @error('name')
@@ -59,6 +66,7 @@
                         type="email"
                         placeholder="alex@company.com"
                         required
+                        autocomplete="email"
                         :error="$errors->has('email')"
                     />
                     @error('email')
@@ -66,15 +74,48 @@
                     @enderror
                 </div>
 
-                <div>
-                    <label class="text-xs font-medium text-slate-300 block mb-1.5">Password</label>
+                <!-- Password Input with Live Alpine.js Security Strength Meter -->
+                <div 
+                    x-data="{
+                        password: @entangle('password'),
+                        get strength() {
+                            if (!this.password) return 0;
+                            let score = 0;
+                            if (this.password.length >= 8) score++;
+                            if (/[a-z]/.test(this.password) && /[A-Z]/.test(this.password)) score++;
+                            if (/\d/.test(this.password)) score++;
+                            if (/[^A-Za-z0-9]/.test(this.password)) score++;
+                            return score;
+                        },
+                        get strengthLabel() {
+                            switch(this.strength) {
+                                case 1: return { text: 'Weak', color: 'text-rose-400', bar: 'bg-rose-500 w-1/4' };
+                                case 2: return { text: 'Fair', color: 'text-amber-400', bar: 'bg-amber-500 w-2/4' };
+                                case 3: return { text: 'Good', color: 'text-blue-400', bar: 'bg-blue-500 w-3/4' };
+                                case 4: return { text: 'Strong', color: 'text-emerald-400', bar: 'bg-emerald-500 w-full' };
+                                default: return { text: '', color: '', bar: 'w-0' };
+                            }
+                        }
+                    }"
+                >
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="text-xs font-medium text-slate-300">Password</label>
+                        <span x-show="password.length > 0" class="text-[11px] font-semibold" :class="strengthLabel.color" x-text="strengthLabel.text"></span>
+                    </div>
                     <x-glass.input
                         wire:model="password"
                         type="password"
-                        placeholder="Minimum 8 characters"
+                        placeholder="Min 8 chars, uppercase, number & symbol"
                         required
+                        autocomplete="new-password"
                         :error="$errors->has('password')"
                     />
+
+                    <!-- Visual Strength Bar -->
+                    <div x-show="password.length > 0" class="h-1 w-full bg-slate-800 rounded-full mt-2 overflow-hidden">
+                        <div class="h-full transition-all duration-300 rounded-full" :class="strengthLabel.bar"></div>
+                    </div>
+
                     @error('password')
                         <p class="text-xs text-red-400 mt-1">{{ $message }}</p>
                     @enderror
@@ -87,6 +128,7 @@
                         type="password"
                         placeholder="Repeat password"
                         required
+                        autocomplete="new-password"
                     />
                 </div>
 
@@ -101,6 +143,43 @@
                         <p class="text-xs text-red-400 mt-1">{{ $message }}</p>
                     @enderror
                 </div>
+
+                <!-- Cloudflare Turnstile Challenge (Renders if site key is configured) -->
+                @if (!empty($turnstileSiteKey))
+                    <div 
+                        x-data="{
+                            initTurnstile() {
+                                if (window.turnstile) {
+                                    window.turnstile.render(this.$refs.turnstileContainer, {
+                                        sitekey: '{{ $turnstileSiteKey }}',
+                                        theme: 'dark',
+                                        callback: (token) => {
+                                            $wire.set('turnstileToken', token);
+                                        }
+                                    });
+                                }
+                            }
+                        }"
+                        x-init="
+                            if (!window.turnstile) {
+                                let script = document.createElement('script');
+                                script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+                                script.async = true;
+                                script.defer = true;
+                                script.onload = () => initTurnstile();
+                                document.head.appendChild(script);
+                            } else {
+                                initTurnstile();
+                            }
+                        "
+                        class="flex flex-col items-center justify-center my-2"
+                    >
+                        <div x-ref="turnstileContainer"></div>
+                        @error('turnstile')
+                            <p class="text-xs text-red-400 mt-1 text-center">{{ $message }}</p>
+                        @enderror
+                    </div>
+                @endif
 
                 <x-glass.button type="submit" variant="primary" size="md" class="w-full shadow-lg shadow-indigo-500/25 mt-2">
                     <span wire:loading.remove wire:target="register">Create Free Account</span>

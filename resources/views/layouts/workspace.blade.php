@@ -558,6 +558,9 @@
                         </a>
                     @endif
 
+                    <!-- In-App Notifications Center -->
+                    <livewire:admin.notification-bell />
+
                     <!-- Create New Document Button -->
                     <a href="{{ route('documents.index') }}" wire:navigate>
                         <x-glass.button variant="primary" size="sm" class="shadow-lg shadow-indigo-500/25 gap-1.5">

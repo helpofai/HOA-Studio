@@ -51,8 +51,8 @@
     <!-- TOP TOOLBAR & CONTROLS -->
     @include('editor.partial.toolbar')
 
-<!-- RESPONSIVE WORKSPACE LAYOUT (Bottom-Aligned 3-Column Grid) -->
-    <div class="editor-grid" 
+    <!-- RESPONSIVE WORKSPACE LAYOUT (3-Column Grid) -->
+    <div class="editor-grid layout-three-panel" 
          :class="{
               'layout-three-panel': showLeftPanel && showRightPanel,
               'layout-left-only': showLeftPanel && !showRightPanel,

@@ -102,6 +102,8 @@ Route::middleware('auth')->group(function () {
 });
 
 use App\Features\Admin\Livewire\AdminAiSettingsPage;
+use App\Features\Admin\Livewire\AdminAuthSettingsPage;
+use App\Features\Admin\Livewire\AdminMailNotificationPage;
 use App\Features\Admin\Livewire\AdminOmniRouteSetupPage;
 use App\Features\Admin\Livewire\AdminSystemInfoPage;
 use App\Features\Admin\Livewire\AdminUpdatesPage;
@@ -110,6 +112,8 @@ use App\Features\Admin\Livewire\AdminUpdatesPage;
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', AdminDashboardPage::class)->name('dashboard');
     Route::get('/users', AdminUsersPage::class)->name('users');
+    Route::get('/auth-settings', AdminAuthSettingsPage::class)->name('auth-settings');
+    Route::get('/mail-notifications', AdminMailNotificationPage::class)->name('mail-notifications');
     Route::get('/ai-settings', AdminAiSettingsPage::class)->name('ai-settings.index');
     Route::get('/ai-settings/omniroute', AdminOmniRouteSetupPage::class)->name('ai-settings.omniroute');
     Route::get('/usage', AdminUsageLogsPage::class)->name('usage');
