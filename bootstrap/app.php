@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureUserHasRole::class,
+            'auth.studio' => \App\Http\Middleware\AuthenticateStudioToken::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -1,14 +1,14 @@
 {
     "name": "HelpOfAi Studio (HOA-Studio)",
-    "version": "2.5.2",
-    "version_code": 252,
-    "build_number": "20260826.1",
+    "version": "2.6.0",
+    "version_code": 260,
+    "build_number": "20260826.2",
     "channel": "stable",
     "release_date": "2026-08-26",
     "min_php_version": "8.2.0",
     "min_laravel_version": "12.0.0",
     "schema_version": "2026_08_25_000001",
-    "signature": "HOA-SEC-V252-ENTERPRISE",
+    "signature": "HOA-SEC-V260-ENTERPRISE",
     "changelog_url": "https://raw.githubusercontent.com/helpofai/HOA-Studio/main/CHANGELOG.md",
     "support_url": "https://helpofai.com/support"
 }

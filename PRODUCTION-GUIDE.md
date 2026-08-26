@@ -68,6 +68,8 @@ php artisan storage:link
 
 ---
 
+---
+
 ## 3. VPS & Dedicated Cloud Deployment (Nginx + PHP-FPM)
 
 ### Recommended Nginx Configuration (`/etc/nginx/sites-available/hoa-studio.conf`):
@@ -126,6 +128,16 @@ server {
         fastcgi_read_timeout 300;
     }
 
+    # Real-Time SSE AI Streaming (Disable Buffering)
+    location ~ ^/api/v1/wordpress/stream {
+        fastcgi_pass unix:/var/run/php/php8.5-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $realpath_root/index.php;
+        include fastcgi_params;
+        fastcgi_buffering off;
+        proxy_buffering off;
+        gzip off;
+    }
+
     # Deny access to hidden files and system configs
     location ~ /\.(?!well-known).* {
         deny all;
@@ -135,7 +147,58 @@ server {
 
 ---
 
-## 4. Production Environment Settings (`.env`)
+## 4. 📂 Sub-Directory Domain Setup (`helpofai.com/studio`)
+
+HelpOfAi Studio natively supports running inside subdirectories on **Linux**, **Apache**, **Nginx**, and **LiteSpeed / OpenLiteSpeed / cPanel**.
+
+### A. Environment Configuration (`.env`):
+Set the app and asset URLs to your subdirectory:
+```env
+APP_URL=https://helpofai.com/studio
+ASSET_URL=https://helpofai.com/studio
+SESSION_PATH=/studio
+```
+
+### B. Apache & LiteSpeed / cPanel Subdirectory Setup:
+Create a subdirectory folder named `studio` inside `public_html/` (e.g. `public_html/studio/`), upload HOA Studio files, and make sure both root and public `.htaccess` are present. 
+The dynamic `.htaccess` rules automatically route `/studio/*` requests to `/studio/public/index.php`.
+
+For LiteSpeed servers, buffer flushing is enabled out-of-the-box in `public/.htaccess` via `CacheLookup off`.
+
+### C. Nginx Subdirectory Block (`/etc/nginx/sites-available/helpofai.com`):
+When hosting WordPress on the root domain (`helpofai.com`) and HOA-Studio in `/studio`:
+```nginx
+server {
+    server_name helpofai.com;
+    root /var/www/helpofai.com/public_html;
+
+    # Primary Root Site (e.g. WordPress)
+    location / {
+        try_files $uri $uri/ /index.php?$args;
+    }
+
+    # HOA Studio Subdirectory Location Block
+    location ^~ /studio {
+        alias /var/www/hoa-studio/public;
+        try_files $uri $uri/ @studio;
+
+        location ~ \.php$ {
+            include fastcgi_params;
+            fastcgi_param SCRIPT_FILENAME /var/www/hoa-studio/public/index.php;
+            fastcgi_pass unix:/var/run/php/php8.5-fpm.sock;
+            fastcgi_read_timeout 300;
+        }
+    }
+
+    location @studio {
+        rewrite /studio/(.*)$ /studio/index.php?/$1 last;
+    }
+}
+```
+
+---
+
+## 5. Production Environment Settings (`.env`)
 
 Ensure the following critical values are configured for production:
 

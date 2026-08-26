@@ -347,11 +347,11 @@
                             </div>
                         </a>
 
-                        <!-- Profile & BYOK Keys / Account Settings -->
+                        <!-- User Settings & Controls Hub -->
                         <a 
-                            href="{{ route('profile') }}" 
+                            href="{{ route('settings') }}" 
                             wire:navigate.hover
-                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('profile') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('settings') || request()->routeIs('profile') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">⚙️</span>
                             <span 
@@ -363,10 +363,10 @@
                                 x-transition:leave-start="opacity-100 translate-x-0 max-w-[180px]"
                                 x-transition:leave-end="opacity-0 -translate-x-2 max-w-0"
                                 class="truncate overflow-hidden whitespace-nowrap text-[13.5px]"
-                            >Account & BYOK Keys</span>
+                            >Settings & Controls</span>
 
                             <div x-show="collapsed" class="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-900/95 border border-white/15 text-white text-xs font-semibold shadow-xl backdrop-blur-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 z-50 whitespace-nowrap">
-                                Account & BYOK Keys
+                                Settings & Controls
                             </div>
                         </a>
                     </div>
@@ -529,7 +529,7 @@
                                 'brand-voices' => 'Brand Voices',
                                 'knowledge-base' => 'Knowledge Base',
                                 'usage' => 'Usage & Quotas',
-                                'profile' => 'User Profile',
+                                'settings', 'profile' => 'User Settings & Controls',
                                 default => ($seg1 === 'admin' ? 'Admin Panel' : 'Dashboard')
                             };
                         @endphp
@@ -542,7 +542,7 @@
                 <!-- Right Action Stack (Dynamic & Role Aware) -->
                 <div class="flex items-center gap-2 sm:gap-3 shrink-0">
                     <!-- Live Quota Balance Pill -->
-                    <a href="{{ route('usage.index') }}" wire:navigate class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-xl glass-subtle border border-white/10 hover:border-indigo-500/40 text-xs text-slate-300 hover:text-white transition-all shadow-inner group">
+                    <a href="{{ route('settings', ['tab' => 'tokens']) }}" wire:navigate class="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-xl glass-subtle border border-white/10 hover:border-indigo-500/40 text-xs text-slate-300 hover:text-white transition-all shadow-inner group">
                         <span class="text-indigo-400 group-hover:scale-110 transition-transform">⚡</span>
                         <span class="font-mono font-bold text-white">{{ number_format($rem) }}</span>
                         <span class="text-[10px] text-slate-400">words left</span>
@@ -570,7 +570,7 @@
                     </a>
 
                     <!-- User Profile Avatar Pill -->
-                    <a href="{{ route('profile') }}" wire:navigate class="flex items-center gap-2 p-1 rounded-xl glass-subtle hover:border-indigo-500/40 transition-all border border-white/5" title="View Profile & Quotas">
+                    <a href="{{ route('settings') }}" wire:navigate class="flex items-center gap-2 p-1 rounded-xl glass-subtle hover:border-indigo-500/40 transition-all border border-white/5" title="User Settings & Controls">
                         <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center font-bold text-xs text-white shadow-sm">
                             {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}
                         </div>

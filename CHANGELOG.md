@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.0] - 2026-08-26
+
+### 🚀 Added
+- **HOA Studio Enterprise WordPress Plugin & Bridge API Suite (`/api/v1/wordpress/*`)**:
+  - **Standalone WordPress Plugin (`public/plugins/hoa-studio-wordpress/` & `public/downloads/hoa-studio-wordpress.zip`)**:
+    - **TipTap Fullscreen AI Editor Canvas**: Brings HOA Studio's complete TipTap ProseMirror engine, floating selection formatting toolbar, and inline AI prompt bar (`Ctrl+K` / `/`) directly into WordPress Post & Page edit screens.
+    - **Gutenberg Custom AI Block Extension (`hoa-studio/ai-content-generator`)**: Injects live-streaming AI generation blocks natively into Gutenberg.
+    - **Bidirectional Document & Post Sync (`/api/v1/wordpress/sync-document`)**: Sync articles between HOA Studio and WordPress drafts.
+  - **Scoped User Studio Connect Keys (`hoa_live_...`)**:
+    - Each user generates their own unique `SHA-256` connect tokens in User Settings &rarr; WordPress Connect Keys.
+    - Authenticated via `AuthenticateStudioToken` middleware with automatic monthly word quota deduction and rate limiting (never exposes backend OmniRoute credentials).
+- **Multi-Server & Sub-Directory Domain Support (`helpofai.com/studio`)**:
+  - Full compatibility across **Linux**, **Apache**, **Nginx**, **LiteSpeed / OpenLiteSpeed**, and **cPanel Shared Hosting**.
+  - Dynamic relative `.htaccess` routing for both root domains and subfolder paths (e.g. `public_html/studio/`).
+  - Automatic `forceRootUrl` and `forceScheme` HTTPS enforcement in `AppServiceProvider`.
+  - Configurable `ASSET_URL` & `update_route` support in `config/livewire.php` preventing Livewire SPA asset breakage in subdirectories.
+  - LiteSpeed and Apache SSE AI streaming buffer bypass (`CacheLookup off` & `proxy_buffering off`).
+- **Unified User Settings & Account Controls Suite (`/dashboard/settings`)**:
+  - Built a 5-tab responsive glassmorphic settings dashboard:
+    1. **Profile & Security**: Live display name, official workspace email editing, and password update.
+    2. **AI Tokens & Word Quota**: Real-time word balance meter, total tokens processed, direct provider cost calculations, and per-model consumption breakdown.
+    3. **My Content & Documents**: Paginated document portfolio, word count metrics, project associations, search & status filters, and instant trash/edit actions.
+    4. **BYOK Custom API Keys**: Register personal OpenAI, DeepSeek, Anthropic, or local Ollama endpoints encrypted at rest with **AES-256-GCM**, unlocking unlimited rate limits.
+    5. **Studio Preferences**: Configurable default AI generation models, vector embedding RAG cache duration, default editor canvas engine (TipTap, Gutenberg, Notion, Markdown), and notification options.
+- **Sidebar & Top Header Navigation Polish**:
+  - Added dedicated **Settings & Controls** sidebar navigation link and integrated the avatar pill across all workspace layouts with dynamic tab routing (`wire:navigate`).
+
+---
+
 ## [2.5.2] - 2026-08-26
 
 ### 🚀 Added & Architectural Improvements

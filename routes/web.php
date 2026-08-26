@@ -74,6 +74,7 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::get('/usage', UserUsagePage::class)->name('usage.index');
     Route::get('/projects', ProjectsPage::class)->name('projects.index');
     Route::get('/profile', ProfilePage::class)->name('profile');
+    Route::get('/settings', ProfilePage::class)->name('settings');
     Route::get('/documents/{id}/export/{format}', [ExportDocumentController::class, 'export'])->name('documents.export');
     Route::get('/documents/{id}/print-pdf', [ExportDocumentController::class, 'printPdf'])->name('documents.print-pdf');
 
@@ -82,6 +83,16 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::post('/api/ai/stream-transform', [AiStreamController::class, 'streamTransform'])->name('ai.stream-transform');
     Route::post('/api/ai/stream', [AiStreamController::class, 'stream'])->name('ai.stream');
     Route::get('/api/ai/providers/models', [AiProviderController::class, 'getModels'])->name('ai.providers.models');
+});
+
+// WordPress & Studio Connect REST API (Authenticated via Studio Connect Token Bearer)
+use App\Features\AI\Http\Controllers\WordPressBridgeController;
+
+Route::prefix('api/v1/wordpress')->middleware('auth.studio')->group(function () {
+    Route::post('/connect', [WordPressBridgeController::class, 'connect'])->name('api.wordpress.connect');
+    Route::post('/stream', [WordPressBridgeController::class, 'stream'])->name('api.wordpress.stream');
+    Route::post('/transform', [WordPressBridgeController::class, 'transform'])->name('api.wordpress.transform');
+    Route::post('/sync-document', [WordPressBridgeController::class, 'syncDocument'])->name('api.wordpress.sync-document');
 });
 
 // Public Document Sharing Routes

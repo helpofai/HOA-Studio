@@ -5,7 +5,7 @@
 
     RewriteEngine On
 
-    # Pass Authorization Header to PHP
+    # Pass Authorization Header to PHP (Crucial for API and WordPress Bridge Keys)
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
@@ -14,10 +14,18 @@
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # Send Requests To Front Controller...
+    # Send Requests To Front Controller (Works for root or subdirectories like /studio)
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
+</IfModule>
+
+# Disable Buffer in LiteSpeed / Apache for Real-Time SSE AI Streaming
+<IfModule mod_litespeed.c>
+    CacheLookup off
+</IfModule>
+<IfModule litespeed>
+    CacheLookup off
 </IfModule>
 
 # Gzip Compression for High Performance

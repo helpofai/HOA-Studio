@@ -47,6 +47,17 @@ class AppServiceProvider extends ServiceProvider
     {
         Schema::defaultStringLength(191);
 
+        // Force HTTPS in production or behind SSL reverse proxies (cPanel, LiteSpeed, Cloudflare, Nginx)
+        if (config('app.env') === 'production' || str_starts_with((string) config('app.url'), 'https://')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
+        // Support custom subdirectory installations (e.g. https://helpofai.com/studio)
+        $appUrl = (string) config('app.url');
+        if ($appUrl && parse_url($appUrl, PHP_URL_PATH)) {
+            \Illuminate\Support\Facades\URL::forceRootUrl($appUrl);
+        }
+
         \Livewire\Livewire::component('admin.notification-bell', \App\Features\Admin\Livewire\NotificationBell::class);
     }
 }
