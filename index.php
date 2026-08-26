@@ -77,6 +77,11 @@ if ($subPath !== '' && $subPath !== '/') {
     }
 }
 
+// Force HTTPS detection for Laravel URL generation (behind reverse proxy / cPanel SSL)
+$_SERVER['HTTPS'] = 'on';
+$_SERVER['HTTP_X_FORWARDED_PROTO'] = 'https';
+$_SERVER['HTTP_X_FORWARDED_SSL'] = 'on';
+
 $uri = $uri ?: '/';
 
 // ── 3. Check for a real file inside public/ matching this URI ───────────────

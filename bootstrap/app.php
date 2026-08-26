@@ -16,6 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SecurityHeadersMiddleware::class,
         ]);
 
+        // Trust proxies for HTTPS detection behind reverse proxy (cPanel, LiteSpeed, Cloudflare, Nginx)
+        $middleware->trustProxies(at: '*', headers: 0b111111); // Set to 63 (all headers)
+
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureUserHasRole::class,
             'auth.studio' => \App\Http\Middleware\AuthenticateStudioToken::class,
