@@ -10,15 +10,23 @@
     #   public_html/helpofai.com/studio/          ← Laravel app root (this .htaccess)
     #   public_html/helpofai.com/studio/public/   ← Laravel web root (index.php here)
     #
-    # Apache's RewriteRule in .htaccess context matches the path RELATIVE to the
-    # current directory. For request /studio/login, the pattern sees just "login".
+    # HOW mod_rewrite CYCLES WORK (critical to understand):
+    #   When a rule rewrites a path, mod_rewrite starts a NEW CYCLE through all
+    #   rules with the updated path. Without a guard, this causes an infinite loop:
     #
-    # If the path is already a real file or directory (e.g. public/build/app.css),
-    # skip the rewrite and let Apache serve it directly.
-    # Otherwise, forward everything to public/ — public/.htaccess then routes to
-    # index.php, and index.php strips /studio from REQUEST_URI before Laravel boots.
+    #   Cycle 1: "login"        → RewriteRule fires → "public/login"   [L, new cycle]
+    #   Cycle 2: "public/login" → RewriteRule fires → "public/public/login" [LOOP!]
+    #
+    # GUARD RULE: If path already starts with "public/", stop immediately.
+    #   Cycle 1: "login"        → guard skips → RewriteRule fires → "public/login"
+    #   Cycle 2: "public/login" → guard fires [L] → STOP. Apache serves studio/public/login
+    #   public/.htaccess then routes "login" → index.php ✅
     # ─────────────────────────────────────────────────────────────────────────────
-    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # GUARD: already in public/ directory — stop rewriting, let public/.htaccess handle it
+    RewriteRule ^public(/.*)?$ - [L]
+
+    # Forward all other requests to public/ (skip only real files to allow asset serving)
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^(.*)$ public/$1 [L,QSA]
 </IfModule>
