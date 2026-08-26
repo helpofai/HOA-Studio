@@ -57,9 +57,13 @@ if ($isAuthorized && !empty($action)) {
         $cachePath = $baseDir . '/storage/framework/cache/data';
         $configPath = $baseDir . '/bootstrap/cache/config.php';
         $routesPath = $baseDir . '/bootstrap/cache/routes-v7.php';
+        $servicesPath = $baseDir . '/bootstrap/cache/services.php';
+        $packagesPath = $baseDir . '/bootstrap/cache/packages.php';
 
         @unlink($configPath);
         @unlink($routesPath);
+        @unlink($servicesPath);
+        @unlink($packagesPath);
 
         if (is_dir($viewPath)) {
             $files = glob($viewPath . '/*');
@@ -67,8 +71,41 @@ if ($isAuthorized && !empty($action)) {
                 if (is_file($file)) @unlink($file);
             }
         }
-        $message = 'Emergency view and configuration cache flushed successfully.';
+        $message = 'Emergency view, routes, services, and configuration cache flushed successfully.';
         $messageType = 'success';
+    } elseif ($action === 'test_db') {
+        try {
+            if (file_exists($envFile)) {
+                $envContent = file_get_contents($envFile);
+                preg_match('/^DB_HOST=(.*)$/m', $envContent, $h);
+                preg_match('/^DB_PORT=(.*)$/m', $envContent, $p);
+                preg_match('/^DB_DATABASE=(.*)$/m', $envContent, $d);
+                preg_match('/^DB_USERNAME=(.*)$/m', $envContent, $u);
+                preg_match('/^DB_PASSWORD=(.*)$/m', $envContent, $pw);
+
+                $host = trim($h[1] ?? '127.0.0.1', "\"' ");
+                $port = trim($p[1] ?? '3306', "\"' ");
+                $db = trim($d[1] ?? '', "\"' ");
+                $user = trim($u[1] ?? '', "\"' ");
+                $pass = trim($pw[1] ?? '', "\"' ");
+
+                $pdo = new PDO("mysql:host={$host};port={$port};dbname={$db}", $user, $pass, [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_TIMEOUT => 5,
+                ]);
+                $stmt = $pdo->query("SHOW TABLES");
+                $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
+                $message = "Database Connected Successfully! Found " . count($tables) . " tables in [{$db}].";
+                $messageType = 'success';
+            } else {
+                $message = ".env file not found.";
+                $messageType = 'error';
+            }
+        } catch (\Throwable $e) {
+            $message = "Database Connection Failed: " . $e->getMessage();
+            $messageType = 'error';
+        }
+    }
     } elseif ($action === 'restore_backup' && !empty($_POST['backup_file'])) {
         $targetFile = basename($_POST['backup_file']);
         $fullPath = $backupDir . '/' . $targetFile;
@@ -186,7 +223,7 @@ if (file_exists($manifestFile)) {
                 </div>
             <?php endif; ?>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <form method="POST" class="p-4 rounded-xl bg-slate-950 border border-white/10 space-y-3">
                     <input type="hidden" name="key" value="<?= htmlspecialchars($providedKey) ?>">
                     <input type="hidden" name="action" value="disable_maintenance">
@@ -205,13 +242,43 @@ if (file_exists($manifestFile)) {
                     <input type="hidden" name="action" value="flush_cache">
                     <div class="font-bold text-sm text-white flex items-center gap-2">
                         <span>🧹</span>
-                        <span>Emergency Cache Flush</span>
+                        <span>Flush All Caches</span>
                     </div>
-                    <p class="text-xs text-slate-400">Delete corrupted view and config files from bootstrap/cache.</p>
+                    <p class="text-xs text-slate-400">Flush views, routes, config & service cache.</p>
                     <button type="submit" class="w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-white border border-white/10">
                         Flush All Caches
                     </button>
                 </form>
+
+                <form method="POST" class="p-4 rounded-xl bg-slate-950 border border-white/10 space-y-3">
+                    <input type="hidden" name="key" value="<?= htmlspecialchars($providedKey) ?>">
+                    <input type="hidden" name="action" value="test_db">
+                    <div class="font-bold text-sm text-white flex items-center gap-2">
+                        <span>🗄️</span>
+                        <span>Test Database</span>
+                    </div>
+                    <p class="text-xs text-slate-400">Verify MySQL database credentials and tables.</p>
+                    <button type="submit" class="w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-white border border-white/10">
+                        Test Connection
+                    </button>
+                </form>
+            </div>
+
+            <!-- Recent Laravel Log Tail -->
+            <div class="p-4 rounded-xl bg-slate-950 border border-white/10 space-y-2">
+                <div class="flex items-center justify-between text-xs font-bold text-slate-300">
+                    <span>📋 Recent Server Error Log (storage/logs/laravel.log)</span>
+                </div>
+                <?php
+                    $logFile = $baseDir . '/storage/logs/laravel.log';
+                    $logContent = 'Log file is clean / no errors recorded.';
+                    if (file_exists($logFile) && filesize($logFile) > 0) {
+                        $lines = file($logFile);
+                        $lastLines = array_slice($lines, -15);
+                        $logContent = htmlspecialchars(implode("", $lastLines));
+                    }
+                ?>
+                <pre class="p-3 rounded-lg bg-black text-[11px] font-mono text-slate-300 overflow-x-auto max-h-48 border border-white/5"><?= $logContent ?></pre>
             </div>
 
             <div class="space-y-3 pt-2">
