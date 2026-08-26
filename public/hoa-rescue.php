@@ -105,7 +105,6 @@ if ($isAuthorized && !empty($action)) {
             $message = "Database Connection Failed: " . $e->getMessage();
             $messageType = 'error';
         }
-    }
     } elseif ($action === 'restore_backup' && !empty($_POST['backup_file'])) {
         $targetFile = basename($_POST['backup_file']);
         $fullPath = $backupDir . '/' . $targetFile;
