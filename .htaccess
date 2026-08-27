@@ -5,6 +5,12 @@
     RewriteRule ^(\.env|\.git|composer\.(json|lock)|package(-lock)?\.json|vite\.config\.js|tailwind\.config\.js|\.system_generated) - [F,L,NC]
     RewriteRule ^(app|bootstrap|config|database|resources|routes|storage/logs|tests|vendor)/ - [F,L,NC]
 
+    # --- ADD THIS TO FIX ASSET LOADING ---
+    # If request is for public/assets, skip this router and let server handle it
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^public/ - [L]
+    # --------------------------------------
+
     # ── Route to smart router (index.php at app root) ─────────────────────────
     #
     # Server layout:
