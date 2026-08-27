@@ -25,6 +25,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
@@ -51,6 +52,8 @@ class AppServiceProvider extends ServiceProvider
         if (config('app.env') === 'production' || str_starts_with((string) config('app.url'), 'https://')) {
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
+
+        Vite::useBuildDirectory('build');
 
         \Livewire\Livewire::component('admin.notification-bell', \App\Features\Admin\Livewire\NotificationBell::class);
     }
