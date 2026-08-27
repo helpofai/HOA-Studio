@@ -1,25 +1,20 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # 1. Force HTTPS (Crucial for Mixed Content fixes)
-    RewriteCond %{HTTPS} off
-    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-
-    # 2. Security: block direct access to sensitive files
+    # 1. Block sensitive files
     RewriteRule ^(\.env|\.git|composer\.(json|lock)|package(-lock)?\.json|vite\.config\.js|tailwind\.config\.js|\.system_generated) - [F,L,NC]
     RewriteRule ^(app|bootstrap|config|database|resources|routes|storage/logs|tests|vendor)/ - [F,L,NC]
 
-    # 3. Pass through for real files in the public directory (Assets)
-    # If the request matches a real file or directory in public/, it will be handled by index.php
-    # which serves them with proper MIME types.
+    # 2. Force direct serving of public folder contents
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^public/ - [L]
 
-    # 4. Route everything else to the Smart Router (index.php at root)
+    # 3. Route everything else to public/index.php
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteRule ^ index.php [L]
+    RewriteRule ^ public/index.php [L]
 </IfModule>
 
-# Disable Directory Browsing
 <IfModule mod_autoindex.c>
     Options -Indexes
 </IfModule>
