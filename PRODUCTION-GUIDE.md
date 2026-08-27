@@ -152,10 +152,11 @@ server {
 HelpOfAi Studio natively supports running inside subdirectories on **Linux**, **Apache**, **Nginx**, and **LiteSpeed / OpenLiteSpeed / cPanel**.
 
 ### A. Environment Configuration (`.env`):
-Set the app and asset URLs to your subdirectory:
+Set the app URL to your subdirectory. **Important:** Leave `ASSET_URL` empty unless you are using a dedicated CDN, as setting it to the base URL can break Livewire assets in subdirectories.
+
 ```env
 APP_URL=https://helpofai.com/studio
-ASSET_URL=https://helpofai.com/studio
+ASSET_URL=
 SESSION_PATH=/studio
 ```
 
