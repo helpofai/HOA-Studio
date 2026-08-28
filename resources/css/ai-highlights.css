@@ -1,0 +1,39 @@
+
+/* AI Transformation Highlights */
+.ai-proposal-container {
+    background-color: #fef08a !important; /* Tailwind yellow-200 */
+    color: #000 !important;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    margin: 1rem 0;
+    border: 1px solid #eab308;
+    position: relative;
+}
+
+.ai-proposal-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.ai-new-content {
+    background-color: #fef08a !important; /* Tailwind yellow-200 */
+    color: #000 !important;
+    transition: background-color 0.5s ease;
+}
+
+.ai-old-content {
+    background-color: #bfdbfe !important; /* Tailwind blue-200 */
+    color: #000 !important;
+    transition: background-color 0.5s ease;
+}
+
+.ai-accept-feedback {
+    background-color: #bbf7d0 !important; /* Tailwind green-300 */
+    transition: background-color 0.5s ease;
+}
+
+.ai-decline-feedback {
+    background-color: #fecaca !important; /* Tailwind red-200 */
+    transition: background-color 0.5s ease;
+}

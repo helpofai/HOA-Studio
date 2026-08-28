@@ -648,19 +648,9 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto') {
         // FINAL PERSISTENCE & SURGICAL PLACEMENT WITH VISUAL RED/GREEN DIFF REVIEW
         if (fullResult.trim().length > 0 && ed) {
             if (hadSelection && effectivePlacement === 'replace_selection') {
-                // 1. POPULATE DIFF REVIEW (Red Old vs Green New) FOR SELECTION REWRITES
-                this.pendingDiff = {
-                    originalText: targetText,
-                    transformedText: fullResult,
-                    actionType: type,
-                    customInstruction: promptToSend,
-                    hadSelection: true,
-                    timestamp: new Date().toLocaleTimeString(),
-                    candidates: [fullResult]
-                };
-                this.activeCandidateIndex = 0;
-                this.showDiffReview = true;
-                this.addLog('AI', '✦ Generated localized rewrite. Review Red (Old) vs Green (New) changes or switch variations.');
+                // Insert as a Proposal Block with Yellow color and Accept/Decline options inside TipTap
+                this.insertContentIntoCanvas(fullResult, false, 'ai-new-content', true);
+                this.addLog('AI', '✦ Inserted rewrite proposal block inside text with Accept/Decline options.');
             } else if (hadSelection && effectivePlacement === 'insert_below') {
                 // 2. INSERT IMMEDIATELY BELOW SELECTION
                 this.insertContentIntoCanvas('<p></p>' + fullResult, true, 'ai-new-content');

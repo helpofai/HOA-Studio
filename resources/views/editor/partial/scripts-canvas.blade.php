@@ -299,12 +299,20 @@ scrollToHeading(text) {
     }
 },
 
-    insertContentIntoCanvas(htmlContent, withHighlight = true, className = 'ai-new-content') {
+    insertContentIntoCanvas(htmlContent, withHighlight = true, className = 'ai-new-content', isProposal = false) {
         const ed = this.getEditor();
         if (!ed) return;
         try {
             let finalHtml = htmlContent;
-            if (withHighlight) {
+            if (isProposal) {
+                finalHtml = `<div class="ai-proposal-container">
+                    ${htmlContent}
+                    <div class="ai-proposal-actions">
+                        <button onclick="Livewire.dispatch('acceptProposal')" class="px-3 py-1 bg-green-600 text-white rounded">Accept</button>
+                        <button onclick="Livewire.dispatch('declineProposal')" class="px-3 py-1 bg-red-600 text-white rounded">Decline</button>
+                    </div>
+                </div>`;
+            } else if (withHighlight) {
                 finalHtml = `<mark class="${className}">${htmlContent}</mark>`;
             }
             if (typeof ed.insertContent === 'function') {
