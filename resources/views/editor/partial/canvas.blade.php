@@ -431,7 +431,8 @@
 
     <!-- Advanced TipTap Floating Selection Bubble Toolbar (Tippy Portal z-[999999] with Drag-To-Move Anywhere) -->
     <div 
-        id="tiptap-bubble-menu" 
+        id="tiptap-bubble-menu"
+        x-ref="bubbleMenu"
         x-on:mousedown.prevent
         :style="bubblePos.x !== null ? `position: fixed !important; left: ${bubblePos.x}px !important; top: ${bubblePos.y}px !important; transform: none !important; margin: 0 !important; z-index: var(--z-index-floating) !important;` : ''"
         class="editor-floating-actions"

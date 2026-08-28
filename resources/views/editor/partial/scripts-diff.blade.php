@@ -26,9 +26,10 @@ triggerGhostDebounce() {
     if (!this.enableGhostMode || this.isTransforming || this.showDiffReview) return;
     if (this.ghostDebounceTimer) clearTimeout(this.ghostDebounceTimer);
 
+    // Raised to 2500ms to reduce unnecessary AI API calls (was 1200ms)
     this.ghostDebounceTimer = setTimeout(() => {
         this.fetchGhostCompletion();
-    }, 1200);
+    }, 2500);
 },
 
 async fetchGhostCompletion() {
@@ -36,7 +37,15 @@ async fetchGhostCompletion() {
     if (!ed || !this.enableGhostMode || this.isTransforming || this.showDiffReview) return;
     
     const currentDocText = ed.getText ? ed.getText().trim() : '';
-    if (currentDocText.length < 20 || currentDocText === this.lastGhostQuery) return;
+
+    // Require at least 100 chars before triggering ghost (was 20) — avoids API hits on short content
+    if (currentDocText.length < 100 || currentDocText === this.lastGhostQuery) return;
+
+    // Server-side quota guard: only run ghost if user has available quota
+    if (typeof config.hasQuota !== 'undefined' && !config.hasQuota) {
+        this.addLog?.('WARN', 'Ghost autocomplete paused — quota exhausted.');
+        return;
+    }
     
     const last100Words = currentDocText.split(/\s+/).slice(-60).join(' ');
     if (!last100Words) return;

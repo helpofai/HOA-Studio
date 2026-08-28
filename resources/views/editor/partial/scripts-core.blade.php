@@ -75,8 +75,9 @@ performAutosave() {
     
     const ed = this.getEditor();
     const html = ed && ed.getHTML ? ed.getHTML() : '';
+    const json = ed && ed.getJSON ? ed.getJSON() : null;
     if (html) {
-        Livewire.dispatch('autosave', { html: html, json: null });
+        Livewire.dispatch('autosave', { html: html, json: json });
         this.saveLocalDraft(html);
         this.hasUnsavedChanges = false;
         this.isDirty = false;

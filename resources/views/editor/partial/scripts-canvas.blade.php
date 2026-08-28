@@ -299,7 +299,7 @@ scrollToHeading(text) {
     }
 },
 
-    insertContentIntoCanvas(htmlContent, withHighlight = true, className = 'ai-new-content', isProposal = false) {
+    insertContentIntoCanvas(htmlContent, withHighlight = false, className = 'ai-new-content', isProposal = false) {
         const ed = this.getEditor();
         if (!ed) return;
         try {
@@ -323,7 +323,8 @@ scrollToHeading(text) {
             }
 
             const currentHtmlVal = ed.getHTML ? ed.getHTML() : htmlContent;
-            Livewire.dispatch('autosave', { html: currentHtmlVal, json: null });
+            const currentJsonVal = ed.getJSON ? ed.getJSON() : null;
+            Livewire.dispatch('autosave', { html: currentHtmlVal, json: currentJsonVal });
             this.saveLocalDraft(currentHtmlVal);
             this.updateOutline();
             this.updateActiveFormats();
@@ -361,7 +362,8 @@ applyLiveStreamNow() {
             }
         }
         const finalHtml = ed.getHTML ? ed.getHTML() : textToInsert;
-        Livewire.dispatch('autosave', { html: finalHtml, json: null });
+        const finalJson = ed.getJSON ? ed.getJSON() : null;
+        Livewire.dispatch('autosave', { html: finalHtml, json: finalJson });
         this.saveLocalDraft(finalHtml);
         this.updateOutline();
         this.updateActiveFormats();

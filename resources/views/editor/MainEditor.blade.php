@@ -20,7 +20,8 @@
         editorType: '{{ $editorType }}',
         streamRoute: '{{ route('ai.stream-transform') }}',
         csrfToken: '{{ csrf_token() }}',
-        initialContent: @js($contentHtml)
+        initialContent: @js($contentHtml),
+        hasQuota: {{ auth()->user()->hasQuota(50) ? 'true' : 'false' }}
     })"
     x-init="init()"
 >
