@@ -15,6 +15,7 @@
 */
 --}}
 
+// Core State Variables
 editorInstance: null,
 isDirty: false,
 autosaveTimeout: null,

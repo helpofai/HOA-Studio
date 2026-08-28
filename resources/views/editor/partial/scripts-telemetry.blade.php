@@ -80,4 +80,4 @@ addLog(level, msg) {
 
 clearLogs() {
     this.aiLogs = [];
-},
+}

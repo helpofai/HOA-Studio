@@ -299,22 +299,26 @@ scrollToHeading(text) {
     }
 },
 
-insertContentIntoCanvas(htmlContent, withHighlight = true) {
-    const ed = this.getEditor();
-    if (!ed) return;
-    try {
-        if (typeof ed.insertContent === 'function') {
-            ed.insertContent(htmlContent);
-        } else if (typeof ed.setContent === 'function') {
-            const current = ed.getHTML ? ed.getHTML() : '';
-            ed.setContent(current + '<p></p>' + htmlContent);
-        }
+    insertContentIntoCanvas(htmlContent, withHighlight = true, className = 'ai-new-content') {
+        const ed = this.getEditor();
+        if (!ed) return;
+        try {
+            let finalHtml = htmlContent;
+            if (withHighlight) {
+                finalHtml = `<mark class="${className}">${htmlContent}</mark>`;
+            }
+            if (typeof ed.insertContent === 'function') {
+                ed.insertContent(finalHtml);
+            } else if (typeof ed.setContent === 'function') {
+                const current = ed.getHTML ? ed.getHTML() : '';
+                ed.setContent(current + '<p></p>' + finalHtml);
+            }
 
-        const finalHtml = ed.getHTML ? ed.getHTML() : htmlContent;
-        Livewire.dispatch('autosave', { html: finalHtml, json: null });
-        this.saveLocalDraft(finalHtml);
-        this.updateOutline();
-        this.updateActiveFormats();
+            const currentHtmlVal = ed.getHTML ? ed.getHTML() : htmlContent;
+            Livewire.dispatch('autosave', { html: currentHtmlVal, json: null });
+            this.saveLocalDraft(currentHtmlVal);
+            this.updateOutline();
+            this.updateActiveFormats();
 
         const canvas = document.getElementById('tiptap-content-target');
         if (canvas) {
@@ -397,4 +401,4 @@ insertImageFromUrl() {
         ed.setImage?.({ src: url, alt: 'Inserted image' });
         this.addLog('MEDIA', 'Image inserted: ' + url);
     }
-},
+}

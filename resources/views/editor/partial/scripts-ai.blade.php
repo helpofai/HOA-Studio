@@ -243,9 +243,9 @@ async runMultiAgentPipeline(userTopic = '') {
             this.addLog('SEO', 'Agent [Rank Math Optimizer] generated Meta Description (' + cleanMeta.length + ' chars).');
         }
 
-        const finalHtml = ed.getHTML();
-        Livewire.dispatch('autosave', { html: finalHtml, json: null });
-        this.saveLocalDraft(finalHtml);
+        const finalHtmlVal = ed.getHTML();
+        Livewire.dispatch('autosave', { html: finalHtmlVal, json: null });
+        this.saveLocalDraft(finalHtmlVal);
         this.updateOutline();
         this.updateActiveFormats();
         this.addLog('SYSTEM', '🚀 Multi-Agent Swarm successfully published complete human-grade article!');
@@ -468,9 +468,9 @@ async applyTargetedIntelligenceFix(checkId, title, aiPrompt, targetType = 'inser
             } else {
                 this.insertContentIntoCanvas(blockToInsert, true);
                 this.addLog('SEO', 'Surgically inserted ' + title + ' into document.');
-                const finalHtml = ed.getHTML ? ed.getHTML() : '';
-                Livewire.dispatch('autosave', { html: finalHtml, json: null });
-                this.saveLocalDraft(finalHtml);
+                const finalHtmlVal = ed.getHTML ? ed.getHTML() : '';
+                Livewire.dispatch('autosave', { html: finalHtmlVal, json: null });
+                this.saveLocalDraft(finalHtmlVal);
                 this.updateOutline();
             }
         }
@@ -512,6 +512,10 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto') {
     this.activeAction = type;
     this.liveAiStreamText = '';
     this.showAiStreamBanner = true;
+    
+    // Insert Contextual Feedback Node
+    this.insertContentIntoCanvas(this.getFeedbackNodeHtml('AI is processing: ' + type), false);
+    
     this.abortController = new AbortController();
     const signal = this.abortController.signal;
 
@@ -659,17 +663,17 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto') {
                 this.addLog('AI', '✦ Generated localized rewrite. Review Red (Old) vs Green (New) changes or switch variations.');
             } else if (hadSelection && effectivePlacement === 'insert_below') {
                 // 2. INSERT IMMEDIATELY BELOW SELECTION
-                this.insertContentIntoCanvas('<p></p>' + fullResult, true);
+                this.insertContentIntoCanvas('<p></p>' + fullResult, true, 'ai-new-content');
                 this.addLog('AI', 'Inserted AI section immediately below selected text.');
                 this.hasSelection = false;
                 this.selectedText = '';
             } else {
                 // 3. FULL CANVAS / DOCUMENT LEVEL GENERATION (Always Direct Insert)
-                const finalHtml = isDocEmpty 
-                    ? fullResult 
-                    : existingDocContent + '<p></p>' + fullResult;
+                const docFinalHtml = isDocEmpty 
+                    ? `<mark class="ai-new-content">${fullResult}</mark>`
+                    : existingDocContent + '<p></p>' + `<mark class="ai-new-content">${fullResult}</mark>`;
 
-                ed.setContent(finalHtml, true);
+                ed.setContent(docFinalHtml, true);
                 this.addLog('GENERATE', 'Completed generation in canvas (' + fullResult.length + ' chars)');
                 this.hasSelection = false;
                 this.selectedText = '';
@@ -725,3 +729,16 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto') {
         }, 3000);
     }
 },
+
+triggerAiAction(action) {
+    this.showSlashMenu = false;
+    
+    const actionMap = {
+        'rewrite': 'rewrite_polish',
+        'summarize': 'summarize',
+        'expand': 'expand'
+    };
+
+    const mappedAction = actionMap[action] || action;
+    this.triggerAiTransform(mappedAction);
+}

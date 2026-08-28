@@ -29,23 +29,17 @@
 (function() {
     function registerDocumentEditor() {
         if (!window.Alpine) return;
-        Alpine.data('documentEditorComponent', (config) => ({
-            {{-- 1. Core State, Autosave, Draft Recovery & Lifecycle --}}
-            @include('editor.partial.scripts-core')
-
-            {{-- 2. Canvas Operations, Formats, Context Menu & Clipboard --}}
-            @include('editor.partial.scripts-canvas')
-
-            {{-- 3. AI Generation, Streaming SSE Pipeline & Multi-Agent Swarm --}}
-            @include('editor.partial.scripts-ai')
-
-            {{-- 4. Diff Review Inspector, Ghost Autocomplete & Variations --}}
-            @include('editor.partial.scripts-diff')
-
-            {{-- 5. Terminal Telemetry, Floating Draggable HUD & Logging --}}
-            @include('editor.partial.scripts-telemetry')
-        }));
-    }
+        Alpine.data('documentEditorComponent', (config) => {
+            return Object.assign(
+                { @include('editor.partial.scripts-core') },
+                { @include('editor.partial.scripts-canvas') },
+                { @include('editor.partial.scripts-ai') },
+                { @include('editor.partial.scripts-diff') },
+                { @include('editor.partial.scripts-feedback') },
+                { @include('editor.partial.scripts-telemetry') }
+            );
+        });
+}
 
     if (window.Alpine) {
         registerDocumentEditor();

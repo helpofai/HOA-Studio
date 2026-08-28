@@ -86,9 +86,9 @@ acceptGhostText() {
         } else {
             this.insertContentIntoCanvas(textToInsert, true);
         }
-        const finalHtml = ed.getHTML ? ed.getHTML() : '';
-        Livewire.dispatch('autosave', { html: finalHtml, json: null });
-        this.saveLocalDraft(finalHtml);
+        const finalHtmlVal = ed.getHTML ? ed.getHTML() : '';
+        Livewire.dispatch('autosave', { html: finalHtmlVal, json: null });
+        this.saveLocalDraft(finalHtmlVal);
         this.addLog('AI', '✓ Accepted inline Ghost completion (Tab)');
     }
     this.dismissGhostText();
@@ -343,51 +343,25 @@ async regenerateVariation(stylePreset = null) {
     }
 },
 
-acceptAiDiff() {
-    const ed = this.getEditor();
-    const newText = this.getCurrentTransformedText();
-    if (!ed || !newText) return;
-    
-    if (this.pendingDiff.hadSelection && typeof ed.replaceSelection === 'function') {
-        ed.replaceSelection(newText);
-    } else if (this.pendingDiff.hadSelection && typeof ed.insertContent === 'function') {
-        ed.insertContent(newText);
-    } else {
-        this.insertContentIntoCanvas(newText, true);
-    }
 
-    const finalHtml = ed.getHTML ? ed.getHTML() : '';
-    Livewire.dispatch('autosave', { html: finalHtml, json: null });
-    this.saveLocalDraft(finalHtml);
-    this.updateOutline();
-    this.updateActiveFormats();
-    this.addLog('AI', '✓ Accepted AI variation #' + (this.activeCandidateIndex + 1) + ' (' + newText.length + ' chars)');
-    this.dismissDiffReview();
-},
-
-rejectAiDiff() {
-    this.addLog('WARN', '✕ Discarded AI proposed changes.');
-    this.dismissDiffReview();
-},
-
-keepBothDiff() {
-    const ed = this.getEditor();
-    const newText = this.getCurrentTransformedText();
-    if (!ed || !newText) return;
-    const combined = (this.pendingDiff.originalText ? `<p>${this.pendingDiff.originalText}</p>` : '') + `<p></p>${newText}`;
-    this.insertContentIntoCanvas(combined, true);
-    const finalHtml = ed.getHTML ? ed.getHTML() : '';
-    Livewire.dispatch('autosave', { html: finalHtml, json: null });
-    this.saveLocalDraft(finalHtml);
-    this.updateOutline();
-    this.updateActiveFormats();
-    this.addLog('AI', '✓ Kept both original and AI variation #' + (this.activeCandidateIndex + 1));
-    this.dismissDiffReview();
-},
+    keepBothDiff() {
+        const ed = this.getEditor();
+        const newText = this.getCurrentTransformedText();
+        if (!ed || !newText) return;
+        const combined = (this.pendingDiff.originalText ? `<p>${this.pendingDiff.originalText}</p>` : '') + `<p></p>${newText}`;
+        this.insertContentIntoCanvas(combined, true);
+        const finalHtmlVal = ed.getHTML ? ed.getHTML() : '';
+        Livewire.dispatch('autosave', { html: finalHtmlVal, json: null });
+        this.saveLocalDraft(finalHtmlVal);
+        this.updateOutline();
+        this.updateActiveFormats();
+        this.addLog('AI', '✓ Kept both original and AI variation #' + (this.activeCandidateIndex + 1));
+        this.dismissDiffReview();
+    },
 
 dismissDiffReview() {
     this.showDiffReview = false;
     this.activeCandidateIndex = 0;
     this.isRegeneratingCandidate = false;
     this.pendingDiff = { originalText: '', transformedText: '', actionType: '', customInstruction: '', hadSelection: false, timestamp: null, candidates: [] };
-},
+}

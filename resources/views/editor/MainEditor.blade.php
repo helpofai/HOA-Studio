@@ -66,8 +66,16 @@
         </div>
 
         <!-- COLUMN 2: MAIN WRITING WORKSPACE (Central Focus) -->
-        <div class="space-y-4 order-1 lg:order-2 w-full min-w-0 h-full flex flex-col">
+        <div class="space-y-4 order-1 lg:order-2 w-full min-w-0 h-full flex flex-col"
+             :class="{'lg:col-span-3': !showLeftPanel && !showRightPanel, 'lg:col-span-2': !showLeftPanel || !showRightPanel, 'lg:col-span-1': showLeftPanel && showRightPanel}"
+        >
             @include('editor.partial.canvas')
+            
+            <!-- Contextual Editor Feedback Section -->
+            <div x-show="showDiffReview" class="mb-4 p-4 rounded-2xl bg-slate-950/98 border border-indigo-500/40 shadow-2xl backdrop-blur-2xl space-y-3 text-xs" style="display: none;">
+                <div class="font-bold text-indigo-300 text-xs uppercase tracking-wider">Editor Feedback</div>
+                <div class="text-slate-300 leading-relaxed" x-text="activeAction ? 'Processing: ' + activeAction : 'Reviewing changes...'"></div>
+            </div>
         </div>
 
         <!-- COLUMN 3: CONTENT INTELLIGENCE & SEO AUDIT (Desktop inline / Mobile Drawer) -->
