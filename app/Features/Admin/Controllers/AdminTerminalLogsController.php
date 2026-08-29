@@ -62,31 +62,37 @@ class AdminTerminalLogsController extends Controller
             ];
         }
 
-        // 2. Query OmniRoute native console API endpoint (/api/logs/console)
-        try {
-            $res = Http::withHeaders(['Authorization' => "Bearer {$apiKey}"])
-                ->withOptions(['force_ip_resolve' => 'v4'])
-                ->timeout(2)
-                ->get("{$endpoints['curl_root_base']}/api/logs/console?limit=100");
+        // 2. Query OmniRoute native console API endpoint with circuit breaker
+        $isOffline = \Illuminate\Support\Facades\Cache::get('omniroute_console_offline', false);
+        if (!$isOffline) {
+            try {
+                $res = Http::withHeaders(['Authorization' => "Bearer {$apiKey}"])
+                    ->withOptions(['force_ip_resolve' => 'v4'])
+                    ->timeout(0.5)
+                    ->get("{$endpoints['curl_root_base']}/api/logs/console?limit=100");
 
-            if ($res->successful()) {
-                $gatewayLogs = $res->json('data') ?? $res->json() ?? [];
-                if (is_array($gatewayLogs)) {
-                    foreach ($gatewayLogs as $gl) {
-                        if (is_array($gl)) {
-                            $logs[] = [
-                                'timestamp' => $gl['timestamp'] ?? now()->toIso8601String(),
-                                'level' => strtolower($gl['level'] ?? 'info'),
-                                'component' => $gl['component'] ?? $gl['module'] ?? 'omniroute',
-                                'message' => $gl['msg'] ?? $gl['message'] ?? json_encode($gl),
-                                'correlationId' => $gl['correlationId'] ?? null,
-                            ];
+                if ($res->successful()) {
+                    $gatewayLogs = $res->json('data') ?? $res->json() ?? [];
+                    if (is_array($gatewayLogs)) {
+                        foreach ($gatewayLogs as $gl) {
+                            if (is_array($gl)) {
+                                $logs[] = [
+                                    'timestamp' => $gl['timestamp'] ?? now()->toIso8601String(),
+                                    'level' => strtolower($gl['level'] ?? 'info'),
+                                    'component' => $gl['component'] ?? $gl['module'] ?? 'omniroute',
+                                    'message' => $gl['msg'] ?? $gl['message'] ?? json_encode($gl),
+                                    'correlationId' => $gl['correlationId'] ?? null,
+                                ];
+                            }
                         }
                     }
+                } else {
+                    \Illuminate\Support\Facades\Cache::put('omniroute_console_offline', true, 30);
                 }
+            } catch (Exception $e) {
+                // If OmniRoute connection fails/timeouts, cache offline state for 30s to prevent blocking single-threaded PHP server
+                \Illuminate\Support\Facades\Cache::put('omniroute_console_offline', true, 30);
             }
-        } catch (Exception $e) {
-            // Fallback gracefully
         }
 
         // 3. Fallback baseline diagnostics if empty

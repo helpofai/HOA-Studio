@@ -146,10 +146,75 @@
                         @endif
                     </div>
 
+                    <!-- GitHub Live Delta & Changed Files Preview -->
+                    @if(!empty($updateInfo['has_update']))
+                        <div class="pt-6 border-b border-white/10 pb-6 space-y-4">
+                            <div class="flex flex-wrap items-center justify-between gap-2 p-3.5 rounded-xl bg-violet-950/40 border border-violet-500/30">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="text-base">🚀</span>
+                                    <div>
+                                        <div class="text-xs font-bold text-white flex items-center gap-2">
+                                            <span>New Release Ready: <span class="text-emerald-300 font-mono">{{ $updateInfo['latest_version'] }}</span></span>
+                                            @if(!empty($updateInfo['latest_sha']))
+                                                <span class="px-1.5 py-0.5 rounded bg-violet-900/60 text-violet-300 text-[10px] font-mono">commit {{ $updateInfo['latest_sha'] }}</span>
+                                            @endif
+                                        </div>
+                                        <div class="text-[11px] text-slate-300">
+                                            Direct from <a href="https://github.com/helpofai/HOA-Studio" target="_blank" class="text-indigo-400 hover:underline">github.com/helpofai/HOA-Studio</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                @if(!empty($updateInfo['commits_behind']) && $updateInfo['commits_behind'] > 0)
+                                    <span class="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                                        {{ $updateInfo['commits_behind'] }} commits ahead
+                                    </span>
+                                @endif
+                            </div>
+
+                            <!-- Changed / Updated Files Preview -->
+                            @if(!empty($updateInfo['changed_files']))
+                                <div class="space-y-2">
+                                    <h5 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                                        <span>Updated Files In This Release</span>
+                                        <span class="font-mono text-slate-500">{{ count($updateInfo['changed_files']) }} files changed</span>
+                                    </h5>
+                                    <div class="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto custom-scrollbar p-2 rounded-xl bg-slate-900/60 border border-white/5">
+                                        @foreach($updateInfo['changed_files'] as $cf)
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-mono flex items-center gap-1.5 {{ ($cf['status'] ?? '') === 'added' ? 'bg-emerald-500/20 text-emerald-300' : (($cf['status'] ?? '') === 'removed' ? 'bg-rose-500/20 text-rose-300' : 'bg-slate-800 text-slate-300') }}">
+                                                <span class="font-bold">{{ ($cf['status'] ?? '') === 'added' ? '+' : (($cf['status'] ?? '') === 'removed' ? '-' : '•') }}</span>
+                                                <span>{{ $cf['filename'] ?? '' }}</span>
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+
+                            <!-- Recent Commits In This Release -->
+                            @if(!empty($updateInfo['recent_commits']))
+                                <div class="space-y-2">
+                                    <h5 class="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                                        Recent GitHub Commits
+                                    </h5>
+                                    <div class="space-y-1.5">
+                                        @foreach($updateInfo['recent_commits'] as $rc)
+                                            <div class="flex items-start justify-between gap-2 p-2 rounded-lg bg-slate-900/40 border border-white/5 text-xs">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="font-mono text-[10px] text-indigo-400 font-bold bg-indigo-950/80 px-1.5 py-0.5 rounded">{{ $rc['sha'] }}</span>
+                                                    <span class="text-slate-200 truncate max-w-md">{{ $rc['message'] }}</span>
+                                                </div>
+                                                <span class="text-[10px] text-slate-400 font-mono shrink-0">{{ $rc['author'] }}</span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+
                     <!-- Release Notes / Details -->
                     <div class="pt-6 space-y-3">
                         <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
-                            <span>Latest Release Notes</span>
+                            <span>Latest Release Notes & Commit Message</span>
                             <span class="text-[10px] font-mono text-slate-500">{{ $updateInfo['published_at'] ?? 'Verified Release' }}</span>
                         </h4>
                         <div class="p-4 rounded-xl bg-slate-900/60 border border-white/5 font-mono text-xs text-slate-300 whitespace-pre-wrap max-h-48 overflow-y-auto custom-scrollbar">

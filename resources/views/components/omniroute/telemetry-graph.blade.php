@@ -73,12 +73,15 @@
 @endphp
 
 <div 
+    wire:key="telemetry-graph-{{ $timeRange }}-{{ $statusFilter }}"
     x-data="{ 
         hoverIndex: null,
         activePoint: null,
         points: @js($points),
         handleMouseMove(e) {
+            if (!this.$refs.svgContainer || !this.points || !this.points.length) return;
             const rect = this.$refs.svgContainer.getBoundingClientRect();
+            if (!rect || !rect.width) return;
             const relX = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
             const ratio = relX / rect.width;
             const index = Math.min(this.points.length - 1, Math.max(0, Math.round(ratio * (this.points.length - 1))));
@@ -352,12 +355,12 @@
             @endif
 
             <!-- Interactive Cursor Tracking Line -->
-            <g x-show="activePoint !== null" style="display: none;">
+            <g x-show="activePoint" x-cloak style="display: none;">
                 <!-- Vertical Crosshair Line -->
                 <line 
-                    :x1="activePoint?.x ?? 0" 
+                    :x1="(activePoint && activePoint.x !== undefined) ? activePoint.x : 0" 
                     y1="10" 
-                    :x2="activePoint?.x ?? 0" 
+                    :x2="(activePoint && activePoint.x !== undefined) ? activePoint.x : 0" 
                     y2="155" 
                     stroke="rgba(255, 255, 255, 0.4)" 
                     stroke-width="1.5" 
@@ -365,8 +368,8 @@
                 />
                 <!-- Outer Glowing Ring -->
                 <circle 
-                    :cx="activePoint?.x ?? 0" 
-                    :cy="activePoint?.y ?? 0" 
+                    :cx="(activePoint && activePoint.x !== undefined) ? activePoint.x : 0" 
+                    :cy="(activePoint && activePoint.y !== undefined) ? activePoint.y : 0" 
                     r="7" 
                     fill="none" 
                     stroke="{{ $activeTheme['stroke'] }}" 
@@ -375,8 +378,8 @@
                 />
                 <!-- Inner Solid Dot -->
                 <circle 
-                    :cx="activePoint?.x ?? 0" 
-                    :cy="activePoint?.y ?? 0" 
+                    :cx="(activePoint && activePoint.x !== undefined) ? activePoint.x : 0" 
+                    :cy="(activePoint && activePoint.y !== undefined) ? activePoint.y : 0" 
                     r="5" 
                     fill="#ffffff" 
                     stroke="{{ $activeTheme['stroke'] }}" 
@@ -387,10 +390,10 @@
 
         <!-- Floating Live HUD Tooltip -->
         <div 
-            x-show="activePoint !== null && activePoint?.bucket"
+            x-show="activePoint && activePoint.bucket"
             x-cloak
             class="absolute z-30 pointer-events-none min-w-[170px] p-3 rounded-xl bg-slate-900/95 border border-violet-500/40 shadow-2xl text-xs font-mono text-white backdrop-blur-xl transition-all duration-75"
-            :style="`top: 10px; left: ${activePoint ? Math.min(80, Math.max(10, (activePoint.x / 800) * 100)) : 50}%; transform: translateX(-50%);`"
+            :style="(activePoint && activePoint.x !== undefined) ? ('top: 10px; left: ' + Math.min(80, Math.max(10, (activePoint.x / 800) * 100)) + '%; transform: translateX(-50%);') : 'display: none;'"
             style="display: none;"
         >
             <div class="font-bold text-violet-300 pb-1.5 mb-1.5 border-b border-white/10 flex items-center justify-between">

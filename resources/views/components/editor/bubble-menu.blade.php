@@ -12,15 +12,15 @@
      x-ref="bubbleMenu">
     
     <button @click="editor.chain().focus().toggleBold().run()" 
-            class="p-2 rounded-lg hover:bg-slate-800 text-slate-300"
+            class="p-2 rounded-lg hover:bg-slate-800 text-slate-300 font-bold text-xs"
             :class="{ 'bg-slate-800 text-indigo-400': editor.isActive('bold') }">
-        <x-glass.icon name="bold" size="sm" />
+        B
     </button>
 
     <button @click="editor.chain().focus().toggleItalic().run()" 
-            class="p-2 rounded-lg hover:bg-slate-800 text-slate-300"
+            class="p-2 rounded-lg hover:bg-slate-800 text-slate-300 italic font-serif text-xs"
             :class="{ 'bg-slate-800 text-indigo-400': editor.isActive('italic') }">
-        <x-glass.icon name="italic" size="sm" />
+        I
     </button>
 
     <div class="w-px h-6 bg-white/10 mx-1"></div>

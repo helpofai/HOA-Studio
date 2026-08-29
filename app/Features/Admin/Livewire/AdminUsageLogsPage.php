@@ -48,10 +48,15 @@ class AdminUsageLogsPage extends Component
         $this->resetPage();
     }
 
+    public function updatingSelectedModel()
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
         $query = DB::table('generation_usage')
-            ->join('users', 'generation_usage.user_id', '=', 'users.id')
+            ->leftJoin('users', 'generation_usage.user_id', '=', 'users.id')
             ->select(
                 'generation_usage.*',
                 'users.name as user_name',
@@ -87,6 +92,8 @@ class AdminUsageLogsPage extends Component
             'logs' => $logs,
             'models' => $models,
             'graphData' => $graphData,
+            'graphTimeRange' => $this->graphTimeRange,
+            'graphStatusFilter' => $this->graphStatusFilter,
         ]);
     }
 }

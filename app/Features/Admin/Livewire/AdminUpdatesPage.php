@@ -190,6 +190,7 @@ class AdminUpdatesPage extends Component
             $this->restorePoints = $updateService->getRestorePoints();
             $this->dbSnapshots = $dbService->getDatabaseSnapshots();
             $this->dbDetails = $dbService->getDatabaseDetails();
+            $this->versionMeta = $updateService->getVersionMetadata();
             $this->updateInfo = $updateService->checkForUpdates();
 
             if ($result['success']) {
@@ -218,6 +219,7 @@ class AdminUpdatesPage extends Component
             $this->restorePoints = $updateService->getRestorePoints();
             $this->dbSnapshots = $dbService->getDatabaseSnapshots();
             $this->dbDetails = $dbService->getDatabaseDetails();
+            $this->versionMeta = $updateService->getVersionMetadata();
             $this->healthReport = $healthProber->probeSystem();
             $this->updateInfo = $updateService->checkForUpdates();
             $this->feedbackType = 'success';
