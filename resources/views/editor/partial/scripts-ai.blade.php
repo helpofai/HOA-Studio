@@ -1011,7 +1011,7 @@ acceptSubAgentProposal() {
     this.subAgentSelectionRange = null;
     this.addLog('AGENT', '✓ [sub-content-sub-agent] Accepted and applied recreated paragraph.');
 
-    // Auto-fade the green highlight after 5 seconds and clean HTML
+    // Auto-fade the green highlight after 5 seconds and clean HTML without resetting TipTap or scroll position
     setTimeout(() => {
         const cont = document.getElementById('tiptap-content-target');
         if (cont) {
@@ -1019,17 +1019,24 @@ acceptSubAgentProposal() {
             greenMarks.forEach(m => m.classList.add('fading'));
         }
         setTimeout(() => {
+            const container = document.getElementById('tiptap-content-target');
+            if (container) {
+                const greenMarks = container.querySelectorAll('.ai-replaced-green-highlight');
+                greenMarks.forEach(m => {
+                    const parent = m.parentNode;
+                    if (parent) {
+                        while (m.firstChild) parent.insertBefore(m.firstChild, m);
+                        parent.removeChild(m);
+                    }
+                });
+            }
             if (ed && typeof ed.getHTML === 'function') {
-                let cleanDocHtml = ed.getHTML();
-                if (cleanDocHtml.includes('ai-replaced-green-highlight')) {
-                    cleanDocHtml = cleanDocHtml.replace(/<mark[^>]*class=["'][^"']*ai-replaced-green-highlight[^"']*["'][^>]*>([\s\S]*?)<\/mark>/gi, '$1');
-                    ed.setContent(cleanDocHtml, false);
-                    if (window.Livewire) {
-                        Livewire.dispatch('autosave', { html: cleanDocHtml, json: ed.getJSON ? ed.getJSON() : null });
-                    }
-                    if (typeof this.saveLocalDraft === 'function') {
-                        this.saveLocalDraft(cleanDocHtml);
-                    }
+                const cleanHtml = ed.getHTML();
+                if (typeof this.saveLocalDraft === 'function') {
+                    this.saveLocalDraft(cleanHtml);
+                }
+                if (window.Livewire) {
+                    Livewire.dispatch('autosave', { html: cleanHtml, json: ed.getJSON ? ed.getJSON() : null });
                 }
             }
         }, 1500);

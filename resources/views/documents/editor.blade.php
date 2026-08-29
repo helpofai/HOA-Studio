@@ -14,6 +14,7 @@
 --}}
 
 <div 
+    wire:ignore.self
     class="space-y-4 min-h-screen flex flex-col justify-between relative"
     x-data="documentEditorComponent({
         documentId: {{ $documentId }},

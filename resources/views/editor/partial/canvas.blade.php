@@ -537,10 +537,11 @@
             x-transition:enter="transition ease-out duration-150"
             x-transition:enter-start="opacity-0 scale-95"
             x-transition:enter-end="opacity-100 scale-100"
-            :style="`position: fixed; left: ${contextMenuX}px; top: ${contextMenuY}px; z-index: var(--z-index-overlay);`"
+            :style="showContextMenu ? `position: fixed; left: ${contextMenuX}px; top: ${contextMenuY}px; z-index: var(--z-index-overlay);` : 'display: none !important;'"
             class="editor-floating-panel w-64 p-1.5 rounded-2xl bg-slate-950/98 border border-white/20 shadow-[0_25px_60px_rgba(0,0,0,0.95)] backdrop-blur-2xl text-xs select-none space-y-1"
             x-on:click.outside="closeContextMenu()"
             x-on:contextmenu.prevent
+            style="display: none;"
         >
             <!-- Menu Header -->
             <div class="px-2.5 py-1 text-[10px] uppercase font-bold text-indigo-400 tracking-wider flex items-center justify-between border-b border-white/10 mb-1 select-none">

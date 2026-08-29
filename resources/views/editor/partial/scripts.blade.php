@@ -98,14 +98,20 @@
                         greenMarks.forEach(m => m.classList.add('fading'));
                     }
                     setTimeout(() => {
-                        if (ed && typeof ed.getHTML === 'function') {
-                            let cleanDoc = ed.getHTML();
-                            if (cleanDoc.includes('ai-replaced-green-highlight')) {
-                                cleanDoc = cleanDoc.replace(/<mark[^>]*class=["'][^"']*ai-replaced-green-highlight[^"']*["'][^>]*>([\s\S]*?)<\/mark>/gi, '$1');
-                                ed.setContent(cleanDoc, false);
-                                if (window.Livewire) {
-                                    Livewire.dispatch('autosave', { html: cleanDoc, json: ed.getJSON ? ed.getJSON() : null });
+                        if (container) {
+                            const greenMarks = container.querySelectorAll('.ai-replaced-green-highlight');
+                            greenMarks.forEach(m => {
+                                const parent = m.parentNode;
+                                if (parent) {
+                                    while (m.firstChild) parent.insertBefore(m.firstChild, m);
+                                    parent.removeChild(m);
                                 }
+                            });
+                        }
+                        if (ed && typeof ed.getHTML === 'function') {
+                            const cleanDoc = ed.getHTML();
+                            if (window.Livewire) {
+                                Livewire.dispatch('autosave', { html: cleanDoc, json: ed.getJSON ? ed.getJSON() : null });
                             }
                         }
                     }, 1500);
