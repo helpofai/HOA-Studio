@@ -460,19 +460,16 @@
                         <span class="flex items-center gap-2"><span class="text-purple-400">🤖</span> <span>Recreate Paragraph</span></span>
                         <span class="text-[9px] font-mono px-1 rounded bg-purple-900 text-purple-300">AI</span>
                     </button>
-                    <button type="button" x-on:mousedown.prevent x-on:click="triggerSubContentSubAgent('polish'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
-                        <span class="text-cyan-400">✧</span> <span>Polish & Refine</span>
+                    <button type="button" x-on:mousedown.prevent x-on:click="triggerSubContentSubAgent('rewrite'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
+                        <span class="text-cyan-400">↻</span> <span>Rewrite & Polish</span>
                     </button>
-                    <button type="button" x-on:mousedown.prevent x-on:click="triggerAiTransform('expand'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
+                    <button type="button" x-on:mousedown.prevent x-on:click="triggerSubContentSubAgent('expand'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
                         <span class="text-violet-400">+</span> <span>Expand with Depth</span>
                     </button>
-                    <button type="button" x-on:mousedown.prevent x-on:click="triggerAiTransform('shorten'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
+                    <button type="button" x-on:mousedown.prevent x-on:click="triggerSubContentSubAgent('shorten'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
                         <span class="text-amber-400">−</span> <span>Shorten & Condense</span>
                     </button>
-                    <button type="button" x-on:mousedown.prevent x-on:click="triggerSubContentSubAgent('rewrite'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
-                        <span class="text-emerald-400">↻</span> <span>Rewrite Phrasing</span>
-                    </button>
-                    <button type="button" x-on:mousedown.prevent x-on:click="triggerAiTransform('simplify'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
+                    <button type="button" x-on:mousedown.prevent x-on:click="triggerSubContentSubAgent('simplify'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
                         <span class="text-pink-400">⚡</span> <span>Simplify (8th-Grade)</span>
                     </button>
                     <button type="button" x-on:mousedown.prevent x-on:click="triggerAiTransform('generate_faq'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
@@ -582,19 +579,22 @@
                 <button type="button" x-on:click="closeContextMenu(); triggerSubContentSubAgent('rewrite')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer transition-colors">
                     <span class="text-cyan-400">↻</span> <span>Rewrite & Polish</span>
                 </button>
-                <button type="button" x-on:click="closeContextMenu(); triggerAiTransform('expand')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer transition-colors">
+                <button type="button" x-on:click="closeContextMenu(); triggerSubContentSubAgent('expand')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer transition-colors">
                     <span class="text-violet-400">+</span> <span>Expand with Depth</span>
                 </button>
-                <button type="button" x-on:click="closeContextMenu(); triggerAiTransform('shorten')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer transition-colors">
+                <button type="button" x-on:click="closeContextMenu(); triggerSubContentSubAgent('shorten')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer transition-colors">
                     <span class="text-amber-400">−</span> <span>Shorten & Condense</span>
+                </button>
+                <button type="button" x-on:click="closeContextMenu(); triggerSubContentSubAgent('simplify')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer transition-colors">
+                    <span class="text-pink-400">⚡</span> <span>Simplify (8th-Grade)</span>
                 </button>
                 <button type="button" x-on:click="closeContextMenu(); triggerAiTransform('generate_faq')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer transition-colors">
                     <span class="text-indigo-400">❓</span> <span>Generate FAQ Block</span>
                 </button>
                 <button type="button" x-on:click="closeContextMenu(); triggerAiTransform('key_takeaways')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer transition-colors">
-                    <span class="text-pink-400">💡</span> <span>Extract Key Takeaways</span>
+                    <span class="text-teal-400">💡</span> <span>Extract Key Takeaways</span>
                 </button>
-                <button type="button" x-on:click="closeContextMenu(); triggerAiTransform('seo_optimize')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer transition-colors">
+                <button type="button" x-on:click="closeContextMenu(); triggerSubContentSubAgent('seo_optimize')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer transition-colors">
                     <span class="text-emerald-400">⌁</span> <span>SEO Optimize Text</span>
                 </button>
             </div>

@@ -25,6 +25,7 @@
 
 namespace App\Features\AI\Actions;
 
+use App\Features\AI\Services\ContentWriterBrain;
 use App\Features\AI\Services\OmniRouteClient;
 use App\Models\User;
 use Exception;
@@ -33,7 +34,8 @@ class TransformText
 {
     public function __construct(
         protected OmniRouteClient $client,
-        protected RecordGenerationUsage $recordUsage
+        protected RecordGenerationUsage $recordUsage,
+        protected ContentWriterBrain $brain
     ) {}
 
     /**
@@ -121,6 +123,168 @@ EOT;
     }
 
     /**
+     * Specialized prompt algorithms for localized paragraph & selection transforms
+     */
+    public function getSelectionPrompt(string $transformationType, ?string $customInstruction = null, ?string $targetKeyword = null): string
+    {
+        $kwSnippet = $targetKeyword ? " (Incorporate focus keyword: '{$targetKeyword}')" : "";
+
+        return match ($transformationType) {
+            'recreate' => <<<EOT
+You are an elite editorial ghostwriter and narrative stylist.
+The user has provided a raw paragraph enclosed in <target_paragraph> tags.
+
+YOUR TASK:
+Completely RECREATE and RE-ARCHITECT this paragraph from scratch with authoritative clarity, elevated vocabulary, and captivating prose rhythm{$kwSnippet}.
+
+EDITORIAL GUIDELINES:
+1. Do NOT repeat or echo the existing sentence structure. Restructure the thoughts with fresh, powerful phrasing.
+2. Upgrade weak verbs, eliminate clichés, and inject authoritative domain presence.
+3. Output ONLY the single recreated paragraph. Do NOT add markdown headings, bullet points, or meta-chatter.
+4. Output immediately with zero conversational introduction.
+EOT,
+
+            'rewrite', 'polish', 'rewrite_polish' => <<<EOT
+You are a master developmental editor and stylist.
+The user has provided a paragraph enclosed in <target_paragraph> tags.
+
+YOUR TASK:
+REWRITE and POLISH this text into a significantly improved, punchy, and highly articulate paragraph{$kwSnippet}.
+
+EDITORIAL GUIDELINES:
+1. Eliminate all passive voice, redundant qualifiers, weak transitions, and awkward phrasing.
+2. Reconstruct sentences with active voice, dynamic rhythm, and compelling cadence.
+3. You MUST deliver a noticeable, superior revision — do NOT return the original text unchanged.
+4. Output ONLY the single polished paragraph. No markdown titles, no conversational intro/outro.
+EOT,
+
+            'expand' => <<<EOT
+You are an expert investigative copywriter and analytical essayist.
+The user has provided a text snippet in <target_paragraph> tags.
+
+YOUR TASK:
+EXPAND this text with rich analytical depth, illustrative nuance, practical implications, and clear supporting context{$kwSnippet}.
+
+EDITORIAL GUIDELINES:
+1. Deepen the core insights by answering the unspoken 'why' and 'how'.
+2. Expand the length by approximately 1.5x to 2x without adding empty fluff or repetition.
+3. Output ONLY the expanded prose (1 to 2 rich paragraphs). No H1 titles or meta-commentary.
+EOT,
+
+            'shorten' => <<<EOT
+You are an executive communications editor specializing in brevity and high-impact clarity.
+The user has provided text in <target_paragraph> tags.
+
+YOUR TASK:
+CONDENSE and SHORTEN this text into its absolute, crystal-clear essence.
+
+EDITORIAL GUIDELINES:
+1. Cut unnecessary words, throat-clearing preambles, and redundancies ruthlessly.
+2. Preserve 100% of the core factual meaning in half the word count.
+3. Output ONLY the condensed, punchy result. No conversational filler.
+EOT,
+
+            'simplify' => <<<EOT
+You are an expert plain-language communicator.
+The user has provided text in <target_paragraph> tags.
+
+YOUR TASK:
+SIMPLIFY this text so that it is instantly comprehensible at an 8th-grade reading level (Hemingway style).
+
+EDITORIAL GUIDELINES:
+1. Replace dense jargon and multi-syllable abstractions with crisp, everyday words and clear analogies.
+2. Keep sentences short, active, and effortless to scan.
+3. Output ONLY the simplified prose. No conversational filler.
+EOT,
+
+            'generate_faq' => <<<EOT
+You are an SEO search-intent architect.
+The user has provided text in <target_paragraph> tags.
+
+YOUR TASK:
+Generate 2 to 3 high-value FAQ questions directly addressing user queries arising from this content{$kwSnippet}.
+
+FORMAT RULES:
+### [Question Text]?
+[Direct, authoritative answer in 2-3 sentences with **bold** key terms.]
+
+Output ONLY the FAQ block (using ### for questions).
+EOT,
+
+            'key_takeaways' => <<<EOT
+You are an executive intelligence analyst.
+The user has provided text in <target_paragraph> tags.
+
+YOUR TASK:
+Extract 3 to 4 high-leverage key takeaways from this content.
+
+FORMAT RULES:
+- **[Core Insight Name]:** [1-2 sentence actionable explanation.]
+
+Output ONLY the bulleted takeaways list with bold leading anchors.
+EOT,
+
+            'seo_optimize' => <<<EOT
+You are a top-tier SEO strategist and semantic search engineer.
+The user has provided text in <target_paragraph> tags.
+
+YOUR TASK:
+SEO-OPTIMIZE this text for maximum topical authority, search crawler relevance, and AI answer engine extraction{$kwSnippet}.
+
+EDITORIAL GUIDELINES:
+1. Naturally weave high-value semantic entities and bold key concepts (**bold terms**).
+2. Front-load primary subject matter and ensure high scannability.
+3. Output ONLY the optimized paragraph/content.
+EOT,
+
+            // Tone Shifting
+            'tone:professional', 'professional' => <<<EOT
+You are an executive corporate communications director.
+Rewrite the text in <target_paragraph> into an authoritative, polished, C-suite executive tone with impeccable professionalism.
+Output ONLY the rewritten text.
+EOT,
+
+            'tone:casual', 'casual' => <<<EOT
+You are a warm, engaging, and conversational writer.
+Rewrite the text in <target_paragraph> in an approachable, friendly, and relatable conversational tone.
+Output ONLY the rewritten text.
+EOT,
+
+            'tone:persuasive', 'persuasive' => <<<EOT
+You are a world-class conversion copywriter.
+Rewrite the text in <target_paragraph> using high-converting direct-response copywriting principles, strong active verbs, and compelling emotional hooks.
+Output ONLY the rewritten text.
+EOT,
+
+            'tone:academic', 'academic' => <<<EOT
+You are a senior academic researcher and peer-review editor.
+Rewrite the text in <target_paragraph> in a scholarly, rigorous, analytical, and objective academic tone.
+Output ONLY the rewritten text.
+EOT,
+
+            'tone:friendly', 'friendly' => <<<EOT
+You are an empathetic, warm community writer.
+Rewrite the text in <target_paragraph> in an encouraging, approachable, and helpful tone.
+Output ONLY the rewritten text.
+EOT,
+
+            'tone:direct', 'direct' => <<<EOT
+You are a no-nonsense, high-velocity writer.
+Rewrite the text in <target_paragraph> in a punchy, active-voice, zero-fluff, direct style.
+Output ONLY the rewritten text.
+EOT,
+
+            'custom' => !empty($customInstruction)
+                ? "You are a precise editorial assistant.\nExecute this directive on the text in <target_paragraph>: {$customInstruction}\nOutput ONLY the transformed text without conversational filler."
+                : "You are a master editor. Enhance and improve the text in <target_paragraph> with superior clarity and flow. Output ONLY the revised text.",
+
+            default => !empty($customInstruction)
+                ? "You are an expert copyeditor.\nTask: {$customInstruction}\nApply this to the text in <target_paragraph> and output ONLY the revised content."
+                : "You are an elite copyeditor. Rewrite and elevate the text in <target_paragraph> with superior flow, active voice, and precision. Output ONLY the revised text."
+        };
+    }
+
+    /**
      * Execute synchronous text transformation
      */
     public function execute(User $user, string $text, string $transformationType, array $options = []): string
@@ -130,37 +294,37 @@ EOT;
         }
 
         $customInstruction = $options['custom_instruction'] ?? null;
-        $systemPrompt = $this->getSystemPrompt($transformationType, $customInstruction);
-
         $context = $options['context'] ?? [];
-        $fullDocText = $context['full_document_text'] ?? null;
-        $targetKeyword = $context['target_keyword'] ?? null;
-        $docTitle = $context['document_title'] ?? null;
+        $pipelineStages = $options['pipeline_stages'] ?? [];
+        $hasSelection = !empty($context['has_selection']) && !empty($context['selected_text']);
 
-        if ($fullDocText && trim($fullDocText) !== '') {
-            $systemPrompt .= "\n\n=== CURRENT FULL DOCUMENT CONTEXT ===\n";
-            if ($docTitle) $systemPrompt .= "Document Title: " . $docTitle . "\n";
-            if ($targetKeyword) $systemPrompt .= "Focus SEO Keyword: " . $targetKeyword . "\n";
-            $systemPrompt .= "Full Article Body:\n\"\"\"\n" . mb_substr($fullDocText, 0, 15000) . "\n\"\"\"\n";
-            $systemPrompt .= "=== END OF FULL DOCUMENT CONTEXT ===\n\n";
-            $systemPrompt .= "CRITICAL INSTRUCTION: Write ONLY the rewritten/transformed output for the target text snippet. Do NOT reproduce or repeat the full article.";
+        if ($hasSelection) {
+            $brainPrompt = $this->brain->buildSurgicalPrompt($transformationType, $context, $customInstruction);
+            $systemPrompt = $brainPrompt['system'];
+            $userContent = $brainPrompt['user'];
+        } else {
+            $brainPrompt = $this->brain->buildPipelineArticlePrompt($text, $context, $pipelineStages, $customInstruction);
+            $systemPrompt = $brainPrompt['system'];
+            $userContent = $brainPrompt['user'];
         }
 
-        // Ground with Knowledge Base RAG context if available
-        try {
-            $ragAction = app(\App\Features\KnowledgeBase\Actions\RetrieveRagContext::class);
-            $queryText = !empty($customInstruction) ? $customInstruction : $text;
-            $ragResult = $ragAction->execute($user, $queryText, limit: 3);
-            if (!empty($ragResult['has_context']) && !empty($ragResult['prompt_snippet'])) {
-                $systemPrompt .= "\n\n" . $ragResult['prompt_snippet'];
+        // Ground with Knowledge Base RAG context if available for full generation
+        if (!$hasSelection) {
+            try {
+                $ragAction = app(\App\Features\KnowledgeBase\Actions\RetrieveRagContext::class);
+                $queryText = !empty($customInstruction) ? $customInstruction : $text;
+                $ragResult = $ragAction->execute($user, $queryText, limit: 3);
+                if (!empty($ragResult['has_context']) && !empty($ragResult['prompt_snippet'])) {
+                    $systemPrompt .= "\n\n" . $ragResult['prompt_snippet'];
+                }
+            } catch (\Throwable $e) {
+                // Non-blocking fallback
             }
-        } catch (\Throwable $e) {
-            // Non-blocking fallback
         }
 
         $messages = [
             ['role' => 'system', 'content' => $systemPrompt],
-            ['role' => 'user', 'content' => $text],
+            ['role' => 'user', 'content' => $userContent],
         ];
 
         $response = $this->client->chatCompletion($messages, $options);

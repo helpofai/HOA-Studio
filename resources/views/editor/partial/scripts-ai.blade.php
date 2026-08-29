@@ -163,25 +163,28 @@ async runMultiAgentPipeline(userTopic = '') {
         if (this.swarmSteps.researcher) {
             this.swarmStepIndex = 1;
             this.activeSwarmAgent = 'researcher';
-            this.swarmStatusMessage = 'Agent 2 & 3 (Researcher & SEO Strategist) analyzing search intent & vector cache...';
-            this.addLog('AGENT', '🎯 Swarm Step 1: Agent [Researcher & SEO Strategist] querying Vector Knowledge Base.');
+            this.swarmStatusMessage = 'Agent 1 (Researcher & SEO Strategist) analyzing search intent & vector cache...';
+            this.addLog('AGENT', '🎯 Swarm Step 1: Agent [Researcher & SEO Strategist] analyzing search intent & grounding.');
             
             if (!targetKw) {
-                const kwMatch = prompt.match(/(?:for|on|about|review|guide to)\s+([^,.;\n]+)/i);
-                targetKw = kwMatch ? kwMatch[1].trim() : prompt.split(/\s+/).slice(0, 4).join(' ');
-                this.targetKeyword = targetKw;
-                Livewire.dispatch('applyTargetKeyword', { keyword: targetKw });
+                let cleanPrompt = prompt.replace(/\b(create|write|generate|make|articale|article|blog|post|guide|in \d+\s*words?|words?|about|please|for|on)\b/gi, ' ').trim().replace(/\s+/g, ' ');
+                targetKw = cleanPrompt.split(/\s+/).slice(0, 4).join(' ');
+                if (targetKw) {
+                    this.targetKeyword = targetKw;
+                    Livewire.dispatch('applyTargetKeyword', { keyword: targetKw });
+                }
             }
         }
         if (!targetKw) {
-            targetKw = prompt.split(/\s+/).slice(0, 4).join(' ');
+            let cleanPrompt = prompt.replace(/\b(create|write|generate|make|articale|article|blog|post|guide|in \d+\s*words?|words?|about|please|for|on)\b/gi, ' ').trim().replace(/\s+/g, ' ');
+            targetKw = cleanPrompt.split(/\s+/).slice(0, 4).join(' ');
         }
 
         // STEP 2: OUTLINER & ORCHESTRATOR (Title & Heading Tree)
         if (this.swarmSteps.outliner) {
             this.swarmStepIndex = 2;
             this.activeSwarmAgent = 'outliner';
-            this.swarmStatusMessage = 'Agent 4 (Outline Architect) creating H1/H2/H3 hierarchy & optimizing Title...';
+            this.swarmStatusMessage = 'Agent 2 (Outline Architect) creating H1/H2/H3 hierarchy & optimizing Title...';
             this.addLog('AGENT', '📑 Swarm Step 2: Agent [Outline Architect] structuring headings tree.');
 
             const titleResp = await fetch(config.transformRoute, {
@@ -205,22 +208,22 @@ async runMultiAgentPipeline(userTopic = '') {
             }
         }
 
-        // STEP 3: DRAFTSMAN (Full Technical Deep-Dive Synthesis)
+        // STEP 3: DRAFTSMAN (Full Article Synthesis)
         if (this.swarmSteps.draftsman) {
             this.swarmStepIndex = 3;
             this.activeSwarmAgent = 'draftsman';
-            this.swarmStatusMessage = 'Agent 5 (Deep Section Draftsman) drafting comprehensive technical sections...';
+            this.swarmStatusMessage = 'Agent 3 (Deep Section Draftsman) drafting comprehensive sections...';
             this.addLog('AGENT', '✍️ Swarm Step 3: Agent [Draftsman] synthesizing comprehensive sections...');
 
-            await this.triggerAiTransform('custom', "Write an authoritative, technical long-form masterclass guide on: '" + prompt + "'. Include introduction with quick answer box, structured H2 and H3 headings, technical architecture, and real-world implementation details.", 'document');
+            await this.triggerAiTransform('custom', "Write a comprehensive, engaging, high-quality long-form article on: '" + prompt + "'. Include an engaging title (H1), an executive quick overview box, well-structured H2 and H3 sections covering key aspects in depth, actionable insights, a comparison table, and a clear summary conclusion.", 'document');
         }
 
         // STEP 4: RICH MEDIA & DATA ENGINEER (Comparison Table & FAQ Block)
         if (this.swarmSteps.rich_media) {
             this.swarmStepIndex = 4;
             this.activeSwarmAgent = 'rich_media';
-            this.swarmStatusMessage = 'Agent 6 (Rich Media Engineer) generating technical comparison table & FAQ schema...';
-            this.addLog('AGENT', '▦ Swarm Step 4: Agent [Rich Media & Data Engineer] building comparison table & schema FAQ.');
+            this.swarmStatusMessage = 'Agent 4 (Rich Media Engineer) generating comparison table & FAQ schema...';
+            this.addLog('AGENT', '▦ Swarm Step 4: Agent [Rich Media & Data Engineer] building comparison table.');
 
             const tableResp = await fetch(config.transformRoute, {
                 method: 'POST',
@@ -228,7 +231,7 @@ async runMultiAgentPipeline(userTopic = '') {
                 body: JSON.stringify({
                     text: ed.getText().substring(0, 1500),
                     type: 'comparison_table',
-                    custom_instruction: "Create a feature comparison matrix table with technical specs, pros/cons, and metrics for '" + targetKw + "'",
+                    custom_instruction: "Create a feature comparison matrix table with specs, pros/cons, and metrics for '" + targetKw + "'",
                     model: this.aiModel
                 })
             });
@@ -582,6 +585,26 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto') {
     const fullDocumentContent = ed ? (ed.getText ? ed.getText() : '') : '';
     const fullDocumentHtml = ed ? (ed.getHTML ? ed.getHTML() : '') : '';
 
+    // Extract surrounding Memory Context from TipTap ProseMirror State
+    let precedingText = '';
+    let followingText = '';
+    if (ed && ed.state && ed.state.selection) {
+        try {
+            const { from, to } = ed.state.selection;
+            const docSize = ed.state.doc.content.size;
+            // Preceding 600 chars
+            const preFrom = Math.max(0, from - 600);
+            if (preFrom < from) {
+                precedingText = ed.state.doc.textBetween(preFrom, from, ' ').trim();
+            }
+            // Following 600 chars
+            const postTo = Math.min(docSize, to + 600);
+            if (to < postTo) {
+                followingText = ed.state.doc.textBetween(to, postTo, ' ').trim();
+            }
+        } catch (e) {}
+    }
+
     try {
         const response = await fetch(config.streamRoute, {
             method: 'POST',
@@ -600,10 +623,13 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto') {
                     ...this.aiContext,
                     has_selection: hadSelection,
                     selected_text: hadSelection ? this.selectedText : null,
-                    full_document_text: hadSelection ? '' : fullDocumentContent,
-                    full_document_html: hadSelection ? '' : fullDocumentHtml,
+                    full_document_text: fullDocumentContent,
+                    full_document_html: fullDocumentHtml,
+                    preceding_text: precedingText,
+                    following_text: followingText,
                     target_keyword: this.targetKeyword || '',
-                    document_title: this.title || ''
+                    document_title: this.title || '',
+                    action_tool: type
                 }
             }),
             signal: this.abortController.signal
@@ -906,28 +932,49 @@ triggerSubContentSubAgent(mode = 'recreate', customInstruction = '') {
         ed.replaceSelection(yellowHtml);
     }
 
-    const defaultPrompt = mode === 'rewrite' 
-        ? "Rewrite and polish this specific paragraph with impeccable flow, vocabulary, and active voice. Output only the single rewritten paragraph."
-        : "Recreate and refine this specific paragraph with deep technical clarity, high readability, and authoritative tone. Output only the single recreated paragraph.";
+    const defaultPrompts = {
+        'recreate': "Completely recreate and re-architect this paragraph from scratch with authoritative clarity, elevated vocabulary, and engaging rhythm. Output only the single recreated paragraph.",
+        'rewrite': "Rewrite and polish this specific paragraph with active voice, strong verbs, dynamic cadence, and superior flow. You must provide a noticeable qualitative revision. Output only the single rewritten paragraph.",
+        'polish': "Polish and refine this specific paragraph for maximum elegance, conciseness, and seamless flow while preserving original meaning. Output only the single polished paragraph.",
+        'expand': "Expand this paragraph with rich analytical depth, illustrative nuance, practical implications, and clear supporting context. Output only the expanded content.",
+        'shorten': "Condense and shorten this paragraph into its crystal-clear, high-impact essence in fewer words. Output only the shortened paragraph.",
+        'simplify': "Simplify this paragraph into crisp, effortless plain English at an 8th-grade reading level. Output only the simplified paragraph.",
+        'generate_faq': "Generate 2-3 high-value FAQ questions with concise answers based on this content. Format using ### Question and bold terms.",
+        'key_takeaways': "Extract 3-4 high-leverage key takeaways from this content as a bulleted list with bold leading concepts.",
+        'seo_optimize': "Optimize this paragraph for search intent and semantic topical authority with natural keywords and bold concepts. Output only the optimized paragraph."
+    };
 
-    const prompt = customInstruction || defaultPrompt;
-    this.triggerAiTransform('rewrite', prompt, 'sub_content_sub_agent');
+    const prompt = customInstruction || defaultPrompts[mode] || defaultPrompts['rewrite'];
+    this.triggerAiTransform(mode, prompt, 'sub_content_sub_agent');
 },
 
 acceptSubAgentProposal() {
     const ed = this.getEditor ? this.getEditor() : (this.editorInstance || window.hoaEditorInstance);
-    const newText = this.subAgentProposedText;
-    if (!newText) return;
+    let rawText = this.subAgentProposedText;
+    if (!rawText || !rawText.trim()) return;
 
-    const originalText = this.subAgentOriginalText || this.selectedText || '';
-    const greenWrappedHtml = `<mark class="ai-replaced-green-highlight">${newText}</mark>`;
+    // 1. Sanitize LLM conversational preambles, bold labels, and excess spacing
+    let cleanText = rawText
+        .replace(/^(?:(?:Here(?:'s| is)|Sure!|Certainly!?) (?:the|your)? (?:revised|recreated|updated|polished|rewritten|new)? (?:paragraph|text|content|version):?|\*\*(?:Revised|Rewritten|Updated|Recreated|Output)\*\*:\s*|#+\s+(?:Revised|Rewritten|Recreated):?\s*)/i, '')
+        .replace(/^\s+|\s+$/g, '');
+
+    const originalText = (this.subAgentOriginalText || this.selectedText || '').trim();
+
+    // 2. Heading Type Integrity: If original selection was NOT a heading, strip erroneous markdown heading symbols
+    if (!originalText.startsWith('#') && cleanText.startsWith('#')) {
+        cleanText = cleanText.replace(/^#+\s+/gm, '').trim();
+    }
+
+    // 3. Remove redundant triple newlines
+    cleanText = cleanText.replace(/\n{3,}/g, '\n\n');
+
     let replaced = false;
 
-    // Strategy 1: ProseMirror Native Range Replacement with deleteSelection + insertContent
+    // Strategy 1: ProseMirror Native Range Replacement (Cleanest, zero block splitting)
     if (ed && ed.editor && this.subAgentSelectionRange && this.subAgentSelectionRange.from !== undefined) {
         try {
             const { from, to } = this.subAgentSelectionRange;
-            ed.editor.chain().focus().setTextSelection({ from, to }).deleteSelection().insertContent(greenWrappedHtml).run();
+            ed.editor.chain().focus().setTextSelection({ from, to }).deleteSelection().insertContent(cleanText).run();
             replaced = true;
         } catch (e) {}
     }
@@ -939,7 +986,7 @@ acceptSubAgentProposal() {
 
         // A. Replace any <mark> containing text
         if (currentHtml.includes('<mark')) {
-            currentHtml = currentHtml.replace(/<mark[^>]*>([\s\S]*?)<\/mark>/gi, greenWrappedHtml);
+            currentHtml = currentHtml.replace(/<mark[^>]*>([\s\S]*?)<\/mark>/gi, cleanText);
             docModified = true;
         }
 
@@ -956,14 +1003,14 @@ acceptSubAgentProposal() {
                 .replace(/\s+/g, ' ');
 
             if (currentHtml.includes(originalText)) {
-                currentHtml = currentHtml.replace(originalText, greenWrappedHtml);
+                currentHtml = currentHtml.replace(originalText, cleanText);
                 docModified = true;
             } else {
                 const cleanOrig = normalize(originalText).trim();
                 const escaped = cleanOrig.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '[\\s\\S]*?');
                 const regex = new RegExp(escaped, 'i');
                 if (regex.test(currentHtml)) {
-                    currentHtml = currentHtml.replace(regex, greenWrappedHtml);
+                    currentHtml = currentHtml.replace(regex, cleanText);
                     docModified = true;
                 }
             }
@@ -981,7 +1028,7 @@ acceptSubAgentProposal() {
         const yellowMarks = container.querySelectorAll('.ai-marked-yellow, mark');
         if (yellowMarks.length > 0) {
             yellowMarks.forEach(m => {
-                m.outerHTML = greenWrappedHtml;
+                m.outerHTML = cleanText;
             });
             if (ed && typeof ed.getHTML === 'function') {
                 const pm = container.querySelector('.ProseMirror') || container;
@@ -993,8 +1040,14 @@ acceptSubAgentProposal() {
 
     // Strategy 4: Fallback replaceSelection
     if (!replaced && ed && typeof ed.replaceSelection === 'function') {
-        ed.replaceSelection(greenWrappedHtml);
+        ed.replaceSelection(cleanText);
         replaced = true;
+    }
+
+    // Visual Success Feedback on Canvas
+    if (container) {
+        container.classList.add('ring-2', 'ring-emerald-500/50', 'transition-all', 'duration-500');
+        setTimeout(() => container.classList.remove('ring-2', 'ring-emerald-500/50'), 2000);
     }
 
     // Ensure state sync and local draft save
@@ -1002,6 +1055,9 @@ acceptSubAgentProposal() {
         const finalHtml = ed.getHTML();
         if (typeof this.saveLocalDraft === 'function') {
             this.saveLocalDraft(finalHtml);
+        }
+        if (window.Livewire) {
+            Livewire.dispatch('autosave', { html: finalHtml, json: ed.getJSON ? ed.getJSON() : null });
         }
     }
 

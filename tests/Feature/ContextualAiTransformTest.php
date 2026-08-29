@@ -157,4 +157,121 @@ class ContextualAiTransformTest extends TestCase
             'success' => false,
         ]);
     }
+
+    public function test_content_writer_brain_surgical_execution_with_full_document_memory(): void
+    {
+        Http::fake([
+            '*/chat/completions' => function ($request) {
+                $payload = json_decode($request->body(), true);
+                $systemPrompt = $payload['messages'][0]['content'] ?? '';
+                $userContent = $payload['messages'][1]['content'] ?? '';
+
+                // Verify Brain & Memory contains Document Context, Preceding, and Following text
+                $this->assertStringContainsString('CONTENT WRITER BRAIN & MEMORY', $systemPrompt);
+                $this->assertStringContainsString('The Complete Guide to Organic Growth', $systemPrompt);
+                $this->assertStringContainsString('CRITICAL SURGICAL', $systemPrompt);
+
+                // Verify target marked content is shielded
+                $this->assertStringContainsString('<target_marked_content>', $userContent);
+                $this->assertStringContainsString('This is the marked paragraph to improve.', $userContent);
+
+                return Http::response([
+                    'choices' => [
+                        [
+                            'message' => [
+                                'role' => 'assistant',
+                                'content' => 'This is the significantly improved paragraph crafted with full document awareness.',
+                            ],
+                        ],
+                    ],
+                    'usage' => ['total_tokens' => 35],
+                    'model' => 'anthropic/claude-3-7-sonnet',
+                ], 200);
+            },
+        ]);
+
+        $response = $this->actingAs($this->user)->postJson(route('ai.transform'), [
+            'text' => 'This is the marked paragraph to improve.',
+            'type' => 'recreate',
+            'context' => [
+                'has_selection' => true,
+                'selected_text' => 'This is the marked paragraph to improve.',
+                'document_title' => 'The Complete Guide to Organic Growth',
+                'target_keyword' => 'SaaS SEO',
+                'full_document_text' => 'Introduction to organic growth... This is the marked paragraph to improve... Conclusion.',
+                'preceding_text' => 'Introduction to organic growth...',
+                'following_text' => 'Conclusion and next steps.',
+            ],
+        ]);
+
+        $response->assertOk();
+        $response->assertJson([
+            'success' => true,
+            'result' => 'This is the significantly improved paragraph crafted with full document awareness.',
+            'type' => 'recreate',
+        ]);
+    }
+
+    public function test_15_stage_production_pipeline_integrated_with_brain_memory(): void
+    {
+        Http::fake([
+            '*/chat/completions' => function ($request) {
+                $payload = json_decode($request->body(), true);
+                $messages = $payload['messages'] ?? [];
+                $systemPrompt = $messages[0]['content'] ?? '';
+                $userContent = $messages[1]['content'] ?? '';
+
+                // Verify Brain & Memory integration
+                $this->assertStringContainsString('CONTENT WRITER BRAIN & GLOBAL MEMORY', $systemPrompt);
+                $this->assertStringContainsString('Best Android Games 2026', $systemPrompt);
+                $this->assertStringContainsString('Android Gaming', $systemPrompt);
+
+                // Verify 15-Stage Production Pipeline Directives
+                $this->assertStringContainsString('ACTIVE ENTERPRISE PRODUCTION PIPELINE', $systemPrompt);
+                $this->assertStringContainsString('Search Intent Analysis', $systemPrompt);
+                $this->assertStringContainsString('Keyword & Entity Integration', $systemPrompt);
+                $this->assertStringContainsString('Outline & Structural Architecture', $systemPrompt);
+                $this->assertStringContainsString('Schema FAQ Block', $systemPrompt);
+                $this->assertStringContainsString('FORMATTING & TIPTAP PUBLICATION PERMISSIONS', $systemPrompt);
+
+                return Http::response([
+                    'choices' => [
+                        [
+                            'message' => [
+                                'role' => 'assistant',
+                                'content' => "# Best Android Games in 2026\n\n> **Quick Overview:** Modern Android gaming delivers console-quality experiences.\n\n## 1. Top Picks\n\n### Call of Duty: Mobile\n\nFast-paced 120Hz action.",
+                            ],
+                        ],
+                    ],
+                    'usage' => ['total_tokens' => 120],
+                    'model' => 'anthropic/claude-3-7-sonnet',
+                ], 200);
+            },
+        ]);
+
+        $response = $this->actingAs($this->user)->postJson(route('ai.transform'), [
+            'text' => 'create article about best android game in 1000 words',
+            'type' => 'custom',
+            'pipeline_stages' => [
+                'search_intent',
+                'keyword_research',
+                'article_outline',
+                'section_generation',
+                'schema_generation',
+                'publish_assembly',
+            ],
+            'context' => [
+                'has_selection' => false,
+                'document_title' => 'Best Android Games 2026',
+                'target_keyword' => 'Android Gaming',
+                'full_document_text' => 'Draft outline...',
+            ],
+        ]);
+
+        $response->assertOk();
+        $response->assertJson([
+            'success' => true,
+            'type' => 'custom',
+        ]);
+    }
 }
