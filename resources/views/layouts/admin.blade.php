@@ -760,7 +760,7 @@
     <script>
         function floatingOmniTerminal() {
             return {
-                isOpen: true,
+                isOpen: false,
                 isMinimized: false,
                 isMaximized: false,
                 posX: Math.max(20, window.innerWidth - 660),
@@ -788,7 +788,7 @@
                         const savedState = localStorage.getItem('hoa_terminal_state');
                         if (savedState) {
                             const parsed = JSON.parse(savedState);
-                            this.isOpen = parsed.isOpen ?? true;
+                            this.isOpen = parsed.isOpen ?? false;
                             this.isMinimized = parsed.isMinimized ?? false;
                             this.isMaximized = parsed.isMaximized ?? false;
                             if (parsed.posX !== undefined) this.posX = Math.min(window.innerWidth - 250, Math.max(10, parsed.posX));
@@ -798,10 +798,15 @@
                         }
                     } catch(e) {}
 
-                    this.fetchLogs();
+                    if (this.isOpen) {
+                        this.fetchLogs();
+                    }
+
                     this.pollTimer = setInterval(() => {
-                        if (this.isOpen) this.fetchLogs();
-                    }, 4000);
+                        if (this.isOpen && !this.isMinimized) {
+                            this.fetchLogs();
+                        }
+                    }, 5000);
 
                     // Global window drag & resize listeners
                     window.addEventListener('mousemove', (e) => {

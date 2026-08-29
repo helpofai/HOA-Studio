@@ -82,72 +82,140 @@ class CoreUpdateService
     }
 
     /**
-     * Check GitHub for available updates.
+     * Check GitHub for available updates directly from repository main branch.
      *
-     * @return array{has_update: bool, current_version: string, latest_version: string, release_notes: string, published_at: ?string, download_url: ?string, commit_sha: ?string}
+     * @return array{has_update: bool, current_version: string, latest_version: string, release_notes: string, published_at: ?string, download_url: ?string, commit_sha: ?string, latest_sha: ?string, commits_behind: int, recent_commits: array, changed_files: array, remote_version_meta: array}
      */
     public function checkForUpdates(): array
     {
-        $currentVersion = $this->getCurrentVersion();
+        $currentVersionMeta = $this->getVersionMetadata();
+        $currentVersion = $currentVersionMeta['version'] ?? '2.5.0';
+        $currentVersionCode = (int) ($currentVersionMeta['version_code'] ?? 250);
+        $currentBuildNumber = (string) ($currentVersionMeta['build_number'] ?? '');
+        $currentSha = $this->getCurrentGitSha();
+
         $fallback = [
             'has_update' => false,
             'current_version' => $currentVersion,
             'latest_version' => $currentVersion,
             'release_notes' => 'You are on the latest verified release build of HelpOfAi Studio.',
             'published_at' => date('Y-m-d H:i:s'),
-            'download_url' => null,
-            'commit_sha' => $this->getCurrentGitSha(),
+            'download_url' => "https://github.com/{$this->githubRepo}/archive/refs/heads/main.zip",
+            'commit_sha' => $currentSha,
+            'latest_sha' => $currentSha,
+            'commits_behind' => 0,
+            'recent_commits' => [],
+            'changed_files' => [],
+            'remote_version_meta' => $currentVersionMeta,
         ];
 
         try {
-            // Check GitHub API for latest release or latest commits
-            $response = Http::timeout(5)
-                ->withHeaders([
-                    'User-Agent' => 'HelpOfAi-Studio-Updater',
-                    'Accept' => 'application/vnd.github.v3+json',
-                ])
-                ->get("https://api.github.com/repos/{$this->githubRepo}/releases/latest");
+            // 1. Direct Fetch: Remote version.json from GitHub raw content (Zero rate-limit)
+            $remoteVersionResp = Http::timeout(6)
+                ->withHeaders(['User-Agent' => 'HelpOfAi-Studio-Updater'])
+                ->get("https://raw.githubusercontent.com/{$this->githubRepo}/main/version.json");
 
-            if ($response->successful()) {
-                $data = $response->json();
-                $latestTag = ltrim($data['tag_name'] ?? $currentVersion, 'v');
-                $hasUpdate = version_compare($latestTag, ltrim($currentVersion, 'v'), '>');
-
-                return [
-                    'has_update' => $hasUpdate,
-                    'current_version' => $currentVersion,
-                    'latest_version' => $data['tag_name'] ?? "v{$currentVersion}",
-                    'release_notes' => $data['body'] ?? 'No release notes provided for this version.',
-                    'published_at' => $data['published_at'] ?? null,
-                    'download_url' => $data['zipball_url'] ?? "https://github.com/{$this->githubRepo}/archive/refs/heads/main.zip",
-                    'commit_sha' => $data['target_commitish'] ?? null,
-                ];
+            $remoteVersionData = [];
+            if ($remoteVersionResp->successful()) {
+                $remoteVersionData = $remoteVersionResp->json() ?: [];
             }
 
-            // If no release tag, check latest commit on main branch
-            $commitResp = Http::timeout(5)
+            $remoteVersion = $remoteVersionData['version'] ?? $currentVersion;
+            $remoteVersionCode = (int) ($remoteVersionData['version_code'] ?? $currentVersionCode);
+            $remoteBuildNumber = (string) ($remoteVersionData['build_number'] ?? $currentBuildNumber);
+
+            // 2. Fetch Latest Commit Metadata on main branch
+            $commitResp = Http::timeout(6)
                 ->withHeaders([
                     'User-Agent' => 'HelpOfAi-Studio-Updater',
                     'Accept' => 'application/vnd.github.v3+json',
                 ])
                 ->get("https://api.github.com/repos/{$this->githubRepo}/commits/main");
 
+            $latestSha = null;
+            $commitMessage = 'Latest updates from GitHub repository.';
+            $commitDate = date('Y-m-d H:i:s');
+            $commitAuthor = 'HOA Core Team';
+
             if ($commitResp->successful()) {
                 $commitData = $commitResp->json();
                 $latestSha = substr($commitData['sha'] ?? '', 0, 8);
-                $currentSha = $this->getCurrentGitSha();
-                $hasUpdate = !empty($latestSha) && !empty($currentSha) && ($latestSha !== $currentSha);
-
-                return [
-                    'has_update' => $hasUpdate,
-                    'current_version' => $currentVersion,
-                    'latest_version' => "main ({$latestSha})",
-                    'release_notes' => $commitData['commit']['message'] ?? 'Latest updates from GitHub repository.',
-                    'published_at' => $commitData['commit']['committer']['date'] ?? null,
-                    'download_url' => "https://github.com/{$this->githubRepo}/archive/refs/heads/main.zip",
-                    'commit_sha' => $latestSha,
-                ];
+                $commitMessage = $commitData['commit']['message'] ?? $commitMessage;
+                $commitDate = $commitData['commit']['committer']['date'] ?? $commitDate;
+                $commitAuthor = $commitData['commit']['author']['name'] ?? $commitAuthor;
             }
+
+            // 3. Fetch Comparison Delta if current SHA differs from latest SHA
+            $commitsBehind = 0;
+            $recentCommits = [];
+            $changedFiles = [];
+
+            if (!empty($currentSha) && !empty($latestSha) && $currentSha !== $latestSha) {
+                try {
+                    $compareResp = Http::timeout(6)
+                        ->withHeaders([
+                            'User-Agent' => 'HelpOfAi-Studio-Updater',
+                            'Accept' => 'application/vnd.github.v3+json',
+                        ])
+                        ->get("https://api.github.com/repos/{$this->githubRepo}/compare/{$currentSha}...main");
+
+                    if ($compareResp->successful()) {
+                        $compareData = $compareResp->json();
+                        $commitsBehind = (int) ($compareData['ahead_by'] ?? 0);
+                        
+                        foreach (($compareData['commits'] ?? []) as $c) {
+                            $recentCommits[] = [
+                                'sha' => substr($c['sha'] ?? '', 0, 8),
+                                'message' => $c['commit']['message'] ?? '',
+                                'author' => $c['commit']['author']['name'] ?? '',
+                                'date' => $c['commit']['committer']['date'] ?? '',
+                            ];
+                        }
+
+                        foreach (($compareData['files'] ?? []) as $f) {
+                            $changedFiles[] = [
+                                'filename' => $f['filename'] ?? '',
+                                'status' => $f['status'] ?? 'modified',
+                                'additions' => $f['additions'] ?? 0,
+                                'deletions' => $f['deletions'] ?? 0,
+                            ];
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    // Non-blocking delta fallback
+                }
+            }
+
+            // Determine if update is available:
+            // - Remote version code > current version code
+            // - OR version_compare(remote, current, '>')
+            // - OR remote build number !== current build number
+            // - OR remote commit SHA differs from local commit SHA
+            $hasUpdate = ($remoteVersionCode > $currentVersionCode)
+                || (version_compare($remoteVersion, $currentVersion, '>'))
+                || (!empty($remoteBuildNumber) && !empty($currentBuildNumber) && $remoteBuildNumber !== $currentBuildNumber)
+                || (!empty($latestSha) && !empty($currentSha) && $latestSha !== $currentSha);
+
+            $displayLatestVersion = $remoteVersion;
+            if ($displayLatestVersion === $currentVersion && !empty($latestSha) && $latestSha !== $currentSha) {
+                $displayLatestVersion = "{$currentVersion} (build {$latestSha})";
+            }
+
+            return [
+                'has_update' => $hasUpdate,
+                'current_version' => $currentVersion,
+                'latest_version' => $displayLatestVersion,
+                'current_sha' => $currentSha,
+                'commit_sha' => $currentSha,
+                'latest_sha' => $latestSha ?? $currentSha,
+                'commits_behind' => $commitsBehind,
+                'recent_commits' => array_slice(array_reverse($recentCommits), 0, 5),
+                'changed_files' => array_slice($changedFiles, 0, 15),
+                'release_notes' => $commitMessage,
+                'published_at' => $commitDate,
+                'download_url' => "https://github.com/{$this->githubRepo}/archive/refs/heads/main.zip",
+                'remote_version_meta' => !empty($remoteVersionData) ? $remoteVersionData : $currentVersionMeta,
+            ];
         } catch (\Throwable $e) {
             Log::warning("Update check failed: {$e->getMessage()}");
         }
@@ -483,15 +551,19 @@ class CoreUpdateService
     }
 
     /**
-     * Apply update via Git CLI.
+     * Apply update via Git CLI with clean origin/main reset.
      */
     protected function applyGitUpdate(): void
     {
         $output = [];
         $returnVar = 0;
-        @exec('git pull origin main 2>&1', $output, $returnVar);
+        @exec('git fetch origin main 2>&1 && git reset --hard origin/main 2>&1', $output, $returnVar);
         if ($returnVar !== 0) {
-            throw new Exception("Git pull failed: " . implode("\n", $output));
+            // Fallback to git pull
+            @exec('git pull origin main 2>&1', $output, $returnVar);
+            if ($returnVar !== 0) {
+                throw new Exception("Git pull/reset failed: " . implode("\n", $output));
+            }
         }
     }
 
@@ -526,13 +598,12 @@ class CoreUpdateService
         $extractedDirs = File::directories($tempExtractDir);
         $sourceDir = !empty($extractedDirs) ? $extractedDirs[0] : $tempExtractDir;
 
-        // Safely Copy files over base_path, preserving sensitive files
+        // Safely Copy files over base_path, preserving user configuration and runtime data
         $this->syncDirectories($sourceDir, base_path(), [
             '.env',
             'storage',
             'public/uploads',
             'public/hoa-rescue.php',
-            'version.json',
         ]);
 
         File::deleteDirectory($tempExtractDir);
@@ -615,6 +686,11 @@ class CoreUpdateService
      */
     protected function createCodebaseZip(string $zipFilePath): void
     {
+        $targetDir = dirname($zipFilePath);
+        if (!File::exists($targetDir)) {
+            File::makeDirectory($targetDir, 0755, true, true);
+        }
+
         $zip = new ZipArchive();
         if ($zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
             return;
@@ -631,35 +707,56 @@ class CoreUpdateService
             'public',
             'resources',
             'routes',
+            'storage/app/public',
+            'storage/framework/views',
+            'storage/framework/sessions',
+            'storage/logs',
             'tests',
             'vendor',
-            '.helpofai',
-            'storage/app/public',
         ];
 
         foreach ($directoriesToInclude as $dir) {
             $fullDir = "{$basePath}/{$dir}";
             if (File::exists($fullDir)) {
-                $files = File::allFiles($fullDir);
+                $files = File::allFiles($fullDir, true);
                 foreach ($files as $file) {
                     $relative = "{$dir}/" . $file->getRelativePathname();
-                    $zip->addFile($file->getRealPath(), $relative);
+                    $normalizedRelative = str_replace('\\', '/', $relative);
+
+                    $zip->addFile($file->getRealPath(), $normalizedRelative);
                 }
             }
         }
 
-        // 2. All Root Files (Documents, Configs, Package manifests, Dotfiles)
-        $rootFiles = File::files($basePath, true);
-        $excludedZipNames = [basename($zipFilePath)];
+        // 2. All Root Files (Dotfiles, Manifests, Configs, Bootstraps, Production Docs)
+        $allRootItems = @scandir($basePath) ?: [];
+        $excludedRootFiles = [
+            '.',
+            '..',
+            '.git',
+            '.helpofai',
+            '.phpunit.result.cache',
+            'ADVANCED MULTI-EDITOR.md',
+            'AGENTS.md',
+            'agent.md',
+            'ai-content-writer-laravel13-plan.md',
+            'blog-post -creation-plan.md',
+            basename($zipFilePath),
+        ];
 
-        foreach ($rootFiles as $file) {
-            $fileName = $file->getFilename();
-            // Exclude large temporary dump archives during creation
-            if (str_starts_with($fileName, 'backup_rp_') || in_array($fileName, $excludedZipNames)) {
+        foreach ($allRootItems as $item) {
+            if (in_array($item, $excludedRootFiles)) {
                 continue;
             }
 
-            $zip->addFile($file->getRealPath(), $fileName);
+            $itemPath = "{$basePath}/{$item}";
+            if (is_file($itemPath)) {
+                // Skip backup zip files in root if any
+                if (str_starts_with($item, 'backup_rp_')) {
+                    continue;
+                }
+                $zip->addFile($itemPath, $item);
+            }
         }
 
         $zip->close();

@@ -72,8 +72,8 @@
                     @forelse($logs as $log)
                         <tr class="hover:bg-white/5 transition-colors">
                             <td class="p-4 font-medium text-white">
-                                <div>{{ $log->user_name }}</div>
-                                <div class="text-[11px] text-slate-400">{{ $log->user_email }}</div>
+                                <div>{{ $log->user_name ?? 'System / Anonymous User' }}</div>
+                                <div class="text-[11px] text-slate-400">{{ $log->user_email ?? 'N/A' }}</div>
                             </td>
                             <td class="p-4">
                                 <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-indigo-300 font-mono text-[11px] border border-white/5">
@@ -95,7 +95,7 @@
 
         @if($logs->hasPages())
             <div class="p-4 border-t border-white/5">
-                {{ $logs->links() }}
+                {{ $logs->links('livewire.custom-pagination') }}
             </div>
         @endif
     </x-glass.card>

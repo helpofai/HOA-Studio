@@ -17,7 +17,7 @@
         <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div>
                 <p class="text-xs text-slate-400 font-mono">
-                    Showing <span class="font-bold text-white">{{ $paginator->firstItem() }}</span> to <span class="font-bold text-white">{{ $paginator->lastItem() }}</span> of <span class="font-bold text-white">{{ $paginator->total() }}</span> models
+                    Showing <span class="font-bold text-white">{{ $paginator->firstItem() }}</span> to <span class="font-bold text-white">{{ $paginator->lastItem() }}</span> of <span class="font-bold text-white">{{ $paginator->total() }}</span> records
                 </p>
             </div>
 
