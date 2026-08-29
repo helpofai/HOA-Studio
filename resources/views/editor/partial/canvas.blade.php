@@ -429,104 +429,95 @@
         </div>
     </div>
 
-    <!-- Advanced TipTap Floating Selection Bubble Toolbar (Tippy Portal z-[999999] with Drag-To-Move Anywhere) -->
-    <div 
-        id="tiptap-bubble-menu"
-        x-ref="bubbleMenu"
-        x-on:mousedown.prevent
-        :style="bubblePos.x !== null ? `position: fixed !important; left: ${bubblePos.x}px !important; top: ${bubblePos.y}px !important; transform: none !important; margin: 0 !important; z-index: var(--z-index-floating) !important;` : ''"
-        class="editor-floating-actions"
-        style="display: none;"
-    >
-        <!-- Drag Handle Indicator -->
+    <!-- Advanced TipTap Floating Selection Bubble Toolbar (Teleported to body to avoid backdrop-filter coordinate displacement) -->
+    <template x-teleport="body">
         <div 
-            x-on:mousedown.stop="startDragBubble($event)"
-            x-on:touchstart.stop="startDragBubble($event)"
-            class="flex items-center justify-center px-1.5 py-1 text-slate-500 hover:text-indigo-300 cursor-grab active:cursor-grabbing select-none transition-colors border-r border-white/10"
-            title="Click & Drag to move floating toolbar anywhere on screen"
+            id="tiptap-bubble-menu"
+            x-ref="bubbleMenu"
+            x-on:mousedown.prevent
+            class="max-w-[calc(100vw-24px)] rounded-2xl bg-slate-950/98 border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.95)] backdrop-blur-2xl p-1.5 flex flex-wrap items-center gap-1.5 text-xs select-none transition-all duration-150"
+            style="display: none; z-index: var(--z-index-floating);"
         >
-            <span class="text-xs font-mono tracking-tighter">⋮⋮</span>
-        </div>
+            <!-- 1. AI Actions Group -->
+            <div class="flex items-center gap-1 bg-white/[0.04] p-0.5 rounded-xl border border-white/5" x-data="{ bubbleAiOpen: false }">
+                <button 
+                    type="button" 
+                    x-on:mousedown.prevent
+                    x-on:click="bubbleAiOpen = !bubbleAiOpen" 
+                    class="px-2.5 py-1 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold flex items-center gap-1.5 shadow-md shadow-indigo-600/30 cursor-pointer text-xs transition-transform active:scale-95"
+                >
+                    <span>✦ Ask AI</span>
+                    <span class="text-[9px]">▼</span>
+                </button>
+                <div 
+                    x-show="bubbleAiOpen" 
+                    x-on:click.outside="bubbleAiOpen = false" 
+                    x-on:mousedown.prevent
+                    class="absolute left-0 mt-2 w-56 rounded-2xl bg-slate-900/98 border border-white/20 p-1.5 shadow-2xl z-50 space-y-0.5 backdrop-blur-2xl text-xs"
+                    style="display: none;"
+                >
+                    <button type="button" x-on:mousedown.prevent x-on:click="triggerSubContentSubAgent('recreate'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl bg-purple-950/80 hover:bg-purple-900/80 text-purple-200 hover:text-white flex items-center justify-between cursor-pointer font-bold border border-purple-500/40">
+                        <span class="flex items-center gap-2"><span class="text-purple-400">🤖</span> <span>Recreate Paragraph</span></span>
+                        <span class="text-[9px] font-mono px-1 rounded bg-purple-900 text-purple-300">AI</span>
+                    </button>
+                    <button type="button" x-on:mousedown.prevent x-on:click="triggerSubContentSubAgent('polish'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
+                        <span class="text-cyan-400">✧</span> <span>Polish & Refine</span>
+                    </button>
+                    <button type="button" x-on:mousedown.prevent x-on:click="triggerAiTransform('expand'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
+                        <span class="text-violet-400">+</span> <span>Expand with Depth</span>
+                    </button>
+                    <button type="button" x-on:mousedown.prevent x-on:click="triggerAiTransform('shorten'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
+                        <span class="text-amber-400">−</span> <span>Shorten & Condense</span>
+                    </button>
+                    <button type="button" x-on:mousedown.prevent x-on:click="triggerSubContentSubAgent('rewrite'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
+                        <span class="text-emerald-400">↻</span> <span>Rewrite Phrasing</span>
+                    </button>
+                    <button type="button" x-on:mousedown.prevent x-on:click="triggerAiTransform('simplify'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
+                        <span class="text-pink-400">⚡</span> <span>Simplify (8th-Grade)</span>
+                    </button>
+                    <button type="button" x-on:mousedown.prevent x-on:click="triggerAiTransform('generate_faq'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
+                        <span class="text-indigo-400">❓</span> <span>Generate FAQ on this</span>
+                    </button>
+                    <button type="button" x-on:mousedown.prevent x-on:click="triggerAiTransform('key_takeaways'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
+                        <span class="text-teal-400">💡</span> <span>Extract Key Takeaways</span>
+                    </button>
+                </div>
+            </div>
 
-        <!-- AI Actions Dropdown Menu -->
-        <div class="relative" x-data="{ bubbleAiOpen: false }">
-            <button 
-                type="button" 
-                x-on:mousedown.prevent
-                x-on:click="bubbleAiOpen = !bubbleAiOpen" 
-                class="px-2.5 py-1 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold flex items-center gap-1.5 shadow-md shadow-indigo-600/30 cursor-pointer"
-            >
-                <span>✦ Ask AI</span>
-                <span class="text-[9px]">▼</span>
-            </button>
-            <div 
-                x-show="bubbleAiOpen" 
-                x-on:click.outside="bubbleAiOpen = false" 
-                x-on:mousedown.prevent
-                class="absolute left-0 mt-2 w-56 rounded-2xl bg-slate-900/98 border border-white/20 p-1.5 shadow-2xl z-50 space-y-0.5 backdrop-blur-2xl text-xs"
-                style="display: none;"
-            >
-                <button type="button" x-on:mousedown.prevent x-on:click="triggerSubContentSubAgent('recreate'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl bg-purple-950/80 hover:bg-purple-900/80 text-purple-200 hover:text-white flex items-center justify-between cursor-pointer font-bold border border-purple-500/40">
-                    <span class="flex items-center gap-2"><span class="text-purple-400">🤖</span> <span>Recreate Paragraph (sub-agent)</span></span>
-                    <span class="text-[9px] font-mono px-1 rounded bg-purple-900 text-purple-300">AI</span>
-                </button>
-                <button type="button" x-on:mousedown.prevent x-on:click="triggerSubContentSubAgent('polish'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
-                    <span class="text-cyan-400">✧</span> <span>Polish & Refine</span>
-                </button>
-                <button type="button" x-on:mousedown.prevent x-on:click="triggerAiTransform('expand'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
-                    <span class="text-violet-400">+</span> <span>Expand with Depth</span>
-                </button>
-                <button type="button" x-on:mousedown.prevent x-on:click="triggerAiTransform('shorten'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
-                    <span class="text-amber-400">−</span> <span>Shorten & Condense</span>
-                </button>
-                <button type="button" x-on:mousedown.prevent x-on:click="triggerSubContentSubAgent('rewrite'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
-                    <span class="text-emerald-400">↻</span> <span>Rewrite Phrasing</span>
-                </button>
-                <button type="button" x-on:mousedown.prevent x-on:click="triggerAiTransform('simplify'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
-                    <span class="text-pink-400">⚡</span> <span>Simplify (8th-Grade)</span>
-                </button>
-                <button type="button" x-on:mousedown.prevent x-on:click="triggerAiTransform('generate_faq'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
-                    <span class="text-indigo-400">❓</span> <span>Generate FAQ on this</span>
-                </button>
-                <button type="button" x-on:mousedown.prevent x-on:click="triggerAiTransform('key_takeaways'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
-                    <span class="text-teal-400">💡</span> <span>Extract Key Takeaways</span>
-                </button>
+            <!-- 2. Inline Typography Group (Bold, Italic, Underline, Strike, Highlight, Code) -->
+            <div class="flex items-center gap-0.5 bg-white/[0.04] p-0.5 rounded-xl border border-white/5">
+                <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('bold')" :class="activeFormats.bold ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" class="w-7 h-7 flex items-center justify-center rounded-lg font-bold cursor-pointer transition-colors" title="Bold (Ctrl+B)">B</button>
+                <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('italic')" :class="activeFormats.italic ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" class="w-7 h-7 flex items-center justify-center rounded-lg italic font-serif cursor-pointer transition-colors" title="Italic (Ctrl+I)">I</button>
+                <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('underline')" :class="activeFormats.underline ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" class="w-7 h-7 flex items-center justify-center rounded-lg underline cursor-pointer transition-colors" title="Underline (Ctrl+U)">U</button>
+                <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('strike')" :class="activeFormats.strike ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" class="w-7 h-7 flex items-center justify-center rounded-lg line-through cursor-pointer transition-colors" title="Strikethrough">S</button>
+                <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('highlight')" :class="activeFormats.highlight ? 'bg-amber-500/80 text-black font-bold shadow-md shadow-amber-500/30' : 'text-slate-300 hover:bg-white/10'" class="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer transition-colors" title="Highlight">⬚</button>
+                <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('codeBlock')" :class="activeFormats.codeBlock ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" class="w-7 h-7 flex items-center justify-center rounded-lg font-mono text-[11px] cursor-pointer transition-colors" title="Code Block">&lt;/&gt;</button>
+            </div>
+
+            <!-- 3. Headings & Blockquote Group -->
+            <div class="flex items-center gap-0.5 bg-white/[0.04] p-0.5 rounded-xl border border-white/5">
+                <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('heading', 1)" :class="activeFormats.heading1 ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" class="w-7 h-7 flex items-center justify-center rounded-lg font-mono font-bold cursor-pointer transition-colors" title="Heading 1">H1</button>
+                <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('heading', 2)" :class="activeFormats.heading2 ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" class="w-7 h-7 flex items-center justify-center rounded-lg font-mono font-bold cursor-pointer transition-colors" title="Heading 2">H2</button>
+                <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('heading', 3)" :class="activeFormats.heading3 ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" class="w-7 h-7 flex items-center justify-center rounded-lg font-mono font-bold cursor-pointer transition-colors" title="Heading 3">H3</button>
+                <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('blockquote')" :class="activeFormats.blockquote ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" class="w-7 h-7 flex items-center justify-center rounded-lg font-serif font-bold cursor-pointer transition-colors" title="Blockquote">"</button>
+            </div>
+
+            <!-- 4. Lists & Table Group -->
+            <div class="flex items-center gap-0.5 bg-white/[0.04] p-0.5 rounded-xl border border-white/5">
+                <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('bulletList')" :class="activeFormats.bulletList ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" class="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer transition-colors" title="Bullet List">●</button>
+                <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('orderedList')" :class="activeFormats.orderedList ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" class="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer transition-colors text-[11px] font-bold" title="Numbered List">1.</button>
+                <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('taskList')" :class="activeFormats.taskList ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" class="w-7 h-7 flex items-center justify-center rounded-lg cursor-pointer transition-colors text-[11px]" title="Task Checklist">✓</button>
+                <button type="button" x-on:mousedown.prevent x-on:click="editorInstance?.insertTable?.({ rows: 3, cols: 3, withHeaderRow: true })" class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/10 text-slate-300 hover:text-white cursor-pointer transition-colors" title="Insert Table">▦</button>
+            </div>
+
+            <!-- 5. Alignment Group -->
+            <div class="flex items-center gap-0.5 bg-white/[0.04] p-0.5 rounded-xl border border-white/5">
+                <button type="button" x-on:mousedown.prevent x-on:click="editorInstance?.setTextAlign?.('left')" class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-300 hover:bg-white/10 cursor-pointer transition-colors" title="Align Left">⇤</button>
+                <button type="button" x-on:mousedown.prevent x-on:click="editorInstance?.setTextAlign?.('center')" class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-300 hover:bg-white/10 cursor-pointer transition-colors" title="Align Center">↔</button>
+                <button type="button" x-on:mousedown.prevent x-on:click="editorInstance?.setTextAlign?.('right')" class="w-7 h-7 flex items-center justify-center rounded-lg text-slate-300 hover:bg-white/10 cursor-pointer transition-colors" title="Align Right">⇥</button>
             </div>
         </div>
-
-        <span class="w-[1px] h-4 bg-white/10 mx-0.5"></span>
-
-        <!-- Inline Formatting Marks (Bold, Italic, Underline, Strike, Highlight, Code) -->
-        <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('bold')" :class="activeFormats.bold ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" class="px-2 py-1 rounded-lg font-bold cursor-pointer" title="Bold (Ctrl+B)">B</button>
-        <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('italic')" :class="activeFormats.italic ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" class="px-2 py-1 rounded-lg italic font-serif cursor-pointer" title="Italic (Ctrl+I)">I</button>
-        <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('underline')" :class="activeFormats.underline ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" class="px-2 py-1 rounded-lg underline cursor-pointer" title="Underline (Ctrl+U)">U</button>
-        <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('strike')" :class="activeFormats.strike ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" class="px-2 py-1 rounded-lg line-through cursor-pointer" title="Strike">S</button>
-        <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('highlight')" :class="activeFormats.highlight ? 'bg-amber-500/80 text-black font-bold shadow-md shadow-amber-500/30' : 'text-slate-300 hover:bg-white/10'" class="px-2 py-1 rounded-lg cursor-pointer" title="Highlight">⬚</button>
-        <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('codeBlock')" :class="activeFormats.codeBlock ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" class="px-2 py-1 rounded-lg font-mono text-[11px] cursor-pointer" title="Code Block">&lt;/&gt;</button>
-
-        <span class="w-[1px] h-4 bg-white/10 mx-0.5"></span>
-
-        <!-- Headings Hierarchy -->
-        <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('heading', 1)" :class="activeFormats.heading1 ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" class="px-2 py-1 rounded-lg font-mono font-bold cursor-pointer" title="Heading 1">H1</button>
-        <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('heading', 2)" :class="activeFormats.heading2 ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" class="px-2 py-1 rounded-lg font-mono font-bold cursor-pointer" title="Heading 2">H2</button>
-        <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('heading', 3)" :class="activeFormats.heading3 ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" class="px-2 py-1 rounded-lg font-mono font-bold cursor-pointer" title="Heading 3">H3</button>
-
-        <span class="w-[1px] h-4 bg-white/10 mx-0.5"></span>
-
-        <!-- Lists, Tasks, Tables & Quotes -->
-        <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('bulletList')" :class="activeFormats.bulletList ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" class="px-2 py-1 rounded-lg cursor-pointer" title="Bullet List">●</button>
-        <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('orderedList')" :class="activeFormats.orderedList ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" class="px-2 py-1 rounded-lg cursor-pointer" title="Numbered List">1.</button>
-        <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('taskList')" :class="activeFormats.taskList ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" class="px-2 py-1 rounded-lg cursor-pointer" title="Task Checklist">✓</button>
-        <button type="button" x-on:mousedown.prevent x-on:click="applyFormat('blockquote')" :class="activeFormats.blockquote ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" class="px-2 py-1 rounded-lg font-serif font-bold cursor-pointer" title="Blockquote">"</button>
-        <button type="button" x-on:mousedown.prevent x-on:click="editorInstance?.insertTable?.({ rows: 3, cols: 3, withHeaderRow: true })" class="px-2 py-1 rounded-lg hover:bg-white/10 text-slate-300 hover:text-white cursor-pointer" title="Insert Table">▦</button>
-
-        <span class="w-[1px] h-4 bg-white/10 mx-0.5"></span>
-
-        <!-- Text Alignments -->
-        <button type="button" x-on:mousedown.prevent x-on:click="editorInstance?.setTextAlign?.('left')" class="px-1.5 py-1 rounded-lg text-slate-300 hover:bg-white/10 cursor-pointer" title="Align Left">⇤</button>
-        <button type="button" x-on:mousedown.prevent x-on:click="editorInstance?.setTextAlign?.('center')" class="px-1.5 py-1 rounded-lg text-slate-300 hover:bg-white/10 cursor-pointer" title="Align Center">↔</button>
-        <button type="button" x-on:mousedown.prevent x-on:click="editorInstance?.setTextAlign?.('right')" class="px-1.5 py-1 rounded-lg text-slate-300 hover:bg-white/10 cursor-pointer" title="Align Right">⇥</button>
-    </div>
+    </template>
 
     <!-- Custom Right-Click Context Menu (Teleported to body to avoid backdrop-filter coordinate displacement) -->
     <template x-teleport="body">

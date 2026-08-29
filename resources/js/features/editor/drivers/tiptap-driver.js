@@ -220,35 +220,41 @@ export class TiptapDriver {
                 return;
             }
 
-            // Check if user has custom dragged the bubble menu
-            const alpineData = window.Alpine && document.querySelector('[x-data]') ? window.Alpine.$data(document.querySelector('[x-data]')) : null;
-            if (alpineData && alpineData.bubblePos && alpineData.bubblePos.x !== null && alpineData.bubblePos.y !== null) {
-                bubbleMenuEl.style.display = 'flex';
-                bubbleMenuEl.style.position = 'fixed';
-                bubbleMenuEl.style.left = `${alpineData.bubblePos.x}px`;
-                bubbleMenuEl.style.top = `${alpineData.bubblePos.y}px`;
-                bubbleMenuEl.style.zIndex = 'var(--z-index-floating, 9999)';
-                return;
-            }
+            // Target the active writing canvas element for strict section boundary clamping
+            const canvasEl = document.querySelector('.editor-canvas') || document.getElementById(this.elementId) || document.body;
+            const canvasRect = canvasEl ? canvasEl.getBoundingClientRect() : { left: 10, right: window.innerWidth - 10, top: 60, bottom: window.innerHeight - 10, width: window.innerWidth - 20 };
 
-            // Display to measure dimensions
+            const maxAvailableWidth = Math.max(260, canvasRect.width - 24);
+            bubbleMenuEl.style.maxWidth = `${Math.round(maxAvailableWidth)}px`;
+
+            // Display to measure actual rendered multi-row dimensions
             bubbleMenuEl.style.display = 'flex';
             bubbleMenuEl.style.position = 'fixed';
             bubbleMenuEl.style.zIndex = 'var(--z-index-floating, 9999)';
 
-            const menuRect = bubbleMenuEl.getBoundingClientRect();
+            const menuWidth = Math.min(bubbleMenuEl.offsetWidth || 520, maxAvailableWidth);
+            const menuHeight = bubbleMenuEl.offsetHeight || 42;
             
-            // Viewport coordinates
+            // Viewport coordinates centered above selection
             const selectionCenterX = rangeRect.left + (rangeRect.width / 2);
-            let fixedLeft = selectionCenterX - (menuRect.width / 2);
-            let fixedTop = rangeRect.top - menuRect.height - 10;
+            let fixedLeft = selectionCenterX - (menuWidth / 2);
+            let fixedTop = rangeRect.top - menuHeight - 10;
 
-            // Viewport boundary protection
-            fixedLeft = Math.max(10, Math.min(fixedLeft, window.innerWidth - menuRect.width - 10));
+            // Clamping bounds strictly within class="editor-canvas" section boundaries
+            const minLeft = Math.max(8, canvasRect.left + 12);
+            const maxLeft = Math.min(window.innerWidth - menuWidth - 8, canvasRect.right - menuWidth - 12);
+            fixedLeft = Math.max(minLeft, Math.min(fixedLeft, Math.max(minLeft, maxLeft)));
 
-            // If selected text is too close to top of viewport, flip below selection
-            if (fixedTop < 10) {
+            // If selected text is too close to top of canvas/ribbon (or screen top), flip below selection
+            const topBoundary = Math.max(60, canvasRect.top + 8);
+            if (fixedTop < topBoundary) {
                 fixedTop = rangeRect.bottom + 10;
+            }
+
+            // Bottom canvas boundary protection
+            const bottomBoundary = Math.min(window.innerHeight - 10, canvasRect.bottom - 10);
+            if (fixedTop + menuHeight > bottomBoundary) {
+                fixedTop = Math.max(topBoundary, bottomBoundary - menuHeight);
             }
 
             bubbleMenuEl.style.left = `${Math.round(fixedLeft)}px`;
