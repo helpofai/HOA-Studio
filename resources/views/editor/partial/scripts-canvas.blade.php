@@ -61,6 +61,9 @@ updateActiveFormats() {
 },
 
 initEditor(customInitial = null) {
+    const targetEl = document.getElementById('tiptap-content-target');
+    const savedScrollTop = targetEl ? targetEl.scrollTop : 0;
+
     const currentEd = this.getEditor();
     if (currentEd) {
         try {
@@ -98,8 +101,8 @@ initEditor(customInitial = null) {
             this.updateActiveFormats();
         },
         onAutosave: (data) => {
-            // Prevent duplicate autosaves if our new debounced mechanism is active
-            if (this.isDirty) return; 
+            // Prevent duplicate autosaves if our new debounced mechanism is active or during pending proposals
+            if (this.isDirty || this.isTransforming || this.showSubAgentProposal) return; 
             
             Livewire.dispatch('autosave', { html: data.html, json: data.json ?? null });
             this.saveLocalDraft(data.html);
@@ -121,6 +124,12 @@ initEditor(customInitial = null) {
     }
     this.updateOutline();
     this.updateActiveFormats();
+
+    if (targetEl && savedScrollTop > 0) {
+        requestAnimationFrame(() => {
+            targetEl.scrollTop = savedScrollTop;
+        });
+    }
 },
 
 executeSlashAction(action) {
@@ -187,6 +196,25 @@ openContextMenu(event) {
     this.contextMenuX = Math.max(10, Math.min(clientX, window.innerWidth - menuWidth - 10));
     this.contextMenuY = Math.max(10, Math.min(clientY, window.innerHeight - menuHeight - 10));
     this.showContextMenu = true;
+
+    const ed = this.getEditor ? this.getEditor() : (this.editorInstance || window.hoaEditorInstance);
+    let captured = '';
+    if (ed && typeof ed.getSelectedText === 'function') {
+        captured = ed.getSelectedText().trim();
+    }
+    if (!captured && window.getSelection) {
+        captured = window.getSelection().toString().trim();
+    }
+    if (!captured && event.target) {
+        const block = event.target.closest('p, h1, h2, h3, h4, blockquote, li');
+        if (block) {
+            captured = block.innerText.trim();
+        }
+    }
+    if (captured) {
+        this.selectedText = captured;
+        this.hasSelection = true;
+    }
     this.addLog('INFO', 'AI Context menu opened at (' + this.contextMenuX + ', ' + this.contextMenuY + ')');
 },
 
@@ -304,15 +332,7 @@ scrollToHeading(text) {
         if (!ed) return;
         try {
             let finalHtml = htmlContent;
-            if (isProposal) {
-                finalHtml = `<div class="ai-proposal-container">
-                    ${htmlContent}
-                    <div class="ai-proposal-actions">
-                        <button onclick="Livewire.dispatch('acceptProposal')" class="px-3 py-1 bg-green-600 text-white rounded">Accept</button>
-                        <button onclick="Livewire.dispatch('declineProposal')" class="px-3 py-1 bg-red-600 text-white rounded">Decline</button>
-                    </div>
-                </div>`;
-            } else if (withHighlight) {
+            if (withHighlight && className) {
                 finalHtml = `<mark class="${className}">${htmlContent}</mark>`;
             }
             if (typeof ed.insertContent === 'function') {
@@ -358,7 +378,7 @@ applyLiveStreamNow() {
             if (isDocEmpty) {
                 ed.setContent(textToInsert);
             } else {
-                this.insertContentIntoCanvas(textToInsert, true);
+                this.insertContentIntoCanvas(textToInsert, false);
             }
         }
         const finalHtml = ed.getHTML ? ed.getHTML() : textToInsert;

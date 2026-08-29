@@ -96,44 +96,84 @@
             </div>
         </div>
 
-        <!-- 3. MULTI-AGENT SWARM LIVE ACTIVITY MONITOR -->
-        <div class="p-2.5 rounded-2xl bg-slate-900/90 border border-indigo-500/30 shadow-inner space-y-2 font-mono">
+        <!-- 3. MULTI-AGENT SWARM (full-content-main-agent) MONITOR -->
+        <div id="full-content-main-agent" class="full-content-main-agent p-3 rounded-2xl bg-slate-900/90 border border-indigo-500/30 shadow-inner space-y-2.5 font-mono" x-data="{ showSwarmSteps: false }">
             <div class="flex items-center justify-between text-[11px] font-bold text-white">
                 <span class="flex items-center gap-1.5 text-indigo-300">
-                    <span>🤖</span> <span>Multi-Agent Swarm</span>
+                    <span>🤖</span> 
+                    <span>Multi-Agent Swarm</span>
+                    <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-purple-950/80 text-purple-300 border border-purple-500/40 font-bold" title="Full Content Main Agent Engine">full-content-main-agent</span>
                 </span>
-                <span class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-500/30">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    10 AGENTS LIVE
-                </span>
+                <button 
+                    type="button" 
+                    x-on:click="showSwarmSteps = !showSwarmSteps" 
+                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-indigo-950 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-900 transition-colors cursor-pointer"
+                >
+                    <span x-text="showSwarmSteps ? '▼ Hide Steps' : '⚙️ Custom Steps'"></span>
+                </button>
             </div>
 
             <!-- Mini Swarm Chain -->
             <div class="grid grid-cols-5 gap-1 text-center">
-                <div class="p-1 rounded bg-slate-950/80 border border-white/5" title="Agent 1: Master Orchestrator">
+                <div class="p-1 rounded border transition-colors" :class="swarmSteps.researcher ? 'bg-indigo-950/80 border-indigo-500/50 text-indigo-300' : 'bg-slate-950/40 border-white/5 text-slate-600'" title="Agent 1: Search Intent & RAG Researcher">
                     <span class="text-xs block">🎯</span>
-                    <span class="text-[8px] text-indigo-300 block truncate">Orch</span>
+                    <span class="text-[8px] block truncate">Res</span>
                 </div>
-                <div class="p-1 rounded bg-slate-950/80 border border-white/5" title="Agent 2: Vector RAG Researcher">
-                    <span class="text-xs block">🔎</span>
-                    <span class="text-[8px] text-purple-300 block truncate">RAG</span>
+                <div class="p-1 rounded border transition-colors" :class="swarmSteps.outliner ? 'bg-indigo-950/80 border-indigo-500/50 text-purple-300' : 'bg-slate-950/40 border-white/5 text-slate-600'" title="Agent 2: Outline & Title Architect">
+                    <span class="text-xs block">📑</span>
+                    <span class="text-[8px] block truncate">Arch</span>
                 </div>
-                <div class="p-1 rounded bg-slate-950/80 border border-white/5" title="Agent 5: Deep Section Draftsman">
+                <div class="p-1 rounded border transition-colors" :class="swarmSteps.draftsman ? 'bg-indigo-950/80 border-indigo-500/50 text-emerald-300' : 'bg-slate-950/40 border-white/5 text-slate-600'" title="Agent 3: Deep Section Draftsman">
                     <span class="text-xs block">✍️</span>
-                    <span class="text-[8px] text-emerald-300 block truncate">Draft</span>
+                    <span class="text-[8px] block truncate">Draft</span>
                 </div>
-                <div class="p-1 rounded bg-slate-950/80 border border-white/5" title="Agent 8: Rank Math 100/100 Optimizer">
-                    <span class="text-xs block">⌁</span>
-                    <span class="text-[8px] text-teal-300 block truncate">SEO</span>
+                <div class="p-1 rounded border transition-colors" :class="swarmSteps.rich_media ? 'bg-indigo-950/80 border-indigo-500/50 text-teal-300' : 'bg-slate-950/40 border-white/5 text-slate-600'" title="Agent 4: Comparison Table & Media">
+                    <span class="text-xs block">▦</span>
+                    <span class="text-[8px] block truncate">Media</span>
                 </div>
-                <div class="p-1 rounded bg-slate-950/80 border border-white/5" title="Agent 10: TipTap Block Assembler">
+                <div class="p-1 rounded border transition-colors" :class="swarmSteps.seo_meta ? 'bg-indigo-950/80 border-indigo-500/50 text-violet-300' : 'bg-slate-950/40 border-white/5 text-slate-600'" title="Agent 5: SEO Meta & Quality Audit">
                     <span class="text-xs block">🚀</span>
-                    <span class="text-[8px] text-violet-300 block truncate">TipTap</span>
+                    <span class="text-[8px] block truncate">Meta</span>
                 </div>
             </div>
 
+            <!-- Custom Swarm Step Checkboxes (User Options) -->
+            <div x-show="showSwarmSteps" class="space-y-1 pt-1.5 border-t border-white/10 text-xs font-mono select-none">
+                <div class="text-[9px] uppercase font-bold text-slate-400 tracking-wider mb-1">Select Active Swarm Steps:</div>
+                <label class="flex items-center justify-between p-1 rounded hover:bg-white/5 cursor-pointer">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" x-model="swarmSteps.researcher" class="rounded bg-slate-900 border-white/20 text-indigo-600">
+                        <span class="text-[10.5px]">Step 1: Search Intent & SEO Research</span>
+                    </div>
+                </label>
+                <label class="flex items-center justify-between p-1 rounded hover:bg-white/5 cursor-pointer">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" x-model="swarmSteps.outliner" class="rounded bg-slate-900 border-white/20 text-indigo-600">
+                        <span class="text-[10.5px]">Step 2: Title & Heading Architecture</span>
+                    </div>
+                </label>
+                <label class="flex items-center justify-between p-1 rounded hover:bg-white/5 cursor-pointer">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" x-model="swarmSteps.draftsman" class="rounded bg-slate-900 border-white/20 text-indigo-600">
+                        <span class="text-[10.5px]">Step 3: Full Article Drafting</span>
+                    </div>
+                </label>
+                <label class="flex items-center justify-between p-1 rounded hover:bg-white/5 cursor-pointer">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" x-model="swarmSteps.rich_media" class="rounded bg-slate-900 border-white/20 text-indigo-600">
+                        <span class="text-[10.5px]">Step 4: Comparison Table & Media</span>
+                    </div>
+                </label>
+                <label class="flex items-center justify-between p-1 rounded hover:bg-white/5 cursor-pointer">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" x-model="swarmSteps.seo_meta" class="rounded bg-slate-900 border-white/20 text-indigo-600">
+                        <span class="text-[10.5px]">Step 5: Meta Description & Quality Audit</span>
+                    </div>
+                </label>
+            </div>
+
             <div class="flex items-center justify-between text-[9.5px] text-slate-400 pt-0.5 border-t border-white/5">
-                <span>Handoff: <strong class="text-white">4.2ms</strong></span>
+                <span>Active Steps: <strong class="text-white" x-text="Object.values(swarmSteps).filter(Boolean).length + '/5'">5/5</strong></span>
                 <span class="text-emerald-400">Zero-Loss Handshake</span>
             </div>
         </div>
@@ -237,7 +277,7 @@
                     :disabled="isTransforming"
                     class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-xs font-black shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
                 >
-                    <span x-show="!isTransforming">🤖 Run Multi-Agent Swarm (Full Article)</span>
+                    <span x-show="!isTransforming">🤖 Run Multi-Agent Swarm (full-content-main-agent)</span>
                     <span x-show="isTransforming" class="animate-spin text-sm">⟳</span>
                     <span x-show="isTransforming" x-text="swarmStatusMessage || 'Swarm Collaborating...'"></span>
                 </button>

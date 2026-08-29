@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.1] - 2026-08-29
+
+### 🚀 Added & Improved
+- **Localized AI Sub-Agent Paragraph Recreation Engine (`sub-content-sub-agent`)**:
+  - Contextual right-click & floating menu actions for rewriting, polishing, and recreating individual paragraphs.
+  - Automatic paragraph detection at cursor position when no manual range is selected.
+  - Capped token usage (150–450 tokens) and isolated synthesis pipeline preventing full document regeneration on localized edits.
+- **Enhanced Glassmorphic High-Contrast Visual Feedback**:
+  - High-contrast translucent amber highlight (`rgba(234, 179, 8, 0.22)`) with drop shadow for selected paragraphs, ensuring crisp text legibility in dark themes.
+  - Glowing emerald green confirmation badge (`.ai-replaced-green-highlight`) with dynamic 5-second auto-fade transition and automated markup sanitization upon acceptance.
+- **ProseMirror Atomic Transaction Replacements**:
+  - Upgraded TipTap driver to execute `.setTextSelection({ from, to }).deleteSelection().insertContent()` with multi-tiered HTML normalization fallbacks.
+  - Preserved canvas `scrollTop` across content updates via `requestAnimationFrame`.
+
+### 🛡️ Fixed & Hardened
+- **Livewire 3 Single-Root & DOM Isolation**:
+  - Enforced single root element across Blade views and wrapped editor canvas and scripts under `wire:ignore` to prevent state resets.
+  - Paused background autosaves during active AI proposal reviews to avoid premature re-renders or scroll jumps.
+- **Floating Bubble & Context Menu Dismissal**:
+  - Upgraded TipTap bubble selection toolbar to fixed viewport coordinates with boundary protection.
+  - Isolated right-click context menu by explicit ID (`hoa-editor-context-menu`) and added global click/escape listeners for instant auto-dismissal.
+  - Fixed variable scope `ReferenceError` in AI transform stream handler and restored `Placeholder` extension in TipTap driver.
+
+---
+
 ## [2.6.0] - 2026-08-26
 
 ### 🚀 Added

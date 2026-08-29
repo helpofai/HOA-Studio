@@ -1,7 +1,7 @@
 {
-  "_fonts-DqppEDJS.css": {
-    "file": "assets/fonts-DqppEDJS.css",
-    "src": "_fonts-DqppEDJS.css"
+  "_fonts-Dehb0dzM.css": {
+    "file": "assets/fonts-Dehb0dzM.css",
+    "src": "_fonts-Dehb0dzM.css"
   },
   "_instrument-sans-400-normal-D1W7dsQl.woff": {
     "file": "assets/instrument-sans-400-normal-D1W7dsQl.woff",
@@ -28,7 +28,7 @@
     "src": "_instrument-sans-600-normal-B9e8oLYv.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-DGjy4ZFa.css",
+    "file": "assets/app-CXHuc5c7.css",
     "name": "app",
     "names": [
       "app.css"
@@ -55,7 +55,7 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-Bj0H0Q8E.js",
+    "file": "assets/app-47-8m_W3.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true

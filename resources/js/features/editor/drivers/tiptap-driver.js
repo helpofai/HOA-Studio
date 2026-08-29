@@ -15,6 +15,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import CharacterCount from '@tiptap/extension-character-count';
 import Typography from '@tiptap/extension-typography';
+import { BubbleMenu } from '@tiptap/extension-bubble-menu';
 import Highlight from '@tiptap/extension-highlight';
 import TaskItem from '@tiptap/extension-task-item';
 import TaskList from '@tiptap/extension-task-list';
@@ -226,35 +227,32 @@ export class TiptapDriver {
                 bubbleMenuEl.style.position = 'fixed';
                 bubbleMenuEl.style.left = `${alpineData.bubblePos.x}px`;
                 bubbleMenuEl.style.top = `${alpineData.bubblePos.y}px`;
-                bubbleMenuEl.style.zIndex = '999999';
+                bubbleMenuEl.style.zIndex = 'var(--z-index-floating, 9999)';
                 return;
             }
 
-            const parentContainer = bubbleMenuEl.offsetParent || document.body;
-            const parentRect = parentContainer.getBoundingClientRect();
-
             // Display to measure dimensions
             bubbleMenuEl.style.display = 'flex';
-            bubbleMenuEl.style.position = 'absolute';
-            bubbleMenuEl.style.zIndex = '60';
+            bubbleMenuEl.style.position = 'fixed';
+            bubbleMenuEl.style.zIndex = 'var(--z-index-floating, 9999)';
 
             const menuRect = bubbleMenuEl.getBoundingClientRect();
             
-            // Exact relative coordinates within the relative card
+            // Viewport coordinates
             const selectionCenterX = rangeRect.left + (rangeRect.width / 2);
-            let relativeLeft = (selectionCenterX - parentRect.left) - (menuRect.width / 2);
-            let relativeTop = (rangeRect.top - parentRect.top) - menuRect.height - 10;
+            let fixedLeft = selectionCenterX - (menuRect.width / 2);
+            let fixedTop = rangeRect.top - menuRect.height - 10;
 
-            // Viewport boundary protection inside parent card
-            relativeLeft = Math.max(10, Math.min(relativeLeft, parentRect.width - menuRect.width - 10));
+            // Viewport boundary protection
+            fixedLeft = Math.max(10, Math.min(fixedLeft, window.innerWidth - menuRect.width - 10));
 
-            // If selected text is too close to top of container, flip below selection
-            if (relativeTop < 10) {
-                relativeTop = (rangeRect.bottom - parentRect.top) + 10;
+            // If selected text is too close to top of viewport, flip below selection
+            if (fixedTop < 10) {
+                fixedTop = rangeRect.bottom + 10;
             }
 
-            bubbleMenuEl.style.left = `${Math.round(relativeLeft)}px`;
-            bubbleMenuEl.style.top = `${Math.round(relativeTop)}px`;
+            bubbleMenuEl.style.left = `${Math.round(fixedLeft)}px`;
+            bubbleMenuEl.style.top = `${Math.round(fixedTop)}px`;
         } catch (e) {
             bubbleMenuEl.style.display = 'none';
         }
@@ -276,12 +274,16 @@ export class TiptapDriver {
         targetElement.innerHTML = '';
 
         const initialHtml = normalizeContentToHtml(this.config.initialContent || '<p></p>');
-
         const extensions = [
             StarterKit.configure({
-                heading: { levels: [1, 2, 3, 4] },
-                bulletList: { keepMarks: true, keepAttributes: false },
-                orderedList: { keepMarks: true, keepAttributes: false },
+                history: {
+                    depth: 100,
+                    newGroupDelay: 500,
+                },
+                heading: {
+                    levels: [1, 2, 3, 4],
+                },
+                codeBlock: true,
             }),
             Placeholder.configure({
                 placeholder: this.config.placeholder || 'Type / for AI commands or begin writing...',
@@ -294,7 +296,21 @@ export class TiptapDriver {
             Superscript,
             TextStyle,
             Color,
-            Highlight.configure({ multicolor: true }),
+            Highlight.extend({
+                addAttributes() {
+                    return {
+                        ...this.parent?.(),
+                        class: {
+                            default: null,
+                            parseHTML: element => element.getAttribute('class'),
+                            renderHTML: attributes => {
+                                if (!attributes.class) return {};
+                                return { class: attributes.class };
+                            },
+                        },
+                    };
+                },
+            }).configure({ multicolor: true }),
             TaskList,
             TaskItem.configure({ nested: true }),
             Table.configure({ resizable: true }),
@@ -319,7 +335,8 @@ export class TiptapDriver {
                                 clientX: event.clientX,
                                 clientY: event.clientY,
                                 x: event.clientX,
-                                y: event.clientY
+                                y: event.clientY,
+                                target: event.target
                             }
                         }));
                         return true;
@@ -348,6 +365,17 @@ export class TiptapDriver {
             },
             extensions: extensions,
             content: initialHtml,
+            onSelectionUpdate: ({ editor }) => {
+                try {
+                    const { state } = editor;
+                    const { from, to } = state.selection;
+                    const selected = (from !== to) ? state.doc.textBetween(from, to, ' ').trim() : '';
+                    window.hoaCurrentSelection = selected;
+                    window.dispatchEvent(new CustomEvent('editor:selection-change', {
+                        detail: { selectedText: selected, from, to }
+                    }));
+                } catch (err) {}
+            },
             onUpdate: ({ editor }) => {
                 if (typeof this.config.onUpdate === 'function') {
                     clearTimeout(this.saveTimeout);
@@ -437,6 +465,22 @@ export class TiptapDriver {
         return pm ? pm.innerHTML : '';
     }
 
+    get state() {
+        return this.editor && !this.editor.isDestroyed ? this.editor.state : null;
+    }
+
+    getSelectedText() {
+        if (!this.editor || this.editor.isDestroyed) return '';
+        try {
+            const { state } = this.editor;
+            const { from, to } = state.selection;
+            if (from !== to) {
+                return state.doc.textBetween(from, to, ' ').trim();
+            }
+        } catch (e) {}
+        return '';
+    }
+
     getJSON() { return this.editor && !this.editor.isDestroyed ? this.editor.getJSON() : null; }
     getText() { return this.editor && !this.editor.isDestroyed ? this.editor.getText() : ''; }
     
@@ -444,14 +488,29 @@ export class TiptapDriver {
         const cleanHtml = normalizeContentToHtml(content);
         
         if (this.editor && !this.editor.isDestroyed) {
+            const targetElement = document.getElementById(this.elementId);
+            const prevScroll = targetElement ? targetElement.scrollTop : 0;
+
             try {
-                return this.editor.commands.setContent(cleanHtml, Boolean(emitUpdate));
+                const res = this.editor.commands.setContent(cleanHtml, Boolean(emitUpdate));
+                if (targetElement && prevScroll > 0) {
+                    requestAnimationFrame(() => {
+                        targetElement.scrollTop = prevScroll;
+                    });
+                }
+                return res;
             } catch (e) {
                 console.warn('[TiptapDriver] setContent error, retrying with parsed DOM:', e);
                 try {
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(cleanHtml, 'text/html');
-                    return this.editor.commands.setContent(doc.body.innerHTML, Boolean(emitUpdate));
+                    const res = this.editor.commands.setContent(doc.body.innerHTML, Boolean(emitUpdate));
+                    if (targetElement && prevScroll > 0) {
+                        requestAnimationFrame(() => {
+                            targetElement.scrollTop = prevScroll;
+                        });
+                    }
+                    return res;
                 } catch (err) {
                     console.error('[TiptapDriver] Failed to set content in active editor:', err);
                 }

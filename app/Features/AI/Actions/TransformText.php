@@ -68,30 +68,30 @@ WHITESPACE & EDITORIAL DISCIPLINE:
 EOT;
 
         return match ($transformationType) {
-            // Rewrite & Polish
-            'polish' => $tiptapStyleGuide . "\n\nTask: Polish and enhance the provided text for flow, grammar, vocabulary, and elegance while strictly preserving the author's original meaning. Output ONLY the polished text.",
-            'rewrite' => $tiptapStyleGuide . "\n\nTask: Rephrase and rewrite the provided text with alternative phrasing and improved structure while keeping the exact core message. Output ONLY the rewritten text.",
+            // Rewrite & Polish (Paragraph-safe, no full-article headers)
+            'polish' => "You are an elite prose editor. Task: Polish and enhance the provided text for flow, grammar, vocabulary, and elegance while strictly preserving the author's original meaning. Output ONLY the polished text without H1 titles, outlines, or conversational filler.",
+            'rewrite' => "You are an elite prose editor. Task: Rephrase and rewrite the provided text with alternative phrasing, improved flow, and high readability while preserving the exact core meaning. Output ONLY the single rewritten paragraph/section without H1 titles, outlines, or conversational filler.",
             'fix_grammar' => 'You are a meticulous proofreader. Fix all spelling, punctuation, capitalization, and grammatical errors in the provided text. Do not alter the author\'s voice or style. Output ONLY the corrected text.',
 
             // Length & Flow
-            'shorten' => 'You are a concise editor. Make the provided text significantly more direct, compact, and punchy. Eliminate all fluff, filler, and redundancy. Output ONLY the shortened text.',
-            'expand' => $tiptapStyleGuide . "\n\nTask: Expand the provided text with relevant details, clear explanations, logical depth, examples, and compelling context without fluff. Output ONLY the expanded content.",
+            'shorten' => 'You are a concise editor. Make the provided text significantly more direct, compact, and punchy. Eliminate all fluff, filler, and redundancy. Output ONLY the shortened text without conversational filler.',
+            'expand' => "You are an elite copy editor. Task: Expand the provided text with relevant details, clear explanations, logical depth, examples, and compelling context without fluff. Output ONLY the expanded content without H1 titles or conversational filler.",
             'continue' => $tiptapStyleGuide . "\n\nTask: Seamlessly continue writing the text from where it stops, producing the next 2-3 logical, high-quality sections in the exact same voice and style. Output ONLY the continuation.",
             'tldr' => 'Generate 2 to 3 concise, high-impact bullet points summarizing the core essence of the provided text. Output ONLY the bullet points.',
 
             // Tones
-            'tone:professional', 'professional' => $tiptapStyleGuide . "\n\nTask: Rewrite the following text in an authoritative, professional, and corporate-ready executive tone. Output ONLY the rewritten text.",
-            'tone:casual', 'casual' => $tiptapStyleGuide . "\n\nTask: Rewrite the following text in a warm, conversational, and relatable tone. Output ONLY the rewritten text.",
-            'tone:persuasive', 'persuasive' => $tiptapStyleGuide . "\n\nTask: Rewrite the following text with compelling copywriting principles, strong action verbs, and persuasive framing designed to inspire action. Output ONLY the rewritten text.",
-            'tone:friendly', 'friendly' => $tiptapStyleGuide . "\n\nTask: Rewrite the following text in a kind, welcoming, empathetic, and friendly tone. Output ONLY the rewritten text.",
-            'tone:academic', 'academic' => $tiptapStyleGuide . "\n\nTask: Rewrite the following text in a scholarly, formal, and rigorously analytical academic tone. Output ONLY the rewritten text.",
-            'tone:direct', 'direct' => $tiptapStyleGuide . "\n\nTask: Rewrite the following text in a direct, active-voice, no-nonsense manner. Output ONLY the rewritten text.",
+            'tone:professional', 'professional' => "You are an elite copyeditor. Task: Rewrite the following text in an authoritative, professional, and corporate-ready executive tone. Output ONLY the rewritten text without H1 titles or conversational filler.",
+            'tone:casual', 'casual' => "You are an elite copyeditor. Task: Rewrite the following text in a warm, conversational, and relatable tone. Output ONLY the rewritten text without H1 titles or conversational filler.",
+            'tone:persuasive', 'persuasive' => "You are an elite copyeditor. Task: Rewrite the following text with compelling copywriting principles, strong action verbs, and persuasive framing designed to inspire action. Output ONLY the rewritten text without H1 titles or conversational filler.",
+            'tone:friendly', 'friendly' => "You are an elite copyeditor. Task: Rewrite the following text in a kind, welcoming, empathetic, and friendly tone. Output ONLY the rewritten text without H1 titles or conversational filler.",
+            'tone:academic', 'academic' => "You are an elite copyeditor. Task: Rewrite the following text in a scholarly, formal, and rigorously analytical academic tone. Output ONLY the rewritten text without H1 titles or conversational filler.",
+            'tone:direct', 'direct' => "You are an elite copyeditor. Task: Rewrite the following text in a direct, active-voice, no-nonsense manner. Output ONLY the rewritten text without H1 titles or conversational filler.",
 
             // Summarize & Synthesis
-            'summarize' => $tiptapStyleGuide . "\n\nTask: Provide a clear, comprehensive, and well-structured summary of the provided text, capturing all primary conclusions and nuances.",
+            'summarize' => "You are an elite analyst. Task: Provide a clear, comprehensive, and well-structured summary of the provided text, capturing all primary conclusions and nuances. Output ONLY the summary.",
             'action_items' => "Extract a structured checklist of concrete action items and next steps from the text. Format as a clean task checklist with - [ ] task items.",
             'simplify' => 'Simplify the text so it is effortlessly readable at an 8th-grade level, replacing complex jargon with plain words. Output ONLY the simplified text.',
-            'seo_optimize' => $tiptapStyleGuide . "\n\nTask: Optimize the following text for search engines, improving keyword clarity, header hierarchy (H2/H3), tables, bold terms, and readability.",
+            'seo_optimize' => "Task: Optimize the following text for search engines, improving keyword clarity, bold terms, and scannable readability without rewriting the whole document.",
 
             // God-Tier SEO & Blog Creation Pipeline
             'generate_outline' => "You are an elite SEO content architect. Create a logical, comprehensive, and search-intent optimized article outline featuring one primary H1, multiple descriptive H2 sections with nested H3 subsections, an FAQ section, and a decision-oriented conclusion. Output clean markdown outline with #, ##, ###, and - bullet items.",

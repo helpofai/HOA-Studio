@@ -71,7 +71,7 @@ debouncedAutosave() {
 },
 
 performAutosave() {
-    if (!this.isDirty) return;
+    if (!this.isDirty || this.isTransforming || this.showSubAgentProposal) return;
     
     const ed = this.getEditor();
     const html = ed && ed.getHTML ? ed.getHTML() : '';
@@ -115,9 +115,12 @@ showRestoredDraftBanner: false,
 restoredDraftTime: '',
 restoredWordCount: 0,
 hasUnsavedChanges: false,
-serverBackupContent: config.initialContent || '',
+_isInitialized: false,
 
 init() {
+    if (this._isInitialized) return;
+    this._isInitialized = true;
+
     this.addLog('SYSTEM', 'OmniRoute Gateway v2.0 kernel initialized.');
     this.addLog('ENGINE', 'Editor driver mounted: ' + (config.editorType || 'tiptap').toUpperCase());
     this.addLog('SEO', 'Real-time semantic SEO analyzer active.');
@@ -180,17 +183,46 @@ init() {
         this.addLog('INFO', 'Canvas content reset via server action.');
     });
 
+    window.addEventListener('editor:selection-change', (e) => {
+        if (e.detail && e.detail.selectedText) {
+            this.selectedText = e.detail.selectedText;
+            this.hasSelection = true;
+        } else if (e.detail && e.detail.selectedText === '') {
+            if (!this.showSubAgentProposal && !this.activeProposalId) {
+                this.selectedText = '';
+                this.hasSelection = false;
+            }
+        }
+    });
+
     window.addEventListener('editor:contextmenu', (e) => {
         const detail = e.detail || {};
         this.openContextMenu(detail);
     });
 
+    window.addEventListener('pointerdown', (e) => {
+        if (this.showContextMenu) {
+            const menu = document.getElementById('hoa-editor-context-menu');
+            if (!menu || !menu.contains(e.target)) {
+                this.closeContextMenu();
+            }
+        }
+    });
+
     window.addEventListener('click', (e) => {
-        if (e.target && e.target.closest('[x-show="showContextMenu"]')) return;
-        this.closeContextMenu();
+        if (this.showContextMenu) {
+            const menu = document.getElementById('hoa-editor-context-menu');
+            if (!menu || !menu.contains(e.target)) {
+                this.closeContextMenu();
+            }
+        }
     });
 
     window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            this.closeContextMenu();
+            this.showSlashMenu = false;
+        }
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
             e.preventDefault();
             const ed = this.getEditor();

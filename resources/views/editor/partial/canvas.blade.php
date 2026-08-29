@@ -466,7 +466,11 @@
                 class="absolute left-0 mt-2 w-56 rounded-2xl bg-slate-900/98 border border-white/20 p-1.5 shadow-2xl z-50 space-y-0.5 backdrop-blur-2xl text-xs"
                 style="display: none;"
             >
-                <button type="button" x-on:mousedown.prevent x-on:click="triggerAiTransform('polish'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
+                <button type="button" x-on:mousedown.prevent x-on:click="triggerSubContentSubAgent('recreate'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl bg-purple-950/80 hover:bg-purple-900/80 text-purple-200 hover:text-white flex items-center justify-between cursor-pointer font-bold border border-purple-500/40">
+                    <span class="flex items-center gap-2"><span class="text-purple-400">🤖</span> <span>Recreate Paragraph (sub-agent)</span></span>
+                    <span class="text-[9px] font-mono px-1 rounded bg-purple-900 text-purple-300">AI</span>
+                </button>
+                <button type="button" x-on:mousedown.prevent x-on:click="triggerSubContentSubAgent('polish'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
                     <span class="text-cyan-400">✧</span> <span>Polish & Refine</span>
                 </button>
                 <button type="button" x-on:mousedown.prevent x-on:click="triggerAiTransform('expand'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
@@ -475,7 +479,7 @@
                 <button type="button" x-on:mousedown.prevent x-on:click="triggerAiTransform('shorten'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
                     <span class="text-amber-400">−</span> <span>Shorten & Condense</span>
                 </button>
-                <button type="button" x-on:mousedown.prevent x-on:click="triggerAiTransform('rewrite'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
+                <button type="button" x-on:mousedown.prevent x-on:click="triggerSubContentSubAgent('rewrite'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
                     <span class="text-emerald-400">↻</span> <span>Rewrite Phrasing</span>
                 </button>
                 <button type="button" x-on:mousedown.prevent x-on:click="triggerAiTransform('simplify'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
@@ -527,6 +531,7 @@
     <!-- Custom Right-Click Context Menu (Teleported to body to avoid backdrop-filter coordinate displacement) -->
     <template x-teleport="body">
         <div 
+            id="hoa-editor-context-menu"
             x-show="showContextMenu"
             x-cloak
             x-transition:enter="transition ease-out duration-150"
@@ -548,19 +553,19 @@
 
             <!-- SECTION 1: CLIPBOARD & SELECTION ACTIONS -->
             <div class="space-y-0.5">
-                <button type="button" x-on:click="cutSelection()" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-white/10 text-slate-200 hover:text-white flex items-center justify-between cursor-pointer transition-colors">
+                <button type="button" x-on:click="closeContextMenu(); cutSelection()" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-white/10 text-slate-200 hover:text-white flex items-center justify-between cursor-pointer transition-colors">
                     <span class="flex items-center gap-2"><span>✂️</span> <span>Cut</span></span>
                     <span class="text-[10px] text-slate-500 font-mono">Ctrl+X</span>
                 </button>
-                <button type="button" x-on:click="copySelection()" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-white/10 text-slate-200 hover:text-white flex items-center justify-between cursor-pointer transition-colors">
+                <button type="button" x-on:click="closeContextMenu(); copySelection()" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-white/10 text-slate-200 hover:text-white flex items-center justify-between cursor-pointer transition-colors">
                     <span class="flex items-center gap-2"><span>📋</span> <span>Copy</span></span>
                     <span class="text-[10px] text-slate-500 font-mono">Ctrl+C</span>
                 </button>
-                <button type="button" x-on:click="pasteClipboard()" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-white/10 text-slate-200 hover:text-white flex items-center justify-between cursor-pointer transition-colors">
+                <button type="button" x-on:click="closeContextMenu(); pasteClipboard()" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-white/10 text-slate-200 hover:text-white flex items-center justify-between cursor-pointer transition-colors">
                     <span class="flex items-center gap-2"><span>📄</span> <span>Paste</span></span>
                     <span class="text-[10px] text-slate-500 font-mono">Ctrl+V</span>
                 </button>
-                <button type="button" x-on:click="selectAllCanvas()" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-white/10 text-slate-200 hover:text-white flex items-center justify-between cursor-pointer transition-colors">
+                <button type="button" x-on:click="closeContextMenu(); selectAllCanvas()" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-white/10 text-slate-200 hover:text-white flex items-center justify-between cursor-pointer transition-colors">
                     <span class="flex items-center gap-2"><span>🔲</span> <span>Select All</span></span>
                     <span class="text-[10px] text-slate-500 font-mono">Ctrl+A</span>
                 </button>
@@ -568,13 +573,21 @@
 
             <div class="border-t border-white/10 my-1"></div>
 
-            <!-- SECTION 2: AI REASONING & WRITING INTELLIGENCE -->
-            <div class="space-y-0.5">
+            <!-- SECTION 2: AI REASONING & WRITING INTELLIGENCE (sub-content-sub-agent) -->
+            <div id="sub-content-sub-agent" class="sub-content-sub-agent space-y-0.5">
+                <div class="px-2 py-0.5 text-[9px] font-mono text-purple-400 font-bold flex items-center justify-between">
+                    <span>sub-content-sub-agent</span>
+                    <span class="text-[8px] text-slate-500">PARAGRAPH AI</span>
+                </div>
                 <button type="button" x-on:click="closeContextMenu(); openInlineAiPrompt()" class="w-full text-left px-2.5 py-1.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 font-bold flex items-center justify-between cursor-pointer transition-colors border border-indigo-500/30">
                     <span class="flex items-center gap-2"><span>✦</span> <span>Ask AI Inline...</span></span>
                     <span class="text-[10px] text-indigo-400 font-mono">Ctrl+K</span>
                 </button>
-                <button type="button" x-on:click="closeContextMenu(); triggerAiTransform('rewrite')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer transition-colors">
+                <button type="button" x-on:click="closeContextMenu(); triggerSubContentSubAgent('recreate')" class="w-full text-left px-2.5 py-1.5 rounded-xl bg-purple-950/60 hover:bg-purple-900/60 text-purple-200 hover:text-white flex items-center justify-between cursor-pointer transition-colors border border-purple-500/40 font-bold">
+                    <span class="flex items-center gap-2"><span>🔄</span> <span>Recreate Paragraph (sub-agent)</span></span>
+                    <span class="text-[9px] font-mono px-1 rounded bg-purple-900/80 text-purple-300">AI</span>
+                </button>
+                <button type="button" x-on:click="closeContextMenu(); triggerSubContentSubAgent('rewrite')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer transition-colors">
                     <span class="text-cyan-400">↻</span> <span>Rewrite & Polish</span>
                 </button>
                 <button type="button" x-on:click="closeContextMenu(); triggerAiTransform('expand')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer transition-colors">
@@ -612,13 +625,13 @@
 
             <!-- SECTION 4: EDITORIAL QUICK INSERTERS -->
             <div class="space-y-0.5">
-                <button type="button" x-on:click="insertCurrentDate()" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-white/10 text-slate-300 hover:text-white flex items-center gap-2 cursor-pointer transition-colors">
+                <button type="button" x-on:click="closeContextMenu(); insertCurrentDate()" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-white/10 text-slate-300 hover:text-white flex items-center gap-2 cursor-pointer transition-colors">
                     <span>📅</span> <span>Insert Today's Date</span>
                 </button>
                 <button type="button" x-on:click="closeContextMenu(); applyFormat('hr')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-white/10 text-slate-300 hover:text-white flex items-center gap-2 cursor-pointer transition-colors">
                     <span>—</span> <span>Insert Divider</span>
                 </button>
-                <button type="button" x-on:click="deleteSelection()" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-red-600/20 text-slate-400 hover:text-red-300 flex items-center justify-between cursor-pointer transition-colors">
+                <button type="button" x-on:click="closeContextMenu(); deleteSelection()" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-red-600/20 text-slate-400 hover:text-red-300 flex items-center justify-between cursor-pointer transition-colors">
                     <span class="flex items-center gap-2"><span>🗑️</span> <span>Delete Selection</span></span>
                     <span class="text-[10px] text-slate-500 font-mono">Del</span>
                 </button>
@@ -761,39 +774,54 @@ style="display: none;"
         </div>
     </div>
 
-    <!-- 5. In-Canvas Inline Ghost Auto-Completion Pill (Copilot / Cursor Tab Mode) -->
+    <!-- SUB-CONTENT-SUB-AGENT In-Canvas Paragraph Proposal Inspector -->
     <div 
-        x-show="ghostText && enableGhostMode && !isTransforming && !showDiffReview" 
+        x-show="showSubAgentProposal"
         x-cloak
         x-transition:enter="transition ease-out duration-200"
-        x-transition:enter-start="opacity-0 translate-y-1"
-        x-transition:enter-end="opacity-100 translate-y-0"
-        class="sticky top-2 z-40 mb-2 p-2.5 rounded-xl bg-slate-950/95 border border-indigo-500/40 shadow-2xl backdrop-blur-xl flex flex-wrap items-center justify-between gap-2 font-mono text-[11.5px] select-none"
+        x-transition:enter-start="opacity-0 -translate-y-2 scale-98"
+        x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+        class="ai-proposal-green-box mx-3 sm:mx-6 my-2 p-4 rounded-2xl bg-slate-950/98 border border-emerald-500/50 shadow-[0_20px_50px_rgba(0,0,0,0.9)] backdrop-blur-2xl text-xs space-y-3 shrink-0"
         style="display: none;"
     >
-        <div class="flex items-center gap-2 overflow-hidden max-w-full">
-            <span class="flex h-2 w-2 rounded-full bg-indigo-400 animate-ping shrink-0"></span>
-            <span class="text-indigo-400 font-bold shrink-0">✦ Ghost Suggestion:</span>
-            <span class="text-slate-300 italic truncate max-w-lg" x-text="ghostText"></span>
+        <div class="ai-proposal-header flex items-center justify-between pb-2.5 border-b border-emerald-500/30 font-mono">
+            <div class="flex items-center gap-2">
+                <span class="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                <span class="text-emerald-400 font-bold tracking-wider text-xs">✦ SUB-CONTENT-SUB-AGENT (RECREATING)</span>
+                <span class="text-[10px] text-slate-400 font-mono" x-text="streamSpeedTokSec > 0 ? (streamSpeedTokSec + ' tok/s') : ''"></span>
+                <span class="text-[10px] text-indigo-300 font-mono px-2 py-0.5 rounded-md bg-indigo-950/80 border border-indigo-500/30" x-text="routedModel"></span>
+            </div>
+
+            <div class="ai-proposal-actions flex items-center gap-2">
+                <button 
+                    type="button" 
+                    x-show="!isTransforming && subAgentProposedText" 
+                    x-on:click="acceptSubAgentProposal()" 
+                    class="ai-btn-tick px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-600/40 transition-all cursor-pointer active:scale-95"
+                    title="Accept AI recreation and replace yellow selection in document"
+                >
+                    ✓ Accept & Replace
+                </button>
+                <button 
+                    type="button" 
+                    x-on:click="discardSubAgentProposal()" 
+                    class="ai-btn-cross px-3 py-1.5 rounded-xl bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white font-bold text-xs border border-rose-500/30 transition-all cursor-pointer active:scale-95"
+                    title="Discard AI proposal and restore original text"
+                >
+                    ✕ Discard
+                </button>
+            </div>
         </div>
 
-        <div class="flex items-center gap-1.5 shrink-0 text-[10px]">
-            <button 
-                type="button" 
-                x-on:click="acceptGhostText()" 
-                class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold flex items-center gap-1 cursor-pointer transition-all active:scale-95 shadow-md shadow-indigo-600/30"
-                title="Accept Ghost Completion (Tab)"
-            >
-                <span>✓ Tab to Accept</span>
-            </button>
-            <button 
-                type="button" 
-                x-on:click="dismissGhostText()" 
-                class="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white cursor-pointer transition-all"
-                title="Dismiss Ghost Suggestion (Esc)"
-            >
-                ✕ Esc
-            </button>
+        <!-- Live Real-Time Token Content Body with Syntax and Typography -->
+        <div class="ai-proposal-content max-h-72 overflow-y-auto hoa-custom-scrollbar p-3.5 rounded-xl bg-emerald-950/25 border border-emerald-500/25 text-emerald-100 text-sm leading-relaxed font-sans select-text shadow-inner break-words">
+            <template x-if="isTransforming && !subAgentProposedText">
+                <div class="flex items-center gap-2 text-emerald-400 animate-pulse font-mono text-xs py-2">
+                    <span class="animate-spin text-sm">⟳</span> <span>sub-content-sub-agent is writing...</span>
+                </div>
+            </template>
+            <div x-html="subAgentProposedText" class="prose prose-invert max-w-none text-slate-100 whitespace-pre-wrap break-words"></div>
+            <span x-show="isTransforming && subAgentProposedText" class="inline-block w-2 h-4 bg-emerald-400 animate-pulse ml-0.5 align-middle"></span>
         </div>
     </div>
 
@@ -802,9 +830,5 @@ style="display: none;"
         id="tiptap-content-target" 
         class="flex-1 min-h-0 overflow-y-auto hoa-custom-scrollbar px-3 sm:px-6 py-4 scroll-smooth focus:outline-none" 
         wire:ignore
-        x-on:keydown.tab.prevent="if (ghostText) { acceptGhostText(); }"
-        x-on:keydown.escape="dismissGhostText()"
-        x-on:input="triggerGhostDebounce()"
-        x-on:keyup="triggerGhostDebounce()"
     ></div>
 </div>

@@ -24,7 +24,8 @@
         initialContent: @js($contentHtml),
         providers: @js($availableProviders),
         initialModels: @js($availableAiModels->map(fn($m) => ['id' => $m->model_id, 'name' => $m->name, 'provider_slug' => $m->provider?->slug ?? 'omniroute'])),
-        modelsUrl: '{{ route('ai.providers.models') }}'
+        modelsUrl: '{{ route('ai.providers.models') }}',
+        hasQuota: {{ auth()->user()->hasQuota(50) ? 'true' : 'false' }}
     })"
     x-init="init()"
 >
@@ -70,7 +71,7 @@
         </div>
 
         <!-- COLUMN 2: MAIN WRITING WORKSPACE (Central Focus) -->
-        <div class="space-y-4 order-1 lg:order-2 w-full min-w-0 h-full flex flex-col">
+        <div class="space-y-4 order-1 lg:order-2 w-full min-w-0 h-full flex flex-col" wire:ignore>
             @include('editor.partial.canvas')
         </div>
 
@@ -91,5 +92,7 @@
     @include('editor.partial.modals')
 
     <!-- CLIENT SCRIPT LOGIC -->
-    @include('editor.partial.scripts')
+    <div wire:ignore>
+        @include('editor.partial.scripts')
+    </div>
 </div>

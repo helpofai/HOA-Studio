@@ -1,39 +1,130 @@
+/* AI Transformation & Proposal Styles */
+.ai-marked-yellow,
+mark.ai-marked-yellow,
+mark[data-color*="234, 179, 8"],
+mark[data-color="#fef08a"] {
+    background-color: rgba(234, 179, 8, 0.22) !important;
+    border-bottom: 2px solid #eab308 !important;
+    color: #ffffff !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9) !important;
+    border-radius: 4px !important;
+    padding: 2px 5px !important;
+    box-shadow: 0 0 12px rgba(234, 179, 8, 0.2) !important;
+    transition: all 0.3s ease !important;
+}
 
-/* AI Transformation Highlights */
-.ai-proposal-container {
-    background-color: #fef08a !important; /* Tailwind yellow-200 */
-    color: #000 !important;
-    padding: 1rem;
+.ai-replaced-green-highlight,
+mark.ai-replaced-green-highlight {
+    background-color: rgba(16, 185, 129, 0.25) !important;
+    border: 1px solid rgba(52, 211, 153, 0.7) !important;
+    color: #a7f3d0 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6) !important;
+    border-radius: 6px !important;
+    padding: 2px 6px !important;
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.35) !important;
+    animation: aiGreenPulse 1.5s ease-in-out infinite alternate !important;
+    transition: background-color 1.5s ease, border-color 1.5s ease, color 1.5s ease, box-shadow 1.5s ease !important;
+}
+
+.ai-replaced-green-highlight.fading,
+mark.ai-replaced-green-highlight.fading {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    color: inherit !important;
+    text-shadow: none !important;
+    animation: none !important;
+}
+
+@keyframes aiGreenPulse {
+    0% {
+        background-color: rgba(16, 185, 129, 0.2);
+        border-color: rgba(52, 211, 153, 0.4);
+    }
+    100% {
+        background-color: rgba(16, 185, 129, 0.38);
+        border-color: rgba(52, 211, 153, 0.85);
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.45);
+    }
+}
+
+.ai-proposal-green-box {
+    background-color: rgba(16, 185, 129, 0.12) !important;
+    border: 1px solid rgba(16, 185, 129, 0.4) !important;
     border-radius: 0.75rem;
-    margin: 1rem 0;
-    border: 1px solid #eab308;
+    padding: 0.875rem 1rem;
+    margin: 0.75rem 0;
+    color: #a7f3d0 !important;
+    font-size: 0.925rem;
+    line-height: 1.6;
     position: relative;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.08);
+    transition: all 0.3s ease;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.ai-proposal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    font-family: monospace;
+    font-weight: 700;
+    color: #34d399;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.375rem;
+    border-bottom: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .ai-proposal-actions {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.ai-btn-tick {
+    background-color: #059669 !important;
+    color: #ffffff !important;
+    border: none;
+    border-radius: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: background-color 0.2s ease;
+}
+
+.ai-btn-tick:hover {
+    background-color: #10b981 !important;
+}
+
+.ai-btn-cross {
+    background-color: rgba(239, 68, 68, 0.2) !important;
+    color: #fca5a5 !important;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    border-radius: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+.ai-btn-cross:hover {
+    background-color: #dc2626 !important;
+    color: #ffffff !important;
 }
 
 .ai-new-content {
-    background-color: #fef08a !important; /* Tailwind yellow-200 */
-    color: #000 !important;
-    transition: background-color 0.5s ease;
-}
-
-.ai-old-content {
-    background-color: #bfdbfe !important; /* Tailwind blue-200 */
-    color: #000 !important;
-    transition: background-color 0.5s ease;
-}
-
-.ai-accept-feedback {
-    background-color: #bbf7d0 !important; /* Tailwind green-300 */
-    transition: background-color 0.5s ease;
-}
-
-.ai-decline-feedback {
-    background-color: #fecaca !important; /* Tailwind red-200 */
-    transition: background-color 0.5s ease;
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    color: #a7f3d0 !important;
+    transition: background-color 1s ease;
 }

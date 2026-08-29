@@ -69,6 +69,7 @@
         <!-- COLUMN 2: MAIN WRITING WORKSPACE (Central Focus) -->
         <div class="space-y-4 order-1 lg:order-2 w-full min-w-0 h-full flex flex-col"
              :class="{'lg:col-span-3': !showLeftPanel && !showRightPanel, 'lg:col-span-2': !showLeftPanel || !showRightPanel, 'lg:col-span-1': showLeftPanel && showRightPanel}"
+             wire:ignore
         >
             @include('editor.partial.canvas')
             
@@ -96,5 +97,7 @@
     @include('editor.partial.modals')
 
     <!-- CLIENT SCRIPT LOGIC -->
-    @include('editor.partial.scripts')
+    <div wire:ignore>
+        @include('editor.partial.scripts')
+    </div>
 </div>

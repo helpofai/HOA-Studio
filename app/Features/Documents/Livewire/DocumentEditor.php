@@ -462,19 +462,14 @@ public function render()
         $projects = Project::where('user_id', Auth::id())->get();
         $availableEditors = EditorRegistry::getAvailableEditors();
 
-        // Cache AI models & providers for 5 minutes — avoids repeated DB hits on every Livewire re-render
-        $availableAiModels = cache()->remember('hoa_ai_models_active', 300, function () {
-            return \App\Features\AI\Models\AiModel::where('is_active', true)
-                ->orderBy('is_combo', 'desc')
-                ->orderBy('id', 'asc')
-                ->get();
-        });
+        $availableAiModels = \App\Features\AI\Models\AiModel::where('is_active', true)
+            ->orderBy('is_combo', 'desc')
+            ->orderBy('id', 'asc')
+            ->get();
 
-        $availableProviders = cache()->remember('hoa_ai_providers_active', 300, function () {
-            return AiProvider::where('is_active', true)
-                ->orderBy('name')
-                ->get(['id', 'name', 'slug', 'is_local']);
-        });
+        $availableProviders = AiProvider::where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'slug', 'is_local']);
 
         return view('documents.editor', [
             'document'           => $document,

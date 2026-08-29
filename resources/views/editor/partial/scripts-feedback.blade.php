@@ -15,7 +15,6 @@
         const newText = this.getCurrentTransformedText();
         if (!ed || !newText) return;
         
-        // Wrap accepted content in highlight
         this.insertContentIntoCanvas(newText, true, 'ai-accept-feedback');
         
         const finalHtmlVal = ed.getHTML ? ed.getHTML() : '';
@@ -31,7 +30,6 @@
         const ed = this.getEditor();
         if (!ed) return;
         
-        // Mark as declined (red)
         this.insertContentIntoCanvas(this.getCurrentTransformedText(), true, 'ai-decline-feedback');
         
         this.addLog('WARN', '✕ Discarded AI proposed changes.');
@@ -42,10 +40,18 @@
         const ed = this.getEditor();
         if (!ed) return;
         
-        const marks = ed.view.dom.querySelectorAll('.ai-accept-feedback, .ai-decline-feedback, .hoa-feedback-node');
-        marks.forEach(m => m.remove());
+        const elements = ed.view.dom.querySelectorAll('.ai-marked-yellow, .ai-proposal-green-box, .ai-accept-feedback, .ai-decline-feedback, .hoa-feedback-node');
+        elements.forEach(el => {
+            if (el.classList.contains('ai-proposal-green-box') || el.classList.contains('hoa-feedback-node')) {
+                el.remove();
+            } else {
+                const parent = el.parentNode;
+                while (el.firstChild) parent.insertBefore(el.firstChild, el);
+                parent.removeChild(el);
+            }
+        });
         
-        this.addLog('AI', '✦ Feedback colors cleared.');
+        this.addLog('AI', '✦ All proposal highlights cleared.');
     },
 
     getFeedbackNodeHtml(status) {

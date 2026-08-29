@@ -10,6 +10,7 @@
 @import "tailwindcss";
 @import "./design-system/tokens.css";
 @import "./design-system/glass.css";
+@import "./ai-highlights.css";
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
