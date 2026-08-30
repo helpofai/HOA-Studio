@@ -11,6 +11,8 @@
 @import "./design-system/tokens.css";
 @import "./design-system/glass.css";
 @import "./ai-highlights.css";
+@import "./navigation-progress.css";
+@import "./welcome.css";
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -618,7 +620,3 @@ details.hoa-faq p {
     max-width: 100%;
     height: auto;
 }
-
-
-
-
