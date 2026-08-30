@@ -218,6 +218,8 @@
                         </div>
                         <div x-show="collapsed" class="py-1 my-0.5 border-t border-white/5"></div>
 
+
+
                         <!-- Templates Hub -->
                         <a 
                             href="{{ route('templates.index') }}" 

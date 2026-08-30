@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.2] - 2026-08-30
+
+### 🚀 Added & Improved
+- **Direct GitHub Repository & Version Sync Engine**:
+  - Direct live inspection of `version.json`, build number, latest commit SHA, commit author, and release date from GitHub `main` branch with automated cache-busting (`?t=` timestamp) and zero rate-limit raw streaming.
+  - Dedicated **GitHub Live Sync** matrix in Admin Updates control panel showing real-time repository connection status, target branch, and latest commit ID.
+- **Explicit Connection & Diagnostics Handling**:
+  - Replaced silent fallbacks with transparent connection diagnostic messages when remote hosts or DNS/cURL queries are blocked on shared hosting.
+
+### 🛡️ Cleaned & Hardened
+- **Clean Feature Decoupling & Modular Hygiene**:
+  - Fully removed experimental image editing modules, obsolete stylesheets, unused schema migrations, and unneeded dependencies (`fabric`) to keep application bundle lean and production-focused.
+  - Rebuilt production assets with Vite with zero warnings or dangling references.
+
+---
+
 ## [2.6.1] - 2026-08-29
 
 ### 🚀 Added & Improved

@@ -328,6 +328,47 @@
                         </div>
                     </div>
                 </x-glass.card>
+
+                <!-- GitHub Live Repository Sync -->
+                <x-glass.card variant="standard" class="p-6 space-y-4 border border-violet-500/20">
+                    <h3 class="text-sm font-bold text-white tracking-tight pb-3 border-b border-white/10 flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <span>🌐 GitHub Live Sync</span>
+                        </span>
+                        @if(!empty($updateInfo['connection_error']))
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40">OFFLINE</span>
+                        @else
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">CONNECTED</span>
+                        @endif
+                    </h3>
+                    <div class="space-y-3 text-xs">
+                        <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-900/80 border border-white/5">
+                            <span class="text-slate-400">Repository</span>
+                            <a href="https://github.com/helpofai/HOA-Studio" target="_blank" class="font-mono text-indigo-400 hover:text-indigo-300 font-semibold hover:underline">helpofai/HOA-Studio</a>
+                        </div>
+                        <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-900/80 border border-white/5">
+                            <span class="text-slate-400">Live Branch</span>
+                            <span class="font-mono text-slate-200 font-bold">main</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-900/80 border border-white/5">
+                            <span class="text-slate-400">Remote Version</span>
+                            <span class="font-mono text-emerald-300 font-bold">v{{ $updateInfo['remote_version_meta']['version'] ?? $updateInfo['latest_version'] }}</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-900/80 border border-white/5">
+                            <span class="text-slate-400">Remote Build No.</span>
+                            <span class="font-mono text-slate-300">{{ $updateInfo['remote_version_meta']['build_number'] ?? 'N/A' }}</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-900/80 border border-white/5">
+                            <span class="text-slate-400">Latest Commit ID</span>
+                            <span class="font-mono text-indigo-300 font-bold">{{ $updateInfo['latest_sha'] ?? 'N/A' }}</span>
+                        </div>
+                        @if(!empty($updateInfo['connection_error']))
+                            <div class="p-2.5 rounded-lg bg-rose-950/60 border border-rose-500/30 text-rose-200 text-[11px] leading-relaxed">
+                                ⚠ {{ $updateInfo['connection_error'] }}
+                            </div>
+                        @endif
+                    </div>
+                </x-glass.card>
             </div>
         </div>
 

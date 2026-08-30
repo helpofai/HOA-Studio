@@ -69,10 +69,15 @@ class AdminUpdatesPage extends Component
         $this->updateInfo = $updateService->checkForUpdates();
         $this->isChecking = false;
         
-        $this->feedbackType = 'info';
-        $this->feedbackMessage = $this->updateInfo['has_update'] 
-            ? "New update available: {$this->updateInfo['latest_version']}" 
-            : 'You are currently running the latest version.';
+        if (!empty($this->updateInfo['connection_error'])) {
+            $this->feedbackType = 'error';
+            $this->feedbackMessage = $this->updateInfo['connection_error'];
+        } else {
+            $this->feedbackType = $this->updateInfo['has_update'] ? 'success' : 'info';
+            $this->feedbackMessage = $this->updateInfo['has_update'] 
+                ? "New update available: v{$this->updateInfo['latest_version']} directly from GitHub!" 
+                : "You are currently running the latest version (v{$this->updateInfo['current_version']}).";
+        }
     }
 
     public function createSnapshot(CoreUpdateService $updateService)
