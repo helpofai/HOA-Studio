@@ -23,24 +23,24 @@
 */
 --}}
 
-<div class="space-y-8">
+<div class="space-y-8" wire:init="loadDashboard">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
             <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
                 <span>System Overview</span>
-                <x-glass.badge variant="violet">v13.26.1</x-glass.badge>
+                <x-glass.badge variant="violet">v13.26.2</x-glass.badge>
             </h1>
             <p class="text-xs sm:text-sm text-slate-400 mt-1">Platform analytics, user quota tracking, and OmniRoute gateway metrics.</p>
         </div>
 
         <!-- Gateway Health Indicator -->
         <div class="flex items-center gap-3 p-3 rounded-2xl bg-slate-900/80 border border-white/10">
-            <div class="w-3 h-3 rounded-full {{ $stats['gateway_online'] ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-red-500 shadow-[0_0_8px_#ef4444]' }}"></div>
+            <div class="w-3 h-3 rounded-full {{ ($stats['gateway_online'] ?? false) ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]' : 'bg-red-500 shadow-[0_0_8px_#ef4444]' }}"></div>
             <div class="text-xs">
                 <span class="font-semibold text-white">OmniRoute Gateway:</span>
-                <span class="{{ $stats['gateway_online'] ? 'text-emerald-400' : 'text-red-400' }} font-bold ml-1">
-                    {{ $stats['gateway_online'] ? 'ONLINE (' . $stats['gateway_latency'] . 'ms)' : 'STANDALONE MODE' }}
+                <span class="{{ ($stats['gateway_online'] ?? false) ? 'text-emerald-400' : 'text-red-400' }} font-bold ml-1">
+                    {{ ($stats['gateway_online'] ?? false) ? 'ONLINE (' . ($stats['gateway_latency'] ?? 0) . 'ms)' : 'STANDALONE MODE' }}
                 </span>
             </div>
         </div>
@@ -53,10 +53,15 @@
                 <span class="text-xs font-semibold uppercase tracking-wider">Total Registered Users</span>
                 <span class="text-lg">👥</span>
             </div>
-            <div class="text-3xl font-black text-white">{{ number_format($stats['total_users']) }}</div>
-            <div class="flex items-center gap-2 text-[11px] text-violet-400 mt-2">
-                <span>{{ $stats['pro_users'] }} Pro</span> &bull; <span>{{ $stats['admin_users'] }} Admin</span>
-            </div>
+            @if(!$readyToLoad)
+                <div class="h-9 w-20 bg-white/10 rounded-lg animate-pulse my-0.5"></div>
+                <div class="h-3.5 w-32 bg-white/5 rounded animate-pulse mt-2"></div>
+            @else
+                <div class="text-3xl font-black text-white">{{ number_format($stats['total_users'] ?? 0) }}</div>
+                <div class="flex items-center gap-2 text-[11px] text-violet-400 mt-2">
+                    <span>{{ $stats['pro_users'] ?? 0 }} Pro</span> &bull; <span>{{ $stats['admin_users'] ?? 0 }} Admin</span>
+                </div>
+            @endif
         </x-glass.card>
 
         <x-glass.card variant="elevated" class="p-6 border border-white/10">
@@ -64,8 +69,13 @@
                 <span class="text-xs font-semibold uppercase tracking-wider">Total Documents Created</span>
                 <span class="text-lg">📄</span>
             </div>
-            <div class="text-3xl font-black text-indigo-400">{{ number_format($stats['total_documents']) }}</div>
-            <div class="text-[11px] text-slate-400 mt-2">{{ number_format($stats['total_words_written']) }} words stored</div>
+            @if(!$readyToLoad)
+                <div class="h-9 w-24 bg-white/10 rounded-lg animate-pulse my-0.5"></div>
+                <div class="h-3.5 w-36 bg-white/5 rounded animate-pulse mt-2"></div>
+            @else
+                <div class="text-3xl font-black text-indigo-400">{{ number_format($stats['total_documents'] ?? 0) }}</div>
+                <div class="text-[11px] text-slate-400 mt-2">{{ number_format($stats['total_words_written'] ?? 0) }} words stored</div>
+            @endif
         </x-glass.card>
 
         <x-glass.card variant="elevated" class="p-6 border border-white/10">
@@ -73,8 +83,13 @@
                 <span class="text-xs font-semibold uppercase tracking-wider">AI Words Consumed</span>
                 <span class="text-lg">✍️</span>
             </div>
-            <div class="text-3xl font-black text-purple-400">{{ number_format($stats['total_words_consumed']) }}</div>
-            <div class="text-[11px] text-purple-300 mt-2">{{ number_format($stats['total_tokens_consumed']) }} raw tokens</div>
+            @if(!$readyToLoad)
+                <div class="h-9 w-28 bg-white/10 rounded-lg animate-pulse my-0.5"></div>
+                <div class="h-3.5 w-36 bg-white/5 rounded animate-pulse mt-2"></div>
+            @else
+                <div class="text-3xl font-black text-purple-400">{{ number_format($stats['total_words_consumed'] ?? 0) }}</div>
+                <div class="text-[11px] text-purple-300 mt-2">{{ number_format($stats['total_tokens_consumed'] ?? 0) }} raw tokens</div>
+            @endif
         </x-glass.card>
 
         <x-glass.card variant="premium" glow="violet" class="p-6">
@@ -82,8 +97,13 @@
                 <span class="text-xs font-semibold uppercase tracking-wider">AI Operations Executed</span>
                 <span class="text-lg">⚡</span>
             </div>
-            <div class="text-3xl font-black text-white">{{ number_format($stats['total_generations']) }}</div>
-            <div class="text-[11px] text-indigo-300 mt-2">Across all models & combos</div>
+            @if(!$readyToLoad)
+                <div class="h-9 w-24 bg-white/10 rounded-lg animate-pulse my-0.5"></div>
+                <div class="h-3.5 w-40 bg-white/5 rounded animate-pulse mt-2"></div>
+            @else
+                <div class="text-3xl font-black text-white">{{ number_format($stats['total_generations'] ?? 0) }}</div>
+                <div class="text-[11px] text-indigo-300 mt-2">Across all models & combos</div>
+            @endif
         </x-glass.card>
     </div>
 
@@ -119,22 +139,30 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-white/5 text-slate-200">
-                            @foreach($stats['recent_users'] as $user)
-                                <tr class="hover:bg-white/5 transition-colors">
-                                    <td class="p-4 font-medium text-white">
-                                        <div>{{ $user->name }}</div>
-                                        <div class="text-[11px] text-slate-400">{{ $user->email }}</div>
-                                    </td>
-                                    <td class="p-4">
-                                        <x-glass.badge :variant="match($user->role) { 'admin' => 'violet', 'editor' => 'cyan', 'pro' => 'amber', default => 'emerald' }">
-                                            {{ ucfirst($user->role) }}
-                                        </x-glass.badge>
-                                    </td>
-                                    <td class="p-4 uppercase font-mono text-[11px] text-indigo-300">{{ $user->plan ?? 'STARTER' }}</td>
-                                    <td class="p-4 font-mono">{{ number_format($user->used_word_quota ?? 0) }} / {{ number_format($user->monthly_word_quota ?? 15000) }}</td>
-                                    <td class="p-4 text-slate-400">{{ $user->created_at ? $user->created_at->diffForHumans() : 'Recently' }}</td>
+                            @if(!$readyToLoad)
+                                <x-glass.skeleton type="table-row" :rows="4" />
+                            @elseif($stats['recent_users']->isEmpty())
+                                <tr>
+                                    <td colspan="5" class="p-6 text-center text-slate-500 italic">No registered users found.</td>
                                 </tr>
-                            @endforeach
+                            @else
+                                @foreach($stats['recent_users'] as $user)
+                                    <tr class="hover:bg-white/5 transition-colors">
+                                        <td class="p-4 font-medium text-white">
+                                            <div>{{ $user->name }}</div>
+                                            <div class="text-[11px] text-slate-400">{{ $user->email }}</div>
+                                        </td>
+                                        <td class="p-4">
+                                            <x-glass.badge :variant="match($user->role) { 'admin' => 'violet', 'editor' => 'cyan', 'pro' => 'amber', default => 'emerald' }">
+                                                {{ ucfirst($user->role) }}
+                                            </x-glass.badge>
+                                        </td>
+                                        <td class="p-4 uppercase font-mono text-[11px] text-indigo-300">{{ $user->plan ?? 'STARTER' }}</td>
+                                        <td class="p-4 font-mono">{{ number_format($user->used_word_quota ?? 0) }} / {{ number_format($user->monthly_word_quota ?? 15000) }}</td>
+                                        <td class="p-4 text-slate-400">{{ $user->created_at ? $user->created_at->diffForHumans() : 'Recently' }}</td>
+                                    </tr>
+                                @endforeach
+                            @endif
                         </tbody>
                     </table>
                 </div>

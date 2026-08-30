@@ -113,7 +113,7 @@
                         <!-- System Overview -->
                         <a 
                             href="{{ route('admin.dashboard') }}" 
-                            wire:navigate.hover
+                            wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.dashboard') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">📊</span>
@@ -136,7 +136,7 @@
                         <!-- Users & Quotas -->
                         <a 
                             href="{{ route('admin.users') }}" 
-                            wire:navigate.hover
+                            wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.users') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">👥</span>
@@ -159,7 +159,7 @@
                         <!-- Auth & Security Settings -->
                         <a 
                             href="{{ route('admin.auth-settings') }}" 
-                            wire:navigate.hover
+                            wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.auth-settings') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🛡️</span>
@@ -182,7 +182,7 @@
                         <!-- Mail & Notifications Server -->
                         <a 
                             href="{{ route('admin.mail-notifications') }}" 
-                            wire:navigate.hover
+                            wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.mail-notifications') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">📬</span>
@@ -205,7 +205,7 @@
                         <!-- AI Usage & Logs -->
                         <a 
                             href="{{ route('admin.usage') }}" 
-                            wire:navigate.hover
+                            wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.usage') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">📈</span>
@@ -242,7 +242,7 @@
                         <!-- AI Providers & Gateway -->
                         <a 
                             href="{{ route('admin.ai-settings.index') }}" 
-                            wire:navigate.hover
+                            wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.ai-settings.index') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">⚡</span>
@@ -265,7 +265,7 @@
                         <!-- OmniRoute Config -->
                         <a 
                             href="{{ route('admin.ai-settings.omniroute') }}" 
-                            wire:navigate.hover
+                            wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.ai-settings.omniroute') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🤖</span>
@@ -302,7 +302,7 @@
                         <!-- System Settings -->
                         <a 
                             href="{{ route('admin.settings') }}" 
-                            wire:navigate.hover
+                            wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.settings') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">⚙️</span>
@@ -325,7 +325,7 @@
                         <!-- System Info & Docs -->
                         <a 
                             href="{{ route('admin.system-info') }}" 
-                            wire:navigate.hover
+                            wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.system-info') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">ℹ️</span>
@@ -348,7 +348,7 @@
                         <!-- Core Updates & Time Machine -->
                         <a 
                             href="{{ route('admin.updates') }}" 
-                            wire:navigate.hover
+                            wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.updates') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🔄</span>
@@ -371,7 +371,7 @@
                         <!-- Circuit Breaker & Safety -->
                         <a 
                             href="{{ route('admin.ai-settings.index') }}#circuit-breaker" 
-                            wire:navigate.hover
+                            wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🛡️</span>
@@ -407,7 +407,7 @@
 
                         <a 
                             href="{{ route('dashboard') }}" 
-                            wire:navigate.hover
+                            wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5 transition-all duration-200 group relative"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🚀</span>
