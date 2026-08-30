@@ -509,11 +509,112 @@
                         </x-glass.button>
                     </a>
 
-                    <a href="{{ route('profile') }}" wire:navigate class="flex items-center gap-2 p-1 rounded-xl glass-subtle hover:border-violet-500/40 transition-all border border-white/5" title="Admin Profile">
-                        <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center font-bold text-xs text-white shadow-sm">
-                            🛡️
+                    <!-- Admin Profile & Quick Navigation Glass Dropdown -->
+                    <div class="relative" x-data="{ userMenuOpen: false }" @click.outside="userMenuOpen = false" @keydown.escape.window="userMenuOpen = false">
+                        <button 
+                            type="button"
+                            @click="userMenuOpen = !userMenuOpen" 
+                            class="flex items-center gap-2 p-1 pr-2 rounded-xl glass-subtle hover:border-violet-500/40 transition-all border border-white/5 cursor-pointer focus:outline-none select-none group" 
+                            title="Admin Profile & Menu"
+                            :aria-expanded="userMenuOpen"
+                        >
+                            <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center font-bold text-xs text-white shadow-sm group-hover:scale-105 transition-transform">
+                                🛡️
+                            </div>
+                            <span class="hidden md:inline text-xs font-semibold text-slate-200 group-hover:text-white transition-colors max-w-[100px] truncate">
+                                {{ auth()->user()->name ?? 'Admin' }}
+                            </span>
+                            <span class="text-[10px] text-slate-400 group-hover:text-slate-200 transition-transform duration-200" :class="userMenuOpen ? 'rotate-180' : ''">▾</span>
+                        </button>
+
+                        <!-- Transparent Glassmorphic Backdrop-Blur Dropdown Panel -->
+                        <div 
+                            x-show="userMenuOpen" 
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 translate-y-2 scale-95"
+                            x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                            x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+                            class="absolute right-0 top-full mt-2 w-64 rounded-2xl bg-slate-950/80 backdrop-blur-2xl border border-white/15 shadow-2xl shadow-black/80 py-2 z-50 overflow-hidden text-left"
+                            style="display: none;"
+                        >
+                            <!-- User Information Header -->
+                            <div class="px-4 py-3 border-b border-white/10 flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center font-bold text-sm text-white shadow-md shrink-0">
+                                    🛡️
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="text-xs font-bold text-white truncate">{{ auth()->user()->name ?? 'Administrator' }}</div>
+                                    <div class="text-[11px] text-slate-400 truncate">{{ auth()->user()->email ?? 'admin@helpofai.com' }}</div>
+                                    <div class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-violet-500/20 text-violet-300 border border-violet-500/30">
+                                        ● Super Admin
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Admin Quick Navigation -->
+                            <div class="py-1.5 border-b border-white/10 text-xs">
+                                <div class="px-3 py-1 text-[10px] uppercase font-bold text-slate-400 tracking-wider">Admin Control</div>
+                                
+                                <a href="{{ route('admin.dashboard') }}" wire:navigate @click="userMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 text-slate-300 hover:text-white hover:bg-white/10 transition-colors">
+                                    <span class="text-violet-400 text-sm">📊</span>
+                                    <span>Control Center</span>
+                                </a>
+
+                                <a href="{{ route('admin.users') }}" wire:navigate @click="userMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 text-slate-300 hover:text-white hover:bg-white/10 transition-colors">
+                                    <span class="text-indigo-400 text-sm">👥</span>
+                                    <span>User Management</span>
+                                </a>
+
+                                <a href="{{ route('admin.ai-settings.index') }}" wire:navigate @click="userMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 text-slate-300 hover:text-white hover:bg-white/10 transition-colors">
+                                    <span class="text-cyan-400 text-sm">⚡</span>
+                                    <span>OmniRoute AI Gateway</span>
+                                </a>
+
+                                <a href="{{ route('admin.updates') }}" wire:navigate @click="userMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 text-slate-300 hover:text-white hover:bg-white/10 transition-colors">
+                                    <span class="text-emerald-400 text-sm">🔄</span>
+                                    <span>Core System Updates</span>
+                                </a>
+
+                                <a href="{{ route('admin.system-info') }}" wire:navigate @click="userMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 text-slate-300 hover:text-white hover:bg-white/10 transition-colors">
+                                    <span class="text-amber-400 text-sm">⚙️</span>
+                                    <span>System Diagnostics</span>
+                                </a>
+                            </div>
+
+                            <!-- Workspace & Account Links -->
+                            <div class="py-1.5 border-b border-white/10 text-xs">
+                                <div class="px-3 py-1 text-[10px] uppercase font-bold text-slate-400 tracking-wider">Studio Workspace</div>
+
+                                <a href="{{ route('dashboard') }}" wire:navigate @click="userMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 text-slate-300 hover:text-white hover:bg-white/10 transition-colors">
+                                    <span class="text-sm">🚀</span>
+                                    <span>Return to Studio</span>
+                                </a>
+
+                                <a href="{{ route('editor') }}" wire:navigate @click="userMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 text-slate-300 hover:text-white hover:bg-white/10 transition-colors">
+                                    <span class="text-sm">✍️</span>
+                                    <span>Document Editor</span>
+                                </a>
+
+                                <a href="{{ route('profile') }}" wire:navigate @click="userMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 text-slate-300 hover:text-white hover:bg-white/10 transition-colors">
+                                    <span class="text-sm">👤</span>
+                                    <span>Admin Profile</span>
+                                </a>
+                            </div>
+
+                            <!-- Sign Out -->
+                            <div class="p-1.5">
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" class="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-colors text-left cursor-pointer">
+                                        <span class="text-sm">🚪</span>
+                                        <span>Sign Out</span>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                    </a>
+                    </div>
                 </div>
             </header>
 
