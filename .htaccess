@@ -5,14 +5,9 @@
     RewriteRule ^(\.env|\.git|composer\.(json|lock)|package(-lock)?\.json|vite\.config\.js|tailwind\.config\.js|\.system_generated) - [F,L,NC]
     RewriteRule ^(app|bootstrap|config|database|resources|routes|storage/logs|tests|vendor)/ - [F,L,NC]
 
-    # 2. Force direct serving of public folder contents
-    RewriteCond %{REQUEST_FILENAME} -f
-    RewriteRule ^public/ - [L]
-
-    # 3. Route everything else to public/index.php
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteRule ^ public/index.php [L]
+    # 2. Redirect all root traffic into public/ directory
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L,QSA]
 </IfModule>
 
 <IfModule mod_autoindex.c>

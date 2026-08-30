@@ -31,44 +31,52 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('tags', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->string('name');
-            $table->string('slug');
-            $table->string('color')->default('#6366f1');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('tags')) {
+            Schema::create('tags', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+                $table->string('name');
+                $table->string('slug');
+                $table->string('color')->default('#6366f1');
+                $table->timestamps();
+            });
+        }
 
-        Schema::create('document_tags', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('document_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('tag_id')->constrained()->cascadeOnDelete();
-            $table->timestamps();
+        if (!Schema::hasTable('document_tags')) {
+            Schema::create('document_tags', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('document_id')->constrained()->cascadeOnDelete();
+                $table->foreignId('tag_id')->constrained()->cascadeOnDelete();
+                $table->timestamps();
 
-            $table->unique(['document_id', 'tag_id']);
-        });
+                $table->unique(['document_id', 'tag_id']);
+            });
+        }
 
-        Schema::create('settings', function (Blueprint $table) {
-            $table->id();
-            $table->string('key')->unique();
-            $table->longText('value')->nullable();
-            $table->string('type')->default('string');
-            $table->string('group')->default('general');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('settings')) {
+            Schema::create('settings', function (Blueprint $table) {
+                $table->id();
+                $table->string('key')->unique();
+                $table->longText('value')->nullable();
+                $table->string('type')->default('string');
+                $table->string('group')->default('general');
+                $table->timestamps();
+            });
+        }
 
-        Schema::create('audit_logs', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
-            $table->string('event');
-            $table->nullableMorphs('auditable');
-            $table->json('old_values')->nullable();
-            $table->json('new_values')->nullable();
-            $table->string('ip_address', 45)->nullable();
-            $table->text('user_agent')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('audit_logs')) {
+            Schema::create('audit_logs', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+                $table->string('event');
+                $table->nullableMorphs('auditable');
+                $table->json('old_values')->nullable();
+                $table->json('new_values')->nullable();
+                $table->string('ip_address', 45)->nullable();
+                $table->text('user_agent')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void

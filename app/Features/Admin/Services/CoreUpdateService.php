@@ -109,26 +109,36 @@ class CoreUpdateService
             'remote_version_meta' => $currentVersionMeta,
         ];
 
+        $connectionError = null;
+
         try {
-            // 1. Direct Fetch: Remote version.json from GitHub raw content (Zero rate-limit)
-            $remoteVersionResp = Http::timeout(6)
-                ->withHeaders(['User-Agent' => 'HelpOfAi-Studio-Updater'])
-                ->get("https://raw.githubusercontent.com/{$this->githubRepo}/main/version.json");
+            // 1. Direct Fetch: Remote version.json from GitHub raw content with cache-busting timestamp
+            $cacheBust = time();
+            $remoteVersionResp = Http::timeout(10)
+                ->withHeaders([
+                    'User-Agent' => 'HelpOfAi-Studio-Updater',
+                    'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                    'Pragma' => 'no-cache',
+                ])
+                ->get("https://raw.githubusercontent.com/{$this->githubRepo}/main/version.json?t={$cacheBust}");
 
             $remoteVersionData = [];
             if ($remoteVersionResp->successful()) {
                 $remoteVersionData = $remoteVersionResp->json() ?: [];
+            } else {
+                $connectionError = "Unable to fetch version.json from GitHub (HTTP " . $remoteVersionResp->status() . ")";
             }
 
             $remoteVersion = $remoteVersionData['version'] ?? $currentVersion;
             $remoteVersionCode = (int) ($remoteVersionData['version_code'] ?? $currentVersionCode);
             $remoteBuildNumber = (string) ($remoteVersionData['build_number'] ?? $currentBuildNumber);
 
-            // 2. Fetch Latest Commit Metadata on main branch
-            $commitResp = Http::timeout(6)
+            // 2. Fetch Latest Commit Metadata on main branch directly from GitHub API
+            $commitResp = Http::timeout(10)
                 ->withHeaders([
                     'User-Agent' => 'HelpOfAi-Studio-Updater',
                     'Accept' => 'application/vnd.github.v3+json',
+                    'Cache-Control' => 'no-cache, no-store, must-revalidate',
                 ])
                 ->get("https://api.github.com/repos/{$this->githubRepo}/commits/main");
 
@@ -152,7 +162,7 @@ class CoreUpdateService
 
             if (!empty($currentSha) && !empty($latestSha) && $currentSha !== $latestSha) {
                 try {
-                    $compareResp = Http::timeout(6)
+                    $compareResp = Http::timeout(10)
                         ->withHeaders([
                             'User-Agent' => 'HelpOfAi-Studio-Updater',
                             'Accept' => 'application/vnd.github.v3+json',
@@ -189,8 +199,8 @@ class CoreUpdateService
             // Determine if update is available:
             // - Remote version code > current version code
             // - OR version_compare(remote, current, '>')
-            // - OR remote build number !== current build number
-            // - OR remote commit SHA differs from local commit SHA
+            // - OR remote build number !== current build number (if both present and remote is newer)
+            // - OR remote commit SHA differs from local commit SHA (when current SHA exists)
             $hasUpdate = ($remoteVersionCode > $currentVersionCode)
                 || (version_compare($remoteVersion, $currentVersion, '>'))
                 || (!empty($remoteBuildNumber) && !empty($currentBuildNumber) && $remoteBuildNumber !== $currentBuildNumber)
@@ -215,9 +225,11 @@ class CoreUpdateService
                 'published_at' => $commitDate,
                 'download_url' => "https://github.com/{$this->githubRepo}/archive/refs/heads/main.zip",
                 'remote_version_meta' => !empty($remoteVersionData) ? $remoteVersionData : $currentVersionMeta,
+                'connection_error' => $connectionError,
             ];
         } catch (\Throwable $e) {
             Log::warning("Update check failed: {$e->getMessage()}");
+            $fallback['connection_error'] = "GitHub connection error: {$e->getMessage()}";
         }
 
         return $fallback;
