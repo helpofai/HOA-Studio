@@ -23,7 +23,7 @@
 */
 --}}
 
-<div class="space-y-8">
+<div class="space-y-8" wire:init="loadDashboard">
     <!-- Welcome Header Banner -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -50,8 +50,13 @@
                 <span class="text-xs font-semibold uppercase tracking-wider">Total Documents</span>
                 <span class="text-lg">📄</span>
             </div>
-            <div class="text-3xl font-black text-white">{{ number_format($stats['total_documents']) }}</div>
-            <div class="text-[11px] text-emerald-400 mt-2">Active in Workspace</div>
+            @if(!$readyToLoad)
+                <div class="h-9 w-24 bg-white/10 rounded-lg animate-pulse my-0.5"></div>
+                <div class="h-3.5 w-32 bg-white/5 rounded animate-pulse mt-2"></div>
+            @else
+                <div class="text-3xl font-black text-white">{{ number_format($stats['total_documents']) }}</div>
+                <div class="text-[11px] text-emerald-400 mt-2">Active in Workspace</div>
+            @endif
         </x-glass.card>
 
         <x-glass.card variant="standard" class="p-6">
@@ -59,8 +64,13 @@
                 <span class="text-xs font-semibold uppercase tracking-wider">Words Written</span>
                 <span class="text-lg">✍️</span>
             </div>
-            <div class="text-3xl font-black text-indigo-400">{{ number_format($stats['total_words']) }}</div>
-            <div class="text-[11px] text-slate-400 mt-2">Across all drafts</div>
+            @if(!$readyToLoad)
+                <div class="h-9 w-28 bg-white/10 rounded-lg animate-pulse my-0.5"></div>
+                <div class="h-3.5 w-28 bg-white/5 rounded animate-pulse mt-2"></div>
+            @else
+                <div class="text-3xl font-black text-indigo-400">{{ number_format($stats['total_words']) }}</div>
+                <div class="text-[11px] text-slate-400 mt-2">Across all drafts</div>
+            @endif
         </x-glass.card>
 
         <x-glass.card variant="standard" class="p-6">
@@ -68,8 +78,13 @@
                 <span class="text-xs font-semibold uppercase tracking-wider">Active Projects</span>
                 <span class="text-lg">📁</span>
             </div>
-            <div class="text-3xl font-black text-purple-400">{{ number_format($stats['total_projects']) }}</div>
-            <div class="text-[11px] text-slate-400 mt-2">Workspaces configured</div>
+            @if(!$readyToLoad)
+                <div class="h-9 w-20 bg-white/10 rounded-lg animate-pulse my-0.5"></div>
+                <div class="h-3.5 w-36 bg-white/5 rounded animate-pulse mt-2"></div>
+            @else
+                <div class="text-3xl font-black text-purple-400">{{ number_format($stats['total_projects']) }}</div>
+                <div class="text-[11px] text-slate-400 mt-2">Workspaces configured</div>
+            @endif
         </x-glass.card>
 
         <x-glass.card variant="premium" glow="violet" class="p-6">
@@ -77,8 +92,13 @@
                 <span class="text-xs font-semibold uppercase tracking-wider">AI Word Balance</span>
                 <span class="text-lg">⚡</span>
             </div>
-            <div class="text-3xl font-black text-white">{{ number_format($stats['remaining_quota']) }}</div>
-            <div class="text-[11px] text-indigo-300 mt-2">{{ number_format($stats['used_quota']) }} used this cycle</div>
+            @if(!$readyToLoad)
+                <div class="h-9 w-32 bg-white/10 rounded-lg animate-pulse my-0.5"></div>
+                <div class="h-3.5 w-40 bg-white/5 rounded animate-pulse mt-2"></div>
+            @else
+                <div class="text-3xl font-black text-white">{{ number_format($stats['remaining_quota']) }}</div>
+                <div class="text-[11px] text-indigo-300 mt-2">{{ number_format($stats['used_quota']) }} used this cycle</div>
+            @endif
         </x-glass.card>
     </div>
 
@@ -103,7 +123,12 @@
                 </a>
             </div>
 
-            @if($stats['recent_documents']->isEmpty())
+            @if(!$readyToLoad)
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <x-glass.skeleton type="card" />
+                    <x-glass.skeleton type="card" />
+                </div>
+            @elseif($stats['recent_documents']->isEmpty())
                 <x-glass.card variant="subtle" class="p-8 text-center">
                     <div class="text-3xl mb-3">📝</div>
                     <h4 class="text-sm font-semibold text-white mb-1">No documents created yet</h4>

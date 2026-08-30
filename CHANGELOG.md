@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.3] - 2026-08-30
+
+### 🚀 Added & Improved
+- **Fast SPA Page Transitions & Request Storm Elimination**:
+  - Replaced speculative `wire:navigate.hover` prefetching across user and admin sidebars with clean `wire:navigate`, preventing request queue starvation and server bottlenecks during navigation.
+- **Glassmorphic Skeleton & Deferred Loading Architecture**:
+  - Implemented Livewire 3 deferred loading (`wire:init="loadDashboard"`) with zero-shift glowing glass skeletons across User Dashboard and Admin Overview.
+  - Hardened `<x-omniroute.telemetry-graph>` with defensive array initialization and seamless fallback telemetry streams.
+
+---
+
 ## [2.6.2] - 2026-08-30
 
 ### 🚀 Added & Improved

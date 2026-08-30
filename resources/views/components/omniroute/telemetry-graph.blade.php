@@ -5,7 +5,7 @@
 ])
 
 @php
-    $summary = $graphData['summary'] ?? [
+    $summary = array_merge([
         'total_requests' => 0,
         'pass' => 0,
         'info' => 0,
@@ -14,7 +14,7 @@
         'total_tokens' => 0,
         'avg_latency_ms' => 12,
         'success_rate' => 100.0,
-    ];
+    ], (array) ($graphData['summary'] ?? []));
     $buckets = $graphData['buckets'] ?? [];
     $svgPaths = $graphData['svg_paths'] ?? [];
     $points = $svgPaths['points'] ?? [];
