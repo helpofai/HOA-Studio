@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.4] - 2026-08-31
+
+### 🚀 Added & Improved
+- **High-Converting Welcome Page & Real Editor Simulation Suite**:
+  - Rebuilt landing page with crystal-clear copy, SEO headlines, dynamic system version badge, and structured JSON-LD `FAQPage` schema.
+  - Upgraded 3-column interactive studio simulation matching full Master Editor capabilities (8-engine switcher, OmniRoute AI live streaming, floating AI prompt bar, and 7-tab Content Intelligence suite).
+  - Created standalone [`resources/css/welcome.css`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/css/welcome.css) with rich 3D ambient glassmorphic shadows (`.hoa-editor-shadow`), glowing hover physics (`.hoa-card-glow-shadow`), and mobile drawer scrollbars.
+  - Implemented responsive right-edge slide-over mobile drawer with body teleportation and touch backdrop overlay.
+
+---
+
 ## [2.6.3] - 2026-08-30
 
 ### 🚀 Added & Improved
