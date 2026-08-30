@@ -32,8 +32,51 @@
         <div class="absolute -bottom-40 right-1/4 w-[40rem] h-[40rem] bg-purple-900/20 rounded-full blur-[160px]"></div>
     </div>
 
-    <!-- Navigation Header -->
-    <header class="sticky top-0 z-50 w-full border-b border-white/5 bg-slate-950/75 backdrop-blur-2xl transition-all" x-data="{ mobileMenuOpen: false }">
+    <!-- Navigation Header with Smooth Auto Hide/Show on Scroll -->
+    <header 
+        x-data="{ 
+            mobileMenuOpen: false, 
+            showHeader: true, 
+            lastScrollY: 0,
+            isScrolled: false,
+            init() {
+                this.lastScrollY = window.scrollY;
+            },
+            handleScroll() {
+                const currentScrollY = window.scrollY;
+                this.isScrolled = currentScrollY > 20;
+                
+                if (this.mobileMenuOpen) {
+                    this.showHeader = true;
+                    return;
+                }
+
+                if (currentScrollY <= 60) {
+                    this.showHeader = true;
+                    this.lastScrollY = currentScrollY;
+                    return;
+                }
+
+                const scrollDelta = currentScrollY - this.lastScrollY;
+                if (Math.abs(scrollDelta) > 6) {
+                    if (scrollDelta > 0) {
+                        this.showHeader = false;
+                    } else {
+                        this.showHeader = true;
+                    }
+                    this.lastScrollY = currentScrollY;
+                }
+            }
+        }"
+        @scroll.window.passive="handleScroll()"
+        class="fixed top-0 inset-x-0 z-50 w-full border-b transition-all duration-300 transform select-none"
+        :class="{
+            'translate-y-0': showHeader,
+            '-translate-y-full': !showHeader,
+            'bg-slate-950/85 backdrop-blur-2xl border-white/10 shadow-2xl shadow-black/50': isScrolled,
+            'bg-slate-950/40 backdrop-blur-md border-white/5': !isScrolled
+        }"
+    >
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
             <!-- Brand Logo -->
             <a href="/" class="flex items-center gap-3 group shrink-0">
@@ -266,7 +309,7 @@
     </header>
 
     <!-- Main Landing Content -->
-    <main class="flex-1">
+    <main class="flex-1 pt-16">
         <!-- ========================================================================= -->
         <!-- 1. HERO SECTION (Clear, Simple, SEO-Optimized)                           -->
         <!-- ========================================================================= -->
@@ -534,11 +577,16 @@
                                         type="button" 
                                         x-on:click="runDemoAi('generate')" 
                                         :disabled="isStreaming" 
-                                        class="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs shadow-md shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+                                        :class="isStreaming ? 'btn-shimmer' : ''"
+                                        class="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs shadow-md shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-75"
                                     >
-                                        <span x-show="!isStreaming">✦ Run AI Generation</span>
-                                        <span x-show="isStreaming" class="animate-spin text-sm">⟳</span>
-                                        <span x-show="isStreaming" x-text="'Streaming (' + receivedTokens + ' tok)...'"></span>
+                                        <span x-show="!isStreaming" class="flex items-center gap-1.5">
+                                            <span>✦</span> <span>Run AI Generation</span>
+                                        </span>
+                                        <span x-show="isStreaming" class="flex items-center gap-2">
+                                            <span class="bars"><span></span><span></span><span></span><span></span></span>
+                                            <span x-text="'Streaming (' + receivedTokens + ' tok)...'"></span>
+                                        </span>
                                     </button>
                                 </div>
 
@@ -1177,7 +1225,135 @@ Modern content production platforms demand high-throughput intelligence routing 
         </section>
 
         <!-- ========================================================================= -->
-        <!-- 6. FREQUENTLY ASKED QUESTIONS (SEO FAQ Accordion + Schema)                -->
+        <!-- 6. DESIGN SYSTEM & ANIMATED BUTTON SHOWCASE                              -->
+        <!-- ========================================================================= -->
+        <section id="glass-system" class="py-16 sm:py-24 border-b border-white/5 scroll-mt-16 relative" x-data="{ demoLoading: true }">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <x-glass.badge variant="purple" class="mb-4">Design System & Micro-Interactions</x-glass.badge>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                        Interactive Button Loading Animations
+                    </h2>
+                    <p class="text-slate-300 mt-3 text-sm sm:text-base leading-relaxed">
+                        10 ultra-lightweight, CSS-only animated loading states engineered for high-performance Livewire & Alpine micro-interactions.
+                    </p>
+                    <div class="mt-6 flex items-center justify-center gap-3">
+                        <button 
+                            type="button" 
+                            @click="demoLoading = !demoLoading" 
+                            class="px-4 py-2 rounded-xl bg-slate-900 border border-indigo-500/40 text-indigo-300 hover:text-white text-xs font-mono font-bold shadow-lg shadow-indigo-600/20 hover:border-indigo-400 transition-all cursor-pointer flex items-center gap-2"
+                        >
+                            <span class="w-2 h-2 rounded-full" :class="demoLoading ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'"></span>
+                            <span x-text="demoLoading ? '✦ Toggle to Normal State' : '✦ Toggle to Loading State'"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <!-- 1. Classic Spinner -->
+                    <x-glass.card variant="subtle" class="p-5 text-center space-y-3 hoa-card-glow-shadow">
+                        <div class="text-[11px] font-mono text-indigo-400 font-bold uppercase">1. Classic Spinner</div>
+                        <button type="button" class="w-full py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer">
+                            <span class="spinner" x-show="demoLoading"></span>
+                            <span x-text="demoLoading ? 'Saving...' : 'Save Draft'"></span>
+                        </button>
+                        <div class="text-[10px] font-mono text-slate-400">class="spinner"</div>
+                    </x-glass.card>
+
+                    <!-- 2. Three Dots -->
+                    <x-glass.card variant="subtle" class="p-5 text-center space-y-3 hoa-card-glow-shadow">
+                        <div class="text-[11px] font-mono text-purple-400 font-bold uppercase">2. Three Dots</div>
+                        <button type="button" class="w-full py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-md shadow-purple-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer">
+                            <span x-text="demoLoading ? 'Loading' : 'Analyze SEO'"></span>
+                            <span class="dots" x-show="demoLoading"><span></span><span></span><span></span></span>
+                        </button>
+                        <div class="text-[10px] font-mono text-slate-400">class="dots"</div>
+                    </x-glass.card>
+
+                    <!-- 3. Pulse Ring -->
+                    <x-glass.card variant="subtle" class="p-5 text-center space-y-3 hoa-card-glow-shadow">
+                        <div class="text-[11px] font-mono text-cyan-400 font-bold uppercase">3. Pulse Ring</div>
+                        <button type="button" class="w-full py-2.5 px-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-md shadow-cyan-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer">
+                            <span class="pulse-ring" x-show="demoLoading"></span>
+                            <span x-text="demoLoading ? 'Processing' : 'Index Page'"></span>
+                        </button>
+                        <div class="text-[10px] font-mono text-slate-400">class="pulse-ring"</div>
+                    </x-glass.card>
+
+                    <!-- 4. Dual Ring -->
+                    <x-glass.card variant="subtle" class="p-5 text-center space-y-3 hoa-card-glow-shadow">
+                        <div class="text-[11px] font-mono text-emerald-400 font-bold uppercase">4. Dual Ring</div>
+                        <button type="button" class="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer">
+                            <span class="dual" x-show="demoLoading"></span>
+                            <span x-text="demoLoading ? 'Updating...' : 'Sync Cloud'"></span>
+                        </button>
+                        <div class="text-[10px] font-mono text-slate-400">class="dual"</div>
+                    </x-glass.card>
+
+                    <!-- 5. Animated Bars -->
+                    <x-glass.card variant="subtle" class="p-5 text-center space-y-3 hoa-card-glow-shadow">
+                        <div class="text-[11px] font-mono text-amber-400 font-bold uppercase">5. Animated Bars</div>
+                        <button type="button" class="w-full py-2.5 px-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs shadow-md shadow-amber-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer">
+                            <span x-text="demoLoading ? 'Streaming' : 'AI Transform'"></span>
+                            <span class="bars" x-show="demoLoading"><span></span><span></span><span></span><span></span></span>
+                        </button>
+                        <div class="text-[10px] font-mono text-slate-400">class="bars"</div>
+                    </x-glass.card>
+
+                    <!-- 6. Fading Ellipsis -->
+                    <x-glass.card variant="subtle" class="p-5 text-center space-y-3 hoa-card-glow-shadow">
+                        <div class="text-[11px] font-mono text-pink-400 font-bold uppercase">6. Fading Ellipsis</div>
+                        <button type="button" class="w-full py-2.5 px-3 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs shadow-md shadow-pink-600/30 flex items-center justify-center gap-1 transition-all cursor-pointer">
+                            <span x-text="demoLoading ? 'Please wait' : 'Export HTML'"></span>
+                            <span class="ellipsis" x-show="demoLoading">...</span>
+                        </button>
+                        <div class="text-[10px] font-mono text-slate-400">class="ellipsis"</div>
+                    </x-glass.card>
+
+                    <!-- 7. Orbiting Satellite -->
+                    <x-glass.card variant="subtle" class="p-5 text-center space-y-3 hoa-card-glow-shadow">
+                        <div class="text-[11px] font-mono text-violet-400 font-bold uppercase">7. Orbiting Dot</div>
+                        <button type="button" class="w-full py-2.5 px-3 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs shadow-md shadow-violet-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer">
+                            <span class="orbit" x-show="demoLoading"></span>
+                            <span x-text="demoLoading ? 'Routing AI' : 'OmniRoute'"></span>
+                        </button>
+                        <div class="text-[10px] font-mono text-slate-400">class="orbit"</div>
+                    </x-glass.card>
+
+                    <!-- 8. Spinning Hourglass -->
+                    <x-glass.card variant="subtle" class="p-5 text-center space-y-3 hoa-card-glow-shadow">
+                        <div class="text-[11px] font-mono text-blue-400 font-bold uppercase">8. Hourglass</div>
+                        <button type="button" class="w-full py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md shadow-blue-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer">
+                            <span class="hourglass" x-show="demoLoading"></span>
+                            <span x-text="demoLoading ? 'Working...' : 'Restore State'"></span>
+                        </button>
+                        <div class="text-[10px] font-mono text-slate-400">class="hourglass"</div>
+                    </x-glass.card>
+
+                    <!-- 9. Rotating Square -->
+                    <x-glass.card variant="subtle" class="p-5 text-center space-y-3 hoa-card-glow-shadow">
+                        <div class="text-[11px] font-mono text-teal-400 font-bold uppercase">9. Morph Square</div>
+                        <button type="button" class="w-full py-2.5 px-3 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs shadow-md shadow-teal-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer">
+                            <span class="square" x-show="demoLoading"></span>
+                            <span x-text="demoLoading ? 'Generating' : 'Create Article'"></span>
+                        </button>
+                        <div class="text-[10px] font-mono text-slate-400">class="square"</div>
+                    </x-glass.card>
+
+                    <!-- 10. Shimmer Sweep -->
+                    <x-glass.card variant="subtle" class="p-5 text-center space-y-3 hoa-card-glow-shadow">
+                        <div class="text-[11px] font-mono text-indigo-300 font-bold uppercase">10. Shimmer Sweep</div>
+                        <button type="button" :class="demoLoading ? 'btn-shimmer' : ''" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer">
+                            <span>✦</span> <span x-text="demoLoading ? 'Magic Shimmer' : 'Pro License'"></span>
+                        </button>
+                        <div class="text-[10px] font-mono text-slate-400">class="shimmer"</div>
+                    </x-glass.card>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- 7. FREQUENTLY ASKED QUESTIONS (SEO FAQ Accordion + Schema)                -->
         <!-- ========================================================================= -->
         <section id="faq" class="py-16 sm:py-24 border-b border-white/5 scroll-mt-16" x-data="{ activeFaq: 1 }">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
