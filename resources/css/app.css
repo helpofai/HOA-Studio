@@ -13,6 +13,7 @@
 @import "./ai-highlights.css";
 @import "./navigation-progress.css";
 @import "./welcome.css";
+@import "./button-animations.css";
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';

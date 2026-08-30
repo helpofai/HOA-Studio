@@ -1,0 +1,306 @@
+/*
+|--------------------------------------------------------------------------
+| HelpOfAi (HOA) Professional Software - Button Animations & Loaders
+|--------------------------------------------------------------------------
+|
+| Copyright (c) 2026 Rajib Adhikary. All Rights Reserved.
+|
+| Author      : Rajib Adhikary
+| Organization: HelpOfAi (HOA)
+| Website     : https://helpofai.com
+| Location    : Basta Purba Para, Aranghata, Nadia, West Bengal, India
+|
+|--------------------------------------------------------------------------
+*/
+
+/* ========================================================================= */
+/* 1. CIRCULAR SPINNER                                                       */
+/* ========================================================================= */
+.btn-loader-spinner,
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: currentColor;
+    border-radius: 50% !important;
+    display: inline-block;
+    vertical-align: middle;
+    animation: hoa-btn-spin 0.7s linear infinite;
+    flex-shrink: 0;
+}
+
+/* ========================================================================= */
+/* 2. THREE JUMPING DOTS                                                     */
+/* ========================================================================= */
+.btn-loader-dots,
+.dots {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    vertical-align: middle;
+}
+
+.btn-loader-dots span,
+.dots span {
+    width: 5px;
+    height: 5px;
+    background: currentColor;
+    border-radius: 50% !important;
+    display: inline-block;
+    animation: hoa-btn-dot 1s infinite ease-in-out;
+}
+
+.btn-loader-dots span:nth-child(2),
+.dots span:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.btn-loader-dots span:nth-child(3),
+.dots span:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+/* ========================================================================= */
+/* 3. PULSING RING                                                           */
+/* ========================================================================= */
+.btn-loader-pulse,
+.pulse-ring {
+    width: 15px;
+    height: 15px;
+    border: 2px solid currentColor;
+    border-radius: 50% !important;
+    display: inline-block;
+    vertical-align: middle;
+    animation: hoa-btn-pulse 0.9s infinite ease-out;
+    flex-shrink: 0;
+}
+
+/* ========================================================================= */
+/* 4. DUAL RING SPINNER                                                      */
+/* ========================================================================= */
+.btn-loader-dual,
+.dual {
+    width: 17px;
+    height: 17px;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    border-left-color: currentColor;
+    border-right-color: currentColor;
+    border-radius: 50% !important;
+    display: inline-block;
+    vertical-align: middle;
+    animation: hoa-btn-spin 0.8s linear infinite;
+    flex-shrink: 0;
+}
+
+/* ========================================================================= */
+/* 5. ANIMATED EQUALIZER BARS                                                */
+/* ========================================================================= */
+.btn-loader-bars,
+.bars {
+    display: inline-flex;
+    align-items: center;
+    gap: 2.5px;
+    height: 17px;
+    vertical-align: middle;
+}
+
+.btn-loader-bars span,
+.bars span {
+    width: 3px;
+    height: 7px;
+    background: currentColor;
+    border-radius: 3px;
+    display: inline-block;
+    animation: hoa-btn-bars 0.8s infinite ease-in-out;
+}
+
+.btn-loader-bars span:nth-child(2),
+.bars span:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.btn-loader-bars span:nth-child(3),
+.bars span:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.btn-loader-bars span:nth-child(4),
+.bars span:nth-child(4) {
+    animation-delay: 0.3s;
+}
+
+/* ========================================================================= */
+/* 6. FADING ELLIPSIS                                                        */
+/* ========================================================================= */
+.btn-loader-ellipsis,
+.ellipsis {
+    font-weight: 900;
+    letter-spacing: 2px;
+    display: inline-block;
+    animation: hoa-btn-fade 1s infinite;
+}
+
+/* ========================================================================= */
+/* 7. ORBITING SATELLITE DOT                                                 */
+/* ========================================================================= */
+.btn-loader-orbit,
+.orbit {
+    width: 17px;
+    height: 17px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50% !important;
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+    animation: hoa-btn-spin 1s linear infinite;
+    flex-shrink: 0;
+}
+
+.btn-loader-orbit::after,
+.orbit::after {
+    content: "";
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background: currentColor;
+    border-radius: 50% !important;
+    top: -3px;
+    left: 4px;
+}
+
+/* ========================================================================= */
+/* 8. SPINNING HOURGLASS                                                     */
+/* ========================================================================= */
+.btn-loader-hourglass,
+.hourglass {
+    width: 15px;
+    height: 17px;
+    border: 2px solid currentColor;
+    border-radius: 2px;
+    clip-path: polygon(0 0, 100% 0, 62% 50%, 100% 100%, 0 100%, 38% 50%);
+    display: inline-block;
+    vertical-align: middle;
+    animation: hoa-btn-spin 1.2s linear infinite;
+    flex-shrink: 0;
+}
+
+/* ========================================================================= */
+/* 9. ROTATING MORPHING SQUARE                                               */
+/* ========================================================================= */
+.btn-loader-square,
+.square {
+    width: 14px;
+    height: 14px;
+    border: 2px solid currentColor;
+    border-radius: 3px;
+    display: inline-block;
+    vertical-align: middle;
+    animation: hoa-btn-square 0.8s ease-in-out infinite;
+    flex-shrink: 0;
+}
+
+/* ========================================================================= */
+/* 10. SHIMMER SWEEP BUTTON                                                  */
+/* ========================================================================= */
+.btn-shimmer,
+.shimmer {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-shimmer::after,
+.shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-120%);
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.28) 50%, transparent 100%);
+    animation: hoa-btn-shimmer 1.5s infinite;
+    pointer-events: none;
+}
+
+/* Continuous Subtle Ambient Button Glow Animation */
+.btn-pulse-glow {
+    animation: hoa-btn-pulse-glow 2s infinite ease-in-out;
+}
+
+/* ========================================================================= */
+/* KEYFRAME DEFINITIONS                                                      */
+/* ========================================================================= */
+@keyframes hoa-btn-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes hoa-btn-dot {
+    0%, 80%, 100% {
+        transform: scale(0.55);
+        opacity: 0.45;
+    }
+    40% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+}
+
+@keyframes hoa-btn-pulse {
+    0% {
+        transform: scale(0.5);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.3);
+        opacity: 0;
+    }
+}
+
+@keyframes hoa-btn-bars {
+    0%, 100% {
+        height: 6px;
+        opacity: 0.45;
+    }
+    50% {
+        height: 16px;
+        opacity: 1;
+    }
+}
+
+@keyframes hoa-btn-fade {
+    0%, 100% {
+        opacity: 0.35;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+@keyframes hoa-btn-square {
+    0% {
+        transform: rotate(0deg) scale(0.85);
+    }
+    50% {
+        transform: rotate(90deg) scale(1);
+    }
+    100% {
+        transform: rotate(180deg) scale(0.85);
+    }
+}
+
+@keyframes hoa-btn-shimmer {
+    0% {
+        transform: translateX(-120%);
+    }
+    100% {
+        transform: translateX(120%);
+    }
+}
+
+@keyframes hoa-btn-pulse-glow {
+    0%, 100% {
+        box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 28px rgba(168, 85, 247, 0.7);
+    }
+}
