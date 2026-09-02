@@ -123,7 +123,7 @@ class AdminAuthSettingsTest extends TestCase
 
         $this->assertDatabaseHas('settings', [
             'key' => 'turnstile_enabled',
-            'value' => '0',
+            'value' => '1',
         ]);
     }
 }

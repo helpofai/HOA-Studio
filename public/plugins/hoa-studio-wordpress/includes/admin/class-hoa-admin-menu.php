@@ -60,6 +60,24 @@ class HoaAdminMenu {
 
         add_submenu_page(
             'hoa-studio-dashboard',
+            __('✨ Studio Editor', 'hoa-studio'),
+            __('✨ Add New Post', 'hoa-studio'),
+            'edit_posts',
+            'hoa-studio-post-editor',
+            [$this, 'render_studio_post_editor_page']
+        );
+
+        add_submenu_page(
+            'edit.php',
+            __('✨ Add with HOA Studio', 'hoa-studio'),
+            __('✨ Add with HOA Studio', 'hoa-studio'),
+            'edit_posts',
+            'hoa-studio-post-editor',
+            [$this, 'render_studio_post_editor_page']
+        );
+
+        add_submenu_page(
+            'hoa-studio-dashboard',
             __('Editor Control', 'hoa-studio'),
             __('Editor Control', 'hoa-studio'),
             'manage_options',
@@ -122,6 +140,25 @@ class HoaAdminMenu {
         include HOA_STUDIO_PLUGIN_DIR . 'views/editor-control.php';
     }
 
+    public function render_studio_post_editor_page() {
+        $post_id = isset($_GET['post_id']) ? intval($_GET['post_id']) : 0;
+        $post = $post_id > 0 ? get_post($post_id) : null;
+        $title = $post ? $post->post_title : '';
+        $content = $post ? $post->post_content : '';
+        $post_status = $post ? $post->post_status : 'draft';
+        $target_keyword = $post ? get_post_meta($post_id, '_hoa_target_keyword', true) : '';
+        $meta_description = $post ? get_post_meta($post_id, '_hoa_meta_description', true) : '';
+        $categories = get_categories(['hide_empty' => false]);
+        $selected_categories = $post ? wp_get_post_categories($post_id) : [];
+        $post_tags = $post ? implode(', ', wp_get_post_tags($post_id, ['fields' => 'names'])) : '';
+        $featured_image_id = $post ? get_post_thumbnail_id($post_id) : 0;
+        $featured_image_url = $featured_image_id ? wp_get_attachment_image_url($featured_image_id, 'medium') : '';
+        $permalink = $post ? get_permalink($post_id) : '';
+        $slug = $post ? $post->post_name : '';
+
+        include HOA_STUDIO_PLUGIN_DIR . 'views/studio-post-editor.php';
+    }
+
     public function enqueue_admin_scripts($hook) {
         $allowed_pages = [
             'post.php', 
@@ -129,11 +166,19 @@ class HoaAdminMenu {
             'toplevel_page_hoa-studio-dashboard',
             'hoa-studio_page_hoa-studio-connection',
             'hoa-studio_page_hoa-studio-ai-settings',
-            'hoa-studio_page_hoa-studio-editor-control'
+            'hoa-studio_page_hoa-studio-editor-control',
+            'hoa-studio_page_hoa-studio-post-editor',
+            'posts_page_hoa-studio-post-editor',
         ];
         
-        if (!in_array($hook, $allowed_pages)) {
+        $is_studio_page = strpos($hook, 'hoa-studio-post-editor') !== false || in_array($hook, $allowed_pages);
+
+        if (!$is_studio_page) {
             return;
+        }
+
+        if (in_array($hook, ['post.php', 'post-new.php']) || strpos($hook, 'hoa-studio-post-editor') !== false) {
+            wp_enqueue_media();
         }
 
         wp_enqueue_style(
