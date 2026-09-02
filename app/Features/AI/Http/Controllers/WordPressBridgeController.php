@@ -51,12 +51,27 @@ class WordPressBridgeController extends Controller
             : 0;
 
         $models = AiModel::where('is_active', true)
-            ->select('id', 'name', 'model_id', 'provider', 'context_window')
-            ->get();
+            ->with('provider:id,name,slug')
+            ->select('id', 'ai_provider_id', 'name', 'model_id', 'context_window')
+            ->get()
+            ->map(fn ($m) => [
+                'id' => $m->id,
+                'name' => $m->name,
+                'model_id' => $m->model_id,
+                'provider' => $m->provider?->name ?? 'Default',
+                'context_window' => $m->context_window,
+            ]);
 
         $brandVoices = BrandProfile::where('user_id', $user->id)
-            ->select('id', 'name', 'tone', 'audience', 'style_guide')
-            ->get();
+            ->select('id', 'name', 'tone_description', 'target_audience', 'guidelines')
+            ->get()
+            ->map(fn ($b) => [
+                'id' => $b->id,
+                'name' => $b->name,
+                'tone' => $b->tone_description,
+                'audience' => $b->target_audience,
+                'style_guide' => $b->guidelines,
+            ]);
 
         return response()->json([
             'success' => true,

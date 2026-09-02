@@ -226,6 +226,202 @@
 }
 
 /* ==========================================================================
+   REAL-TIME CONNECTION TELEMETRY & LOG CONSOLE
+   ========================================================================== */
+.hoa-console-card {
+    background: #060913;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 24px 30px;
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.6);
+    margin-top: 24px;
+    color: #e2e8f0;
+}
+
+.hoa-console-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hoa-console-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.hoa-console-title h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.hoa-console-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+    animation: pulse 1.5s infinite;
+}
+
+.hoa-badge-live {
+    font-size: 9.5px;
+    font-weight: 800;
+    font-family: monospace;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    color: #34d399;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+}
+
+.hoa-console-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.hoa-console-actions .button {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #cbd5e1 !important;
+    font-size: 11px !important;
+    padding: 3px 10px !important;
+    border-radius: 6px !important;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.hoa-console-actions .button:hover {
+    background: rgba(99, 102, 241, 0.2) !important;
+    color: #fff !important;
+    border-color: rgba(99, 102, 241, 0.4) !important;
+}
+
+.hoa-telemetry-matrix {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.hoa-matrix-item {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.hoa-matrix-lbl {
+    font-size: 10px;
+    font-family: monospace;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.hoa-matrix-val {
+    font-size: 13px;
+    font-weight: 700;
+    font-family: monospace;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.hoa-matrix-val.text-emerald { color: #34d399; }
+.hoa-matrix-val.text-indigo { color: #818cf8; }
+.hoa-matrix-val.text-amber { color: #fbbf24; }
+.hoa-matrix-val.text-cyan { color: #38bdf8; }
+.hoa-matrix-val.text-rose { color: #fb7185; }
+
+.hoa-log-terminal {
+    background: #02040a;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    max-height: 320px;
+    overflow-y: auto;
+    color: #cbd5e1;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.7);
+}
+
+.hoa-log-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 4px;
+    word-break: break-all;
+}
+
+.hoa-log-time {
+    color: #64748b;
+    font-size: 11px;
+    flex-shrink: 0;
+}
+
+.hoa-log-tag {
+    font-weight: 800;
+    font-size: 10.5px;
+    padding: 1px 5px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.hoa-log-tag.tag-outgoing {
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.hoa-log-tag.tag-success {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.hoa-log-tag.tag-error {
+    background: rgba(244, 63, 94, 0.15);
+    color: #fb7185;
+    border: 1px solid rgba(244, 63, 94, 0.3);
+}
+
+.hoa-log-tag.tag-info {
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.hoa-log-msg {
+    color: #e2e8f0;
+}
+
+.hoa-log-line.success .hoa-log-msg {
+    color: #a7f3d0;
+}
+
+.hoa-log-line.error .hoa-log-msg {
+    color: #fecdd3;
+}
+
+.hoa-log-line.warning .hoa-log-msg {
+    color: #fde68a;
+}
+
+/* ==========================================================================
    TIPTAP MASTER SUITE & ENTERPRISE DARK GLASS EDITOR (WORDPRESS)
    ========================================================================== */
 
