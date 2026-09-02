@@ -119,12 +119,15 @@ class HoaAdminMenu {
     }
 
     public function render_dashboard_page() {
-        $endpoint = get_option('hoa_studio_endpoint_url', 'http://127.0.0.1:8000');
+        $endpoint = get_option('hoa_studio_endpoint_url', 'https://studio.helpofai.com');
+        $has_key = !empty(get_option('hoa_studio_connect_key', ''));
+        $default_model = get_option('hoa_studio_default_model', 'auto');
+        $default_editor = get_option('hoa_studio_default_editor', 'tiptap');
         include HOA_STUDIO_PLUGIN_DIR . 'views/dashboard.php';
     }
 
     public function render_connection_page() {
-        $endpoint = get_option('hoa_studio_endpoint_url', 'http://127.0.0.1:8000');
+        $endpoint = get_option('hoa_studio_endpoint_url', 'https://studio.helpofai.com');
         $key = get_option('hoa_studio_connect_key', '');
         include HOA_STUDIO_PLUGIN_DIR . 'views/connection.php';
     }
@@ -143,7 +146,7 @@ class HoaAdminMenu {
     public function render_studio_post_editor_page() {
         $post_id = isset($_GET['post_id']) ? intval($_GET['post_id']) : 0;
         $post = $post_id > 0 ? get_post($post_id) : null;
-        $title = $post ? $post->post_title : '';
+        $title = $post ? $post->post_title : (isset($_GET['title']) ? sanitize_text_field(wp_unslash($_GET['title'])) : '');
         $content = $post ? $post->post_content : '';
         $post_status = $post ? $post->post_status : 'draft';
         $target_keyword = $post ? get_post_meta($post_id, '_hoa_target_keyword', true) : '';

@@ -27,8 +27,13 @@ class HoaAjaxHandler {
             wp_send_json_error(['message' => 'Unauthorized']);
         }
 
-        $endpoint = rtrim(sanitize_text_field($_POST['endpoint']), '/');
-        $key = sanitize_text_field($_POST['key']);
+        $endpoint = !empty($_POST['endpoint']) 
+            ? rtrim(sanitize_text_field($_POST['endpoint']), '/') 
+            : rtrim(get_option('hoa_studio_endpoint_url', 'https://studio.helpofai.com'), '/');
+
+        $key = !empty($_POST['key']) && $_POST['key'] !== 'check'
+            ? sanitize_text_field($_POST['key'])
+            : get_option('hoa_studio_connect_key', '');
         $url = $endpoint . '/api/v1/wordpress/connect';
 
         $startTime = microtime(true);
