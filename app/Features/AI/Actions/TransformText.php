@@ -285,6 +285,21 @@ EOT,
     }
 
     /**
+     * Build system and user prompt for streaming or transformation
+     */
+    public function buildPrompt(string $text, string $transformationType, ?string $customInstruction = null, array $context = []): array
+    {
+        $hasSelection = !empty($context['has_selection']) && !empty($context['selected_text']);
+        $pipelineStages = $context['pipeline_stages'] ?? [];
+
+        if ($hasSelection) {
+            return $this->brain->buildSurgicalPrompt($transformationType, $context, $customInstruction);
+        }
+
+        return $this->brain->buildPipelineArticlePrompt($text, $context, $pipelineStages, $customInstruction);
+    }
+
+    /**
      * Execute synchronous text transformation
      */
     public function execute(User $user, string $text, string $transformationType, array $options = []): string

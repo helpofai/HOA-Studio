@@ -100,4 +100,26 @@ class WordPressBridgeApiTest extends TestCase
         $response->assertStatus(200);
         $response->assertJson(['success' => true]);
     }
+
+    public function test_wordpress_stream_returns_streamed_response(): void
+    {
+        $user = User::factory()->create([
+            'monthly_word_quota' => 10000,
+            'used_word_quota' => 0,
+        ]);
+        $tokenResult = UserStudioToken::createTokenForUser($user, 'Stream Test Site');
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $tokenResult['plainTextToken'],
+            'Accept' => 'text/event-stream',
+        ])->post('/api/v1/wordpress/stream', [
+            'text' => 'Testing AI Stream for WordPress TipTap',
+            'type' => 'generate',
+            'model' => 'auto',
+            'custom_instruction' => 'Write a short intro',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'text/event-stream; charset=UTF-8');
+    }
 }
