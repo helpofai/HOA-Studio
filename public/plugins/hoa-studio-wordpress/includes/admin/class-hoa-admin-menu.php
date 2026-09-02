@@ -202,7 +202,7 @@ class HoaAdminMenu {
         wp_localize_script('hoa-studio-tiptap-bundle', 'hoaStudioConfig', [
             'ajaxUrl' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('hoa_studio_nonce'),
-            'endpoint' => get_option('hoa_studio_endpoint_url', 'http://127.0.0.1:8000'),
+            'endpoint' => !empty(get_option('hoa_studio_endpoint_url')) ? rtrim(get_option('hoa_studio_endpoint_url'), '/') : 'https://studio.helpofai.com',
             'isConnected' => !empty(get_option('hoa_studio_connect_key')),
             'defaultEditor' => get_option('hoa_studio_default_editor', 'tiptap'),
         ]);

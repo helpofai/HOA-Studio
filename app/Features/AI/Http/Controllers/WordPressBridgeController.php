@@ -151,7 +151,7 @@ class WordPressBridgeController extends Controller
         if (!empty($validated['brand_voice_id'])) {
             $brand = BrandProfile::where('id', $validated['brand_voice_id'])->where('user_id', $user->id)->first();
             if ($brand) {
-                $promptData['system'] .= "\nApply Brand Voice: " . $brand->name . " (Tone: " . $brand->tone . ", Audience: " . $brand->audience . ")";
+                $promptData['system'] .= "\nApply Brand Voice: " . $brand->name . " (Tone: " . ($brand->tone_description ?? 'Professional') . ", Audience: " . ($brand->target_audience ?? 'General') . ")";
             }
         }
 
@@ -167,7 +167,7 @@ class WordPressBridgeController extends Controller
             $routedModel = $model ?? 'auto';
 
             try {
-                $stream = $client->streamCompletion([
+                $stream = $client->streamChatCompletion([
                     ['role' => 'system', 'content' => $promptData['system']],
                     ['role' => 'user', 'content' => $promptData['user']],
                 ], [
@@ -180,7 +180,7 @@ class WordPressBridgeController extends Controller
                         break;
                     }
 
-                    $delta = $chunk['text'] ?? '';
+                    $delta = $chunk['token'] ?? $chunk['text'] ?? $chunk['delta'] ?? '';
                     if (!empty($chunk['model'])) {
                         $routedModel = $chunk['model'];
                     }
@@ -199,18 +199,13 @@ class WordPressBridgeController extends Controller
                     }
                 }
 
-                // Record Word Quota Usage
+                // Record Word Quota Usage & Telemetry
                 $wordsUsed = max(1, str_word_count(strip_tags($accumulated)));
-                $user->consumeQuota($wordsUsed);
-
-                // Record Usage Telemetry
-                $recordUsage->execute(
-                    $user,
-                    $routedModel,
-                    $tokenCount,
-                    $wordsUsed,
-                    'wordpress_' . $validated['type']
-                );
+                $recordUsage->execute($user, [
+                    'words_used' => $wordsUsed,
+                    'tokens_used' => $tokenCount,
+                    'model_slug' => $routedModel,
+                ]);
 
                 echo "data: " . json_encode([
                     'done' => true,
@@ -222,8 +217,12 @@ class WordPressBridgeController extends Controller
 
                 flush();
 
-            } catch (Exception $e) {
-                echo "event: error\ndata: " . json_encode(['message' => $e->getMessage()]) . "\n\n";
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('WordPress Stream Error: ' . $e->getMessage());
+                echo "data: " . json_encode([
+                    'error' => 'AI Generation Error: ' . $e->getMessage(),
+                    'done' => true,
+                ]) . "\n\n";
                 flush();
             }
         }, 200, [

@@ -91,11 +91,14 @@ class HoaAjaxHandler {
             wp_send_json_error(['message' => 'Unauthorized']);
         }
 
-        $endpoint = rtrim(get_option('hoa_studio_endpoint_url', 'http://127.0.0.1:8000'), '/');
+        $endpoint = !empty(get_option('hoa_studio_endpoint_url')) 
+            ? rtrim(get_option('hoa_studio_endpoint_url'), '/') 
+            : 'https://studio.helpofai.com';
         $key = get_option('hoa_studio_connect_key', '');
 
         if (empty($key)) {
-            wp_send_json_error(['message' => 'HOA Studio Connect Key missing. Configure in HOA Studio Settings.']);
+            echo "data: " . json_encode(['error' => 'HOA Studio Connect Key missing. Configure in HOA Studio Settings.', 'done' => true]) . "\n\n";
+            exit;
         }
 
         $payload = [
@@ -103,6 +106,7 @@ class HoaAjaxHandler {
             'type' => sanitize_text_field($_POST['type'] ?? 'generate'),
             'model' => sanitize_text_field($_POST['model'] ?? ''),
             'custom_instruction' => wp_unslash($_POST['custom_instruction'] ?? ''),
+            'context' => isset($_POST['context']) ? (array) $_POST['context'] : [],
         ];
 
         // Directly stream from backend to browser
@@ -122,14 +126,23 @@ class HoaAjaxHandler {
             'Authorization: Bearer ' . $key,
             'Content-Type: application/json',
             'Accept: text/event-stream',
+            'Origin: ' . get_site_url(),
+            'Referer: ' . get_site_url(),
         ]);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($ch, CURLOPT_WRITEFUNCTION, function($ch, $data) {
             echo $data;
             flush();
             return strlen($data);
         });
-        curl_setopt($ch, CURLOPT_TIMEOUT, 90);
-        curl_exec($ch);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 120);
+        $res = curl_exec($ch);
+        if ($res === false) {
+            $err = curl_error($ch);
+            echo "data: " . json_encode(['error' => 'cURL Connection Error: ' . $err, 'done' => true]) . "\n\n";
+            flush();
+        }
         curl_close($ch);
         exit;
     }

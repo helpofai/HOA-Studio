@@ -1177,6 +1177,7 @@ export function normalizeContentToHtml(content) {
                     body: formData.toString()
                 });
 
+                if (!response.ok) throw new Error('HTTP server error ' + response.status);
                 if (!response.body) throw new Error('ReadableStream not supported');
                 
                 const reader = response.body.getReader();
@@ -1203,6 +1204,12 @@ export function normalizeContentToHtml(content) {
                             
                             try {
                                 const parsed = JSON.parse(data);
+
+                                if (parsed.error) {
+                                    alert('AI Gateway Error: ' + parsed.error);
+                                    break;
+                                }
+
                                 const tokenDelta = parsed.delta || parsed.chunk || '';
                                 
                                 if (tokenDelta) {
