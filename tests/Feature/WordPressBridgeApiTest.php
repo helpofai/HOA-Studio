@@ -83,4 +83,21 @@ class WordPressBridgeApiTest extends TestCase
             'title' => 'Article Synced From WordPress',
         ]);
     }
+
+    public function test_wordpress_connect_is_exempt_from_csrf_verification(): void
+    {
+        $user = User::factory()->create();
+        $tokenResult = UserStudioToken::createTokenForUser($user, 'CSRF Exemption Test Site');
+
+        $response = $this->withMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class)
+            ->withHeaders([
+                'Authorization' => 'Bearer ' . $tokenResult['plainTextToken'],
+                'Accept' => 'application/json',
+            ])
+            ->post('/api/v1/wordpress/connect');
+
+        $this->assertNotEquals(419, $response->getStatusCode());
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+    }
 }

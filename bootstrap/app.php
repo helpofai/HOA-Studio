@@ -16,6 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SecurityHeadersMiddleware::class,
         ]);
 
+        $middleware->validateCsrfTokens(except: [
+            'api/v1/wordpress/*',
+        ]);
+
         // Trust proxies for HTTPS detection behind reverse proxy (cPanel, LiteSpeed, Cloudflare, Nginx)
         $middleware->trustProxies(at: '*', headers: 0b111111); // Set to 63 (all headers)
 
