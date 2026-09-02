@@ -34,17 +34,41 @@ class GetAdminStats
 {
     public function execute(): array
     {
-        $totalUsers = User::count();
-        $proUsers = User::whereIn('plan', ['pro', 'enterprise'])->orWhere('role', 'pro')->count();
-        $adminUsers = User::where('role', 'admin')->count();
-        $activeUsers = User::where('is_active', true)->count();
+        // Optimized single aggregate query for user counts
+        $userCounts = User::query()
+            ->selectRaw("
+                COUNT(*) as total_users,
+                COUNT(CASE WHEN (plan IN ('pro', 'enterprise') OR role = 'pro') THEN 1 END) as pro_users,
+                COUNT(CASE WHEN role = 'admin' THEN 1 END) as admin_users,
+                COUNT(CASE WHEN is_active = 1 THEN 1 END) as active_users
+            ")
+            ->first();
 
-        $totalDocuments = Document::count();
-        $totalWordsWritten = Document::sum('word_count');
+        $totalUsers = (int) ($userCounts->total_users ?? 0);
+        $proUsers = (int) ($userCounts->pro_users ?? 0);
+        $adminUsers = (int) ($userCounts->admin_users ?? 0);
+        $activeUsers = (int) ($userCounts->active_users ?? 0);
 
-        $totalWordsConsumed = DB::table('generation_usage')->sum('words_used') ?? 0;
-        $totalTokensConsumed = DB::table('generation_usage')->sum('tokens_used') ?? 0;
-        $totalGenerations = DB::table('generation_usage')->count();
+        // Optimized single aggregate query for document counts and word sums
+        $docStats = Document::query()
+            ->selectRaw('COUNT(*) as total_docs, COALESCE(SUM(word_count), 0) as total_words')
+            ->first();
+
+        $totalDocuments = (int) ($docStats->total_docs ?? 0);
+        $totalWordsWritten = (int) ($docStats->total_words ?? 0);
+
+        // Optimized single aggregate query for generation usage stats
+        $usageStats = DB::table('generation_usage')
+            ->selectRaw('
+                COALESCE(SUM(words_used), 0) as total_words_consumed,
+                COALESCE(SUM(tokens_used), 0) as total_tokens_consumed,
+                COUNT(*) as total_generations
+            ')
+            ->first();
+
+        $totalWordsConsumed = (int) ($usageStats->total_words_consumed ?? 0);
+        $totalTokensConsumed = (int) ($usageStats->total_tokens_consumed ?? 0);
+        $totalGenerations = (int) ($usageStats->total_generations ?? 0);
 
         $recentUsers = User::latest()->take(5)->get();
 

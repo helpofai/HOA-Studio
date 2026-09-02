@@ -222,45 +222,77 @@
                         </div>
                     </div>
 
-                    <!-- Enterprise Terminal Output Console (Live Telemetry) -->
-                    <div class="mt-6 pt-6 border-t border-white/10 space-y-3" x-data="{ copied: false }">
-                        <div class="flex items-center justify-between">
+                    <!-- Enterprise Terminal Output Console (Live Real-Time Telemetry) -->
+                    <div 
+                        class="mt-6 pt-6 border-t border-white/10 space-y-3" 
+                        x-data="{ 
+                            copied: false,
+                            autoScroll: true,
+                            scrollToBottom() {
+                                if (this.autoScroll && this.$refs.terminalBody) {
+                                    this.$refs.terminalBody.scrollTop = this.$refs.terminalBody.scrollHeight;
+                                }
+                            }
+                        }"
+                        x-init="$watch('$wire.updateLogs', () => { $nextTick(() => scrollToBottom()); })"
+                    >
+                        <div class="flex flex-wrap items-center justify-between gap-3">
                             <div class="flex items-center gap-2">
                                 <div class="flex items-center gap-1.5">
-                                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500/80"></span>
-                                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500/80"></span>
-                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></span>
+                                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500/90 shadow-[0_0_6px_#f43f5e]"></span>
+                                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500/90 shadow-[0_0_6px_#f59e0b]"></span>
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/90 shadow-[0_0_6px_#10b981]"></span>
                                 </div>
-                                <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-300 ml-1">
-                                    hoa-updater@terminal: ~
+                                <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-200 ml-1 flex items-center gap-2">
+                                    <span>hoa-updater@terminal: ~</span>
+                                    <span class="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 font-normal">
+                                        {{ count($updateLogs) }} lines
+                                    </span>
                                 </h4>
                             </div>
 
                             <div class="flex items-center gap-2">
-                                <div wire:loading wire:target="applyUpdate" class="flex items-center gap-1.5 px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-mono font-bold animate-pulse">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                                    <span>STREAMING LIVE</span>
+                                <div wire:loading wire:target="applyUpdate,runDbMigrations,rollbackMigrationStep,createSnapshot,createDbSnapshot" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[10px] font-mono font-bold animate-pulse">
+                                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                                    <span>STREAMING TELEMETRY LIVE</span>
+                                </div>
+
+                                <div wire:loading.remove wire:target="applyUpdate,runDbMigrations,rollbackMigrationStep,createSnapshot,createDbSnapshot" class="flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-mono font-medium border border-emerald-500/20">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                    <span>READY</span>
                                 </div>
 
                                 @if(!empty($updateLogs))
                                     <button 
                                         type="button" 
-                                        @click="navigator.clipboard.writeText(JSON.stringify(@js($updateLogs), null, 2)); copied = true; setTimeout(() => copied = false, 2000)"
-                                        class="px-2 py-1 rounded bg-slate-900 border border-white/10 hover:border-white/20 text-[10px] font-mono text-slate-400 hover:text-white transition-colors cursor-pointer"
+                                        wire:click="clearTerminalLogs"
+                                        class="px-2 py-1 rounded-lg bg-slate-900 border border-white/10 hover:border-rose-500/40 text-[10px] font-mono text-slate-400 hover:text-rose-300 transition-colors cursor-pointer"
+                                        title="Clear all logs"
                                     >
-                                        <span x-show="!copied">📋 Copy Logs</span>
-                                        <span x-show="copied" class="text-emerald-400">✓ Copied</span>
+                                        🧹 Clear
+                                    </button>
+
+                                    <button 
+                                        type="button" 
+                                        @click="navigator.clipboard.writeText(JSON.stringify(@js($updateLogs), null, 2)); copied = true; setTimeout(() => copied = false, 2000)"
+                                        class="px-2 py-1 rounded-lg bg-slate-900 border border-white/10 hover:border-violet-500/40 text-[10px] font-mono text-slate-400 hover:text-white transition-colors cursor-pointer flex items-center gap-1"
+                                    >
+                                        <span x-show="!copied">📋 Copy</span>
+                                        <span x-show="copied" class="text-emerald-400 font-bold">✓ Copied</span>
                                     </button>
                                 @endif
                             </div>
                         </div>
 
                         <!-- Terminal Output Window -->
-                        <div class="p-4 rounded-xl bg-slate-950 border border-white/15 font-mono text-xs text-slate-300 space-y-1.5 max-h-64 overflow-y-auto custom-scrollbar shadow-inner">
+                        <div 
+                            x-ref="terminalBody"
+                            class="p-4 rounded-xl bg-slate-950/95 border border-white/15 font-mono text-xs text-slate-300 space-y-2 max-h-80 overflow-y-auto custom-scrollbar shadow-2xl select-text"
+                        >
                             @if(empty($updateLogs))
-                                <div class="text-slate-500 italic flex items-center gap-2">
-                                    <span class="text-indigo-400">&gt;</span>
-                                    <span>No active deployment in progress. Click "Apply Update" or "Re-Deploy" to stream real-time execution telemetry.</span>
+                                <div class="text-slate-500 italic flex items-center gap-2 py-2">
+                                    <span class="text-indigo-400 font-bold">&gt;</span>
+                                    <span>Console idle. Click "Apply Update", "Re-Deploy", or run database migrations to stream real-time execution telemetry.</span>
                                 </div>
                             @else
                                 @foreach($updateLogs as $logEntry)
@@ -269,11 +301,11 @@
                                         $msg = is_array($logEntry) ? ($logEntry['message'] ?? '') : $logEntry;
                                         $time = is_array($logEntry) ? ($logEntry['time'] ?? date('H:i:s')) : date('H:i:s');
                                     @endphp
-                                    <div class="flex items-start gap-2 leading-relaxed">
-                                        <span class="text-[10px] text-slate-500 select-none shrink-0">[{{ $time }}]</span>
+                                    <div class="flex items-start gap-2.5 leading-relaxed font-mono">
+                                        <span class="text-[10px] text-slate-500 select-none shrink-0 pt-0.5">[{{ $time }}]</span>
                                         @if($type === 'command')
-                                            <span class="text-cyan-400 font-bold shrink-0">&gt;&gt;</span>
-                                            <span class="text-cyan-200">{{ $msg }}</span>
+                                            <span class="text-cyan-400 font-black shrink-0">&gt;&gt;</span>
+                                            <span class="text-cyan-200 font-semibold">{{ $msg }}</span>
                                         @elseif($type === 'success')
                                             <span class="text-emerald-400 font-bold shrink-0">✔</span>
                                             <span class="text-emerald-300 font-medium">{{ $msg }}</span>
@@ -475,7 +507,7 @@
     <!-- TAB 2: DATABASE UPDATES & ROLLBACK -->
     <div x-show="activeTab === 'database'" class="space-y-6" style="display: none;">
         <!-- Database Control Overview -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <x-glass.card variant="standard" class="p-6">
                 <div class="text-xs font-semibold uppercase text-slate-400 mb-1">Active Engine</div>
                 <div class="text-2xl font-black text-white font-mono">{{ $dbDetails['driver'] ?? 'SQLITE' }}</div>
@@ -489,6 +521,16 @@
             </x-glass.card>
 
             <x-glass.card variant="standard" class="p-6">
+                <div class="text-xs font-semibold uppercase text-slate-400 mb-1">Schema Migrations</div>
+                <div class="text-2xl font-black {{ ($migrationsData['pending_count'] ?? 0) > 0 ? 'text-amber-400' : 'text-emerald-400' }} font-mono">
+                    {{ $migrationsData['applied_count'] ?? 0 }} / {{ $migrationsData['total_count'] ?? 0 }}
+                </div>
+                <div class="text-xs mt-2 {{ ($migrationsData['pending_count'] ?? 0) > 0 ? 'text-amber-300 font-semibold' : 'text-slate-400' }}">
+                    {{ ($migrationsData['pending_count'] ?? 0) > 0 ? $migrationsData['pending_count'] . ' pending migration(s)' : 'All migrations executed' }}
+                </div>
+            </x-glass.card>
+
+            <x-glass.card variant="standard" class="p-6">
                 <div class="text-xs font-semibold uppercase text-slate-400 mb-1">Saved DB Snapshots</div>
                 <div class="text-2xl font-black text-violet-400 font-mono">{{ count($dbSnapshots) }} Backups</div>
                 <div class="text-xs text-slate-400 mt-2">Point-in-time recovery points</div>
@@ -496,37 +538,209 @@
         </div>
 
         <!-- Database Action Buttons -->
-        <div class="flex flex-wrap items-center gap-3">
-            <button 
-                wire:click="createDbSnapshot" 
-                wire:loading.attr="disabled"
-                class="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs shadow-lg transition-all flex items-center gap-2 cursor-pointer"
-            >
-                <span>📸</span>
-                <span wire:loading.remove wire:target="createDbSnapshot">Create DB Snapshot</span>
-                <span wire:loading wire:target="createDbSnapshot">Dumping Tables...</span>
-            </button>
+        <div class="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-slate-900/60 border border-white/10">
+            <div class="flex flex-wrap items-center gap-3">
+                <button 
+                    wire:click="createDbSnapshot" 
+                    wire:loading.attr="disabled"
+                    class="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+                >
+                    <span>📸</span>
+                    <span wire:loading.remove wire:target="createDbSnapshot">Create DB Snapshot</span>
+                    <span wire:loading wire:target="createDbSnapshot">Dumping Tables...</span>
+                </button>
 
-            <button 
-                wire:click="runDbMigrations" 
-                wire:loading.attr="disabled"
-                class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg transition-all flex items-center gap-2 cursor-pointer"
-            >
-                <span>⚡</span>
-                <span wire:loading.remove wire:target="runDbMigrations">Run Pending Migrations</span>
-                <span wire:loading wire:target="runDbMigrations">Migrating...</span>
-            </button>
+                <button 
+                    wire:click="runDbMigrations" 
+                    wire:loading.attr="disabled"
+                    class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/25 transition-all flex items-center gap-2 cursor-pointer"
+                >
+                    <span wire:loading.remove wire:target="runDbMigrations">⚡</span>
+                    <span wire:loading wire:target="runDbMigrations" class="animate-spin">⏳</span>
+                    <span wire:loading.remove wire:target="runDbMigrations">Run Database Migrations</span>
+                    <span wire:loading wire:target="runDbMigrations">Migrating Schema...</span>
+                </button>
 
-            <button 
-                wire:click="rollbackMigrationStep" 
-                wire:loading.attr="disabled"
-                wire:confirm="Roll back the last migration batch?"
-                class="px-4 py-2.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/40 font-bold text-xs shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+                <button 
+                    wire:click="rollbackMigrationStep" 
+                    wire:loading.attr="disabled"
+                    wire:confirm="Roll back the last migration batch?"
+                    class="px-4 py-2.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/40 font-bold text-xs shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+                >
+                    <span>⏪</span>
+                    <span wire:loading.remove wire:target="rollbackMigrationStep">Rollback Last Batch</span>
+                    <span wire:loading wire:target="rollbackMigrationStep">Rolling Back...</span>
+                </button>
+            </div>
+
+            <div class="text-xs text-slate-400 font-mono">
+                Auto-Snapshot Before Migration: <span class="text-emerald-400 font-bold">ENABLED</span>
+            </div>
+        </div>
+
+        <!-- Database Terminal Output Console (Live Real-Time Telemetry) -->
+        <x-glass.card variant="elevated" class="p-6 border border-white/10 space-y-3">
+            <div 
+                x-data="{ 
+                    copied: false,
+                    autoScroll: true,
+                    scrollToBottom() {
+                        if (this.autoScroll && this.$refs.dbTerminalBody) {
+                            this.$refs.dbTerminalBody.scrollTop = this.$refs.dbTerminalBody.scrollHeight;
+                        }
+                    }
+                }"
+                x-init="$watch('$wire.updateLogs', () => { $nextTick(() => scrollToBottom()); })"
+                class="space-y-3"
             >
-                <span>⏪</span>
-                <span wire:loading.remove wire:target="rollbackMigrationStep">Rollback Last Migration Batch</span>
-                <span wire:loading wire:target="rollbackMigrationStep">Rolling Back Batch...</span>
-            </button>
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500/90 shadow-[0_0_6px_#f43f5e]"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500/90 shadow-[0_0_6px_#f59e0b]"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/90 shadow-[0_0_6px_#10b981]"></span>
+                        </div>
+                        <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-slate-200 ml-1 flex items-center gap-2">
+                            <span>hoa-database@terminal: ~</span>
+                            <span class="text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 font-normal">
+                                {{ count($updateLogs) }} lines
+                            </span>
+                        </h4>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <div wire:loading wire:target="runDbMigrations,rollbackMigrationStep,createDbSnapshot,restoreDbSnapshot" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[10px] font-mono font-bold animate-pulse">
+                            <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                            <span>DATABASE ENGINE ACTIVE</span>
+                        </div>
+
+                        <div wire:loading.remove wire:target="runDbMigrations,rollbackMigrationStep,createDbSnapshot,restoreDbSnapshot" class="flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-mono font-medium border border-emerald-500/20">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                            <span>DB READY</span>
+                        </div>
+
+                        @if(!empty($updateLogs))
+                            <button 
+                                type="button" 
+                                wire:click="clearTerminalLogs"
+                                class="px-2 py-1 rounded-lg bg-slate-900 border border-white/10 hover:border-rose-500/40 text-[10px] font-mono text-slate-400 hover:text-rose-300 transition-colors cursor-pointer"
+                                title="Clear all logs"
+                            >
+                                🧹 Clear
+                            </button>
+
+                            <button 
+                                type="button" 
+                                @click="navigator.clipboard.writeText(JSON.stringify(@js($updateLogs), null, 2)); copied = true; setTimeout(() => copied = false, 2000)"
+                                class="px-2 py-1 rounded-lg bg-slate-900 border border-white/10 hover:border-violet-500/40 text-[10px] font-mono text-slate-400 hover:text-white transition-colors cursor-pointer flex items-center gap-1"
+                            >
+                                <span x-show="!copied">📋 Copy</span>
+                                <span x-show="copied" class="text-emerald-400 font-bold">✓ Copied</span>
+                            </button>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- DB Terminal Output Window -->
+                <div 
+                    x-ref="dbTerminalBody"
+                    class="p-4 rounded-xl bg-slate-950/95 border border-white/15 font-mono text-xs text-slate-300 space-y-2 max-h-56 overflow-y-auto custom-scrollbar shadow-inner select-text"
+                >
+                    @if(empty($updateLogs))
+                        <div class="text-slate-500 italic flex items-center gap-2 py-2">
+                            <span class="text-indigo-400 font-bold">&gt;</span>
+                            <span>Database console idle. Click "Run Database Migrations", "Rollback Last Batch", or "Create DB Snapshot" to stream SQL & migration events live.</span>
+                        </div>
+                    @else
+                        @foreach($updateLogs as $logEntry)
+                            @php
+                                $type = is_array($logEntry) ? ($logEntry['type'] ?? 'info') : 'info';
+                                $msg = is_array($logEntry) ? ($logEntry['message'] ?? '') : $logEntry;
+                                $time = is_array($logEntry) ? ($logEntry['time'] ?? date('H:i:s')) : date('H:i:s');
+                            @endphp
+                            <div class="flex items-start gap-2.5 leading-relaxed font-mono">
+                                <span class="text-[10px] text-slate-500 select-none shrink-0 pt-0.5">[{{ $time }}]</span>
+                                @if($type === 'command')
+                                    <span class="text-cyan-400 font-black shrink-0">&gt;&gt;</span>
+                                    <span class="text-cyan-200 font-semibold">{{ $msg }}</span>
+                                @elseif($type === 'success')
+                                    <span class="text-emerald-400 font-bold shrink-0">✔</span>
+                                    <span class="text-emerald-300 font-medium">{{ $msg }}</span>
+                                @elseif($type === 'warning')
+                                    <span class="text-amber-400 font-bold shrink-0">⚠</span>
+                                    <span class="text-amber-300">{{ $msg }}</span>
+                                @elseif($type === 'error')
+                                    <span class="text-rose-400 font-bold shrink-0">✖</span>
+                                    <span class="text-rose-300 font-bold">{{ $msg }}</span>
+                                @else
+                                    <span class="text-indigo-400 font-bold shrink-0">&bull;</span>
+                                    <span class="text-slate-300">{{ $msg }}</span>
+                                @endif
+                            </div>
+                        @endforeach
+                    @endif
+                </div>
+            </div>
+        </x-glass.card>
+
+        <!-- Database Schema Migrations Table -->
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-base font-bold text-white tracking-tight flex items-center gap-2">
+                    <span>Database Migrations State</span>
+                    <span class="text-xs font-mono text-slate-400">({{ $migrationsData['total_count'] ?? 0 }} total files)</span>
+                </h3>
+            </div>
+
+            <x-glass.card variant="standard" class="p-0 overflow-hidden">
+                <div class="overflow-x-auto max-h-80 overflow-y-auto custom-scrollbar">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-900/90 sticky top-0 z-10 text-slate-400 border-b border-white/5 uppercase text-[10px]">
+                            <tr>
+                                <th class="p-4">Migration File</th>
+                                <th class="p-4">Batch</th>
+                                <th class="p-4">Status</th>
+                                <th class="p-4 text-right">Execution Target</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5 text-slate-200 font-mono">
+                            @forelse(($migrationsData['all'] ?? []) as $mig)
+                                <tr class="hover:bg-white/5 transition-colors">
+                                    <td class="p-4 text-white font-medium">
+                                        <div class="flex items-center gap-2">
+                                            <span>{{ $mig['applied'] ? '📄' : '⏳' }}</span>
+                                            <span class="{{ $mig['applied'] ? 'text-slate-200' : 'text-amber-300 font-bold' }}">{{ $mig['file'] }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="p-4 text-slate-400">
+                                        {{ $mig['batch'] ? 'Batch #' . $mig['batch'] : '—' }}
+                                    </td>
+                                    <td class="p-4">
+                                        @if($mig['applied'])
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                                                <span>✔</span> APPLIED
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse">
+                                                <span>⏳</span> PENDING
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="p-4 text-right text-slate-400 text-[11px]">
+                                        {{ $dbDetails['driver'] ?? 'SQLITE' }}
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="p-6 text-center text-slate-500 font-mono text-xs">
+                                        No migration files detected in database/migrations directory.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </x-glass.card>
         </div>
 
         <!-- Database Snapshot History Table -->

@@ -208,6 +208,10 @@ class AiStreamController extends Controller
             $accumulated = '';
             $routedModel = $validated['model'] ?? config('omniroute.default_model', 'auto');
 
+            // Disable PHP output buffering entirely for zero-latency SSE token delivery
+            @ob_implicit_flush(true);
+            while (ob_get_level() > 0) { ob_end_flush(); }
+
             $streamOptions = [
                 'model' => $routedModel,
                 'temperature' => (float) ($validated['temperature'] ?? 0.75),
@@ -236,9 +240,6 @@ class AiStreamController extends Controller
                     echo "event: token\n";
                     echo "data: " . json_encode(['token' => $token, 'model' => $routedModel]) . "\n\n";
 
-                    if (ob_get_level() > 0) {
-                        ob_flush();
-                    }
                     flush();
                 }
 
@@ -257,9 +258,6 @@ class AiStreamController extends Controller
                     'quota_remaining' => max(0, $user->monthly_word_quota - $user->used_word_quota),
                 ]) . "\n\n";
 
-                if (ob_get_level() > 0) {
-                    ob_flush();
-                }
                 flush();
             } catch (AiTokenLimitException $e) {
                 echo "event: error\ndata: " . json_encode(['message' => 'Token limit exceeded.']) . "\n\n";
@@ -268,15 +266,13 @@ class AiStreamController extends Controller
             } catch (Exception $e) {
                 echo "event: error\n";
                 echo "data: " . json_encode(['message' => $e->getMessage()]) . "\n\n";
-                if (ob_get_level() > 0) {
-                    ob_flush();
-                }
                 flush();
             }
         }, 200, [
             'Content-Type' => 'text/event-stream',
             'Cache-Control' => 'no-cache',
             'X-Accel-Buffering' => 'no',
+            'Connection' => 'keep-alive',
         ]);
     }
 
@@ -315,6 +311,10 @@ class AiStreamController extends Controller
             $accumulated = '';
             $routedModel = $validated['model'] ?? config('omniroute.default_model', 'auto');
 
+            // Disable PHP output buffering entirely for zero-latency SSE token delivery
+            @ob_implicit_flush(true);
+            while (ob_get_level() > 0) { ob_end_flush(); }
+
             try {
                 $generator = $client->streamChatCompletion($messages, [
                     'model' => $routedModel,
@@ -331,9 +331,6 @@ class AiStreamController extends Controller
 
                     echo "event: token\n";
                     echo "data: " . json_encode(['token' => $token, 'model' => $routedModel]) . "\n\n";
-                    if (ob_get_level() > 0) {
-                        ob_flush();
-                    }
                     flush();
                 }
 
@@ -351,9 +348,6 @@ class AiStreamController extends Controller
                     'quota_remaining' => max(0, $user->monthly_word_quota - $user->used_word_quota),
                 ]) . "\n\n";
 
-                if (ob_get_level() > 0) {
-                    ob_flush();
-                }
                 flush();
             } catch (AiTokenLimitException $e) {
                 echo "event: error\ndata: " . json_encode(['message' => 'Token limit exceeded.']) . "\n\n";
@@ -362,15 +356,13 @@ class AiStreamController extends Controller
             } catch (Exception $e) {
                 echo "event: error\n";
                 echo "data: " . json_encode(['message' => $e->getMessage()]) . "\n\n";
-                if (ob_get_level() > 0) {
-                    ob_flush();
-                }
                 flush();
             }
         }, 200, [
             'Content-Type' => 'text/event-stream',
             'Cache-Control' => 'no-cache',
             'X-Accel-Buffering' => 'no',
+            'Connection' => 'keep-alive',
         ]);
     }
 }

@@ -67,11 +67,12 @@ class RegisterPage extends Component
 
         return [
             'name' => ['required', 'string', 'min:2', 'max:70'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => [
                 'required',
                 'string',
                 'min:8',
+                'max:128',
                 'confirmed',
             ],
             'agree' => ['accepted'],
@@ -85,13 +86,19 @@ class RegisterPage extends Component
 
     public function register(RegisterUser $action, AuthSecurityService $security)
     {
-        // 0. Check if client IP is blocked
+        // 0. Sanitize inputs against null bytes and control character injection
+        $this->name = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', trim($this->name));
+        $this->email = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', trim($this->email));
+        $this->password = str_replace("\0", '', $this->password);
+        $this->password_confirmation = str_replace("\0", '', $this->password_confirmation);
+
+        // 1. Check if client IP is blocked
         $security->checkIpBlock();
 
-        // 1. Verify Anti-Bot Honeypot and speed
+        // 2. Verify Anti-Bot Honeypot and speed
         $security->verifyHoneypot($this->honeypot, $this->formLoadedAt);
 
-        // 2. Verify Cloudflare Turnstile token if enabled
+        // 3. Verify Cloudflare Turnstile token if enabled
         $security->verifyTurnstile($this->turnstileToken);
 
         $this->validate();

@@ -25,10 +25,27 @@
  * HOA-Studio Multi-Type Editor Manager
  * Strategy pattern dispatcher supporting Tiptap, Gutenberg, Block Editor, etc.
  */
+import { TiptapDriver } from './drivers/tiptap-driver.js';
+import { GutenbergDriver } from './drivers/gutenberg-driver.js';
+import { NotionDriver } from './drivers/notion-driver.js';
+import { MarkdownDriver } from './drivers/markdown-driver.js';
+import { MarkdownSplitDriver } from './drivers/markdown-split-driver.js';
+import { HtmlDriver } from './drivers/html-driver.js';
+import { PlainTextDriver } from './drivers/plaintext-driver.js';
+
 class HoaEditorManager {
     constructor() {
         this.drivers = new Map();
         this.instances = new Map();
+
+        // Register default drivers
+        this.registerDriver('tiptap', TiptapDriver);
+        this.registerDriver('gutenberg', GutenbergDriver);
+        this.registerDriver('notion', NotionDriver);
+        this.registerDriver('markdown', MarkdownDriver);
+        this.registerDriver('markdown-split', MarkdownSplitDriver);
+        this.registerDriver('html', HtmlDriver);
+        this.registerDriver('plaintext', PlainTextDriver);
     }
 
     registerDriver(type, driverClass) {

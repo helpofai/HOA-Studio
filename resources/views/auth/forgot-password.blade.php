@@ -40,10 +40,28 @@
 
         <!-- Glass Forgot Password Card -->
         <x-glass.card variant="elevated" class="p-6 sm:p-8 border border-white/15 shadow-2xl">
-            @if ($status)
-                <div class="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 mb-4">
-                    {{ $status }}
-                </div>
+            @if ($status || session('status') || session('success'))
+                <x-glass.alert variant="success" class="mb-4">
+                    {{ $status ?? session('status') ?? session('success') }}
+                </x-glass.alert>
+            @endif
+
+            @if (session('error'))
+                <x-glass.alert variant="error" class="mb-4">
+                    {{ session('error') }}
+                </x-glass.alert>
+            @endif
+
+            @if (session('warning'))
+                <x-glass.alert variant="warning" class="mb-4">
+                    {{ session('warning') }}
+                </x-glass.alert>
+            @endif
+
+            @if (session('info'))
+                <x-glass.alert variant="info" class="mb-4">
+                    {{ session('info') }}
+                </x-glass.alert>
             @endif
 
             <form wire:submit="sendResetLink" class="space-y-4">
@@ -62,12 +80,17 @@
                     @enderror
                 </div>
 
-                <x-glass.button type="submit" variant="primary" size="md" class="w-full shadow-lg shadow-indigo-500/25 mt-2">
-                    <span wire:loading.remove wire:target="sendResetLink">Send Recovery Link</span>
-                    <span wire:loading wire:target="sendResetLink" class="flex items-center gap-2">
-                        <span class="w-3 h-3 rounded-full border-2 border-white/20 border-t-white animate-spin"></span>
-                        Dispatching Link...
-                    </span>
+                <!-- 1. Classic Spinner Submission Button -->
+                <x-glass.button 
+                    type="submit" 
+                    variant="primary" 
+                    size="md" 
+                    wire-target="sendResetLink"
+                    loader="spinner"
+                    loading-text="Dispatching Link..."
+                    class="w-full shadow-lg shadow-indigo-500/25 mt-2 font-semibold"
+                >
+                    Send Recovery Link
                 </x-glass.button>
             </form>
 
@@ -78,5 +101,20 @@
                 </a>
             </div>
         </x-glass.card>
+
+        <!-- Security & Anti-Attack Trust Footprint -->
+        <div class="mt-6 flex items-center justify-center gap-4 text-[11px] text-slate-500 text-center select-none">
+            <span class="flex items-center gap-1.5 hover:text-slate-400 transition-colors">
+                <span class="text-emerald-400">🔒</span> TLS 1.3 / AES-256
+            </span>
+            <span>&bull;</span>
+            <span class="flex items-center gap-1.5 hover:text-slate-400 transition-colors">
+                <span class="text-indigo-400">🛡️</span> Encrypted Tokens
+            </span>
+            <span>&bull;</span>
+            <span class="flex items-center gap-1.5 hover:text-slate-400 transition-colors">
+                <span class="text-cyan-400">⚡</span> Anti-Bot Shield
+            </span>
+        </div>
     </div>
 </div>

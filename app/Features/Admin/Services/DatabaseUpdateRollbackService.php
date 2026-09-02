@@ -177,24 +177,113 @@ class DatabaseUpdateRollbackService
 
     /**
      * Run All Pending Database Migrations.
+    /**
+     * Get detailed list of migrations (applied vs pending).
+     */
+    public function getMigrationsList(): array
+    {
+        $migrationFiles = [];
+        $migrationPath = database_path('migrations');
+        if (File::exists($migrationPath)) {
+            $files = File::glob("{$migrationPath}/*.php");
+            foreach ($files as $file) {
+                $filename = basename($file, '.php');
+                $migrationFiles[$filename] = [
+                    'name' => $filename,
+                    'file' => basename($file),
+                    'path' => $file,
+                    'applied' => false,
+                    'batch' => null,
+                ];
+            }
+        }
+
+        try {
+            if (DB::getSchemaBuilder()->hasTable('migrations')) {
+                $ranMigrations = DB::table('migrations')->orderBy('id', 'desc')->get();
+                foreach ($ranMigrations as $ran) {
+                    if (isset($migrationFiles[$ran->migration])) {
+                        $migrationFiles[$ran->migration]['applied'] = true;
+                        $migrationFiles[$ran->migration]['batch'] = $ran->batch;
+                    } else {
+                        $migrationFiles[$ran->migration] = [
+                            'name' => $ran->migration,
+                            'file' => "{$ran->migration}.php",
+                            'path' => null,
+                            'applied' => true,
+                            'batch' => $ran->batch,
+                        ];
+                    }
+                }
+            }
+        } catch (\Throwable $e) {}
+
+        $all = array_values($migrationFiles);
+        $pending = array_filter($all, fn($m) => !$m['applied']);
+        $applied = array_filter($all, fn($m) => $m['applied']);
+
+        return [
+            'all' => $all,
+            'pending' => array_values($pending),
+            'applied' => array_values($applied),
+            'total_count' => count($all),
+            'pending_count' => count($pending),
+            'applied_count' => count($applied),
+        ];
+    }
+
+    /**
+     * Run Pending Database Migrations (Artisan migrate --force).
      *
-     * @return array{success: bool, output: string}
+     * @return array{success: bool, output: string, logs: array}
      */
     public function runMigrations(): array
     {
+        $logs = [];
+        $log = function(string $type, string $message) use (&$logs) {
+            $logs[] = [
+                'time' => date('H:i:s'),
+                'type' => $type,
+                'message' => $message,
+            ];
+        };
+
         try {
+            $log('command', 'Executing schema migration: php artisan migrate --force');
             Artisan::call('migrate', ['--force' => true]);
-            $output = Artisan::output();
+            $output = trim(Artisan::output());
+
+            $lines = array_filter(explode("\n", str_replace("\r", "", $output)));
+            if (!empty($lines)) {
+                foreach ($lines as $line) {
+                    $cleanLine = trim($line);
+                    if (empty($cleanLine)) continue;
+                    if (str_contains($cleanLine, 'Running') || str_contains($cleanLine, 'Migrating')) {
+                        $log('info', $cleanLine);
+                    } elseif (str_contains($cleanLine, 'Migrated') || str_contains($cleanLine, 'DONE')) {
+                        $log('success', $cleanLine);
+                    } else {
+                        $log('info', $cleanLine);
+                    }
+                }
+            } else {
+                $log('info', 'Database schema is already up to date. Zero pending migrations.');
+            }
+
+            $log('success', 'Database migration routine completed successfully.');
 
             return [
                 'success' => true,
-                'output' => !empty(trim($output)) ? $output : 'No pending migrations to run. Schema is fully up to date.',
+                'output' => !empty($output) ? $output : 'No pending migrations. Schema is up to date.',
+                'logs' => $logs,
             ];
         } catch (\Throwable $e) {
             Log::error("Database migration error: {$e->getMessage()}");
+            $log('error', "MIGRATION FAILED: {$e->getMessage()}");
             return [
                 'success' => false,
                 'output' => "Migration failed: {$e->getMessage()}",
+                'logs' => $logs,
             ];
         }
     }
@@ -202,26 +291,58 @@ class DatabaseUpdateRollbackService
     /**
      * Rollback the Last Migration Batch (Artisan migrate:rollback).
      *
-     * @return array{success: bool, output: string}
+     * @return array{success: bool, output: string, logs: array}
      */
     public function rollbackLastMigrationBatch(int $step = 1): array
     {
+        $logs = [];
+        $log = function(string $type, string $message) use (&$logs) {
+            $logs[] = [
+                'time' => date('H:i:s'),
+                'type' => $type,
+                'message' => $message,
+            ];
+        };
+
         try {
+            $log('command', "Executing rollback batch: php artisan migrate:rollback --step={$step} --force");
             Artisan::call('migrate:rollback', [
                 '--step' => $step,
                 '--force' => true,
             ]);
-            $output = Artisan::output();
+            $output = trim(Artisan::output());
+
+            $lines = array_filter(explode("\n", str_replace("\r", "", $output)));
+            if (!empty($lines)) {
+                foreach ($lines as $line) {
+                    $cleanLine = trim($line);
+                    if (empty($cleanLine)) continue;
+                    if (str_contains($cleanLine, 'Rolling back')) {
+                        $log('warning', $cleanLine);
+                    } elseif (str_contains($cleanLine, 'Rolled back')) {
+                        $log('success', $cleanLine);
+                    } else {
+                        $log('info', $cleanLine);
+                    }
+                }
+            } else {
+                $log('info', 'No migrations found to rollback.');
+            }
+
+            $log('success', "Rollback completed for {$step} batch(es).");
 
             return [
                 'success' => true,
-                'output' => !empty(trim($output)) ? $output : "Rolled back {$step} migration step(s).",
+                'output' => !empty($output) ? $output : "Rolled back {$step} migration step(s).",
+                'logs' => $logs,
             ];
         } catch (\Throwable $e) {
             Log::error("Migration rollback error: {$e->getMessage()}");
+            $log('error', "ROLLBACK FAILED: {$e->getMessage()}");
             return [
                 'success' => false,
                 'output' => "Rollback failed: {$e->getMessage()}",
+                'logs' => $logs,
             ];
         }
     }
