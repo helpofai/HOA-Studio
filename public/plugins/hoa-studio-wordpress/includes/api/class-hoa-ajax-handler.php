@@ -29,8 +29,10 @@ class HoaAjaxHandler {
 
         $endpoint = rtrim(sanitize_text_field($_POST['endpoint']), '/');
         $key = sanitize_text_field($_POST['key']);
+        $url = $endpoint . '/api/v1/wordpress/connect';
 
-        $response = wp_remote_post($endpoint . '/api/v1/wordpress/connect', [
+        $startTime = microtime(true);
+        $response = wp_remote_post($url, [
             'headers' => [
                 'Authorization' => 'Bearer ' . $key,
                 'Content-Type' => 'application/json',
@@ -40,19 +42,40 @@ class HoaAjaxHandler {
             ],
             'timeout' => 15,
         ]);
+        $latencyMs = round((microtime(true) - $startTime) * 1000);
 
         if (is_wp_error($response)) {
-            wp_send_json_error(['message' => 'Connection Failed: ' . $response->get_error_message()]);
+            wp_send_json_error([
+                'message' => 'Network Connection Failed: ' . $response->get_error_message(),
+                'request_url' => $url,
+                'latency_ms' => $latencyMs,
+                'http_code' => 0,
+            ]);
         }
 
-        $code = wp_remote_retrieve_response_code($response);
-        $body = json_decode(wp_remote_retrieve_body($response), true);
+        $code = (int) wp_remote_retrieve_response_code($response);
+        $rawBody = wp_remote_retrieve_body($response);
+        $body = json_decode($rawBody, true);
 
         if ($code === 200 && isset($body['success']) && $body['success']) {
+            $body['latency_ms'] = $latencyMs;
+            $body['request_url'] = $url;
+            $body['http_code'] = 200;
             wp_send_json_success($body);
         } else {
-            $msg = isset($body['error']) ? $body['error'] : 'Authentication rejected (HTTP ' . $code . ')';
-            wp_send_json_error(['message' => $msg]);
+            $rawSnippet = '';
+            if (is_string($rawBody)) {
+                $cleaned = trim(strip_tags($rawBody));
+                $rawSnippet = substr($cleaned, 0, 300);
+            }
+            $msg = isset($body['error']) ? $body['error'] : ($rawSnippet ?: 'Authentication rejected (HTTP ' . $code . ')');
+            wp_send_json_error([
+                'message' => $msg,
+                'request_url' => $url,
+                'http_code' => $code,
+                'latency_ms' => $latencyMs,
+                'raw_snippet' => $rawSnippet,
+            ]);
         }
     }
 
