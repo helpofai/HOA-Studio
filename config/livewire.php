@@ -291,4 +291,18 @@ return [
     */
     'asset_url' => env('ASSET_URL', null),
     'update_route' => null,
+
+    /*
+    |---------------------------------------------------------------------------
+    | Navigation Progress Bar
+    |---------------------------------------------------------------------------
+    |
+    | Livewire 3 displays a top progress bar during wire:navigate requests.
+    | Set the brand progress bar color and animation attributes here.
+    |
+    */
+    'navigate' => [
+        'show_progress_bar' => true,
+        'progress_bar_color' => '#8b5cf6',
+    ],
 ];

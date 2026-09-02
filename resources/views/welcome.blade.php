@@ -141,8 +141,8 @@
                             x-transition:leave="transition ease-in duration-150"
                             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                             x-transition:leave-end="opacity-0 translate-y-2 scale-95"
-                            class="absolute right-0 top-full mt-2 w-64 rounded-2xl bg-slate-950/85 backdrop-blur-2xl border border-white/15 shadow-2xl shadow-black/80 py-2 z-50 overflow-hidden text-left"
-                            style="display: none;"
+                            class="absolute right-0 top-full mt-2 w-64 rounded-2xl hoa-glass-dropdown py-2 z-50 overflow-hidden text-left border border-white/15 shadow-2xl shadow-black/80"
+                            style="display: none; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(28px) saturate(190%); -webkit-backdrop-filter: blur(28px) saturate(190%);"
                         >
                             <!-- User Information Header -->
                             <div class="px-4 py-3 border-b border-white/10 flex items-center gap-3">

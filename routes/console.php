@@ -2,7 +2,7 @@
 
 /*
 |--------------------------------------------------------------------------
-| HelpOfAi (HOA) Professional Software
+| HelpOfAi (HOA) Professional Software - Console Routes & Schedules
 |--------------------------------------------------------------------------
 |
 | Copyright (c) 2026 Rajib Adhikary. All Rights Reserved.
@@ -25,7 +25,18 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+
+/**
+ * Daily Maintenance & Performance Schedules
+ * Automatically prunes telemetry and auth security records older than 30 days.
+ */
+Schedule::command('hoa:prune-telemetry --days=30')
+    ->daily()
+    ->at('03:00')
+    ->withoutOverlapping()
+    ->runInBackground();

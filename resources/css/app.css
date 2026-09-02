@@ -36,6 +36,63 @@
 
 /*
 |--------------------------------------------------------------------------
+| Universal Backdrop Filter & Blur Normalization (Fixes Tailwind 4 var bug)
+|--------------------------------------------------------------------------
+*/
+:root {
+    --tw-backdrop-blur: initial;
+    --tw-backdrop-brightness: initial;
+    --tw-backdrop-contrast: initial;
+    --tw-backdrop-grayscale: initial;
+    --tw-backdrop-hue-rotate: initial;
+    --tw-backdrop-invert: initial;
+    --tw-backdrop-opacity: initial;
+    --tw-backdrop-saturate: initial;
+    --tw-backdrop-sepia: initial;
+}
+
+.backdrop-blur-none {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+}
+
+.backdrop-blur-sm {
+    -webkit-backdrop-filter: blur(4px) !important;
+    backdrop-filter: blur(4px) !important;
+}
+
+.backdrop-blur {
+    -webkit-backdrop-filter: blur(8px) !important;
+    backdrop-filter: blur(8px) !important;
+}
+
+.backdrop-blur-md {
+    -webkit-backdrop-filter: blur(12px) !important;
+    backdrop-filter: blur(12px) !important;
+}
+
+.backdrop-blur-lg {
+    -webkit-backdrop-filter: blur(16px) !important;
+    backdrop-filter: blur(16px) !important;
+}
+
+.backdrop-blur-xl {
+    -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+    backdrop-filter: blur(20px) saturate(160%) !important;
+}
+
+.backdrop-blur-2xl {
+    -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
+    backdrop-filter: blur(28px) saturate(190%) !important;
+}
+
+.backdrop-blur-3xl {
+    -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
+    backdrop-filter: blur(40px) saturate(200%) !important;
+}
+
+/*
+|--------------------------------------------------------------------------
 | Global Design System: Minimum 3px to 9px Corner Radius Normalization
 |--------------------------------------------------------------------------
 */

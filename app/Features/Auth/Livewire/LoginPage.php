@@ -50,19 +50,23 @@ class LoginPage extends Component
     }
 
     protected array $rules = [
-        'email' => 'required|email|max:255',
-        'password' => 'required|string|max:255',
+        'email' => 'required|string|email|max:255',
+        'password' => 'required|string|max:128',
     ];
 
     public function login(LoginUser $action, AuthSecurityService $security)
     {
-        // 0. Check if client IP is blocked
+        // 0. Sanitize inputs against null bytes and control character injection
+        $this->email = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', trim($this->email));
+        $this->password = str_replace("\0", '', $this->password);
+
+        // 1. Check if client IP is blocked
         $security->checkIpBlock();
 
-        // 1. Verify Anti-Bot Honeypot and timing speed
+        // 2. Verify Anti-Bot Honeypot and timing speed
         $security->verifyHoneypot($this->honeypot, $this->formLoadedAt);
 
-        // 2. Verify Cloudflare Turnstile token if enabled
+        // 3. Verify Cloudflare Turnstile token if enabled
         $security->verifyTurnstile($this->turnstileToken);
 
         $this->validate();

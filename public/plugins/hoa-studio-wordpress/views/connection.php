@@ -1,4 +1,19 @@
 <?php
+/*
+|--------------------------------------------------------------------------
+| HelpOfAi (HOA) Professional Software - WordPress Studio Bridge
+|--------------------------------------------------------------------------
+|
+| Copyright (c) 2026 Rajib Adhikary. All Rights Reserved.
+|
+| Author      : Rajib Adhikary
+| Organization: HelpOfAi (HOA)
+| Website     : https://helpofai.com
+| Location    : Basta Purba Para, Aranghata, Nadia, West Bengal, India
+|
+|--------------------------------------------------------------------------
+*/
+
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -9,8 +24,8 @@ if (!defined('ABSPATH')) {
         <div class="hoa-brand">
             <div class="hoa-logo-pill">✨ HOA</div>
             <div>
-                <h1>HelpOfAi (HOA) Studio — WordPress AI Bridge</h1>
-                <p>Seamlessly connect your self-hosted or cloud HOA-Studio workspace into WordPress.</p>
+                <h1>Connection Settings</h1>
+                <p>Link your WordPress site securely to your HOA Studio Node.</p>
             </div>
         </div>
         <div class="hoa-status-pill" id="hoa-connection-status">
@@ -20,8 +35,8 @@ if (!defined('ABSPATH')) {
     </div>
 
     <form method="post" action="options.php" class="hoa-form-card">
-        <?php settings_fields('hoa_studio_options'); ?>
-        <?php do_settings_sections('hoa_studio_options'); ?>
+        <?php settings_fields('hoa_studio_connection_options'); ?>
+        <?php do_settings_sections('hoa_studio_connection_options'); ?>
 
         <div class="hoa-field-row">
             <label for="hoa_studio_endpoint_url">HOA Studio Instance Endpoint URL</label>
@@ -53,48 +68,15 @@ if (!defined('ABSPATH')) {
             </p>
         </div>
 
-        <div class="hoa-field-row">
-            <label for="hoa_studio_default_editor">Default Editing Mode in Posts & Pages</label>
-            <select id="hoa_studio_default_editor" name="hoa_studio_default_editor">
-                <option value="tiptap" <?php selected($default_editor, 'tiptap'); ?>>✨ TipTap Enterprise Studio Canvas (Recommended Fullscreen AI Canvas)</option>
-                <option value="hybrid" <?php selected($default_editor, 'hybrid'); ?>>⚡ Hybrid Mode (Both TipTap Editor & Gutenberg AI Blocks)</option>
-                <option value="gutenberg" <?php selected($default_editor, 'gutenberg'); ?>>🧩 Gutenberg AI Blocks Only</option>
-            </select>
-            <p class="description">Choose how HOA Studio's editor suite is presented to authors on your site.</p>
-        </div>
-
         <div class="hoa-action-row">
             <button type="submit" class="button button-primary button-hero">
-                Save Plugin Settings
+                Save Connection Settings
             </button>
             <button type="button" id="hoa-btn-test-conn" class="button button-secondary button-hero">
-                Test Connection & Fetch Quotas
+                Test Connection
             </button>
         </div>
     </form>
-
-    <!-- Diagnostics and Account Telemetry Preview Card -->
-    <div class="hoa-telemetry-card" id="hoa-telemetry-box" style="display: none;">
-        <h3>🔗 Connected Studio Account Telemetry</h3>
-        <div class="hoa-metrics-grid">
-            <div class="hoa-metric-box">
-                <div class="hoa-metric-label">Account Owner</div>
-                <div class="hoa-metric-val" id="telemetry-user-name">—</div>
-            </div>
-            <div class="hoa-metric-box">
-                <div class="hoa-metric-label">Monthly Word Balance</div>
-                <div class="hoa-metric-val" id="telemetry-quota-words">—</div>
-            </div>
-            <div class="hoa-metric-box">
-                <div class="hoa-metric-label">Active Plan Tier</div>
-                <div class="hoa-metric-val" id="telemetry-plan-name">—</div>
-            </div>
-            <div class="hoa-metric-box">
-                <div class="hoa-metric-label">Available AI Models</div>
-                <div class="hoa-metric-val" id="telemetry-models-count">—</div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <script>
@@ -121,12 +103,7 @@ jQuery(document).ready(function($) {
         }, function(res) {
             if (res.success) {
                 statusEl.removeClass('disconnected').addClass('connected');
-                statusText.text('Connected to HOA Studio');
-                $('#hoa-telemetry-box').slideDown();
-                $('#telemetry-user-name').text(res.data.user.name + ' (' + res.data.user.email + ')');
-                $('#telemetry-quota-words').text(Number(res.data.user.quota.remaining_words).toLocaleString() + ' words left');
-                $('#telemetry-plan-name').text(res.data.user.plan.toUpperCase());
-                $('#telemetry-models-count').text(res.data.available_models.length + ' active models');
+                statusText.text('Securely Connected');
             } else {
                 statusEl.removeClass('connected').addClass('disconnected');
                 statusText.text('Failed: ' + (res.data ? res.data.message : 'Unknown error'));

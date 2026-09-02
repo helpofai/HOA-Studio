@@ -33,12 +33,14 @@ class AdminUpdatesPage extends Component
     public array $restorePoints = [];
     public array $dbSnapshots = [];
     public array $dbDetails = [];
+    public array $migrationsData = [];
     public array $healthReport = [];
     public array $updateLogs = [];
     public bool $isChecking = false;
     public bool $isUpdating = false;
+    public bool $isMigrating = false;
     public bool $isRollingBack = false;
-    public string $activeTab = 'core'; // 'core', 'database', 'health'
+    public string $activeTab = 'core'; // 'core', 'database', 'migrations', 'health'
     public ?string $feedbackMessage = null;
     public ?string $feedbackType = null;
 
@@ -60,7 +62,13 @@ class AdminUpdatesPage extends Component
         $this->restorePoints = $updateService->getRestorePoints();
         $this->dbSnapshots = $dbService->getDatabaseSnapshots();
         $this->dbDetails = $dbService->getDatabaseDetails();
+        $this->migrationsData = $dbService->getMigrationsList();
         $this->healthReport = $healthProber->probeSystem();
+    }
+
+    public function clearTerminalLogs()
+    {
+        $this->updateLogs = [];
     }
 
     public function triggerCheck(CoreUpdateService $updateService)
@@ -87,9 +95,19 @@ class AdminUpdatesPage extends Component
             $this->restorePoints = $updateService->getRestorePoints();
             $this->feedbackType = 'success';
             $this->feedbackMessage = "Full restore snapshot [{$rp['id']}] created successfully ({$rp['file_size_mb']} MB).";
+            $this->updateLogs[] = [
+                'time' => date('H:i:s'),
+                'type' => 'success',
+                'message' => "Manual full snapshot created: [{$rp['id']}] ({$rp['file_size_mb']} MB)",
+            ];
         } catch (\Throwable $e) {
             $this->feedbackType = 'error';
             $this->feedbackMessage = "Failed to create snapshot: {$e->getMessage()}";
+            $this->updateLogs[] = [
+                'time' => date('H:i:s'),
+                'type' => 'error',
+                'message' => "Failed to create snapshot: {$e->getMessage()}",
+            ];
         }
     }
 
@@ -100,26 +118,50 @@ class AdminUpdatesPage extends Component
             $this->dbSnapshots = $dbService->getDatabaseSnapshots();
             $this->feedbackType = 'success';
             $this->feedbackMessage = "Database snapshot [{$snap['id']}] created successfully ({$snap['size_kb']} KB).";
+            $this->updateLogs[] = [
+                'time' => date('H:i:s'),
+                'type' => 'success',
+                'message' => "Manual database snapshot created: [{$snap['id']}] ({$snap['size_kb']} KB)",
+            ];
         } catch (\Throwable $e) {
             $this->feedbackType = 'error';
             $this->feedbackMessage = "Failed to create DB snapshot: {$e->getMessage()}";
+            $this->updateLogs[] = [
+                'time' => date('H:i:s'),
+                'type' => 'error',
+                'message' => "Failed to create DB snapshot: {$e->getMessage()}",
+            ];
         }
     }
 
     public function runDbMigrations(DatabaseUpdateRollbackService $dbService)
     {
-        $result = $dbService->runMigrations();
-        $this->dbDetails = $dbService->getDatabaseDetails();
-        $this->feedbackType = $result['success'] ? 'success' : 'error';
-        $this->feedbackMessage = $result['output'];
+        $this->isMigrating = true;
+        try {
+            $result = $dbService->runMigrations();
+            $this->dbDetails = $dbService->getDatabaseDetails();
+            $this->migrationsData = $dbService->getMigrationsList();
+            $this->updateLogs = array_merge($this->updateLogs, $result['logs'] ?? []);
+            $this->feedbackType = $result['success'] ? 'success' : 'error';
+            $this->feedbackMessage = $result['output'];
+        } finally {
+            $this->isMigrating = false;
+        }
     }
 
     public function rollbackMigrationStep(DatabaseUpdateRollbackService $dbService)
     {
-        $result = $dbService->rollbackLastMigrationBatch(1);
-        $this->dbDetails = $dbService->getDatabaseDetails();
-        $this->feedbackType = $result['success'] ? 'success' : 'error';
-        $this->feedbackMessage = $result['output'];
+        $this->isMigrating = true;
+        try {
+            $result = $dbService->rollbackLastMigrationBatch(1);
+            $this->dbDetails = $dbService->getDatabaseDetails();
+            $this->migrationsData = $dbService->getMigrationsList();
+            $this->updateLogs = array_merge($this->updateLogs, $result['logs'] ?? []);
+            $this->feedbackType = $result['success'] ? 'success' : 'error';
+            $this->feedbackMessage = $result['output'];
+        } finally {
+            $this->isMigrating = false;
+        }
     }
 
     public function downloadRestorePoint(string $restorePointId, CoreUpdateService $updateService)

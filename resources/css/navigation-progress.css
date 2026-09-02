@@ -1,0 +1,62 @@
+/*
+|--------------------------------------------------------------------------
+| HelpOfAi (HOA) Professional Software - Navigation Progress Bar Stylesheet
+|--------------------------------------------------------------------------
+|
+| Copyright (c) 2026 Rajib Adhikary. All Rights Reserved.
+|
+| Author      : Rajib Adhikary
+| Organization: HelpOfAi (HOA)
+| Website     : https://helpofai.com
+| Location    : Basta Purba Para, Aranghata, Nadia, West Bengal, India
+|
+|--------------------------------------------------------------------------
+*/
+
+/*
+|--------------------------------------------------------------------------
+| Advanced Multi-Phase Navigation Gradient Bar (0 to 100% Transition)
+| Phase 1 (0% - 30%): Emerald & Mint Green (#10b981 / #34d399)
+| Phase 2 (31% - 60%): Electric Cyan, Royal Violet & Warm Gold (#06b6d4 / #8b5cf6 / #f59e0b)
+| Phase 3 (61% - 100%): Glowing Crimson & Rose Red (#f43f5e / #e11d48)
+|--------------------------------------------------------------------------
+*/
+
+#nprogress {
+    pointer-events: none;
+}
+
+#nprogress .bar,
+#livewire-progress-bar,
+.livewire-progress-bar,
+[wire\:loading\.bar] {
+    background: linear-gradient(
+        90deg, 
+        #10b981 0%, 
+        #34d399 28%, 
+        #06b6d4 40%, 
+        #8b5cf6 55%, 
+        #f59e0b 68%, 
+        #f43f5e 82%, 
+        #e11d48 100%
+    ) !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 3.5px !important;
+    box-shadow: 0 0 16px rgba(244, 63, 94, 0.85), 0 0 8px rgba(139, 92, 246, 0.7), 0 0 4px rgba(16, 185, 129, 0.6) !important;
+    z-index: 99999 !important;
+    transition: all 200ms ease;
+}
+
+#nprogress .peg {
+    display: block;
+    position: absolute;
+    right: 0px;
+    width: 100px;
+    height: 100%;
+    box-shadow: 0 0 14px #f43f5e, 0 0 8px #8b5cf6, 0 0 4px #10b981 !important;
+    opacity: 1.0;
+    transform: rotate(3deg) translate(0px, -4px);
+}

@@ -271,15 +271,24 @@
 
             <!-- Action Buttons: Write Live & Multi-Agent Swarm -->
             <div class="space-y-1.5 pt-1">
+                <!-- 5. Animated Bars Multi-Agent Swarm Button -->
                 <button 
                     type="button" 
                     x-on:click="runMultiAgentPipeline(aiPrompt)"
                     :disabled="isTransforming"
-                    class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-xs font-black shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
+                    class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-xs font-black shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer select-none relative overflow-hidden group"
+                    :class="isTransforming ? 'btn-shimmer' : ''"
                 >
-                    <span x-show="!isTransforming">🤖 Run Multi-Agent Swarm (full-content-main-agent)</span>
-                    <span x-show="isTransforming" class="animate-spin text-sm">⟳</span>
-                    <span x-show="isTransforming" x-text="swarmStatusMessage || 'Swarm Collaborating...'"></span>
+                    <span x-show="!isTransforming" class="inline-flex items-center gap-2">
+                        <span>🤖</span>
+                        <span>Run Multi-Agent Swarm (full-content-main-agent)</span>
+                    </span>
+                    <span x-show="isTransforming" class="inline-flex items-center gap-2" style="display: none;">
+                        <span class="bars text-white">
+                            <span></span><span></span><span></span><span></span>
+                        </span>
+                        <span x-text="swarmStatusMessage || 'Swarm Collaborating...'"></span>
+                    </span>
                 </button>
 
                 <button 

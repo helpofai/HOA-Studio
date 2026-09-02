@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.5] - 2026-09-02
+
+### 🚀 Added & Improved
+- **WordPress Plugin Integration Rewrite (HOA Studio AI Bridge)**:
+  - Advanced Enterprise Glassmorphic Dashboard matching the Laravel backend UI using `bg-slate-950` design tokens.
+  - Multi-page system with nested sidebar menus (`Dashboard`, `Connection`, `AI Settings`, `Editor Control`).
+  - Added new `hoa_studio_brand_voice` global prompt injection settings natively configurable in WordPress.
+  - Refactored `hoa-studio-wordpress.php` from a 340-line monolithic script into a clean, 4-module object-oriented architecture (`/includes/admin`, `/includes/api`, `/includes/gutenberg`).
+
+### 🛡️ Cleaned & Hardened
+- **AI Gateway & SSE Streaming Latency Fix**:
+  - Eliminated delayed token chunking on `AiStreamController` and WP Plugin `ajax_stream_proxy` with strict `@ob_implicit_flush(true)` execution flow, restoring sub-50ms Time-To-First-Token capability over Nginx/Apache.
+- **Automated Memory Protection**:
+  - Implemented `php artisan hoa:prune-telemetry` to batch-delete decaying telemetry and security graph data older than 30 days without locking database tables.
+
+---
+
 ## [2.6.4] - 2026-08-31
 
 ### 🚀 Added & Improved

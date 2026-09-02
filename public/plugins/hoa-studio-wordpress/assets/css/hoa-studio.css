@@ -4,13 +4,17 @@
     max-width: 1000px;
     margin: 20px 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    background: #020617; /* bg-slate-950 */
+    padding: 30px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .hoa-header-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+    background: #0f172a;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 16px;
     padding: 24px 30px;
@@ -32,70 +36,72 @@
     font-size: 14px;
     padding: 10px 14px;
     border-radius: 12px;
-    letter-spacing: -0.5px;
+    letter-spacing: 0.5px;
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
 }
 
 .hoa-header-card h1 {
     color: #fff;
-    font-size: 20px;
-    font-weight: 800;
+    font-size: 22px;
+    font-weight: 700;
     margin: 0;
     line-height: 1.2;
 }
 
 .hoa-header-card p {
     color: #94a3b8;
-    margin: 4px 0 0;
-    font-size: 13px;
+    margin: 6px 0 0;
+    font-size: 14px;
 }
 
 .hoa-status-pill {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 14px;
+    padding: 8px 16px;
     border-radius: 9999px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     color: #94a3b8;
 }
 
 .hoa-status-pill .hoa-dot {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     background: #64748b;
 }
 
 .hoa-status-pill.connected {
-    background: rgba(16, 185, 129, 0.1);
-    border-color: rgba(16, 185, 129, 0.3);
+    background: rgba(16, 185, 129, 0.05);
+    border-color: rgba(16, 185, 129, 0.2);
     color: #34d399;
 }
 .hoa-status-pill.connected .hoa-dot {
     background: #10b981;
-    box-shadow: 0 0 8px #10b981;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
 }
 
 .hoa-status-pill.disconnected {
-    background: rgba(239, 68, 68, 0.1);
-    border-color: rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.05);
+    border-color: rgba(239, 68, 68, 0.2);
     color: #f87171;
 }
 .hoa-status-pill.disconnected .hoa-dot {
     background: #ef4444;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
 }
 
 .hoa-form-card {
-    background: #fff;
-    border: 1px solid #e2e8f0;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 16px;
     padding: 24px 30px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
     margin-bottom: 24px;
+    color: #e2e8f0;
 }
 
 .hoa-field-row {
@@ -104,10 +110,10 @@
 
 .hoa-field-row label {
     display: block;
-    font-weight: 700;
-    font-size: 13px;
-    color: #1e293b;
-    margin-bottom: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #e2e8f0;
+    margin-bottom: 8px;
 }
 
 .hoa-field-row input[type="text"],
@@ -117,8 +123,23 @@
     width: 100%;
     max-width: 600px;
     border-radius: 8px;
-    border: 1px solid #cbd5e1;
-    padding: 8px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: #1e293b;
+    color: #fff;
+    padding: 10px 14px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.hoa-field-row input:focus, .hoa-field-row select:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+.hoa-field-row p.description {
+    color: #94a3b8;
+    font-size: 13px;
+    margin-top: 6px;
 }
 
 .hoa-action-row {
@@ -126,7 +147,38 @@
     gap: 12px;
     margin-top: 24px;
     padding-top: 16px;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.hoa-action-row button {
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.hoa-action-row button.button-primary {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+}
+
+.hoa-action-row button.button-primary:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.hoa-action-row button.button-secondary {
+    background: #1e293b;
+    color: #e2e8f0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hoa-action-row button.button-secondary:hover {
+    background: #334155;
 }
 
 .hoa-telemetry-card {
