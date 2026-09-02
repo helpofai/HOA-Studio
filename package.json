@@ -3,7 +3,8 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vite build",
+        "build": "vite build && npm run build:wp",
+        "build:wp": "npx esbuild resources/js/plugins/wordpress-editor.js --bundle --minify --outfile=public/plugins/hoa-studio-wordpress/assets/js/hoa-tiptap-bundle.js",
         "dev": "vite"
     },
     "devDependencies": {
