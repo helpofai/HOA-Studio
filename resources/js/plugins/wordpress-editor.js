@@ -1097,41 +1097,78 @@ export function normalizeContentToHtml(content) {
             });
         });
 
-        async function triggerAiStream({ prompt, type, selectedText = '', placement = 'insert_below', fromPos = 0, toPos = 0 }) {
+        function updateSwarmSteps(progressRatio) {
+            const $steps = $('.hoa-swarm-step');
+            $steps.removeClass('current');
+            // 5 steps: 0: Research, 1: Outline, 2: Draft, 3: Media, 4: Meta
+            let activeIdx = 0;
+            if (progressRatio >= 0.85) activeIdx = 4;
+            else if (progressRatio >= 0.65) activeIdx = 3;
+            else if (progressRatio >= 0.35) activeIdx = 2;
+            else if (progressRatio >= 0.15) activeIdx = 1;
+            else activeIdx = 0;
+
+            $steps.each(function(idx) {
+                if (idx <= activeIdx) {
+                    $(this).addClass('active');
+                } else {
+                    $(this).removeClass('active');
+                }
+                if (idx === activeIdx) {
+                    $(this).addClass('current');
+                }
+            });
+        }
+
+        async function triggerAiStream({ prompt, type, selectedText = '', placement = 'insert_below', fromPos = 0, toPos = 0, model = null }) {
             if (!prompt && !selectedText) {
                 alert('Please type an instruction or select text in the editor.');
                 return;
             }
 
+            const chosenModel = model || $('#hoa-ai-model-select').val() || 'auto';
+            const postTitle = $('#hoa-post-title-input').val() ? $('#hoa-post-title-input').val().trim() : '';
+            const targetKeyword = $('#hoa-target-keyword').val() ? $('#hoa-target-keyword').val().trim() : '';
+
             $streamingStatus.show();
             $('#hoa-wp-ai-speed-badge').text('0 tok/s');
+            $('#hoa-dedicated-speed-badge').text('0 tok/s');
+            $('#hoa-tok-received').text('0');
+
+            const $runBtn = $('#hoa-dedicated-ai-run-btn');
+            const origBtnText = $runBtn.html();
+            $runBtn.prop('disabled', true).html('⚡ Streaming Tokens...');
+
+            updateSwarmSteps(0.05);
 
             const formData = new URLSearchParams();
             formData.append('action', 'hoa_studio_stream_proxy');
             formData.append('nonce', hoaStudioConfig.nonce);
             formData.append('text', selectedText || prompt);
             formData.append('type', type);
+            formData.append('model', chosenModel);
             formData.append('custom_instruction', prompt);
+            formData.append('context[document_title]', postTitle);
+            formData.append('context[target_keyword]', targetKeyword);
 
             const { state } = editor;
             let insertPos = state.doc.content.size;
 
             if (placement === 'proposal') {
-                $('#hoa-wp-ai-proposal-box').show();
+                lastProposalRange = (fromPos !== toPos) ? { from: fromPos, to: toPos } : null;
+                $('#hoa-wp-ai-proposal-box').fadeIn(150);
+                $('#hoa-proposal-body').html('<span class="text-emerald-400">✦ Sub-content-sub-agent reasoning & drafting...</span>');
             } else if (placement === 'replace' && fromPos !== toPos) {
-                editor.chain().focus().setTextSelection({ from: fromPos, to: toPos }).deleteSelection().run();
-                insertPos = fromPos;
-                editor.chain().focus().setTextSelection(insertPos).run();
+                // Keep range
             } else if (fromPos !== toPos) {
                 insertPos = toPos;
-                editor.chain().focus().setTextSelection(insertPos).run();
-            } else {
-                editor.chain().focus().setTextSelection(insertPos).run();
             }
 
             let totalChars = 0;
             let totalTokens = 0;
+            let firstTokenTime = null;
             const startTime = performance.now();
+            let accumulatedBuffer = '';
 
             try {
                 const response = await fetch(hoaStudioConfig.ajaxUrl, {
@@ -1146,11 +1183,15 @@ export function normalizeContentToHtml(content) {
                 activeStreamReader = reader;
                 const decoder = new TextDecoder();
 
-                let accumulatedBuffer = '';
-
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
+
+                    if (!firstTokenTime) {
+                        firstTokenTime = performance.now();
+                        const latency = Math.round(firstTokenTime - startTime);
+                        $('#hoa-tok-latency').text(latency);
+                    }
                     
                     const chunk = decoder.decode(value, { stream: true });
                     const lines = chunk.split('\n');
@@ -1158,7 +1199,7 @@ export function normalizeContentToHtml(content) {
                     for (const line of lines) {
                         if (line.startsWith('data: ')) {
                             const data = line.slice(6).trim();
-                            if (data === '[DONE]') continue;
+                            if (!data || data === '[DONE]') continue;
                             
                             try {
                                 const parsed = JSON.parse(data);
@@ -1171,18 +1212,22 @@ export function normalizeContentToHtml(content) {
 
                                     if (placement === 'proposal') {
                                         lastProposalText = accumulatedBuffer;
-                                        $('#hoa-proposal-body').html(accumulatedBuffer.replace(/\n/g, '<br>'));
-                                    } else {
-                                        editor.chain().focus().insertContent(tokenDelta).run();
+                                        $('#hoa-proposal-body').html(accumulatedBuffer.replace(/\n/g, '<br>') + '<span class="hoa-streaming-cursor">|</span>');
                                     }
 
-                                    // Calculate streaming telemetry speed
+                                    // Real-time telemetry counters
+                                    $('#hoa-tok-received').text(totalTokens.toLocaleString());
+
                                     const elapsedSec = (performance.now() - startTime) / 1000;
-                                    if (elapsedSec > 0.5) {
+                                    if (elapsedSec > 0.3) {
                                         const tokSec = Math.round(totalTokens / elapsedSec);
                                         $('#hoa-wp-ai-speed-badge').text(`${tokSec} tok/s`);
+                                        $('#hoa-dedicated-speed-badge').text(`${tokSec} tok/s`);
                                         $('#hoa-proposal-speed').text(`${tokSec} tok/s`);
                                     }
+
+                                    const progressEst = Math.min(0.95, totalTokens / 500);
+                                    updateSwarmSteps(progressEst);
                                 }
 
                                 if (parsed.done) {
@@ -1194,19 +1239,58 @@ export function normalizeContentToHtml(content) {
                         }
                     }
                 }
+
+                // STREAMING COMPLETE: Normalize Markdown/HTML to rich TipTap ProseMirror Nodes
+                if (accumulatedBuffer.trim()) {
+                    const normalizedHtml = normalizeContentToHtml(accumulatedBuffer);
+
+                    if (placement === 'proposal') {
+                        lastProposalText = normalizedHtml;
+                        $('#hoa-proposal-body').html(normalizedHtml);
+                    } else if (placement === 'replace' && fromPos !== toPos) {
+                        editor.chain().focus().setTextSelection({ from: fromPos, to: toPos }).insertContent(normalizedHtml).run();
+                    } else if (placement === 'insert_below') {
+                        editor.chain().focus().setTextSelection(insertPos).insertContent('<p></p>' + normalizedHtml).run();
+                    } else {
+                        // Default / document mode: append or set
+                        const existing = editor.getHTML().trim();
+                        if (!existing || existing === '<p></p>' || existing === '<p><br></p>') {
+                            editor.commands.setContent(normalizedHtml, false);
+                        } else {
+                            editor.chain().focus().setTextSelection(editor.state.doc.content.size).insertContent('<p></p>' + normalizedHtml).run();
+                        }
+                    }
+                }
+
             } catch (err) {
                 console.error('[HOA Studio AI] Streaming error:', err);
             } finally {
-                if (placement === 'proposal') {
-                    lastProposalText = normalizeContentToHtml(accumulatedBuffer);
-                    $('#hoa-proposal-body').html(lastProposalText);
-                }
                 activeStreamReader = null;
                 $streamingStatus.hide();
                 $aiBar.slideUp();
                 $('#hoa-wp-ai-prompt-input').val('');
+                $runBtn.prop('disabled', false).html(origBtnText);
+                $('.hoa-swarm-step').addClass('active').removeClass('current');
+
+                updateDynamicOutline();
+                updateSeoScore();
             }
         }
+
+        window.triggerAiGeneration = function(prompt, type = 'generate', placement = 'insert_below', model = null) {
+            const { state } = editor;
+            const { from, to } = state.selection;
+            const selectedText = from !== to ? state.doc.textBetween(from, to, ' ') : '';
+            return triggerAiStream({
+                prompt: prompt,
+                type: type,
+                selectedText: selectedText,
+                placement: placement,
+                fromPos: from,
+                toPos: to,
+                model: model || $('#hoa-ai-model-select').val()
+            });
+        };
 
         /* ==================================================================
            DEDICATED HOA STUDIO POST EDITOR SUITE
@@ -1474,6 +1558,31 @@ export function normalizeContentToHtml(content) {
                 const speakingMinutes = Math.max(1, Math.ceil(words / 130));
                 $('#hoa-wp-speaking-time').text(`${speakingMinutes}m`);
             });
+
+            // 0. Fetch & Populate Live Models from HOA Studio Node
+            function loadAvailableModels() {
+                $.post(hoaStudioConfig.ajaxUrl, {
+                    action: 'hoa_studio_test_connection',
+                    nonce: hoaStudioConfig.nonce,
+                    endpoint: hoaStudioConfig.endpoint,
+                    key: 'check'
+                }, function(res) {
+                    if (res.success && res.data && res.data.available_models && res.data.available_models.length) {
+                        const $select = $('#hoa-ai-model-select');
+                        const currentVal = $select.val() || 'auto';
+                        $select.empty();
+                        $select.append('<option value="auto">⚡ Auto (OmniRoute Smart Router)</option>');
+                        res.data.available_models.forEach(function(m) {
+                            const providerName = m.provider || 'OmniRoute';
+                            $select.append(`<option value="${m.model_id}">${m.name} (${providerName})</option>`);
+                        });
+                        if (currentVal && $select.find(`option[value="${currentVal}"]`).length) {
+                            $select.val(currentVal);
+                        }
+                    }
+                });
+            }
+            loadAvailableModels();
 
             // 9. Left Panel AI Drafting Trigger
             $('.hoa-preset-chip').on('click', function() {

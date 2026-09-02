@@ -226,6 +226,320 @@
 }
 
 /* ==========================================================================
+   UPGRADED ENTERPRISE DASHBOARD SUITE
+   ========================================================================== */
+.hoa-dashboard-hero-card {
+    background: linear-gradient(135deg, #090d16 0%, #17153a 50%, #0c1222 100%);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 16px;
+    padding: 24px 30px;
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.7);
+    margin-bottom: 24px;
+    color: #e2e8f0;
+}
+
+.hoa-dashboard-quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hoa-action-btn-primary {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+    border: none !important;
+    color: #fff !important;
+    font-weight: 700 !important;
+    padding: 8px 16px !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4) !important;
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+}
+
+.hoa-action-btn-secondary {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #cbd5e1 !important;
+    font-weight: 600 !important;
+    padding: 8px 14px !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+    transition: all 0.15s !important;
+}
+
+.hoa-action-btn-secondary:hover {
+    background: rgba(99, 102, 241, 0.2) !important;
+    border-color: rgba(99, 102, 241, 0.4) !important;
+    color: #fff !important;
+}
+
+.hoa-dashboard-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.hoa-card-telemetry-box {
+    background: #080c18;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.15s, border-color 0.15s;
+}
+
+.hoa-card-telemetry-box:hover {
+    border-color: rgba(99, 102, 241, 0.3);
+    transform: translateY(-2px);
+}
+
+.hoa-card-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.hoa-card-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.hoa-card-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #94a3b8;
+    font-family: monospace;
+}
+
+.hoa-card-main-stat {
+    font-size: 22px;
+    font-weight: 800;
+    font-family: monospace;
+    color: #fff;
+    margin: 4px 0 8px;
+    line-height: 1.2;
+}
+
+.hoa-card-sub-stat {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.hoa-quota-bar-wrap {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 9999px;
+    height: 8px;
+    overflow: hidden;
+    margin: 8px 0;
+    position: relative;
+}
+
+.hoa-quota-bar-fill {
+    background: linear-gradient(90deg, #10b981 0%, #6366f1 100%);
+    height: 100%;
+    border-radius: 9999px;
+    width: 0%;
+    transition: width 0.6s ease-in-out;
+}
+
+.hoa-quota-bar-fill.danger {
+    background: linear-gradient(90deg, #f59e0b 0%, #ef4444 100%);
+}
+
+.hoa-content-launchpad-card {
+    background: #080c18;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.hoa-launchpad-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.hoa-launchpad-header h3 {
+    margin: 0;
+    font-size: 15px;
+    color: #fff;
+}
+
+.hoa-launchpad-input-wrap {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.hoa-launchpad-input {
+    flex: 1;
+    background: rgba(15, 23, 42, 0.9) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 10px !important;
+    padding: 10px 16px !important;
+    color: #fff !important;
+    font-size: 14px !important;
+}
+
+.hoa-launchpad-input:focus {
+    border-color: #6366f1 !important;
+    outline: none !important;
+}
+
+.hoa-template-chips-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.hoa-template-btn {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    color: #cbd5e1;
+    font-size: 12px;
+    padding: 6px 12px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+}
+
+.hoa-template-btn:hover {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: rgba(99, 102, 241, 0.4);
+    color: #fff;
+}
+
+.hoa-models-suite-card {
+    background: #080c18;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.hoa-models-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.hoa-models-toolbar h3 {
+    margin: 0;
+    font-size: 15px;
+    color: #fff;
+}
+
+.hoa-search-models-input {
+    background: rgba(15, 23, 42, 0.9) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 8px !important;
+    padding: 6px 12px !important;
+    color: #fff !important;
+    font-size: 12px !important;
+    width: 240px !important;
+}
+
+.hoa-models-list-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+    max-height: 380px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.hoa-model-chip-box {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 8px;
+    transition: all 0.15s;
+}
+
+.hoa-model-chip-box:hover {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: rgba(99, 102, 241, 0.3);
+}
+
+.hoa-model-name-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.hoa-model-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.hoa-model-provider {
+    font-size: 10px;
+    font-family: monospace;
+    color: #818cf8;
+    background: rgba(99, 102, 241, 0.15);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.hoa-model-id-txt {
+    font-size: 10.5px;
+    font-family: monospace;
+    color: #64748b;
+}
+
+.hoa-model-meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #94a3b8;
+    font-family: monospace;
+}
+
+/* ==========================================================================
    REAL-TIME CONNECTION TELEMETRY & LOG CONSOLE
    ========================================================================== */
 .hoa-console-card {
