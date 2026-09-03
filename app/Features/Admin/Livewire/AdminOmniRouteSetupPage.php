@@ -495,6 +495,71 @@ class AdminOmniRouteSetupPage extends Component
         }
     }
 
+    /**
+     * Ingest models and combos fetched directly by browser from local PC daemon
+     */
+    public function syncFromClient(array $modelsData, array $combosData = [], int $latencyMs = 5, ?SyncOmniRouteGateway $syncAction = null)
+    {
+        $syncAction = $syncAction ?: app(SyncOmniRouteGateway::class);
+        $this->isTesting = true;
+        $this->showProgressModal = true;
+        $this->progressModalTitle = 'OmniRoute Gateway Dynamic Synchronization';
+        $this->progressModalSubtitle = "Ingesting live catalog directly from your local PC via Browser Bridge...";
+        $this->progressLogs = [];
+        $this->progressCurrent = 1;
+        $this->progressTotal = 4;
+        $this->progressDone = false;
+
+        $this->appendProgressLog('info', 'INIT', "Connected to local PC daemon (Browser Bridge active).");
+        $this->appendProgressLog('debug', 'BRIDGE', "Transferred " . count($modelsData) . " models from your local OmniRoute daemon.");
+
+        // Always persist base_url to database before syncing
+        try {
+            DB::table('settings')->updateOrInsert(['key' => 'omniroute_base_url'], ['value' => $this->base_url, 'updated_at' => now()]);
+            DB::table('settings')->updateOrInsert(['key' => 'omniroute_api_key'], ['value' => $this->api_key, 'updated_at' => now()]);
+            $provider = AiProvider::where('slug', 'omniroute')->first();
+            if ($provider) {
+                $provider->base_url = $this->base_url;
+                $provider->api_key_encrypted = $this->api_key;
+                $provider->is_local = str_contains($this->base_url, 'localhost') || str_contains($this->base_url, '127.0.0.1');
+                $provider->save();
+            }
+        } catch (\Throwable $e) {}
+
+        try {
+            $this->progressCurrent = 2;
+            $this->appendProgressLog('info', 'FETCH', "Processing model catalog...");
+
+            $result = $syncAction->ingestData($modelsData, $combosData, $latencyMs, $this->base_url, false, null);
+
+            $this->progressCurrent = 3;
+            $this->appendProgressLog('ok', 'INGEST', "Ingested {$result['total_synced']} models into database (Latency: {$latencyMs}ms).");
+
+            $this->progressCurrent = 4;
+            $this->appendProgressLog('ok', 'COMBOS', "Ingested {$result['combos_count']} cascade combos and {$result['free_tier_count']} free tier pools.");
+
+            $this->connectionStatus = true;
+            $this->pingLatencyMs = $latencyMs;
+            $this->syncTelemetry = $result;
+            $this->syncStatus = 'success';
+
+            $pruneText = !empty($result['pruned_count']) ? " (Purged {$result['pruned_count']} stale models)" : "";
+            $this->appendProgressLog('info', 'COMPLETE', "✔ Dynamic synchronization complete! All {$result['total_synced']} active models updated{$pruneText}.");
+            $this->statusMessage = "OmniRoute Gateway Online ({$latencyMs}ms via Direct Browser Bridge). Dynamically synchronized {$result['total_synced']} models{$pruneText} ({$result['combos_count']} combos, {$result['free_tier_count']} free-tier pools)!";
+            session()->flash('status', $this->statusMessage);
+            $this->fetchConsoleLogs();
+        } catch (Exception $e) {
+            $this->connectionStatus = false;
+            $this->syncStatus = 'error';
+            $this->statusMessage = "Gateway connection error: " . $e->getMessage();
+            $this->appendProgressLog('error', 'ERROR', "Synchronization failed: " . $e->getMessage());
+            session()->flash('error', $this->statusMessage);
+        } finally {
+            $this->isTesting = false;
+            $this->progressDone = true;
+        }
+    }
+
     public function closeProgressModal()
     {
         $this->showProgressModal = false;
