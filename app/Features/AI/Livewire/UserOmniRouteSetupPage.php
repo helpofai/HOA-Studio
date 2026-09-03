@@ -152,6 +152,13 @@ class UserOmniRouteSetupPage extends Component
         $this->testGatewayConnection();
     }
 
+    public function setLocalPreset()
+    {
+        $this->connection_type = 'local_daemon';
+        $this->user_custom_url = 'http://localhost:20128/v1';
+        $this->testGatewayConnection();
+    }
+
     public function testGatewayConnection()
     {
         $this->isTesting = true;
@@ -159,17 +166,24 @@ class UserOmniRouteSetupPage extends Component
         $this->pingLatencyMs = null;
         $this->statusMessage = '';
 
-        $resolved = OmniRouteUrlResolver::resolve(!empty($this->user_custom_url) ? $this->user_custom_url : $this->base_url);
+        $targetUrl = !empty($this->user_custom_url) ? $this->user_custom_url : $this->base_url;
+        $resolved = OmniRouteUrlResolver::resolve($targetUrl);
         $modelsEndpoint = $resolved['models_endpoint'];
         $rootUrl = $resolved['root_url'];
+        $isRemote = !empty($resolved['is_remote']);
 
-        $apiKeyToTest = !empty($this->user_api_key) ? $this->user_api_key : config('omniroute.api_key', 'omniroute-default-key');
-
-        $isRemoteHttps = str_starts_with($modelsEndpoint, 'https://') && !str_contains($modelsEndpoint, 'localhost') && !str_contains($modelsEndpoint, '127.0.0.1');
+        $apiKeyToTest = !empty($this->user_api_key) ? $this->user_api_key : null;
+        if (empty($apiKeyToTest)) {
+            try {
+                $apiKeyToTest = DB::table('settings')->where('key', 'omniroute_api_key')->value('value')
+                    ?: DB::table('ai_providers')->where('slug', 'omniroute')->value('api_key_encrypted');
+            } catch (\Throwable $e) {}
+        }
+        $apiKeyToTest = $apiKeyToTest ?: config('omniroute.api_key', 'omniroute-default-key');
 
         $start = microtime(true);
 
-        if (!$isRemoteHttps) {
+        if (!$isRemote) {
             $parsedUrl = parse_url($modelsEndpoint);
             $host = $parsedUrl['host'] ?? '127.0.0.1';
             $port = $parsedUrl['port'] ?? 20128;
@@ -190,23 +204,26 @@ class UserOmniRouteSetupPage extends Component
         }
 
         try {
-            $response = Http::withHeaders([
+            $httpReq = Http::withHeaders([
                 'Authorization' => "Bearer {$apiKeyToTest}",
                 'Accept' => 'application/json',
-            ])
-            ->withOptions([
-                'force_ip_resolve' => 'v4',
-            ])
-            ->connectTimeout(2.0)
-            ->timeout(5)
-            ->get($modelsEndpoint);
+            ]);
+
+            if (!$isRemote) {
+                $httpReq = $httpReq->withOptions(['force_ip_resolve' => 'v4']);
+            }
+
+            $response = $httpReq
+                ->connectTimeout($isRemote ? 4.0 : 1.5)
+                ->timeout($isRemote ? 8 : 4)
+                ->get($modelsEndpoint);
 
             $latency = (int) round((microtime(true) - $start) * 1000);
             $this->pingLatencyMs = max(1, $latency);
 
             if ($response->successful() || $response->status() === 200 || $response->status() === 304 || $response->status() === 401 || $response->status() === 403) {
                 $this->connectionStatus = true;
-                $modeLabel = $isRemoteHttps ? "Remote Tunnel / Cloud Gateway" : "Local Device Daemon";
+                $modeLabel = $isRemote ? "Remote Cloudflare / Proxy Tunnel" : "Local Device Daemon";
                 $this->statusMessage = "OmniRoute Gateway Online & Healthy ({$this->pingLatencyMs}ms) via {$modeLabel}!";
                 $this->isTesting = false;
                 return;
@@ -216,7 +233,13 @@ class UserOmniRouteSetupPage extends Component
             $this->statusMessage = "Gateway Error (HTTP {$response->status()}): " . substr($response->body(), 0, 150);
         } catch (Exception $e) {
             $this->connectionStatus = false;
-            $this->statusMessage = "OmniRoute Connection Error: " . $e->getMessage();
+            $err = $e->getMessage();
+            if (str_contains($err, 'Could not resolve host')) {
+                $host = parse_url($modelsEndpoint, PHP_URL_HOST);
+                $this->statusMessage = "Cloudflare Tunnel host '{$host}' is unreachable or has expired. Please update with your current tunnel URL or switch to Local Daemon (http://localhost:20128/v1).";
+            } else {
+                $this->statusMessage = "OmniRoute Connection Error: " . $err;
+            }
         }
 
         $this->isTesting = false;
