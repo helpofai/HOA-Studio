@@ -141,6 +141,18 @@ abortAiTransform() {
     this.addLog('WARN', 'AI transformation stopped by user.');
 },
 
+isContentEmpty(content) {
+    if (!content || typeof content !== 'string') return true;
+    const trimmed = content.trim();
+    if (!trimmed || trimmed === '<p></p>' || trimmed === '<p><br></p>' || trimmed === '<p><br class="ProseMirror-trailingBreak"></p>') {
+        return true;
+    }
+    const plain = trimmed.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+    return plain === '' || 
+           plain === 'Start writing your AI-powered content...' || 
+           plain === 'Start building your block content...';
+},
+
 async runMultiAgentPipeline(userTopic = '') {
     const prompt = userTopic || this.aiPrompt;
     if (!prompt || !prompt.trim()) {
@@ -150,6 +162,13 @@ async runMultiAgentPipeline(userTopic = '') {
 
     const ed = this.getEditor();
     if (!ed) return;
+
+    // Reset empty placeholder content before starting swarm
+    if (this.isContentEmpty(ed.getHTML ? ed.getHTML() : '')) {
+        if (typeof ed.setContent === 'function') {
+            ed.setContent('', false);
+        }
+    }
 
     this.isTransforming = true;
     this.showAiStreamBanner = true;
@@ -187,14 +206,19 @@ async runMultiAgentPipeline(userTopic = '') {
             this.swarmStatusMessage = 'Agent 2 (Outline Architect) creating H1/H2/H3 hierarchy & optimizing Title...';
             this.addLog('AGENT', '📑 Swarm Step 2: Agent [Outline Architect] structuring headings tree.');
 
-            const titleResp = await fetch(config.transformRoute, {
+            const titleResp = await fetch(config.transformRoute || '/api/ai/transform', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': config.csrfToken },
                 body: JSON.stringify({
                     text: prompt,
                     type: 'seo_fix_title',
                     custom_instruction: "Generate a high-CTR, SEO-optimized title for: '" + prompt + "' frontloading '" + targetKw + "'",
-                    model: this.aiModel
+                    model: this.aiModel,
+                    context: {
+                        target_keyword: targetKw,
+                        document_title: prompt,
+                        action_tool: 'seo_fix_title'
+                    }
                 })
             });
             const titleText = await titleResp.text();
@@ -222,25 +246,37 @@ async runMultiAgentPipeline(userTopic = '') {
         if (this.swarmSteps.rich_media) {
             this.swarmStepIndex = 4;
             this.activeSwarmAgent = 'rich_media';
-            this.swarmStatusMessage = 'Agent 4 (Rich Media Engineer) generating comparison table & FAQ schema...';
-            this.addLog('AGENT', '▦ Swarm Step 4: Agent [Rich Media & Data Engineer] building comparison table.');
+            this.swarmStatusMessage = 'Agent 4 (Rich Media Engineer) verifying comparison table & interactive media...';
+            this.addLog('AGENT', '▦ Swarm Step 4: Agent [Rich Media & Data Engineer] verifying interactive comparison table.');
 
-            const tableResp = await fetch(config.transformRoute, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': config.csrfToken },
-                body: JSON.stringify({
-                    text: ed.getText().substring(0, 1500),
-                    type: 'comparison_table',
-                    custom_instruction: "Create a feature comparison matrix table with specs, pros/cons, and metrics for '" + targetKw + "'",
-                    model: this.aiModel
-                })
-            });
-            const tableText = await tableResp.text();
-            let tableData = {};
-            try { tableData = JSON.parse(tableText); } catch (e) { tableData = { success: false }; }
-            if (tableData.success && tableData.result) {
-                this.insertContentIntoCanvas('<p></p>' + tableData.result, false);
-                this.addLog('ASSETS', 'Agent [Rich Media Engineer] inserted interactive comparison table.');
+            const currentDocHtml = ed.getHTML ? ed.getHTML() : '';
+            const alreadyHasTable = currentDocHtml.includes('<table') || currentDocHtml.includes('| --- |');
+
+            if (!alreadyHasTable) {
+                const tableResp = await fetch(config.transformRoute || '/api/ai/transform', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': config.csrfToken },
+                    body: JSON.stringify({
+                        text: prompt,
+                        type: 'comparison_table',
+                        custom_instruction: "Create a feature comparison matrix table with specs, pros/cons, and metrics for '" + targetKw + "'",
+                        model: this.aiModel,
+                        context: {
+                            target_keyword: targetKw,
+                            document_title: this.title || prompt,
+                            action_tool: 'comparison_table'
+                        }
+                    })
+                });
+                const tableText = await tableResp.text();
+                let tableData = {};
+                try { tableData = JSON.parse(tableText); } catch (e) { tableData = { success: false }; }
+                if (tableData.success && tableData.result && (tableData.result.includes('<table') || tableData.result.includes('| --- |'))) {
+                    this.insertContentIntoCanvas('<p></p>' + tableData.result, false);
+                    this.addLog('ASSETS', 'Agent [Rich Media Engineer] inserted interactive comparison table.');
+                }
+            } else {
+                this.addLog('ASSETS', 'Agent [Rich Media Engineer] verified comparison table already integrated by Draftsman.');
             }
         }
 
@@ -251,25 +287,30 @@ async runMultiAgentPipeline(userTopic = '') {
             this.swarmStatusMessage = 'Agent 8 & 10 (Rank Math Optimizer & Assembler) finalizing 100/100 SEO & Meta...';
             this.addLog('AGENT', '⌁ Swarm Step 5: Agent [Rank Math Optimizer] generating meta description & verifying SEO score.');
 
-        const metaResp = await fetch(config.transformRoute, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': config.csrfToken },
-            body: JSON.stringify({
-                text: ed.getText().substring(0, 1200),
-                type: 'seo_fix_meta',
-                custom_instruction: "Generate a punchy 155-character meta description with focus keyword '" + targetKw + "'",
-                model: this.aiModel
-            })
-        });
-        const metaText = await metaResp.text();
-        let metaData = {};
-        try { metaData = JSON.parse(metaText); } catch (e) { metaData = { success: false }; }
-        if (metaData.success && metaData.result) {
-            const cleanMeta = metaData.result.replace(/^["'\s]+|["'\s]+$/g, '').trim();
-            this.metaDescription = cleanMeta;
-            Livewire.dispatch('applyMetaDescription', { metaDescription: cleanMeta });
-            this.addLog('SEO', 'Agent [Rank Math Optimizer] generated Meta Description (' + cleanMeta.length + ' chars).');
-        }
+            const metaResp = await fetch(config.transformRoute || '/api/ai/transform', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': config.csrfToken },
+                body: JSON.stringify({
+                    text: (ed.getText ? ed.getText().substring(0, 1200) : '') || prompt,
+                    type: 'seo_fix_meta',
+                    custom_instruction: "Generate a punchy 155-character meta description with focus keyword '" + targetKw + "'",
+                    model: this.aiModel,
+                    context: {
+                        target_keyword: targetKw,
+                        document_title: this.title || prompt,
+                        action_tool: 'seo_fix_meta'
+                    }
+                })
+            });
+            const metaText = await metaResp.text();
+            let metaData = {};
+            try { metaData = JSON.parse(metaText); } catch (e) { metaData = { success: false }; }
+            if (metaData.success && metaData.result) {
+                const cleanMeta = metaData.result.replace(/^["'\s]+|["'\s]+$/g, '').trim();
+                this.metaDescription = cleanMeta;
+                Livewire.dispatch('applyMetaDescription', { metaDescription: cleanMeta });
+                this.addLog('SEO', 'Agent [Rank Math Optimizer] generated Meta Description (' + cleanMeta.length + ' chars).');
+            }
         }
 
         const finalHtmlVal = ed.getHTML();
@@ -711,10 +752,7 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto') {
         let fullResult = '';
 
         const existingDocContent = (ed ? ed.getHTML() : '').trim();
-        const isDocEmpty = !existingDocContent || 
-                           existingDocContent === '<p></p>' || 
-                           existingDocContent === '<p><br></p>' || 
-                           existingDocContent === '<p>Start building your block content...</p>';
+        const isDocEmpty = this.isContentEmpty(existingDocContent) || this.activeAction === 'multi_agent_swarm';
 
         let lastCanvasUpdate = 0;
 

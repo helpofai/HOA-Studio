@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.6] - 2026-09-03
+
+### 🐛 Fixed
+- **Multi-Agent Swarm Double Article Bug in Editor**:
+  - Resolved duplicate article synthesis triggered by the Multi-Agent Swarm button (`full-content-main-agent`).
+  - Fixed regression where requests without active selection defaulted to full 15-stage pipeline article prompts regardless of action type.
+  - Implemented `ContentWriterBrain::isFullArticleType()` across `TransformText`, `AiStreamController::streamTransform`, and `AiStreamController::preparePrompt` to correctly separate full-document generation from surgical components (`comparison_table`, `seo_fix_title`, `seo_fix_meta`, `quick_answer`, etc.).
+  - Updated Swarm Step 4 (`rich_media`) to inspect existing document tables prior to requesting secondary tables, preventing redundant table insertion.
+  - Added robust `isContentEmpty()` helper recognizing whitespace and all default placeholder variations (`Start writing your AI-powered content...`, `Start building your block content...`), ensuring `multi_agent_swarm` cleanly overwrites placeholder text without concatenation.
+  - Injected missing `transformRoute` parameter into `MainEditor.blade.php` component initialization.
+
+---
+
 ## [2.6.5] - 2026-09-02
 
 ### 🚀 Added & Improved

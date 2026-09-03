@@ -289,14 +289,16 @@ EOT,
      */
     public function buildPrompt(string $text, string $transformationType, ?string $customInstruction = null, array $context = []): array
     {
-        $hasSelection = !empty($context['has_selection']) && !empty($context['selected_text']);
-        $pipelineStages = $context['pipeline_stages'] ?? [];
-
-        if ($hasSelection) {
-            return $this->brain->buildSurgicalPrompt($transformationType, $context, $customInstruction);
+        if (!isset($context['selected_text']) && !isset($context['target_text'])) {
+            $context['target_text'] = $text;
         }
 
-        return $this->brain->buildPipelineArticlePrompt($text, $context, $pipelineStages, $customInstruction);
+        if ($this->brain->isFullArticleType($transformationType, $customInstruction, $context)) {
+            $pipelineStages = $context['pipeline_stages'] ?? [];
+            return $this->brain->buildPipelineArticlePrompt($text, $context, $pipelineStages, $customInstruction);
+        }
+
+        return $this->brain->buildSurgicalPrompt($transformationType, $context, $customInstruction);
     }
 
     /**
@@ -310,21 +312,24 @@ EOT,
 
         $customInstruction = $options['custom_instruction'] ?? null;
         $context = $options['context'] ?? [];
+        if (!isset($context['selected_text']) && !isset($context['target_text'])) {
+            $context['target_text'] = $text;
+        }
         $pipelineStages = $options['pipeline_stages'] ?? [];
-        $hasSelection = !empty($context['has_selection']) && !empty($context['selected_text']);
+        $isFullArticle = $this->brain->isFullArticleType($transformationType, $customInstruction, $context);
 
-        if ($hasSelection) {
-            $brainPrompt = $this->brain->buildSurgicalPrompt($transformationType, $context, $customInstruction);
+        if ($isFullArticle) {
+            $brainPrompt = $this->brain->buildPipelineArticlePrompt($text, $context, $pipelineStages, $customInstruction);
             $systemPrompt = $brainPrompt['system'];
             $userContent = $brainPrompt['user'];
         } else {
-            $brainPrompt = $this->brain->buildPipelineArticlePrompt($text, $context, $pipelineStages, $customInstruction);
+            $brainPrompt = $this->brain->buildSurgicalPrompt($transformationType, $context, $customInstruction);
             $systemPrompt = $brainPrompt['system'];
             $userContent = $brainPrompt['user'];
         }
 
         // Ground with Knowledge Base RAG context if available for full generation
-        if (!$hasSelection) {
+        if ($isFullArticle) {
             try {
                 $ragAction = app(\App\Features\KnowledgeBase\Actions\RetrieveRagContext::class);
                 $queryText = !empty($customInstruction) ? $customInstruction : $text;

@@ -18,6 +18,7 @@
     x-data="documentEditorComponent({
         documentId: {{ $documentId }},
         editorType: '{{ $editorType }}',
+        transformRoute: '{{ route('ai.transform') }}',
         streamRoute: '{{ route('ai.stream-transform') }}',
         preparePromptRoute: '{{ route('ai.prepare-prompt') }}',
         recordUsageRoute: '{{ route('ai.record-usage') }}',
