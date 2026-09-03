@@ -190,6 +190,20 @@ class AdminOmniRouteSetupPage extends Component
         $port = $parsedUrl['port'] ?? ($scheme === 'https' ? 443 : 20128);
 
         if (!$isRemote) {
+            $serverHost = request()->getHost();
+            $isServerRemote = !in_array($serverHost, ['localhost', '127.0.0.1', '::1']);
+
+            if ($isServerRemote) {
+                // When running on a remote cloud server (e.g. studio.helpofai.com),
+                // the server cannot connect to the client user's loopback interface.
+                // Keep the status as reported by the client browser bridge.
+                if ($this->connectionStatus === true) {
+                    return;
+                }
+                $this->statusMessage = "Local PC Daemon ({$this->base_url}). Connecting via Direct Browser Bridge...";
+                return;
+            }
+
             $ipToCheck = ($host === 'localhost') ? '127.0.0.1' : $host;
             $fp = @fsockopen($ipToCheck, $port, $errno, $errstr, 0.4);
             if (!$fp && $ipToCheck !== '127.0.0.1') {
@@ -198,13 +212,7 @@ class AdminOmniRouteSetupPage extends Component
             if (!$fp) {
                 $this->connectionStatus = false;
                 $this->pingLatencyMs = null;
-                $serverHost = request()->getHost();
-                $isServerRemote = !in_array($serverHost, ['localhost', '127.0.0.1', '::1']);
-                if ($isServerRemote) {
-                    $this->statusMessage = "Local PC Daemon configured ({$this->base_url}). Connecting via Direct Browser Bridge...";
-                } else {
-                    $this->statusMessage = "Local OmniRoute daemon not responding on port {$port}. (Start OmniRoute in terminal or use Cloudflare Tunnel).";
-                }
+                $this->statusMessage = "Local OmniRoute daemon not responding on port {$port}. (Start OmniRoute in terminal or use Cloudflare Tunnel).";
                 return;
             }
             fclose($fp);

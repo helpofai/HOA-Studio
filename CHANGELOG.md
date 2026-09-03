@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.7] - 2026-09-03
+
+### 🐛 Fixed
+- **Localhost Hybrid Routing & Telemetry Stability Fix**:
+  - Fixed regression in `AiStreamController::streamTransform` and `preparePrompt` where `$hasSelection` was undefined, causing HTTP 500 (`Server error while generating transformation.`).
+  - Fixed telemetry polling loop in `AdminOmniRouteSetupPage::pingGatewayHealth` where server-side sockets attempted to connect to the cloud server's local loopback (`127.0.0.1:20128`) instead of recognizing client-side daemons on remote installations (`studio.helpofai.com`).
+  - Enhanced client browser bridge in `omniroute.blade.php` with periodic 8-second client health pulsing across `http://127.0.0.1:20128/v1/models` and `http://localhost:20128/v1/models`, preventing the gateway connection status from flipping between `LIVE` and `STANDBY / OFFLINE`.
+
+---
+
 ## [2.6.6] - 2026-09-03
 
 ### 🐛 Fixed
