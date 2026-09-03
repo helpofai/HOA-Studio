@@ -1,9 +1,9 @@
-﻿        <!-- â”€â”€â”€ TAB 4: KEYWORDS & REAL-TIME DENSITY MATRIX â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+﻿        <!-- ─── TAB 4: KEYWORDS & REAL-TIME DENSITY MATRIX ────────────────── -->
         <div x-show="rightTab === 'keywords'" class="space-y-3.5" style="display: none;">
             <div class="space-y-3 p-3.5 rounded-2xl bg-slate-900/90 border border-white/10 shadow-inner">
                 <div class="flex items-center justify-between">
                     <label class="text-xs font-bold text-white flex items-center gap-1.5">
-                        <span class="text-indigo-400">ðŸ·ï¸</span>
+                        <span class="text-indigo-400">🏷️</span>
                         <span>Keywords & Entity Matrix</span>
                     </label>
                     <button 
@@ -11,7 +11,7 @@
                         wire:click="suggestLsiKeywords" 
                         class="px-3 py-1 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-mono text-[10.5px] font-bold shadow-md shadow-indigo-600/25 transition-all cursor-pointer"
                     >
-                        <span wire:loading.remove wire:target="suggestLsiKeywords">âš¡ AI Suggest</span>
+                        <span wire:loading.remove wire:target="suggestLsiKeywords">⚡ AI Suggest</span>
                         <span wire:loading wire:target="suggestLsiKeywords" class="animate-pulse">...</span>
                     </button>
                 </div>
@@ -41,7 +41,7 @@
                                 </div>
                                 <div class="flex items-center gap-1.5">
                                     <span class="px-1.5 py-0.5 rounded bg-emerald-950/80 text-emerald-300 text-[10px] border border-emerald-500/30 font-bold">1.4% Density</span>
-                                    <button type="button" x-on:click="triggerAiTransform('fix_kw_density')" class="text-indigo-400 hover:text-indigo-300 font-bold text-[10px]" title="Auto-Weave">âš¡ Weave</button>
+                                    <button type="button" x-on:click="triggerAiTransform('fix_kw_density')" class="text-indigo-400 hover:text-indigo-300 font-bold text-[10px]" title="Auto-Weave">⚡ Weave</button>
                                 </div>
                             </div>
                         @endif
@@ -56,9 +56,9 @@
                                         x-on:click="triggerAiTransform('custom', 'Naturally integrate the secondary keyword \'' + @js($skw) + '\' into the document. Output clean HTML.')" 
                                         class="px-2 py-0.5 rounded bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white text-[10px] font-bold transition-colors"
                                     >
-                                        âš¡ Auto-Weave
+                                        ⚡ Auto-Weave
                                     </button>
-                                    <button type="button" wire:click="removeSecondaryKeyword({{ $index }})" class="text-slate-400 hover:text-red-400 text-xs">âœ•</button>
+                                    <button type="button" wire:click="removeSecondaryKeyword({{ $index }})" class="text-slate-400 hover:text-red-400 text-xs">✕</button>
                                 </div>
                             </div>
                         @empty

@@ -1,9 +1,9 @@
-﻿        <!-- â”€â”€â”€ TAB 6: DOCUMENT OUTLINE TREE WITH CLICK-TO-SCROLL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+﻿        <!-- ─── TAB 6: DOCUMENT OUTLINE TREE WITH CLICK-TO-SCROLL ─────────── -->
         <div x-show="rightTab === 'outline'" class="space-y-3" style="display: none;">
             <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-white/10 space-y-2.5 shadow-inner">
                 <div class="flex items-center justify-between pb-1 border-b border-white/5">
                     <span class="text-xs font-bold text-white flex items-center gap-1.5">
-                        <span class="text-indigo-400">ðŸ“‘</span>
+                        <span class="text-indigo-400">📝‘</span>
                         <span>Document Outline</span>
                     </span>
                     <button 
@@ -11,7 +11,7 @@
                         x-on:click="triggerAiTransform('generate_outline')" 
                         class="px-2.5 py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white font-mono text-[10px] font-bold border border-indigo-500/30 transition-colors cursor-pointer"
                     >
-                        âš¡ AI Structure
+                        ⚡ AI Structure
                     </button>
                 </div>
 

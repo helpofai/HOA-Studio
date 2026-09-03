@@ -35,10 +35,13 @@
             </p>
         </div>
         <div class="flex items-center gap-3">
-            <a href="{{ route('documents.index') }}" wire:navigate>
-                <x-glass.button variant="primary" size="md" class="shadow-lg shadow-indigo-500/25">
-                    ✨ Create Document
-                </x-glass.button>
+            <a href="{{ route('documents.index') }}" wire:navigate class="relative group" x-data="{ navigating: false }" @click="navigating = true">
+                <div class="absolute -inset-0.5 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-xl blur opacity-30 group-hover:opacity-70 transition duration-500"></div>
+                <button type="button" class="relative w-full sm:w-auto py-2.5 px-6 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold text-sm shadow-md shadow-violet-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer !border-0">
+                    <span x-show="navigating" class="orbit" style="display: none;"></span>
+                    <span x-show="!navigating">✨</span>
+                    <span x-text="navigating ? 'Opening...' : 'Create Document'"></span>
+                </button>
             </a>
         </div>
     </div>
