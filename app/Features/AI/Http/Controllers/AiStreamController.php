@@ -184,26 +184,50 @@ class AiStreamController extends Controller
             $systemPrompt = $brainPrompt['system'];
             $userContent = $brainPrompt['user'];
         } else {
-            // Enterprise 15-Stage Production Pipeline with Content Writer Brain & Memory
-            $brainPrompt = $brain->buildPipelineArticlePrompt(
-                $validated['text'],
-                $context,
-                $pipelineStages,
-                $validated['custom_instruction'] ?? null
-            );
-            $systemPrompt = $brainPrompt['system'];
-            $userContent = $brainPrompt['user'];
+            // -------------------------------------------------------------------------------- //
+            // MULTI-AGENT SWARM PIPELINE WITH VECTOR MEMORY & AGENTIC CHUNKING
+            // -------------------------------------------------------------------------------- //
+            
+            return response()->stream(function () use ($validated, $context, $pipelineStages, $user, $client, $brain, $recordUsage, $hasSelection) {
+                // Pre-configure the SSE header cleanly for real-time state feedback
+                ob_implicit_flush(1);
 
-            // Ground with Knowledge Base RAG context if available for full generation
-            try {
-                $ragAction = app(\App\Features\KnowledgeBase\Actions\RetrieveRagContext::class);
-                $ragResult = $ragAction->execute($user, $userContent, limit: 3);
-                if (!empty($ragResult['has_context']) && !empty($ragResult['prompt_snippet'])) {
-                    $systemPrompt .= "\n\n" . $ragResult['prompt_snippet'];
+                $sendEvent = function ($type, $data) {
+                    echo "event: {$type}\ndata: " . json_encode(['chunk' => $data, 'done' => false]) . "\n\n";
+                    if (ob_get_level() > 0) ob_flush();
+                    flush();
+                };
+                
+                try {
+                    // Initiate the Pipeline Coordinator
+                    $coordinator = app(\App\Features\AI\Services\PipelineCoordinator::class);
+                    
+                    // Run the 15-stage workflow (simulated or real LLM calls)
+                    $fullDraft = $coordinator->executeAgenticPipeline(
+                        $pipelineStages,
+                        $validated['text'],
+                        $context,
+                        $validated['custom_instruction'] ?? null,
+                        $user,
+                        $sendEvent
+                    );
+
+                    // Send the final closure event
+                    echo "event: done\ndata: " . json_encode(['chunk' => '', 'done' => true]) . "\n\n";
+
+                } catch (\Throwable $e) {
+                    \Log::error('AI Swarm Pipeline Failed: ' . $e->getMessage());
+                    echo "event: error\ndata: " . json_encode(['message' => 'Swarm Execution Error: ' . $e->getMessage()]) . "\n\n";
                 }
-            } catch (\Throwable $e) {
-                // Non-blocking fallback
-            }
+                
+                if (ob_get_level() > 0) ob_flush();
+                flush();
+            }, 200, [
+                'Content-Type' => 'text/event-stream',
+                'Cache-Control' => 'no-cache',
+                'X-Accel-Buffering' => 'no',
+                'Connection' => 'keep-alive',
+            ]);
         }
 
         $messages = [

@@ -217,14 +217,15 @@
                         </div>
                     </div>
                 @else
-                    <a href="{{ route('login') }}">
-                        <x-glass.button variant="secondary" size="sm" class="whitespace-nowrap">
+                    <a href="{{ route('login') }}" class="relative group">
+                        <x-glass.button variant="secondary" size="sm" class="whitespace-nowrap group-hover:border-indigo-500/50 transition-all">
                             Sign In
                         </x-glass.button>
                     </a>
 
-                    <a href="{{ route('register') }}">
-                        <x-glass.button variant="primary" size="sm" class="shadow-indigo-500/30 whitespace-nowrap">
+                    <a href="{{ route('register') }}" class="relative group">
+                        <div class="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-xl blur opacity-30 group-hover:opacity-75 transition duration-500"></div>
+                        <x-glass.button variant="primary" size="sm" shimmer="true" class="relative bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 shadow-indigo-500/30 whitespace-nowrap !border-0">
                             Get Started Free
                         </x-glass.button>
                     </a>
@@ -383,8 +384,8 @@
                             </a>
                         @else
                             <div class="grid grid-cols-2 gap-2">
-                                <a href="{{ route('login') }}" class="block">
-                                    <x-glass.button variant="secondary" size="md" class="w-full justify-center text-xs">
+                                <a href="{{ route('login') }}" class="block w-full">
+                                    <x-glass.button variant="secondary" size="md" class="w-full justify-center text-xs hover:border-indigo-500/50 transition-all">
                                         Sign In
                                     </x-glass.button>
                                 </a>
@@ -442,8 +443,9 @@
                             </x-glass.button>
                         </a>
                     @else
-                        <a href="{{ route('register') }}" class="w-full sm:w-auto">
-                            <x-glass.button variant="primary" size="lg" class="w-full px-8 shadow-xl shadow-indigo-600/30">
+                        <a href="{{ route('register') }}" class="w-full sm:w-auto relative group">
+                            <div class="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-xl blur opacity-40 group-hover:opacity-100 transition duration-500 animation-pulse"></div>
+                            <x-glass.button variant="primary" size="lg" shimmer="true" class="relative w-full px-8 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 shadow-xl shadow-indigo-600/30 text-white font-bold !border-0 text-base lg:text-lg">
                                 Start Writing Free &rarr;
                             </x-glass.button>
                         </a>
@@ -1597,8 +1599,9 @@ Modern content production platforms demand high-throughput intelligence routing 
                                 </x-glass.button>
                             </a>
                         @else
-                            <a href="{{ route('register') }}">
-                                <x-glass.button variant="primary" size="lg" class="px-8 shadow-xl shadow-indigo-600/40">
+                            <a href="{{ route('register') }}" class="relative group block w-max">
+                                <div class="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-xl blur opacity-30 group-hover:opacity-100 transition duration-500"></div>
+                                <x-glass.button variant="primary" size="lg" shimmer="true" class="relative px-10 py-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 shadow-2xl shadow-indigo-600/40 text-white font-bold !border-0 text-lg">
                                     Get Started Free &rarr;
                                 </x-glass.button>
                             </a>

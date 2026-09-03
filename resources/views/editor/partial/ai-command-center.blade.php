@@ -276,19 +276,12 @@
                     type="button" 
                     x-on:click="runMultiAgentPipeline(aiPrompt)"
                     :disabled="isTransforming"
-                    class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white text-xs font-black shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer select-none relative overflow-hidden group"
-                    :class="isTransforming ? 'btn-shimmer' : ''"
+                    class="w-full py-2.5 px-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs shadow-md shadow-amber-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer select-none"
                 >
-                    <span x-show="!isTransforming" class="inline-flex items-center gap-2">
-                        <span>🤖</span>
-                        <span>Run Multi-Agent Swarm (full-content-main-agent)</span>
+                    <span class="bars text-white" x-show="isTransforming" style="display: none;">
+                        <span></span><span></span><span></span><span></span>
                     </span>
-                    <span x-show="isTransforming" class="inline-flex items-center gap-2" style="display: none;">
-                        <span class="bars text-white">
-                            <span></span><span></span><span></span><span></span>
-                        </span>
-                        <span x-text="swarmStatusMessage || 'Swarm Collaborating...'"></span>
-                    </span>
+                    <span x-text="isTransforming ? 'Streaming...' : 'AI Transform'"></span>
                 </button>
 
                 <button 

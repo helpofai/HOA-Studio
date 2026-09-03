@@ -117,12 +117,14 @@
         <!-- Quick Manual Snapshot Save Button -->
         <button 
             type="button" 
-            wire:click="saveExplicitSnapshot" 
-            class="hidden lg:flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 text-[11px] transition-colors cursor-pointer shadow-sm active:scale-95"
+            wire:click="saveExplicitSnapshot"
+            wire:loading.attr="disabled"
+            class="hidden lg:flex px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] shadow-md shadow-emerald-600/30 items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
             title="Create manual document snapshot (Ctrl+S)"
         >
-            <span>💾</span>
-            <span>Save</span>
+            <span class="dual w-3 h-3 border-2" wire:loading wire:target="saveExplicitSnapshot"></span>
+            <span wire:loading.remove wire:target="saveExplicitSnapshot">💾 Save</span>
+            <span wire:loading wire:target="saveExplicitSnapshot">Updating...</span>
         </button>
 
         <!-- Focus Mode Toggle -->
