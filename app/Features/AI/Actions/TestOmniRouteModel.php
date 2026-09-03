@@ -64,9 +64,11 @@ class TestOmniRouteModel
                 'X-OmniRoute-No-Cache' => 'true',
             ]);
 
+            $options = ['verify' => config('omniroute.ssl_verify', false)];
             if (empty($endpoints['is_remote'])) {
-                $httpReq = $httpReq->withOptions(['force_ip_resolve' => 'v4']);
+                $options['force_ip_resolve'] = 'v4';
             }
+            $httpReq = $httpReq->withOptions($options);
 
             $response = $httpReq
                 ->connectTimeout(!empty($endpoints['is_remote']) ? 4 : 2)

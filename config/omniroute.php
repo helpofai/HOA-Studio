@@ -69,4 +69,5 @@ return [
     'compression' => env('OMNIROUTE_COMPRESSION', 'default'), // off, default, engine:rtk, <combo>
     'cache_enabled' => env('OMNIROUTE_CACHE', true),
     'thinking_budget' => env('OMNIROUTE_THINKING_BUDGET', 'auto'),
+    'ssl_verify' => env('OMNIROUTE_SSL_VERIFY', false),
 ];
