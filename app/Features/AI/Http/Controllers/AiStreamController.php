@@ -165,13 +165,16 @@ class AiStreamController extends Controller
         }
 
         $context = $request->input('context', []);
+        if (!isset($context['selected_text']) && !isset($context['target_text'])) {
+            $context['target_text'] = $validated['text'];
+        }
         $pipelineStages = $request->input('pipeline_stages', []);
-        $hasSelection = !empty($context['has_selection']) && !empty($context['selected_text']);
+        $isFullArticle = $brain->isFullArticleType($validated['type'], $validated['custom_instruction'] ?? null, $context);
         $fullDocText = $context['full_document_text'] ?? null;
         $targetKeyword = $context['target_keyword'] ?? null;
         $docTitle = $context['document_title'] ?? null;
 
-        if ($hasSelection) {
+        if (!$isFullArticle) {
             $brainPrompt = $brain->buildSurgicalPrompt(
                 $validated['type'],
                 $context,
@@ -412,10 +415,13 @@ class AiStreamController extends Controller
         }
 
         $context = $request->input('context', []);
+        if (!isset($context['selected_text']) && !isset($context['target_text'])) {
+            $context['target_text'] = $validated['text'];
+        }
         $pipelineStages = $request->input('pipeline_stages', []);
-        $hasSelection = !empty($context['has_selection']) && !empty($context['selected_text']);
+        $isFullArticle = $brain->isFullArticleType($validated['type'], $validated['custom_instruction'] ?? null, $context);
 
-        if ($hasSelection) {
+        if (!$isFullArticle) {
             $brainPrompt = $brain->buildSurgicalPrompt(
                 $validated['type'],
                 $context,

@@ -374,7 +374,9 @@ applyLiveStreamNow() {
             ed.replaceSelection(textToInsert);
         } else {
             const currentHtml = ed.getHTML ? ed.getHTML() : '';
-            const isDocEmpty = !currentHtml || currentHtml === '<p></p>' || currentHtml === '<p><br></p>' || currentHtml.trim().length === 0;
+            const isDocEmpty = typeof this.isContentEmpty === 'function' 
+                ? this.isContentEmpty(currentHtml) 
+                : (!currentHtml || currentHtml === '<p></p>' || currentHtml === '<p><br></p>' || currentHtml.trim().length === 0);
             if (isDocEmpty) {
                 ed.setContent(textToInsert);
             } else {

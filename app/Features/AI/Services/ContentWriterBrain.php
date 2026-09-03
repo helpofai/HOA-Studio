@@ -24,7 +24,10 @@ class ContentWriterBrain
      */
     public function buildSurgicalPrompt(string $actionTool, array $context, ?string $customInstruction = null): array
     {
-        $selectedText = trim($context['selected_text'] ?? '');
+        $selectedText = trim($context['selected_text'] ?? ($context['target_text'] ?? ($context['text'] ?? '')));
+        if ($selectedText === '' && !empty($customInstruction)) {
+            $selectedText = $customInstruction;
+        }
         $fullDocText = trim($context['full_document_text'] ?? '');
         $precedingText = trim($context['preceding_text'] ?? '');
         $followingText = trim($context['following_text'] ?? '');
@@ -173,6 +176,139 @@ Rewrite the marked text in a punchy, active-voice, zero-fluff, high-velocity sty
 OUTPUT ONLY the rewritten text.
 EOT,
 
+            // Structured Component & Media Blocks
+            'comparison_table' => <<<EOT
+ACTION TOOL: COMPARISON TABLE
+OBJECTIVE:
+Generate a structured, responsive comparison table comparing key features, specifications, pros, cons, and metrics{$kwSnippet}.
+RULES:
+1. Output clean markdown table syntax (| Col 1 | Col 2 | Col 3 |) or clean HTML (<table>...</table>).
+2. Include at least 3-5 structured rows comparing top options/facets clearly.
+3. Output ONLY the table itself without conversational preambles, titles, or surrounding paragraphs.
+EOT,
+
+            'quick_answer' => <<<EOT
+ACTION TOOL: QUICK ANSWER CALLOUT
+OBJECTIVE:
+Generate a high-impact, front-loaded executive quick-answer summary callout box{$kwSnippet}.
+FORMAT:
+> **Quick Answer:** [Clear, authoritative 2-3 sentence answer satisfying core reader intent with **bold key terms**.]
+RULES:
+Output ONLY the blockquote callout.
+EOT,
+
+            'eeat_trust' => <<<EOT
+ACTION TOOL: E-E-A-T TRUST & TESTING BLOCK
+OBJECTIVE:
+Generate an authoritative trust block documenting testing methodology, reviewer expertise, and evaluation metrics{$kwSnippet}.
+RULES:
+Output ONLY the trust callout box with blockquote, structured criteria, and author credentials.
+EOT,
+
+            'content_gaps' => <<<EOT
+ACTION TOOL: CONTENT GAP ANALYSIS
+OBJECTIVE:
+Identify 3 to 5 critical missing angles, nuanced FAQs, and tactical points competitors omit{$kwSnippet}.
+RULES:
+Output ONLY a clean bulleted list with bold leading topics.
+EOT,
+
+            'generate_outline', 'outline' => <<<EOT
+ACTION TOOL: OUTLINE ARCHITECT
+OBJECTIVE:
+Generate a clean, hierarchical content outline with H1, H2, and H3 headings and bullet items{$kwSnippet}.
+RULES:
+Output ONLY the markdown outline structure.
+EOT,
+
+            'seo_fix_title' => <<<EOT
+ACTION TOOL: SEO HEADLINE GENERATOR
+OBJECTIVE:
+Generate a high-CTR, click-worthy, SEO-optimized title frontloading the target keyword{$kwSnippet}.
+RULES:
+Output STRICTLY the single headline title on a single line. Do NOT output quotes, asterisks, hashtags, or commentary.
+EOT,
+
+            'seo_fix_meta' => <<<EOT
+ACTION TOOL: SEO META DESCRIPTION
+OBJECTIVE:
+Generate a punchy, click-optimized 150-160 character meta description featuring the target keyword{$kwSnippet}.
+RULES:
+Output STRICTLY the single meta description without quotes, commentary, or multiple paragraphs.
+EOT,
+
+            'seo_fix_intro' => <<<EOT
+ACTION TOOL: SEO INTRO REWRITE
+OBJECTIVE:
+Rewrite the opening 1-2 paragraphs of the document to naturally front-load the target keyword{$kwSnippet} within the opening 2 sentences.
+RULES:
+Output ONLY the 1-2 opening paragraphs. Do NOT write the rest of the document.
+EOT,
+
+            'seo_fix_subheadings' => <<<EOT
+ACTION TOOL: SEO SUBHEADINGS INTEGRATOR
+OBJECTIVE:
+Add keyword-optimized H2 and H3 subheadings with concise transition paragraphs{$kwSnippet}.
+RULES:
+Output ONLY the subheadings and short transition text, not the full document.
+EOT,
+
+            'seo_fix_citations' => <<<EOT
+ACTION TOOL: REFERENCES & CITATIONS BLOCK
+OBJECTIVE:
+Generate an authoritative 'References & External Citations' block with 2-3 credible citations, links, and study references.
+RULES:
+Output ONLY the citation block in clean markdown/HTML.
+EOT,
+
+            'seo_fix_density' => <<<EOT
+ACTION TOOL: KEYWORD DENSITY SURGEON
+OBJECTIVE:
+Surgically integrate the target keyword{$kwSnippet} naturally into the provided text without keyword stuffing.
+RULES:
+Preserve existing structure and output ONLY the updated text.
+EOT,
+
+            'fix_grammar' => <<<EOT
+ACTION TOOL: GRAMMAR & PROOFREADING
+OBJECTIVE:
+Correct all spelling, punctuation, capitalization, and grammatical errors while preserving voice.
+RULES:
+Output ONLY the corrected text.
+EOT,
+
+            'summarize' => <<<EOT
+ACTION TOOL: EXECUTIVE SUMMARY
+OBJECTIVE:
+Provide a clear, high-density summary capturing all core insights.
+RULES:
+Output ONLY the summary.
+EOT,
+
+            'tldr' => <<<EOT
+ACTION TOOL: TL;DR BULLETS
+OBJECTIVE:
+Generate 2 to 3 concise, high-impact bullet points summarizing the core essence.
+RULES:
+Output ONLY the bullet points.
+EOT,
+
+            'action_items' => <<<EOT
+ACTION TOOL: ACTION ITEMS CHECKLIST
+OBJECTIVE:
+Extract a concrete implementation checklist with actionable steps.
+RULES:
+Output as a task checklist (- [ ] Item).
+EOT,
+
+            'continue' => <<<EOT
+ACTION TOOL: SEAMLESS CONTINUATION
+OBJECTIVE:
+Seamlessly continue writing from where the text stops in the exact same voice and style.
+RULES:
+Output ONLY the continuation text (2-3 paragraphs).
+EOT,
+
             'custom' => !empty($customInstruction)
                 ? "ACTION TOOL: INLINE AI DIRECTIVE\nExecute this directive on the marked text: {$customInstruction}\nOUTPUT ONLY the transformed text without conversational filler."
                 : "ACTION TOOL: ENHANCE\nElevate the marked text with superior clarity and flow. OUTPUT ONLY the revised text.",
@@ -308,5 +444,41 @@ EOT;
             'system' => $systemPrompt,
             'user' => $userContent,
         ];
+    }
+
+    /**
+     * Determine if a transformation type represents a full-article generation request.
+     */
+    public function isFullArticleType(string $type, ?string $customInstruction = null, array $context = []): bool
+    {
+        if (in_array($type, ['full_article', 'article', 'blog_post', 'generate_article', 'pipeline_article'])) {
+            return true;
+        }
+
+        $componentTypes = [
+            'comparison_table', 'quick_answer', 'generate_faq', 'faq', 'key_takeaways',
+            'seo_fix_title', 'seo_fix_meta', 'seo_fix_intro', 'seo_fix_subheadings',
+            'seo_fix_citations', 'seo_fix_density', 'content_gaps', 'eeat_trust',
+            'generate_outline', 'outline', 'summarize', 'tldr', 'action_items',
+            'continue', 'fix_grammar', 'recreate', 'rewrite', 'polish', 'expand',
+            'shorten', 'simplify', 'seo_optimize',
+        ];
+
+        if (in_array($type, $componentTypes) || str_starts_with($type, 'tone:')) {
+            return false;
+        }
+
+        if ($type === 'custom') {
+            if (!empty($context['has_selection']) && !empty($context['selected_text'])) {
+                return false;
+            }
+            $actionTool = $context['action_tool'] ?? '';
+            if (!empty($actionTool) && (in_array($actionTool, $componentTypes) || str_starts_with($actionTool, 'tone:'))) {
+                return false;
+            }
+            return true;
+        }
+
+        return false;
     }
 }
