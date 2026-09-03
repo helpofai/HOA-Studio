@@ -23,7 +23,52 @@
 */
 --}}
 
-<div class="space-y-8 max-w-6xl mx-auto">
+<div 
+    class="space-y-8 max-w-6xl mx-auto"
+    x-data="{
+        isHybridSyncing: false,
+        async triggerDynamicSync() {
+            const rawUrl = $wire.get('base_url') || '';
+            const isLocal = rawUrl.includes('localhost') || rawUrl.includes('127.0.0.1');
+            const isLiveServer = !['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+            if (isLocal && isLiveServer) {
+                this.isHybridSyncing = true;
+                try {
+                    const t0 = performance.now();
+                    const modelsResp = await fetch('http://127.0.0.1:20128/v1/models', {
+                        headers: { 'Authorization': 'Bearer ' + ($wire.get('api_key') || 'omniroute-default-key') }
+                    });
+
+                    if (modelsResp.ok) {
+                        const modelsJson = await modelsResp.json();
+                        const models = modelsJson.data || modelsJson || [];
+                        let combos = [];
+                        try {
+                            const combosResp = await fetch('http://127.0.0.1:20128/api/combos', {
+                                headers: { 'Authorization': 'Bearer ' + ($wire.get('api_key') || 'omniroute-default-key') }
+                            });
+                            if (combosResp.ok) {
+                                const combosJson = await combosResp.json();
+                                combos = combosJson.data || combosJson || [];
+                            }
+                        } catch(e) {}
+
+                        const latency = Math.max(1, Math.round(performance.now() - t0));
+                        await $wire.syncFromClient(models, combos, latency);
+                        this.isHybridSyncing = false;
+                        return;
+                    }
+                } catch(err) {
+                    console.warn('[Hybrid Sync] Browser direct fetch failed:', err);
+                }
+                this.isHybridSyncing = false;
+            }
+
+            $wire.testConnectionAndSyncModels();
+        }
+    }"
+>
     <!-- Breadcrumb & Title Header -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -174,11 +219,12 @@
                     <div class="pt-2 flex flex-col sm:flex-row items-center gap-3">
                         <button 
                             type="button" 
-                            wire:click="testConnectionAndSyncModels" 
+                            x-on:click="triggerDynamicSync()"
                             wire:loading.attr="disabled"
+                            :disabled="isHybridSyncing"
                             class="flex-1 justify-center gap-2 font-bold px-4 py-2.5 rounded-xl text-xs transition-all cursor-pointer shadow-lg flex items-center {{ $syncStatus === 'success' ? 'bg-emerald-600/90 text-white shadow-emerald-500/30 border border-emerald-400' : ($syncStatus === 'error' ? 'bg-red-600/90 text-white shadow-red-500/30 border border-red-400' : 'bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-violet-500/25') }}"
                         >
-                            <span wire:loading.remove wire:target="testConnectionAndSyncModels" class="flex items-center gap-1.5">
+                            <span x-show="!isHybridSyncing" wire:loading.remove wire:target="testConnectionAndSyncModels, syncFromClient" class="flex items-center gap-1.5">
                                 @if($syncStatus === 'success')
                                     <span class="text-sm font-black">✓</span>
                                     <span>Full Dynamic Sync from OmniRoute</span>
@@ -190,7 +236,11 @@
                                     <span>Full Dynamic Sync from OmniRoute</span>
                                 @endif
                             </span>
-                            <span wire:loading wire:target="testConnectionAndSyncModels" class="flex items-center gap-2">
+                            <span x-show="isHybridSyncing" class="flex items-center gap-2" style="display: none;">
+                                <span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                <span>Browser Bridge: Connecting to Local PC...</span>
+                            </span>
+                            <span wire:loading wire:target="testConnectionAndSyncModels, syncFromClient" class="flex items-center gap-2">
                                 <span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                                 <span>Ingesting Gateway Models & Combos...</span>
                             </span>
@@ -598,12 +648,15 @@
                 <!-- Resync from Gateway Button -->
                 <button 
                     type="button" 
-                    wire:click="testConnectionAndSyncModels" 
+                    x-on:click="triggerDynamicSync()"
                     wire:loading.attr="disabled"
+                    :disabled="isHybridSyncing"
                     class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-violet-500/30 hover:border-violet-500/60 text-violet-300 hover:text-white text-xs font-semibold transition-all cursor-pointer"
                     title="Re-synchronize catalog directly from OmniRoute /v1/models"
                 >
-                    <span>🔄 Resync Models</span>
+                    <span x-show="!isHybridSyncing" wire:loading.remove wire:target="testConnectionAndSyncModels, syncFromClient">🔄 Resync Models</span>
+                    <span x-show="isHybridSyncing" style="display: none;">Connecting...</span>
+                    <span wire:loading wire:target="testConnectionAndSyncModels, syncFromClient">Syncing...</span>
                 </button>
 
                 <div class="flex items-center gap-1.5 text-xs text-slate-400">

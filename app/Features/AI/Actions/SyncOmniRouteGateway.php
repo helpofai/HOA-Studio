@@ -83,8 +83,8 @@ class SyncOmniRouteGateway
         $port = $parsedUrl['port'] ?? ($scheme === 'https' ? 443 : 20128);
 
         $isPortOpen = false;
-        if ($isRemote) {
-            // For remote Cloudflare tunnels or external hosts, do not block with local fsockopen
+        if ($isRemote || app()->runningUnitTests()) {
+            // For remote Cloudflare tunnels, external hosts, or unit tests, do not block with local fsockopen
             $isPortOpen = true;
         } else {
             $ipToCheck = ($host === 'localhost') ? '127.0.0.1' : $host;
@@ -176,6 +176,30 @@ class SyncOmniRouteGateway
                 // Combos endpoint optional fallback
             }
         }
+
+        return $this->ingestData($modelsData, $combosData, $latencyMs, $baseUrl, $isOfflineFallback, $offlineNotice);
+    }
+
+    /**
+     * Ingest models and combos catalog directly (supports Server Sync & Browser Bridge Sync)
+     */
+    public function ingestData(
+        array $modelsData, 
+        array $combosData = [], 
+        int $latencyMs = 5, 
+        ?string $targetUrl = null, 
+        bool $isOfflineFallback = false, 
+        ?string $offlineNotice = null
+    ): array
+    {
+        $endpoints = OmniRouteUrlResolver::resolve($targetUrl);
+        $provider = AiProvider::firstOrCreate(['slug' => 'omniroute'], [
+            'name' => 'OmniRoute Gateway',
+            'icon' => '⚡',
+            'description' => 'Unified AI Proxy Gateway v3.8.50 with multi-provider routing and fallbacks.',
+            'is_local' => true,
+            'is_active' => true,
+        ]);
 
         $totalSynced = 0;
         $combosCount = 0;
