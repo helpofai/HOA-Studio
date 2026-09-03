@@ -159,6 +159,21 @@ class UserOmniRouteSetupPage extends Component
         $this->testGatewayConnection();
     }
 
+    public function updatedUserCustomUrl($value)
+    {
+        $val = trim((string) $value);
+        if (!empty($val)) {
+            if (str_contains($val, 'localhost') || str_contains($val, '127.0.0.1')) {
+                $this->connection_type = 'local_daemon';
+            } elseif (str_contains($val, 'trycloudflare.com') || str_contains($val, 'cloudflare') || str_contains($val, 'ngrok')) {
+                $this->connection_type = 'cloudflare_tunnel';
+            } else {
+                $this->connection_type = 'custom_proxy';
+            }
+        }
+        $this->testGatewayConnection();
+    }
+
     public function testGatewayConnection()
     {
         $this->isTesting = true;
@@ -255,6 +270,14 @@ class UserOmniRouteSetupPage extends Component
             $this->saveStatus = 'error';
             session()->flash('error', 'Administrator has disabled personal BYOK keys for OmniRoute Gateway.');
             return;
+        }
+
+        if (!empty($this->user_custom_url)) {
+            $cleanUrl = rtrim(trim($this->user_custom_url), '/');
+            if (!preg_match('#/v1$#i', $cleanUrl)) {
+                $cleanUrl .= '/v1';
+            }
+            $this->user_custom_url = $cleanUrl;
         }
 
         $this->validate([

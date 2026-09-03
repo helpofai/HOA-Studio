@@ -149,6 +149,11 @@ class AdminOmniRouteSetupPage extends Component
         $this->saveConfiguration();
     }
 
+    public function updatedBaseUrl($value)
+    {
+        $this->pingGatewayHealth();
+    }
+
     public function pingGatewayHealth()
     {
         $endpoints = OmniRouteUrlResolver::resolve($this->base_url);
