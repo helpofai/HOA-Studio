@@ -93,9 +93,11 @@ class OmniRouteClient
                 ->connectTimeout($connectTimeout)
                 ->timeout($readTimeout);
 
+            $httpOpts = ['verify' => config('omniroute.ssl_verify', false)];
             if (empty($this->endpoints['is_remote'])) {
-                $req = $req->withOptions(['force_ip_resolve' => 'v4']);
+                $httpOpts['force_ip_resolve'] = 'v4';
             }
+            $req = $req->withOptions($httpOpts);
 
             $response = $req->post($this->endpoints['chat_completions_endpoint'], $payload);
 
@@ -222,6 +224,8 @@ class OmniRouteClient
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_CONNECTTIMEOUT => $connectTimeout,
                 CURLOPT_TIMEOUT => $readTimeout,
+                CURLOPT_SSL_VERIFYPEER => (bool) config('omniroute.ssl_verify', false),
+                CURLOPT_SSL_VERIFYHOST => config('omniroute.ssl_verify', false) ? 2 : 0,
             ];
 
             if (empty($this->endpoints['is_remote'])) {

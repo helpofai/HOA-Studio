@@ -107,9 +107,11 @@ class SyncOmniRouteGateway
                     'Accept' => 'application/json',
                 ]);
 
+                $options = ['verify' => config('omniroute.ssl_verify', false)];
                 if (!$isRemote) {
-                    $httpReq = $httpReq->withOptions(['force_ip_resolve' => 'v4']);
+                    $options['force_ip_resolve'] = 'v4';
                 }
+                $httpReq = $httpReq->withOptions($options);
 
                 $modelsResponse = $httpReq
                     ->connectTimeout($isRemote ? 4 : 1)
