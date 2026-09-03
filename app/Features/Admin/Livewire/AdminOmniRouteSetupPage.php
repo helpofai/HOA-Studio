@@ -201,7 +201,7 @@ class AdminOmniRouteSetupPage extends Component
                 $serverHost = request()->getHost();
                 $isServerRemote = !in_array($serverHost, ['localhost', '127.0.0.1', '::1']);
                 if ($isServerRemote) {
-                    $this->statusMessage = "You are on live server ({$serverHost}). 'localhost' points to the server itself, not your local PC. To connect to OmniRoute on your PC, paste your Cloudflare Tunnel URL (https://*.trycloudflare.com/v1).";
+                    $this->statusMessage = "Local PC Daemon configured ({$this->base_url}). Connecting via Direct Browser Bridge...";
                 } else {
                     $this->statusMessage = "Local OmniRoute daemon not responding on port {$port}. (Start OmniRoute in terminal or use Cloudflare Tunnel).";
                 }
@@ -563,6 +563,20 @@ class AdminOmniRouteSetupPage extends Component
     public function closeProgressModal()
     {
         $this->showProgressModal = false;
+    }
+
+    /**
+     * Report ping health from client browser for local PC daemons on live servers
+     */
+    public function reportClientPingStatus(bool $status, ?int $latencyMs = null, ?string $message = null)
+    {
+        $this->connectionStatus = $status;
+        $this->pingLatencyMs = $latencyMs;
+        if ($status) {
+            $this->statusMessage = "Gateway Online ({$latencyMs}ms via Direct Browser Bridge to Local PC)";
+        } elseif ($message) {
+            $this->statusMessage = $message;
+        }
     }
 
     protected function appendProgressLog(string $level, string $tag, string $message)

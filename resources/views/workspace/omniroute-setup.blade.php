@@ -23,7 +23,29 @@
 */
 --}}
 
-<div class="space-y-8 animate-fade-in pb-12">
+<div 
+    class="space-y-8 animate-fade-in pb-12"
+    x-data="{
+        checkClientHealth() {
+            const rawUrl = $wire.get('custom_endpoint') || '';
+            const isLocal = rawUrl.includes('localhost') || rawUrl.includes('127.0.0.1');
+            const isLiveServer = !['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+            if (isLocal && isLiveServer) {
+                const t0 = performance.now();
+                fetch('http://127.0.0.1:20128/v1/models', {
+                    headers: { 'Authorization': 'Bearer ' + ($wire.get('api_key') || 'omniroute-default-key') }
+                }).then(res => {
+                    if (res.ok) {
+                        const lat = Math.max(1, Math.round(performance.now() - t0));
+                        $wire.reportClientPingStatus(true, lat);
+                    }
+                }).catch(e => {});
+            }
+        }
+    }"
+    x-init="checkClientHealth(); $watch('$wire.custom_endpoint', () => checkClientHealth())"
+>
     <!-- Header Section -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
