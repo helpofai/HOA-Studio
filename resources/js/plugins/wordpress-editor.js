@@ -1126,6 +1126,10 @@ export function normalizeContentToHtml(content) {
                 return;
             }
 
+            const cfg = window.hoaStudioConfig || {};
+            const ajaxUrl = cfg.ajaxUrl || '/wp-admin/admin-ajax.php';
+            const nonce = cfg.nonce || '';
+
             const chosenModel = model || $('#hoa-ai-model-select').val() || 'auto';
             const postTitle = $('#hoa-post-title-input').val() ? $('#hoa-post-title-input').val().trim() : '';
             const targetKeyword = $('#hoa-target-keyword').val() ? $('#hoa-target-keyword').val().trim() : '';
@@ -1143,7 +1147,7 @@ export function normalizeContentToHtml(content) {
 
             const formData = new URLSearchParams();
             formData.append('action', 'hoa_studio_stream_proxy');
-            formData.append('nonce', hoaStudioConfig.nonce);
+            formData.append('nonce', nonce);
             formData.append('text', selectedText || prompt);
             formData.append('type', type);
             formData.append('model', chosenModel);
@@ -1151,17 +1155,10 @@ export function normalizeContentToHtml(content) {
             formData.append('context[document_title]', postTitle);
             formData.append('context[target_keyword]', targetKeyword);
 
-            const { state } = editor;
-            let insertPos = state.doc.content.size;
-
             if (placement === 'proposal') {
                 lastProposalRange = (fromPos !== toPos) ? { from: fromPos, to: toPos } : null;
                 $('#hoa-wp-ai-proposal-box').fadeIn(150);
                 $('#hoa-proposal-body').html('<span class="text-emerald-400">✦ Sub-content-sub-agent reasoning & drafting...</span>');
-            } else if (placement === 'replace' && fromPos !== toPos) {
-                // Keep range
-            } else if (fromPos !== toPos) {
-                insertPos = toPos;
             }
 
             let totalChars = 0;
@@ -1169,16 +1166,31 @@ export function normalizeContentToHtml(content) {
             let firstTokenTime = null;
             const startTime = performance.now();
             let accumulatedBuffer = '';
+            let streamHadError = false;
+            let lastCanvasUpdate = 0;
+            const existingTextAtStart = editor.getText().trim();
+            const isDocInitiallyEmpty = !existingTextAtStart;
 
             try {
-                const response = await fetch(hoaStudioConfig.ajaxUrl, {
+                const response = await fetch(ajaxUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: formData.toString()
                 });
 
-                if (!response.ok) throw new Error('HTTP server error ' + response.status);
-                if (!response.body) throw new Error('ReadableStream not supported');
+                if (!response.ok) {
+                    const errText = await response.text();
+                    let errMsg = 'HTTP server error ' + response.status;
+                    try {
+                        const parsedErr = JSON.parse(errText);
+                        if (parsedErr.error) errMsg = parsedErr.error;
+                        else if (parsedErr.message) errMsg = parsedErr.message;
+                        else if (parsedErr.data && parsedErr.data.message) errMsg = parsedErr.data.message;
+                    } catch(e) {}
+                    throw new Error(errMsg);
+                }
+
+                if (!response.body) throw new Error('ReadableStream is not supported by your browser.');
                 
                 const reader = response.body.getReader();
                 activeStreamReader = reader;
@@ -1198,8 +1210,11 @@ export function normalizeContentToHtml(content) {
                     const lines = chunk.split('\n');
                     
                     for (const line of lines) {
-                        if (line.startsWith('data: ')) {
-                            const data = line.slice(6).trim();
+                        const trimmed = line.trim();
+                        if (!trimmed) continue;
+
+                        if (trimmed.startsWith('data: ')) {
+                            const data = trimmed.slice(6).trim();
                             if (!data || data === '[DONE]') continue;
                             
                             try {
@@ -1207,10 +1222,11 @@ export function normalizeContentToHtml(content) {
 
                                 if (parsed.error) {
                                     alert('AI Gateway Error: ' + parsed.error);
+                                    streamHadError = true;
                                     break;
                                 }
 
-                                const tokenDelta = parsed.delta || parsed.chunk || '';
+                                const tokenDelta = parsed.delta || parsed.chunk || parsed.token || '';
                                 
                                 if (tokenDelta) {
                                     totalChars += tokenDelta.length;
@@ -1220,6 +1236,13 @@ export function normalizeContentToHtml(content) {
                                     if (placement === 'proposal') {
                                         lastProposalText = accumulatedBuffer;
                                         $('#hoa-proposal-body').html(accumulatedBuffer.replace(/\n/g, '<br>') + '<span class="hoa-streaming-cursor">|</span>');
+                                    } else if (isDocInitiallyEmpty && placement !== 'replace') {
+                                        // Throttled real-time streaming preview directly in canvas
+                                        const now = performance.now();
+                                        if (now - lastCanvasUpdate > 100) {
+                                            lastCanvasUpdate = now;
+                                            editor.commands.setContent(normalizeContentToHtml(accumulatedBuffer), false);
+                                        }
                                     }
 
                                     // Real-time telemetry counters
@@ -1243,34 +1266,53 @@ export function normalizeContentToHtml(content) {
                             } catch (e) {
                                 // Incomplete chunk, skip
                             }
+                        } else if (trimmed.startsWith('{')) {
+                            try {
+                                const parsed = JSON.parse(trimmed);
+                                if (parsed.error || parsed.message) {
+                                    alert('AI Gateway Error: ' + (parsed.error || parsed.message));
+                                    streamHadError = true;
+                                    break;
+                                }
+                            } catch (e) {}
                         }
                     }
+
+                    if (streamHadError) break;
                 }
 
                 // STREAMING COMPLETE: Normalize Markdown/HTML to rich TipTap ProseMirror Nodes
-                if (accumulatedBuffer.trim()) {
+                if (accumulatedBuffer.trim() && !streamHadError) {
                     const normalizedHtml = normalizeContentToHtml(accumulatedBuffer);
 
                     if (placement === 'proposal') {
                         lastProposalText = normalizedHtml;
                         $('#hoa-proposal-body').html(normalizedHtml);
                     } else if (placement === 'replace' && fromPos !== toPos) {
-                        editor.chain().focus().setTextSelection({ from: fromPos, to: toPos }).insertContent(normalizedHtml).run();
-                    } else if (placement === 'insert_below') {
-                        editor.chain().focus().setTextSelection(insertPos).insertContent('<p></p>' + normalizedHtml).run();
+                        try {
+                            editor.chain().focus().setTextSelection({ from: fromPos, to: toPos }).deleteSelection().insertContent(normalizedHtml).run();
+                        } catch (e) {
+                            editor.chain().focus().insertContent(normalizedHtml).run();
+                        }
                     } else {
-                        // Default / document mode: append or set
-                        const existing = editor.getHTML().trim();
-                        if (!existing || existing === '<p></p>' || existing === '<p><br></p>') {
+                        const existingText = editor.getText().trim();
+                        if (!existingText || isDocInitiallyEmpty) {
                             editor.commands.setContent(normalizedHtml, false);
                         } else {
-                            editor.chain().focus().setTextSelection(editor.state.doc.content.size).insertContent('<p></p>' + normalizedHtml).run();
+                            editor.chain().focus('end').insertContent('<p></p>' + normalizedHtml).run();
                         }
                     }
+
+                    // Keep hidden input & stats updated
+                    $('#hoa_tiptap_html_content').val(editor.getHTML());
+                    updateStats(editor.getText());
+                } else if (!streamHadError) {
+                    alert('No content was generated by the AI model. Please check your HOA Studio Connection settings or verify your prompt.');
                 }
 
             } catch (err) {
                 console.error('[HOA Studio AI] Streaming error:', err);
+                alert('AI Streaming Error: ' + (err.message || 'Failed to connect to AI Gateway.'));
             } finally {
                 activeStreamReader = null;
                 $streamingStatus.hide();

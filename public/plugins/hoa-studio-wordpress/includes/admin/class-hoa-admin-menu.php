@@ -191,11 +191,15 @@ class HoaAdminMenu {
             HOA_STUDIO_PLUGIN_VERSION
         );
 
+        $bundle_ver = file_exists(HOA_STUDIO_PLUGIN_DIR . 'assets/js/hoa-tiptap-bundle.js')
+            ? (string) filemtime(HOA_STUDIO_PLUGIN_DIR . 'assets/js/hoa-tiptap-bundle.js')
+            : HOA_STUDIO_PLUGIN_VERSION;
+
         wp_enqueue_script(
             'hoa-studio-tiptap-bundle',
             HOA_STUDIO_PLUGIN_URL . 'assets/js/hoa-tiptap-bundle.js',
             ['jquery'],
-            HOA_STUDIO_PLUGIN_VERSION,
+            $bundle_ver,
             true
         );
 
