@@ -82,6 +82,8 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::post('/api/ai/transform', [AiStreamController::class, 'transform'])->name('ai.transform');
     Route::post('/api/ai/stream-transform', [AiStreamController::class, 'streamTransform'])->name('ai.stream-transform');
     Route::post('/api/ai/stream', [AiStreamController::class, 'stream'])->name('ai.stream');
+    Route::post('/api/ai/prepare-prompt', [AiStreamController::class, 'preparePrompt'])->name('ai.prepare-prompt');
+    Route::post('/api/ai/record-usage', [AiStreamController::class, 'recordUsage'])->name('ai.record-usage');
     Route::get('/api/ai/providers/models', [AiProviderController::class, 'getModels'])->name('ai.providers.models');
 });
 

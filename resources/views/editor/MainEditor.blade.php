@@ -19,6 +19,8 @@
         documentId: {{ $documentId }},
         editorType: '{{ $editorType }}',
         streamRoute: '{{ route('ai.stream-transform') }}',
+        preparePromptRoute: '{{ route('ai.prepare-prompt') }}',
+        recordUsageRoute: '{{ route('ai.record-usage') }}',
         csrfToken: '{{ csrf_token() }}',
         initialContent: @js($contentHtml),
         hasQuota: {{ auth()->user()->hasQuota(50) ? 'true' : 'false' }}

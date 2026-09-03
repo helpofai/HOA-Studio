@@ -606,38 +606,102 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto') {
     }
 
     try {
-        const response = await fetch(config.streamRoute, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': config.csrfToken,
-                'Accept': 'text/event-stream'
-            },
-            body: JSON.stringify({
-                text: targetText || 'Document Context',
-                type: type,
-                custom_instruction: promptToSend,
-                model: this.aiModel,
-                pipeline_stages: hadSelection ? [] : selectedPipelineStages,
-                context: {
-                    ...this.aiContext,
-                    has_selection: hadSelection,
-                    selected_text: hadSelection ? this.selectedText : null,
-                    full_document_text: fullDocumentContent,
-                    full_document_html: fullDocumentHtml,
-                    preceding_text: precedingText,
-                    following_text: followingText,
-                    target_keyword: this.targetKeyword || '',
-                    document_title: this.title || '',
-                    action_tool: type
+        let response = null;
+        let isBrowserDirect = false;
+        let preparedData = null;
+
+        const requestPayload = {
+            text: targetText || 'Document Context',
+            type: type,
+            custom_instruction: promptToSend,
+            model: this.aiModel,
+            pipeline_stages: hadSelection ? [] : selectedPipelineStages,
+            context: {
+                ...this.aiContext,
+                has_selection: hadSelection,
+                selected_text: hadSelection ? this.selectedText : null,
+                full_document_text: fullDocumentContent,
+                full_document_html: fullDocumentHtml,
+                preceding_text: precedingText,
+                following_text: followingText,
+                target_keyword: this.targetKeyword || '',
+                document_title: this.title || '',
+                action_tool: type
+            }
+        };
+
+        // STEP 1: HYBRID ROUTING & RAG BRAIN PREPARATION
+        if (config.preparePromptRoute) {
+            try {
+                const prepResp = await fetch(config.preparePromptRoute, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': config.csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(requestPayload),
+                    signal: this.abortController.signal
+                });
+                if (prepResp.ok) {
+                    preparedData = await prepResp.json();
                 }
-            }),
-            signal: this.abortController.signal
-        });
+            } catch (prepErr) {
+                console.warn('[Hybrid Router] Prompt prep bypassed:', prepErr.message);
+            }
+        }
+
+        // STEP 2: IF LOCAL DAEMON -> DIRECT BROWSER STREAM (0ms Server Latency)
+        if (preparedData && preparedData.success && preparedData.routing && preparedData.routing.is_local) {
+            try {
+                this.addLog('ROUTER', '⚡ Local daemon detected (' + preparedData.routing.gateway_url + '). Connecting directly from browser with 0ms server latency...');
+                const directTargetUrl = preparedData.routing.chat_completions_url || 'http://127.0.0.1:20128/v1/chat/completions';
+                
+                const directResp = await fetch(directTargetUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + (preparedData.routing.api_key || 'omniroute-default-key'),
+                        'Accept': 'text/event-stream'
+                    },
+                    body: JSON.stringify({
+                        model: preparedData.model || 'auto',
+                        messages: preparedData.messages,
+                        temperature: preparedData.temperature || 0.75,
+                        stream: true
+                    }),
+                    signal: this.abortController.signal
+                });
+
+                if (directResp.ok) {
+                    response = directResp;
+                    isBrowserDirect = true;
+                    this.addLog('ROUTER', '✓ Connected directly to local OmniRoute daemon on your device.');
+                } else {
+                    this.addLog('ROUTER', 'Local daemon status ' + directResp.status + '. Routing via server proxy...');
+                }
+            } catch (directErr) {
+                this.addLog('ROUTER', 'Direct local daemon unreachable (' + directErr.message + '). Falling back to cloud server proxy...');
+            }
+        }
+
+        // STEP 3: FALLBACK OR CLOUD TUNNEL -> SERVER STREAM ROUTE
+        if (!response) {
+            response = await fetch(config.streamRoute, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': config.csrfToken,
+                    'Accept': 'text/event-stream'
+                },
+                body: JSON.stringify(requestPayload),
+                signal: this.abortController.signal
+            });
+        }
 
         if (!response.ok) {
             const errData = await response.json().catch(() => ({}));
-            throw new Error(errData.error || 'Server error while generating transformation.');
+            throw new Error(errData.error || errData.message || 'Server error while generating transformation.');
         }
 
         this.addLog('STREAM', 'SSE stream connected. Receiving real-time tokens...');
@@ -669,8 +733,16 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto') {
 
             for (const line of lines) {
                 if (line.startsWith('data: ')) {
+                    const dataStr = line.substring(6).trim();
+                    if (dataStr === '[DONE]') continue;
                     try {
-                        const parsed = JSON.parse(line.substring(6));
+                        const parsed = JSON.parse(dataStr);
+                        // Standard OpenAI delta format (from direct local daemon)
+                        const deltaToken = parsed.choices?.[0]?.delta?.content;
+                        if (deltaToken) {
+                            fullResult += deltaToken;
+                        }
+                        // HOA Studio Laravel SSE format (from server proxy)
                         if (parsed.token) {
                             fullResult += parsed.token;
                         }
@@ -724,6 +796,30 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto') {
 
         this.isTransforming = false;
         this.liveAiStreamText = '';
+
+        // Record telemetry & deduct quota if streamed directly from browser
+        if (isBrowserDirect && config.recordUsageRoute && fullResult.trim().length > 0) {
+            const wordsGenerated = Math.max(1, fullResult.trim().split(/\s+/).length);
+            fetch(config.recordUsageRoute, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': config.csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    tokens: this.receivedTokens,
+                    words: wordsGenerated,
+                    model: this.routedModel,
+                    latency_ms: this.streamLatencyMs,
+                    document_id: config.documentId
+                })
+            }).then(r => r.json()).then(data => {
+                if (data.quota_remaining !== undefined) {
+                    this.addLog('USAGE', 'Logged ' + wordsGenerated + ' words to quota. Remaining: ' + data.quota_remaining.toLocaleString());
+                }
+            }).catch(err => console.warn('[Hybrid Router] Failed to record usage:', err));
+        }
 
         // FINAL PERSISTENCE & SURGICAL PLACEMENT WITH YELLOW SELECTION & GREEN PROPOSAL BOX
         if (fullResult.trim().length > 0) {
