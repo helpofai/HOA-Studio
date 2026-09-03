@@ -42,6 +42,16 @@ $permalink = isset($permalink) ? $permalink : '';
 $slug = isset($slug) ? $slug : '';
 ?>
 
+<script>
+window.hoaStudioConfig = window.hoaStudioConfig || {
+    ajaxUrl: '<?php echo esc_url(admin_url('admin-ajax.php')); ?>',
+    nonce: '<?php echo wp_create_nonce('hoa_studio_nonce'); ?>',
+    endpoint: '<?php echo esc_js(!empty(get_option('hoa_studio_endpoint_url')) ? rtrim(get_option('hoa_studio_endpoint_url'), '/') : 'https://studio.helpofai.com'); ?>',
+    isConnected: <?php echo !empty(get_option('hoa_studio_connect_key')) ? 'true' : 'false'; ?>,
+    defaultEditor: 'tiptap'
+};
+</script>
+
 <div id="hoa-studio-dedicated-app" class="hoa-studio-dedicated-workspace">
     <!-- TOP MASTER CONTROL BAR -->
     <header class="hoa-studio-topbar">

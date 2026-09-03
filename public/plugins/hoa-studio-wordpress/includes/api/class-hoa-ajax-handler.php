@@ -85,19 +85,27 @@ class HoaAjaxHandler {
     }
 
     public function ajax_stream_proxy() {
-        check_ajax_referer('hoa_studio_nonce', 'nonce');
-
-        if (!current_user_can('edit_posts')) {
-            wp_send_json_error(['message' => 'Unauthorized']);
+        if (!check_ajax_referer('hoa_studio_nonce', 'nonce', false)) {
+            header('Content-Type: text/event-stream');
+            echo "data: " . json_encode(['error' => 'Security token (nonce) expired. Please refresh the page.', 'done' => true]) . "\n\n";
+            exit;
         }
 
-        $endpoint = !empty(get_option('hoa_studio_endpoint_url')) 
-            ? rtrim(get_option('hoa_studio_endpoint_url'), '/') 
-            : 'https://studio.helpofai.com';
-        $key = get_option('hoa_studio_connect_key', '');
+        if (!current_user_can('edit_posts')) {
+            header('Content-Type: text/event-stream');
+            echo "data: " . json_encode(['error' => 'Unauthorized: You do not have permission to edit posts.', 'done' => true]) . "\n\n";
+            exit;
+        }
+
+        $endpoint = trim(rtrim(!empty(get_option('hoa_studio_endpoint_url')) ? get_option('hoa_studio_endpoint_url') : 'https://studio.helpofai.com', '/'));
+        if (empty($endpoint)) {
+            $endpoint = 'https://studio.helpofai.com';
+        }
+        $key = trim(get_option('hoa_studio_connect_key', ''));
 
         if (empty($key)) {
-            echo "data: " . json_encode(['error' => 'HOA Studio Connect Key missing. Configure in HOA Studio Settings.', 'done' => true]) . "\n\n";
+            header('Content-Type: text/event-stream');
+            echo "data: " . json_encode(['error' => 'HOA Studio Connect Key missing. Please configure your key in HOA Studio Connection Settings.', 'done' => true]) . "\n\n";
             exit;
         }
 
@@ -111,7 +119,7 @@ class HoaAjaxHandler {
 
         // Directly stream from backend to browser
         header('Content-Type: text/event-stream');
-        header('Cache-Control: no-cache');
+        header('Cache-Control: no-cache, no-transform');
         header('Connection: keep-alive');
         header('X-Accel-Buffering: no');
 
@@ -119,6 +127,7 @@ class HoaAjaxHandler {
         @ob_implicit_flush(true);
         while (ob_get_level() > 0) { ob_end_flush(); }
 
+        $httpCode = 0;
         $ch = curl_init($endpoint . '/api/v1/wordpress/stream');
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
@@ -131,7 +140,40 @@ class HoaAjaxHandler {
         ]);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt($ch, CURLOPT_WRITEFUNCTION, function($ch, $data) {
+        curl_setopt($ch, CURLOPT_HEADERFUNCTION, function($ch, $header) use (&$httpCode) {
+            if (preg_match('#^HTTP/[\d\.]+\s+(\d+)#i', $header, $matches)) {
+                $httpCode = (int) $matches[1];
+            }
+            return strlen($header);
+        });
+        curl_setopt($ch, CURLOPT_WRITEFUNCTION, function($ch, $data) use (&$httpCode) {
+            if ($httpCode >= 400) {
+                $msg = $data;
+                $decoded = json_decode($data, true);
+                if ($decoded && !empty($decoded['error'])) {
+                    $msg = $decoded['error'];
+                } elseif ($decoded && !empty($decoded['message'])) {
+                    $msg = $decoded['message'];
+                }
+                echo "data: " . json_encode(['error' => 'HOA Studio (HTTP ' . $httpCode . '): ' . strip_tags($msg), 'done' => true]) . "\n\n";
+                flush();
+                return strlen($data);
+            }
+
+            // Ensure JSON responses are translated into data: format
+            if (!str_starts_with($data, 'data:') && !str_starts_with($data, 'event:')) {
+                $trimmed = trim($data);
+                if ($trimmed !== '') {
+                    $decoded = json_decode($trimmed, true);
+                    if ($decoded && (isset($decoded['error']) || isset($decoded['message']))) {
+                        $err = $decoded['error'] ?? $decoded['message'];
+                        echo "data: " . json_encode(['error' => $err, 'done' => true]) . "\n\n";
+                        flush();
+                        return strlen($data);
+                    }
+                }
+            }
+
             echo $data;
             flush();
             return strlen($data);
