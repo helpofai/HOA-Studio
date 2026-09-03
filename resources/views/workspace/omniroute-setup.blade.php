@@ -345,15 +345,25 @@
 
                             <!-- Custom Gateway URL (Optional) -->
                             <div>
-                                <label class="text-xs font-medium text-slate-300 block mb-1.5">
-                                    Gateway Endpoint URL
-                                </label>
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label class="text-xs font-medium text-slate-300 block">
+                                        Gateway Endpoint URL
+                                    </label>
+                                    <span class="text-[10px] text-violet-400 font-mono">Dynamic Route</span>
+                                </div>
                                 <input 
                                     type="text" 
                                     wire:model="user_custom_url" 
                                     placeholder="{{ $connection_type === 'cloudflare_tunnel' ? 'https://omni-gateway.yourdomain.com/v1' : 'http://localhost:20128/v1' }}" 
                                     class="w-full bg-slate-900 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
                                 />
+                                <div class="flex flex-wrap items-center gap-1.5 mt-2">
+                                    <span class="text-[10px] text-slate-400 font-semibold">Presets:</span>
+                                    <button type="button" wire:click="setLocalPreset" class="px-2 py-0.5 text-[10px] rounded-md bg-white/5 hover:bg-violet-600/30 text-slate-300 hover:text-white border border-white/10 transition-colors cursor-pointer" title="Switch to local localhost daemon">
+                                        🏠 localhost:20128
+                                    </button>
+                                </div>
+                                <p class="text-[10px] text-slate-400 mt-1.5">Supports local daemons (<code class="text-violet-400">http://localhost:20128/v1</code>) and live Cloudflare Tunnels (<code class="text-cyan-400">https://*.trycloudflare.com/v1</code>).</p>
                                 @error('user_custom_url') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
                             </div>
                         </div>
