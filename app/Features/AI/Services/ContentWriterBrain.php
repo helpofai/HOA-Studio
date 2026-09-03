@@ -451,7 +451,7 @@ EOT;
      */
     public function isFullArticleType(string $type, ?string $customInstruction = null, array $context = []): bool
     {
-        if (in_array($type, ['full_article', 'article', 'blog_post', 'generate_article', 'pipeline_article'])) {
+        if (in_array($type, ['full_article', 'article', 'blog_post', 'generate_article', 'pipeline_article', 'multi_agent_pipeline'])) {
             return true;
         }
 

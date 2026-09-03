@@ -82,7 +82,7 @@ class PipelineCoordinator
         // ==========================================
         $outline = [];
         
-        if (in_array('outline', $pipelineStages)) {
+        if (in_array('article_outline', $pipelineStages)) {
             $sendEvent("status", "📑 Architecting H2/H3 Section Outline & Data Structures...");
             
             $sysPrompt = "You are an Executive Content Architect. Generate a logical, highly-structured article outline for the given topic. Output STRICTLY raw JSON in this format: {\"sections\": [{\"title\": \"H2 Title\", \"focus\": \"What to cover in this section\"}]}. NO markdown, NO conversational text. Just JSON.";
