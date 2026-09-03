@@ -151,6 +151,30 @@ class AdminOmniRouteSetupPage extends Component
 
     public function updatedBaseUrl($value)
     {
+        $raw = trim((string) $value);
+        if (!empty($raw)) {
+            if (!preg_match('#^https?://#i', $raw)) {
+                $raw = (str_contains($raw, 'localhost') || str_contains($raw, '127.0.0.1'))
+                    ? "http://{$raw}"
+                    : "https://{$raw}";
+            }
+            $cleanUrl = rtrim($raw, '/');
+            if (!preg_match('#/v1$#i', $cleanUrl)) {
+                $cleanUrl .= '/v1';
+            }
+            $this->base_url = $cleanUrl;
+
+            // Auto-persist directly to database immediately
+            try {
+                DB::table('settings')->updateOrInsert(['key' => 'omniroute_base_url'], ['value' => $this->base_url, 'updated_at' => now()]);
+                $provider = AiProvider::where('slug', 'omniroute')->first();
+                if ($provider) {
+                    $provider->base_url = $this->base_url;
+                    $provider->is_local = str_contains($this->base_url, 'localhost') || str_contains($this->base_url, '127.0.0.1');
+                    $provider->save();
+                }
+            } catch (\Throwable $e) {}
+        }
         $this->pingGatewayHealth();
     }
 
@@ -403,12 +427,25 @@ class AdminOmniRouteSetupPage extends Component
 
         $this->appendProgressLog('info', 'INIT', "Connecting to OmniRoute Gateway on {$this->base_url}...");
 
+        // Always persist base_url to database before syncing
+        try {
+            DB::table('settings')->updateOrInsert(['key' => 'omniroute_base_url'], ['value' => $this->base_url, 'updated_at' => now()]);
+            DB::table('settings')->updateOrInsert(['key' => 'omniroute_api_key'], ['value' => $this->api_key, 'updated_at' => now()]);
+            $provider = AiProvider::where('slug', 'omniroute')->first();
+            if ($provider) {
+                $provider->base_url = $this->base_url;
+                $provider->api_key_encrypted = $this->api_key;
+                $provider->is_local = str_contains($this->base_url, 'localhost') || str_contains($this->base_url, '127.0.0.1');
+                $provider->save();
+            }
+        } catch (\Throwable $e) {}
+
         try {
             $endpoints = OmniRouteUrlResolver::resolve($this->base_url);
-            $this->appendProgressLog('debug', 'RESOLVE', "Resolved IPv4 loopback routes: [Models: {$endpoints['models_endpoint']}]");
+            $this->appendProgressLog('debug', 'RESOLVE', "Resolved routes: [Models: {$endpoints['models_endpoint']}]");
 
             $this->progressCurrent = 2;
-            $this->appendProgressLog('info', 'FETCH', "Requesting GET /v1/models with force_ip_resolve=v4...");
+            $this->appendProgressLog('info', 'FETCH', "Requesting GET /v1/models...");
 
             $result = $syncAction->execute($this->base_url, $this->api_key);
 
@@ -509,17 +546,25 @@ class AdminOmniRouteSetupPage extends Component
     public function saveConfiguration()
     {
         try {
+            $rawUrl = trim((string) $this->base_url);
+            if (!empty($rawUrl)) {
+                if (!preg_match('#^https?://#i', $rawUrl)) {
+                    $rawUrl = (str_contains($rawUrl, 'localhost') || str_contains($rawUrl, '127.0.0.1'))
+                        ? "http://{$rawUrl}"
+                        : "https://{$rawUrl}";
+                }
+                $cleanUrl = rtrim($rawUrl, '/');
+                if (!preg_match('#/v1$#i', $cleanUrl)) {
+                    $cleanUrl .= '/v1';
+                }
+                $this->base_url = $cleanUrl;
+            }
+
             $this->validate([
                 'base_url' => 'required|url',
                 'api_key' => 'required|string',
                 'default_model' => 'required|string',
             ]);
-
-            $cleanUrl = rtrim($this->base_url, '/');
-            if (!str_ends_with($cleanUrl, '/v1')) {
-                $cleanUrl .= '/v1';
-            }
-            $this->base_url = $cleanUrl;
 
             $isLocal = str_contains($cleanUrl, 'localhost') || str_contains($cleanUrl, '127.0.0.1');
 
