@@ -104,7 +104,20 @@
                                     🏠 127.0.0.1:20128
                                 </button>
                             </div>
-                            <p class="text-[10px] text-slate-500 mt-1.5">Supports local daemons (<code class="text-violet-400">http://localhost:20128/v1</code>) and Cloudflare Tunnels (<code class="text-cyan-400">https://*.trycloudflare.com/v1</code>).</p>
+                            @php
+                                $currentHost = request()->getHost();
+                                $isLiveServer = !in_array($currentHost, ['localhost', '127.0.0.1', '::1']);
+                            @endphp
+                            @if($isLiveServer)
+                                <div class="mt-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-300 flex items-start gap-2">
+                                    <span class="text-sm shrink-0">☁️</span>
+                                    <span>
+                                        <strong>Live Server ({{ $currentHost }}):</strong> Use your active <strong>Cloudflare Tunnel URL</strong> (e.g. <code class="text-white font-mono">https://*.trycloudflare.com/v1</code>) to reach OmniRoute running on your PC. <code class="text-amber-200">http://localhost</code> only applies if the daemon is installed directly on this server.
+                                    </span>
+                                </div>
+                            @else
+                                <p class="text-[10px] text-slate-500 mt-1.5">Supports local daemons (<code class="text-violet-400">http://localhost:20128/v1</code>) and Cloudflare Tunnels (<code class="text-cyan-400">https://*.trycloudflare.com/v1</code>).</p>
+                            @endif
                         </div>
 
                         <div>
