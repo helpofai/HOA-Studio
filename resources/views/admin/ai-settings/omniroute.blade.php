@@ -27,6 +27,24 @@
     class="space-y-8 max-w-6xl mx-auto"
     x-data="{
         isHybridSyncing: false,
+        async checkClientHealth() {
+            const rawUrl = $wire.get('base_url') || '';
+            const isLocal = rawUrl.includes('localhost') || rawUrl.includes('127.0.0.1');
+            const isLiveServer = !['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+            if (isLocal && isLiveServer) {
+                try {
+                    const t0 = performance.now();
+                    const res = await fetch('http://127.0.0.1:20128/v1/models', {
+                        headers: { 'Authorization': 'Bearer ' + ($wire.get('api_key') || 'omniroute-default-key') }
+                    });
+                    if (res.ok) {
+                        const lat = Math.max(1, Math.round(performance.now() - t0));
+                        $wire.reportClientPingStatus(true, lat);
+                    }
+                } catch(e) {}
+            }
+        },
         async triggerDynamicSync() {
             const rawUrl = $wire.get('base_url') || '';
             const isLocal = rawUrl.includes('localhost') || rawUrl.includes('127.0.0.1');
@@ -68,6 +86,7 @@
             $wire.testConnectionAndSyncModels();
         }
     }"
+    x-init="checkClientHealth(); $watch('$wire.base_url', () => checkClientHealth())"
 >
     <!-- Breadcrumb & Title Header -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
