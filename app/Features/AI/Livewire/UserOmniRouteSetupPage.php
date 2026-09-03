@@ -254,7 +254,13 @@ class UserOmniRouteSetupPage extends Component
             if (!$fp) {
                 $this->connectionStatus = false;
                 $this->pingLatencyMs = null;
-                $this->statusMessage = "OmniRoute local daemon is offline on port {$port}. (Start OmniRoute in terminal or use Cloudflare Tunnel).";
+                $serverHost = request()->getHost();
+                $isServerRemote = !in_array($serverHost, ['localhost', '127.0.0.1', '::1']);
+                if ($isServerRemote) {
+                    $this->statusMessage = "You are on live server ({$serverHost}). 'localhost' points to the server itself, not your local PC. To connect to OmniRoute on your PC, paste your Cloudflare Tunnel URL (https://*.trycloudflare.com/v1).";
+                } else {
+                    $this->statusMessage = "OmniRoute local daemon is offline on port {$port}. (Start OmniRoute in terminal or use Cloudflare Tunnel).";
+                }
                 $this->isTesting = false;
                 return;
             }
