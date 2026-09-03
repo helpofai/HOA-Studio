@@ -161,14 +161,57 @@ class UserOmniRouteSetupPage extends Component
 
     public function updatedUserCustomUrl($value)
     {
-        $val = trim((string) $value);
-        if (!empty($val)) {
-            if (str_contains($val, 'localhost') || str_contains($val, '127.0.0.1')) {
+        $raw = trim((string) $value);
+        if (!empty($raw)) {
+            if (!preg_match('#^https?://#i', $raw)) {
+                $raw = (str_contains($raw, 'localhost') || str_contains($raw, '127.0.0.1'))
+                    ? "http://{$raw}"
+                    : "https://{$raw}";
+            }
+            $cleanUrl = rtrim($raw, '/');
+            if (!preg_match('#/v1$#i', $cleanUrl)) {
+                $cleanUrl .= '/v1';
+            }
+            $this->user_custom_url = $cleanUrl;
+
+            if (str_contains($cleanUrl, 'localhost') || str_contains($cleanUrl, '127.0.0.1')) {
                 $this->connection_type = 'local_daemon';
-            } elseif (str_contains($val, 'trycloudflare.com') || str_contains($val, 'cloudflare') || str_contains($val, 'ngrok')) {
+            } elseif (str_contains($cleanUrl, 'trycloudflare.com') || str_contains($cleanUrl, 'cloudflare') || str_contains($cleanUrl, 'ngrok')) {
                 $this->connection_type = 'cloudflare_tunnel';
             } else {
                 $this->connection_type = 'custom_proxy';
+            }
+
+            // Immediately auto-save to database so it is never lost!
+            $user = Auth::user();
+            if ($user) {
+                $existing = UserApiKey::where('user_id', $user->id)->where('provider_slug', 'omniroute')->first();
+                $keyToSave = !empty($this->user_api_key)
+                    ? $this->user_api_key
+                    : ($existing ? ($existing->getRawKeyForOwner($user) ?: 'omniroute-default-key') : (DB::table('settings')->where('key', 'omniroute_api_key')->value('value') ?: 'omniroute-default-key'));
+
+                UserApiKey::updateOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'provider_slug' => 'omniroute',
+                    ],
+                    [
+                        'api_key' => $keyToSave,
+                        'custom_base_url' => $cleanUrl,
+                        'connection_type' => $this->connection_type,
+                        'is_active' => true,
+                    ]
+                );
+
+                if ($user->role === 'admin' || !empty($user->is_admin)) {
+                    DB::table('settings')->updateOrInsert(['key' => 'omniroute_base_url'], ['value' => $cleanUrl, 'updated_at' => now()]);
+                    $provider = AiProvider::where('slug', 'omniroute')->first();
+                    if ($provider) {
+                        $provider->base_url = $cleanUrl;
+                        $provider->is_local = str_contains($cleanUrl, 'localhost') || str_contains($cleanUrl, '127.0.0.1');
+                        $provider->save();
+                    }
+                }
             }
         }
         $this->testGatewayConnection();
@@ -273,7 +316,13 @@ class UserOmniRouteSetupPage extends Component
         }
 
         if (!empty($this->user_custom_url)) {
-            $cleanUrl = rtrim(trim($this->user_custom_url), '/');
+            $raw = trim($this->user_custom_url);
+            if (!preg_match('#^https?://#i', $raw)) {
+                $raw = (str_contains($raw, 'localhost') || str_contains($raw, '127.0.0.1'))
+                    ? "http://{$raw}"
+                    : "https://{$raw}";
+            }
+            $cleanUrl = rtrim($raw, '/');
             if (!preg_match('#/v1$#i', $cleanUrl)) {
                 $cleanUrl .= '/v1';
             }
@@ -281,9 +330,14 @@ class UserOmniRouteSetupPage extends Component
         }
 
         $this->validate([
-            'user_api_key' => 'required|string|min:4|max:500',
+            'user_api_key' => 'nullable|string|min:4|max:500',
             'user_custom_url' => 'nullable|string|url|max:255',
         ]);
+
+        $existing = UserApiKey::where('user_id', $user->id)->where('provider_slug', 'omniroute')->first();
+        $keyToSave = !empty($this->user_api_key)
+            ? $this->user_api_key
+            : ($existing ? ($existing->getRawKeyForOwner($user) ?: 'omniroute-default-key') : (DB::table('settings')->where('key', 'omniroute_api_key')->value('value') ?: 'omniroute-default-key'));
 
         UserApiKey::updateOrCreate(
             [
@@ -291,15 +345,27 @@ class UserOmniRouteSetupPage extends Component
                 'provider_slug' => 'omniroute',
             ],
             [
-                'api_key' => $this->user_api_key,
+                'api_key' => $keyToSave,
                 'custom_base_url' => !empty($this->user_custom_url) ? $this->user_custom_url : null,
+                'connection_type' => $this->connection_type,
                 'is_active' => true,
             ]
         );
 
-        $this->hasPersonalKey = true;
+        if ($user->role === 'admin' || !empty($user->is_admin)) {
+            if (!empty($this->user_custom_url)) {
+                DB::table('settings')->updateOrInsert(['key' => 'omniroute_base_url'], ['value' => $this->user_custom_url, 'updated_at' => now()]);
+                if ($provider) {
+                    $provider->base_url = $this->user_custom_url;
+                    $provider->is_local = str_contains($this->user_custom_url, 'localhost') || str_contains($this->user_custom_url, '127.0.0.1');
+                    $provider->save();
+                }
+            }
+        }
+
+        $this->hasPersonalKey = !empty($this->user_api_key);
         $this->saveStatus = 'success';
-        session()->flash('status', 'Personal OmniRoute API key saved securely (AES-256-GCM encrypted). Unlimited rate limits active!');
+        session()->flash('status', 'OmniRoute Gateway endpoint & configuration saved successfully!');
         $this->testGatewayConnection();
     }
 
