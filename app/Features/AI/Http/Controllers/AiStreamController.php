@@ -34,11 +34,14 @@ use App\Features\AI\Services\AiCircuitBreaker;
 use App\Features\AI\Services\AiRateLimiterService;
 use App\Features\AI\Services\ContentWriterBrain;
 use App\Features\AI\Services\OmniRouteClient;
+use App\Features\AI\Services\OmniRouteUrlResolver;
+use App\Features\Auth\Models\UserApiKey;
 use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AiStreamController extends Controller
@@ -363,6 +366,151 @@ class AiStreamController extends Controller
             'Cache-Control' => 'no-cache',
             'X-Accel-Buffering' => 'no',
             'Connection' => 'keep-alive',
+        ]);
+    }
+
+    /**
+     * Prepare Brain Context & RAG Grounded Prompt for Hybrid Routing
+     */
+    public function preparePrompt(
+        Request $request,
+        ContentWriterBrain $brain,
+        AiCircuitBreaker $breaker,
+        AiRateLimiterService $limiter
+    ): JsonResponse {
+        if ($breaker->isTripped()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'AI Gateway Paused: ' . $breaker->getStatus()['reason']
+            ], 503);
+        }
+
+        $user = Auth::user();
+        $rateCheck = $limiter->checkRateLimit($user);
+        if (!$rateCheck['allowed']) {
+            return response()->json([
+                'success' => false,
+                'message' => $rateCheck['reason']
+            ], 429);
+        }
+
+        $validated = $request->validate([
+            'text' => 'required|string|max:50000',
+            'type' => 'required|string|max:100',
+            'custom_instruction' => 'nullable|string|max:1000',
+            'model' => 'nullable|string|max:100',
+            'temperature' => 'nullable|numeric|min:0|max:2',
+            'context' => 'nullable|array',
+            'pipeline_stages' => 'nullable|array',
+        ]);
+
+        if (!$user->hasQuota(1)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Monthly word quota exceeded. Please upgrade plan.'
+            ], 402);
+        }
+
+        $context = $request->input('context', []);
+        $pipelineStages = $request->input('pipeline_stages', []);
+        $hasSelection = !empty($context['has_selection']) && !empty($context['selected_text']);
+
+        if ($hasSelection) {
+            $brainPrompt = $brain->buildSurgicalPrompt(
+                $validated['type'],
+                $context,
+                $validated['custom_instruction'] ?? null
+            );
+            $systemPrompt = $brainPrompt['system'];
+            $userContent = $brainPrompt['user'];
+        } else {
+            $brainPrompt = $brain->buildPipelineArticlePrompt(
+                $validated['text'],
+                $context,
+                $pipelineStages,
+                $validated['custom_instruction'] ?? null
+            );
+            $systemPrompt = $brainPrompt['system'];
+            $userContent = $brainPrompt['user'];
+
+            // Ground with Knowledge Base RAG context if available
+            try {
+                $ragAction = app(\App\Features\KnowledgeBase\Actions\RetrieveRagContext::class);
+                $ragResult = $ragAction->execute($user, $userContent, limit: 3);
+                if (!empty($ragResult['has_context']) && !empty($ragResult['prompt_snippet'])) {
+                    $systemPrompt .= "\n\n" . $ragResult['prompt_snippet'];
+                }
+            } catch (\Throwable $e) {
+                // Non-blocking fallback
+            }
+        }
+
+        // Determine user Gateway endpoint and BYOK key
+        $userKeyRow = UserApiKey::where('user_id', $user->id)
+            ->where('provider_slug', 'omniroute')
+            ->first();
+
+        $userCustomUrl = $userKeyRow ? $userKeyRow->custom_base_url : null;
+        $userApiKey = $userKeyRow ? $userKeyRow->getRawKeyForOwner($user) : null;
+
+        $endpoints = OmniRouteUrlResolver::resolve($userCustomUrl);
+        $isLocal = !$endpoints['is_remote'];
+
+        $resolvedApiKey = $userApiKey ?: config('omniroute.api_key', 'omniroute-default-key');
+        $routedModel = $validated['model'] ?? config('omniroute.default_model', 'auto');
+
+        return response()->json([
+            'success' => true,
+            'messages' => [
+                ['role' => 'system', 'content' => $systemPrompt],
+                ['role' => 'user', 'content' => $userContent],
+            ],
+            'model' => $routedModel,
+            'temperature' => (float) ($validated['temperature'] ?? 0.75),
+            'has_selection' => $hasSelection,
+            'routing' => [
+                'mode' => $isLocal ? 'browser_direct' : 'server_proxy',
+                'is_local' => $isLocal,
+                'gateway_url' => $endpoints['openai_base'],
+                'chat_completions_url' => $isLocal ? 'http://127.0.0.1:20128/v1/chat/completions' : $endpoints['chat_completions_endpoint'],
+                'api_key' => $resolvedApiKey,
+            ],
+            'quota_remaining' => max(0, $user->monthly_word_quota - $user->used_word_quota),
+        ]);
+    }
+
+    /**
+     * Record Telemetry & Consume Quota after Browser-Direct Stream
+     */
+    public function recordUsage(Request $request, RecordGenerationUsage $recordUsage): JsonResponse
+    {
+        $validated = $request->validate([
+            'tokens' => 'nullable|integer|min:0',
+            'words' => 'required|integer|min:1',
+            'model' => 'nullable|string|max:100',
+            'latency_ms' => 'nullable|integer|min:0',
+            'document_id' => 'nullable|integer',
+        ]);
+
+        $user = Auth::user();
+        $words = max(1, (int) $validated['words']);
+        $tokens = (int) ($validated['tokens'] ?? round($words * 1.33));
+        $model = $validated['model'] ?? 'omniroute-direct';
+
+        try {
+            $recordUsage->execute($user, [
+                'words_used' => $words,
+                'tokens_used' => $tokens,
+                'model_slug' => $model,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning("[AiStreamController::recordUsage] Failed to record usage: " . $e->getMessage());
+        }
+
+        return response()->json([
+            'success' => true,
+            'words_deducted' => $words,
+            'quota_remaining' => max(0, $user->fresh()->monthly_word_quota - $user->fresh()->used_word_quota),
         ]);
     }
 }

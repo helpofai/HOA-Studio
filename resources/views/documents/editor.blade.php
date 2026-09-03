@@ -21,6 +21,8 @@
         editorType: '{{ $editorType }}',
         streamRoute: '{{ route('ai.stream-transform') }}',
         transformRoute: '{{ route('ai.transform') }}',
+        preparePromptRoute: '{{ route('ai.prepare-prompt') }}',
+        recordUsageRoute: '{{ route('ai.record-usage') }}',
         csrfToken: '{{ csrf_token() }}',
         initialContent: @js($contentHtml),
         providers: @js($availableProviders),
