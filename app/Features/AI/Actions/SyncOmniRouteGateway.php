@@ -77,16 +77,24 @@ class SyncOmniRouteGateway
         $offlineNotice = null;
 
         $parsedUrl = parse_url($endpoints['models_endpoint']);
+        $scheme = $parsedUrl['scheme'] ?? 'http';
         $host = $parsedUrl['host'] ?? '127.0.0.1';
-        $port = $parsedUrl['port'] ?? 20128;
+        $isRemote = !in_array($host, ['localhost', '127.0.0.1']) || !empty($endpoints['is_remote']);
+        $port = $parsedUrl['port'] ?? ($scheme === 'https' ? 443 : 20128);
 
         $isPortOpen = false;
-        if ($fp = @fsockopen($host, $port, $errno, $errstr, 0.3)) {
-            fclose($fp);
+        if ($isRemote) {
+            // For remote Cloudflare tunnels or external hosts, do not block with local fsockopen
             $isPortOpen = true;
-        } elseif ($host === '127.0.0.1' && ($fp = @fsockopen('127.0.0.1', $port, $errno, $errstr, 0.3))) {
-            fclose($fp);
-            $isPortOpen = true;
+        } else {
+            $ipToCheck = ($host === 'localhost') ? '127.0.0.1' : $host;
+            if ($fp = @fsockopen($ipToCheck, $port, $errno, $errstr, 0.4)) {
+                fclose($fp);
+                $isPortOpen = true;
+            } elseif ($ipToCheck !== '127.0.0.1' && ($fp = @fsockopen('127.0.0.1', $port, $errno, $errstr, 0.4))) {
+                fclose($fp);
+                $isPortOpen = true;
+            }
         }
 
         $fetchSuccess = false;
@@ -94,20 +102,25 @@ class SyncOmniRouteGateway
 
         if ($isPortOpen) {
             try {
-                $modelsResponse = Http::withHeaders([
+                $httpReq = Http::withHeaders([
                     'Authorization' => "Bearer {$apiKey}",
                     'Accept' => 'application/json',
-                ])
-                ->withOptions([
-                    'force_ip_resolve' => 'v4',
-                ])
-                ->connectTimeout(1)
-                ->timeout(2)
-                ->get($endpoints['models_endpoint']);
+                ]);
+
+                if (!$isRemote) {
+                    $httpReq = $httpReq->withOptions(['force_ip_resolve' => 'v4']);
+                }
+
+                $modelsResponse = $httpReq
+                    ->connectTimeout($isRemote ? 4 : 1)
+                    ->timeout($isRemote ? 8 : 2)
+                    ->get($endpoints['models_endpoint']);
 
                 if ($modelsResponse->successful()) {
                     $modelsData = $modelsResponse->json('data') ?? [];
                     $fetchSuccess = !empty($modelsData);
+                } else {
+                    $lastError = "HTTP {$modelsResponse->status()}: " . substr($modelsResponse->body(), 0, 150);
                 }
             } catch (Exception $e) {
                 $lastError = $e->getMessage();

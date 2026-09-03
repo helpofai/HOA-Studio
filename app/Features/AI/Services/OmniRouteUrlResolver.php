@@ -25,19 +25,43 @@
 
 namespace App\Features\AI\Services;
 
+use Illuminate\Support\Facades\DB;
+
 class OmniRouteUrlResolver
 {
     /**
      * Resolve root base URL (without /v1) and OpenAI base URL (with /v1)
-     * Supporting http://localhost:20128, http://127.0.0.1:20128, with or without /v1 and trailing slashes.
+     * Dynamically supporting database settings, Cloudflare Tunnels (https://*.trycloudflare.com),
+     * and local daemons (http://localhost:20128, http://127.0.0.1:20128).
      */
     public static function resolve(?string $rawUrl = null): array
     {
-        $input = trim($rawUrl ?: config('omniroute.base_url', 'http://localhost:20128/v1'));
-        
-        if (empty($input)) {
-            $input = 'http://localhost:20128/v1';
+        if (empty($rawUrl)) {
+            // Priority 1: Check dynamic settings table
+            try {
+                $dbUrl = DB::table('settings')->where('key', 'omniroute_base_url')->value('value');
+                if (!empty($dbUrl)) {
+                    $rawUrl = $dbUrl;
+                }
+            } catch (\Throwable $e) {}
+
+            // Priority 2: Check ai_providers table
+            if (empty($rawUrl)) {
+                try {
+                    $providerUrl = DB::table('ai_providers')->where('slug', 'omniroute')->value('base_url');
+                    if (!empty($providerUrl)) {
+                        $rawUrl = $providerUrl;
+                    }
+                } catch (\Throwable $e) {}
+            }
+
+            // Priority 3: Check config or default
+            if (empty($rawUrl)) {
+                $rawUrl = config('omniroute.base_url', 'http://localhost:20128/v1');
+            }
         }
+
+        $input = trim($rawUrl ?: 'http://localhost:20128/v1');
 
         // Clean trailing slashes
         $clean = rtrim($input, '/');
@@ -51,9 +75,12 @@ class OmniRouteUrlResolver
             $openAiBase = "{$clean}/v1";
         }
 
-        // Generate IPv4-safe URL for Windows cURL (translates localhost -> 127.0.0.1)
-        $curlOpenAiBase = str_replace('://localhost', '://127.0.0.1', $openAiBase);
-        $curlRootBase = str_replace('://localhost', '://127.0.0.1', $rootBase);
+        // Determine if target is a remote host (Cloudflare Tunnel, custom domain, VPS)
+        $isRemote = !str_contains($openAiBase, 'localhost') && !str_contains($openAiBase, '127.0.0.1');
+
+        // Generate IPv4-safe URL for Windows cURL if running locally
+        $curlOpenAiBase = $isRemote ? $openAiBase : str_replace('://localhost', '://127.0.0.1', $openAiBase);
+        $curlRootBase = $isRemote ? $rootBase : str_replace('://localhost', '://127.0.0.1', $rootBase);
 
         return [
             'display_url' => $openAiBase,
@@ -61,6 +88,7 @@ class OmniRouteUrlResolver
             'openai_base' => $openAiBase,
             'curl_openai_base' => $curlOpenAiBase,
             'curl_root_base' => $curlRootBase,
+            'is_remote' => $isRemote,
             'chat_completions_endpoint' => "{$curlOpenAiBase}/chat/completions",
             'models_endpoint' => "{$curlOpenAiBase}/models",
             'combos_endpoint' => "{$curlRootBase}/api/combos",

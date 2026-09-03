@@ -88,9 +88,23 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="text-xs font-medium text-slate-300 block mb-1.5">Gateway Base URL</label>
-                            <x-glass.input wire:model="base_url" required placeholder="http://localhost:20128/v1" />
-                            <p class="text-[10px] text-slate-500 mt-1">Default local instance: http://localhost:20128/v1 or remote proxy</p>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="text-xs font-medium text-slate-300 block">Gateway Base URL</label>
+                                <span class="text-[10px] text-violet-400 font-mono">Dynamic Endpoint</span>
+                            </div>
+                            <x-glass.input wire:model="base_url" required placeholder="http://localhost:20128/v1 or https://*.trycloudflare.com/v1" />
+                            
+                            <!-- Quick Switch Presets -->
+                            <div class="flex flex-wrap items-center gap-1.5 mt-2">
+                                <span class="text-[10px] text-slate-400 font-semibold">Quick Presets:</span>
+                                <button type="button" wire:click="setLocalPreset('localhost')" class="px-2 py-0.5 text-[10px] rounded-md bg-white/5 hover:bg-violet-600/30 text-slate-300 hover:text-white border border-white/10 transition-colors cursor-pointer" title="Switch to local localhost daemon">
+                                    🏠 localhost:20128
+                                </button>
+                                <button type="button" wire:click="setLocalPreset('ip')" class="px-2 py-0.5 text-[10px] rounded-md bg-white/5 hover:bg-violet-600/30 text-slate-300 hover:text-white border border-white/10 transition-colors cursor-pointer" title="Switch to IPv4 127.0.0.1 daemon">
+                                    🏠 127.0.0.1:20128
+                                </button>
+                            </div>
+                            <p class="text-[10px] text-slate-500 mt-1.5">Supports local daemons (<code class="text-violet-400">http://localhost:20128/v1</code>) and Cloudflare Tunnels (<code class="text-cyan-400">https://*.trycloudflare.com/v1</code>).</p>
                         </div>
 
                         <div>

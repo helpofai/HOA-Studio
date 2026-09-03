@@ -117,12 +117,18 @@ class AdminOmniRouteSetupPage extends Component
     public function mount()
     {
         $provider = AiProvider::where('slug', 'omniroute')->first();
+        $dbUrl = null;
+        try {
+            $dbUrl = DB::table('settings')->where('key', 'omniroute_base_url')->value('value');
+        } catch (\Throwable $e) {}
+
+        $loadedUrl = $dbUrl ?: ($provider->base_url ?? config('omniroute.base_url', 'http://localhost:20128/v1'));
+        if (!str_ends_with(rtrim($loadedUrl, '/'), '/v1')) {
+            $loadedUrl = rtrim($loadedUrl, '/') . '/v1';
+        }
+        $this->base_url = $loadedUrl;
+
         if ($provider) {
-            $loadedUrl = $provider->base_url ?? config('omniroute.base_url', 'http://localhost:20128/v1');
-            if (!str_ends_with(rtrim($loadedUrl, '/'), '/v1')) {
-                $loadedUrl = rtrim($loadedUrl, '/') . '/v1';
-            }
-            $this->base_url = $loadedUrl;
             $this->api_key = $provider->api_key_encrypted ?? config('omniroute.api_key', 'omniroute-default-key');
             $this->allow_user_key = (bool) $provider->allow_user_key;
             $this->is_active = (bool) $provider->is_active;
@@ -137,17 +143,24 @@ class AdminOmniRouteSetupPage extends Component
         $this->fetchConsoleLogs();
     }
 
+    public function setLocalPreset(string $type = 'localhost')
+    {
+        $this->base_url = $type === 'ip' ? 'http://127.0.0.1:20128/v1' : 'http://localhost:20128/v1';
+        $this->saveConfiguration();
+    }
+
     public function pingGatewayHealth()
     {
         $endpoints = OmniRouteUrlResolver::resolve($this->base_url);
         $start = microtime(true);
 
         $parsedUrl = parse_url($endpoints['models_endpoint']);
+        $scheme = $parsedUrl['scheme'] ?? 'http';
         $host = $parsedUrl['host'] ?? '127.0.0.1';
-        $port = $parsedUrl['port'] ?? 20128;
-        $isRemoteHttps = str_starts_with($endpoints['models_endpoint'], 'https://') && !str_contains($endpoints['models_endpoint'], 'localhost') && !str_contains($endpoints['models_endpoint'], '127.0.0.1');
+        $isRemote = !in_array($host, ['localhost', '127.0.0.1']) || !empty($endpoints['is_remote']);
+        $port = $parsedUrl['port'] ?? ($scheme === 'https' ? 443 : 20128);
 
-        if (!$isRemoteHttps) {
+        if (!$isRemote) {
             $ipToCheck = ($host === 'localhost') ? '127.0.0.1' : $host;
             $fp = @fsockopen($ipToCheck, $port, $errno, $errstr, 0.4);
             if (!$fp && $ipToCheck !== '127.0.0.1') {
@@ -156,35 +169,43 @@ class AdminOmniRouteSetupPage extends Component
             if (!$fp) {
                 $this->connectionStatus = false;
                 $this->pingLatencyMs = null;
+                $this->statusMessage = "Local OmniRoute daemon not responding on port {$port}.";
                 return;
             }
             fclose($fp);
         }
 
         try {
-            $response = Http::withHeaders([
+            $httpReq = Http::withHeaders([
                 'Authorization' => "Bearer {$this->api_key}",
                 'Accept' => 'application/json',
-            ])
-            ->withOptions([
-                'force_ip_resolve' => 'v4',
-            ])
-            ->connectTimeout(1.5)
-            ->timeout(4)
-            ->get($endpoints['models_endpoint']);
+            ]);
+
+            if (!$isRemote) {
+                $httpReq = $httpReq->withOptions(['force_ip_resolve' => 'v4']);
+            }
+
+            $response = $httpReq
+                ->connectTimeout($isRemote ? 4 : 1.5)
+                ->timeout($isRemote ? 8 : 4)
+                ->get($endpoints['models_endpoint']);
 
             $this->pingLatencyMs = max(1, (int) round((microtime(true) - $start) * 1000));
 
             if ($response->successful() || $response->status() === 200 || $response->status() === 304) {
                 $this->connectionStatus = true;
+                $this->statusMessage = "Gateway Online ({$this->pingLatencyMs}ms) via " . ($isRemote ? 'Cloudflare / Remote Tunnel' : 'Local Daemon');
             } elseif ($response->status() === 401 || $response->status() === 403) {
                 // Daemon is online, key may need update
                 $this->connectionStatus = true;
+                $this->statusMessage = "Gateway reachable ({$this->pingLatencyMs}ms), but API key needs verification (HTTP {$response->status()}).";
             } else {
                 $this->connectionStatus = false;
+                $this->statusMessage = "Gateway returned HTTP {$response->status()}";
             }
         } catch (Exception $e) {
             $this->connectionStatus = false;
+            $this->statusMessage = "Connection error: " . $e->getMessage();
         }
     }
 
@@ -489,17 +510,25 @@ class AdminOmniRouteSetupPage extends Component
                 'default_model' => 'required|string',
             ]);
 
+            $cleanUrl = rtrim($this->base_url, '/');
+            if (!str_ends_with($cleanUrl, '/v1')) {
+                $cleanUrl .= '/v1';
+            }
+            $this->base_url = $cleanUrl;
+
+            $isLocal = str_contains($cleanUrl, 'localhost') || str_contains($cleanUrl, '127.0.0.1');
+
             $provider = AiProvider::firstOrCreate(['slug' => 'omniroute'], [
                 'name' => 'OmniRoute Gateway',
                 'icon' => '⚡',
                 'description' => 'Unified AI Proxy Gateway v3.8.50 with multi-provider routing and fallbacks.',
-                'is_local' => true,
             ]);
 
             $provider->base_url = $this->base_url;
             $provider->api_key_encrypted = $this->api_key;
             $provider->allow_user_key = $this->allow_user_key;
             $provider->is_active = $this->is_active;
+            $provider->is_local = $isLocal;
             $provider->settings = [
                 'default_model' => $this->default_model,
                 'compression' => $this->compression_mode,
@@ -507,13 +536,14 @@ class AdminOmniRouteSetupPage extends Component
             ];
             $provider->save();
 
-            // Also persist to settings table for global config overrides
+            // Also persist to settings table for global dynamic discovery
             DB::table('settings')->updateOrInsert(['key' => 'omniroute_base_url'], ['value' => $this->base_url, 'updated_at' => now()]);
             DB::table('settings')->updateOrInsert(['key' => 'omniroute_api_key'], ['value' => $this->api_key, 'updated_at' => now()]);
             DB::table('settings')->updateOrInsert(['key' => 'omniroute_default_model'], ['value' => $this->default_model, 'updated_at' => now()]);
 
             $this->saveStatus = 'success';
-            session()->flash('status', 'OmniRoute Gateway configuration saved and synchronized successfully.');
+            $this->pingGatewayHealth();
+            session()->flash('status', "OmniRoute Gateway configuration saved and endpoint set to {$this->base_url}.");
         } catch (Exception $e) {
             $this->saveStatus = 'error';
             session()->flash('error', 'Failed to save settings: ' . $e->getMessage());
