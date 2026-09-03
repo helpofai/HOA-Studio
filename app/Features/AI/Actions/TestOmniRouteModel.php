@@ -55,27 +55,30 @@ class TestOmniRouteModel
         $start = microtime(true);
 
         try {
-            $response = Http::withHeaders([
+            $httpReq = Http::withHeaders([
                 'Authorization' => "Bearer {$apiKey}",
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
                 'X-OmniRoute-Session-Id' => (string) Str::uuid(),
                 'X-Request-Id' => 'diag_' . (string) Str::uuid(),
                 'X-OmniRoute-No-Cache' => 'true',
-            ])
-            ->withOptions([
-                'force_ip_resolve' => 'v4',
-            ])
-            ->connectTimeout(2)
-            ->timeout(8)
-            ->post($endpoints['chat_completions_endpoint'], [
-                'model' => $modelId,
-                'messages' => [
-                    ['role' => 'user', 'content' => 'Say 1 short word'],
-                ],
-                'max_tokens' => 5,
-                'temperature' => 0.0,
             ]);
+
+            if (empty($endpoints['is_remote'])) {
+                $httpReq = $httpReq->withOptions(['force_ip_resolve' => 'v4']);
+            }
+
+            $response = $httpReq
+                ->connectTimeout(!empty($endpoints['is_remote']) ? 4 : 2)
+                ->timeout(12)
+                ->post($endpoints['chat_completions_endpoint'], [
+                    'model' => $modelId,
+                    'messages' => [
+                        ['role' => 'user', 'content' => 'Say 1 short word'],
+                    ],
+                    'max_tokens' => 5,
+                    'temperature' => 0.0,
+                ]);
 
             $latencyMs = (int) round((microtime(true) - $start) * 1000);
 

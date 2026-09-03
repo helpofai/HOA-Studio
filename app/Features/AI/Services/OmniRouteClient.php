@@ -43,9 +43,16 @@ class OmniRouteClient
 
     public function __construct(?ContentSynthesizer $synthesizer = null)
     {
-        $this->endpoints = OmniRouteUrlResolver::resolve(config('omniroute.base_url', 'http://localhost:20128/v1'));
+        $this->endpoints = OmniRouteUrlResolver::resolve();
         $this->baseUrl = $this->endpoints['openai_base'];
-        $this->apiKey = config('omniroute.api_key', 'omniroute-default-key');
+        
+        $apiKey = null;
+        try {
+            $apiKey = \Illuminate\Support\Facades\DB::table('settings')->where('key', 'omniroute_api_key')->value('value')
+                ?: \Illuminate\Support\Facades\DB::table('ai_providers')->where('slug', 'omniroute')->value('api_key_encrypted');
+        } catch (\Throwable $e) {}
+
+        $this->apiKey = $apiKey ?: config('omniroute.api_key', 'omniroute-default-key');
         $this->timeout = (int) config('omniroute.timeout_seconds', 60);
         $this->synthesizer = $synthesizer ?? new ContentSynthesizer();
     }
@@ -82,11 +89,15 @@ class OmniRouteClient
         $readTimeout = $options['timeout'] ?? config('omniroute.timeout_seconds', 120);
 
         try {
-            $response = Http::withHeaders($headers)
-                ->withOptions(['force_ip_resolve' => 'v4'])
+            $req = Http::withHeaders($headers)
                 ->connectTimeout($connectTimeout)
-                ->timeout($readTimeout)
-                ->post($this->endpoints['chat_completions_endpoint'], $payload);
+                ->timeout($readTimeout);
+
+            if (empty($this->endpoints['is_remote'])) {
+                $req = $req->withOptions(['force_ip_resolve' => 'v4']);
+            }
+
+            $response = $req->post($this->endpoints['chat_completions_endpoint'], $payload);
 
             if ($response->successful()) {
                 $data = $response->json();
@@ -203,17 +214,22 @@ class OmniRouteClient
         $readTimeout = $options['timeout'] ?? config('omniroute.timeout_seconds', 120);
 
         try {
-            $ch = curl_init($url);
-            curl_setopt_array($ch, [
+            $curlOptions = [
                 CURLOPT_POST => true,
                 CURLOPT_POSTFIELDS => json_encode($payload),
                 CURLOPT_HTTPHEADER => array_map(fn($k, $v) => "{$k}: {$v}", array_keys($headers), array_values($headers)),
                 CURLOPT_RETURNTRANSFER => false,
                 CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
                 CURLOPT_CONNECTTIMEOUT => $connectTimeout,
                 CURLOPT_TIMEOUT => $readTimeout,
-            ]);
+            ];
+
+            if (empty($this->endpoints['is_remote'])) {
+                $curlOptions[CURLOPT_IPRESOLVE] = CURL_IPRESOLVE_V4;
+            }
+
+            $ch = curl_init($url);
+            curl_setopt_array($ch, $curlOptions);
 
             $fp = fopen('php://temp', 'w+');
             curl_setopt($ch, CURLOPT_FILE, $fp);
