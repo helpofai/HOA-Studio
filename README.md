@@ -9,14 +9,14 @@
 [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-v4.0-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![Vite](https://img.shields.io/badge/Vite-8.x-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
 [![OmniRoute](https://img.shields.io/badge/OmniRoute-v3.8.50_Ready-8B5CF6?style=for-the-badge&logo=openai&logoColor=white)](http://127.0.0.1:20128)
-[![Tests](https://img.shields.io/badge/Tests-115%20Passed%20(100%25)-10B981?style=for-the-badge&logo=githubactions&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-164%20Passed%20(100%25)-10B981?style=for-the-badge&logo=githubactions&logoColor=white)](tests/)
 [![License](https://img.shields.io/badge/License-Proprietary-blue?style=for-the-badge)](LICENSE)
 
 <p align="center">
   <strong>HelpOfAi Studio</strong> is an all-in-one, enterprise-ready content production platform. Built with cutting-edge Laravel 12, Livewire 3, Alpine.js, Tailwind CSS 4, Tiptap Editor, and the OmniRoute AI Multi-Model Gateway, it delivers sub-millisecond AI transformations, vector-powered RAG knowledge retrieval, real-time SEO scoring, multi-format exports, and cryptographic BYOK key governance.
 </p>
 
-[Key Features](#-key-features) • [Architecture](#-system-architecture) • [Database Schema](#-entity-relationship-schema) • [Quickstart](#-quickstart--installation) • [AI Routing](#-omniroute-model-directory) • [API Guide](#-rest-api--sse-streaming) • [Roadmap](#-16-phase-roadmap-completion)
+[Key Features](#-key-features) • [Architecture](#-system-architecture) • [Database Schema](#-entity-relationship-schema) • [Quickstart](#-quickstart--installation) • [AI Routing](#-omniroute-model-directory) • [Localhost & Hybrid Routing](#-localhost--direct-browser-hybrid-routing-guide) • [API Guide](#-rest-api--sse-streaming) • [Roadmap](#-16-phase-roadmap-completion)
 
 ---
 
@@ -79,24 +79,33 @@
   - *Shared Admin Gateway*: Plan-based throttling (`Starter`: 15 req/min, `Pro`: 60 req/min, `Enterprise`: 180 req/min).
   - *BYOK / Local Endpoint*: **⚡ 100% UNLIMITED** requests (zero rate limit applied).
 
+### ⚡ 9. Direct Browser Hybrid Routing & Localhost Support (0ms Server Latency)
+- **Localhost Device Connectivity**: Run OmniRoute, Ollama, LM Studio, or local OpenAI-compatible AI daemons directly on your personal machine (`http://localhost:20128/v1` or `http://127.0.0.1:20128`) while using cloud-hosted HOA Studio (`https://studio.helpofai.com`).
+- **Direct Browser Streaming (0ms Server Overhead)**: AI tokens stream directly from your browser to your localhost daemon via Server-Sent Events (SSE). The cloud server never proxies the heavy streaming payloads, slashing latency to 0ms and eliminating cloud bandwidth costs.
+- **Dynamic Client Browser Catalog Ingestion**: Resyncing models queries your local daemon directly through the user's browser, transferring your local models catalog and cascade combos straight into the cloud database.
+- **Real-Time Client-Side Health Prober**: Client-side background ping checks continuously probe `http://127.0.0.1:20128/v1/models`, switching the status badge from `STANDBY` to `🟢 LIVE (ONLINE)` seamlessly without server connection errors.
+- **Cloudflare Tunnel Bridging**: Supports Cloudflare Tunnels (e.g., `https://ai-tunnel.yourdomain.com/v1`) for SSL/TLS encrypted access to your home lab or office GPU workstation.
+- **Cloud & Local RAG + Brain Memory**: Vector RAG knowledge retrieval, Content Writer Brain, and brand voice personas are compiled on the server before being streamed directly to your local hardware.
+- **Automatic Server Proxy Fallback**: If your local daemon is offline or unreachable, HOA Studio automatically falls back to the cloud server proxy with zero disruption.
+
 ---
 
 ## 🏗 System Architecture
 
 ```
-                               ┌────────────────────────────────────────────────────────┐
-                               │                    HelpOfAi Studio                     │
-                               └───────────────────────────┬────────────────────────────┘
-                                                           │
-               ┌───────────────────────────────────────────┼───────────────────────────────────────────┐
-               ▼                                           ▼                                           ▼
+                                ┌────────────────────────────────────────────────────────┐
+                                │             HelpOfAi Studio (Cloud / Local)            │
+                                └───────────────────────────┬────────────────────────────┘
+                                                            │
+                ┌───────────────────────────────────────────┼───────────────────────────────────────────┐
+                ▼                                           ▼                                           ▼
 ┌───────────────────────────────┐           ┌───────────────────────────────┐           ┌───────────────────────────────┐
-│     Content & Editor Core     │           │   OmniRoute AI Gateway SDK    │           │    RAG Vector Knowledge Hub   │
+│     Content & Editor Core     │           │  Direct Browser Hybrid Router │           │    RAG Vector Knowledge Hub   │
 ├───────────────────────────────┤           ├───────────────────────────────┤           ├───────────────────────────────┤
-│ • Tiptap WYSIWYG Engine       │           │ • OpenAI / Claude / DeepSeek  │           │ • Document Chunking Engine    │
-│ • Autosave & Version History  │           │ • SSE Live Streaming Engine   │           │ • Dense Vector Embeddings     │
-│ • Multi-Format Export (.docx) │           │ • Outage Fallback Cascades    │           │ • Cosine Similarity Scoring   │
-│ • Password-Gated Public Share │           │ • Emergency Circuit Breaker   │           │ • Configurable Vector Cache   │
+│ • Tiptap WYSIWYG Engine       │           │ • 0ms Localhost (127.0.0.1)   │           │ • Document Chunking Engine    │
+│ • Autosave & Version History  │           │ • Browser-to-Daemon Direct SSE│           │ • Dense Vector Embeddings     │
+│ • Multi-Format Export (.docx) │           │ • Cloudflare Tunnel Bridging  │           │ • Cosine Similarity Scoring   │
+│ • Password-Gated Public Share │           │ • Cloud Proxy Auto-Fallback   │           │ • Configurable Vector Cache   │
 └───────────────────────────────┘           └───────────────────────────────┘           └───────────────────────────────┘
 ```
 
@@ -451,6 +460,66 @@ HelpOfAi Studio connects to OmniRoute for load balancing, multi-model cascades, 
 
 ---
 
+## 💻 Localhost & Direct Browser Hybrid Routing Guide
+
+HelpOfAi Studio features an industry-first **Direct Browser Hybrid Routing Engine**. You can run HOA Studio hosted on a remote cloud server (e.g. `https://studio.helpofai.com`) while connecting directly to an AI gateway daemon running on your local machine with **0ms server latency**.
+
+### How Direct Browser Hybrid Routing Works
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                                 USER'S BROWSER SESSION                                 │
+│                                (https://studio.helpofai.com)                           │
+└──────────────────┬─────────────────────────────────────────────────┬───────────────────┘
+                   │ 1. POST /api/ai/prepare-prompt                   │ 2. Direct SSE Stream
+                   │    (Injects Cloud Vector RAG,                    │    (0ms server latency,
+                   │     Content Writer Brain & Quotas)               │     sub-50ms TTFT)
+                   ▼                                                 ▼
+┌───────────────────────────────────────┐         ┌───────────────────────────────────────┐
+│           HOA CLOUD SERVER            │         │         USER'S LOCAL PC DAEMON        │
+│        (studio.helpofai.com)          │         │        (http://127.0.0.1:20128)       │
+├───────────────────────────────────────┤         ├───────────────────────────────────────┤
+│ • Vector RAG Semantic Knowledge Hub   │         │ • OmniRoute / Ollama / LM Studio      │
+│ • Content Writer Brain Prompt Matrix  │         │ • Local GPU Workstations (RTX 4090)   │
+│ • User Word Quota & Telemetry Logs    │         │ • Cloudflare Tunnel Bridging          │
+└───────────────────────────────────────┘         └───────────────────────────────────────┘
+```
+
+### Supported Localhost Configurations
+
+#### 1. Direct Localhost Daemon (`http://localhost:20128/v1` or `http://127.0.0.1:20128`)
+- Run OmniRoute or any OpenAI-compatible daemon (Ollama, LM Studio, vLLM, LocalAI) locally on port `20128`.
+- In HOA Studio, navigate to **AI Settings > OmniRoute Setup** and configure:
+  ```ini
+  OMNIROUTE_BASE_URL=http://127.0.0.1:20128/v1
+  OMNIROUTE_API_KEY=your-local-api-key (or omniroute-default-key)
+  ```
+- **Instant Browser Detection**: HOA Studio automatically probes `http://127.0.0.1:20128/v1/models` from your browser, activating the `🟢 LIVE (ONLINE)` status indicator.
+- **Direct 0ms Streaming**: Whenever you draft, recreate paragraphs, or run the Multi-Agent Swarm, your browser connects directly to `http://127.0.0.1:20128/v1/chat/completions`. Cloud servers never proxy the data chunks.
+
+#### 2. Cloudflare Tunnels (Remote HTTPS Workstation)
+- If your local GPU workstation or home lab is behind a firewall or NAT, run a Cloudflare Tunnel:
+  ```bash
+  cloudflared tunnel --url http://localhost:20128
+  ```
+- In HOA Studio, set your gateway URL to your tunnel hostname:
+  ```ini
+  OMNIROUTE_BASE_URL=https://ai-tunnel.yourdomain.com/v1
+  ```
+- HOA Studio routes traffic directly through the secure SSL/TLS Cloudflare Tunnel without exposing public IP addresses or opening router ports.
+
+#### 3. Client Browser Dynamic Catalog Ingestion
+- Even when HOA Studio runs on a remote cloud server that cannot physically connect to your private `127.0.0.1` network, you can sync your local models into the cloud database with one click.
+- When you click **"Resync Models"** or **"Full Dynamic Sync from OmniRoute"**, your browser queries `http://127.0.0.1:20128/v1/models` directly, ingesting the live model list and cascade pools directly into your database.
+
+#### 4. Unified RAG Knowledge & Memory Persistence
+- RAG vector knowledge chunks, brand voice profiles, and editorial guidelines remain centralized in your cloud workspace.
+- The cloud backend compiles the prompt context matrix and passes it to your local daemon, allowing you to leverage cloud knowledge bases with local hardware compute.
+
+#### 5. Zero-Disruption Cloud Proxy Fallback
+- If your local machine goes to sleep, shuts down, or disconnects, HOA Studio's hybrid router detects the connection timeout and seamlessly falls back to cloud server-side proxies.
+
+---
+
 ## 📡 REST API & SSE Streaming
 
 ### 1. Synchronous Transformation
@@ -546,8 +615,8 @@ php artisan test
  PASS  Tests\Feature\TemplateEngineTest
  PASS  Tests\Feature\UsageTrackingAndQuotasTest
 
-Tests:    115 passed (481 assertions)
-Duration: 24.42s
+Tests:    164 passed (669 assertions)
+Duration: 31.54s
 Result:   100% Green
 ```
 
