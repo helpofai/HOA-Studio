@@ -27,22 +27,39 @@
     class="space-y-8 max-w-6xl mx-auto"
     x-data="{
         isHybridSyncing: false,
+        clientHealthTimer: null,
         async checkClientHealth() {
             const rawUrl = $wire.get('base_url') || '';
             const isLocal = rawUrl.includes('localhost') || rawUrl.includes('127.0.0.1');
             const isLiveServer = !['localhost', '127.0.0.1'].includes(window.location.hostname);
 
             if (isLocal && isLiveServer) {
-                try {
-                    const t0 = performance.now();
-                    const res = await fetch('http://127.0.0.1:20128/v1/models', {
-                        headers: { 'Authorization': 'Bearer ' + ($wire.get('api_key') || 'omniroute-default-key') }
-                    });
-                    if (res.ok) {
-                        const lat = Math.max(1, Math.round(performance.now() - t0));
-                        $wire.reportClientPingStatus(true, lat);
-                    }
-                } catch(e) {}
+                const endpoints = [
+                    'http://127.0.0.1:20128/v1/models',
+                    'http://localhost:20128/v1/models'
+                ];
+                let connected = false;
+                for (const ep of endpoints) {
+                    try {
+                        const t0 = performance.now();
+                        const res = await fetch(ep, {
+                            method: 'GET',
+                            headers: { 
+                                'Authorization': 'Bearer ' + ($wire.get('api_key') || 'omniroute-default-key'),
+                                'Accept': 'application/json' 
+                            }
+                        });
+                        if (res.ok || res.status === 401 || res.status === 403) {
+                            const lat = Math.max(1, Math.round(performance.now() - t0));
+                            $wire.reportClientPingStatus(true, lat);
+                            connected = true;
+                            break;
+                        }
+                    } catch(e) {}
+                }
+                if (!connected && $wire.get('connectionStatus') === true) {
+                    $wire.reportClientPingStatus(false, null);
+                }
             }
         },
         async triggerDynamicSync() {
@@ -86,7 +103,7 @@
             $wire.testConnectionAndSyncModels();
         }
     }"
-    x-init="checkClientHealth(); $watch('$wire.base_url', () => checkClientHealth())"
+    x-init="checkClientHealth(); clientHealthTimer = setInterval(() => checkClientHealth(), 8000); $watch('$wire.base_url', () => checkClientHealth())"
 >
     <!-- Breadcrumb & Title Header -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

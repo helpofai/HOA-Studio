@@ -165,6 +165,7 @@ class AiStreamController extends Controller
         }
 
         $context = $request->input('context', []);
+        $hasSelection = !empty($context['has_selection']) && !empty($context['selected_text']);
         if (!isset($context['selected_text']) && !isset($context['target_text'])) {
             $context['target_text'] = $validated['text'];
         }
@@ -415,6 +416,7 @@ class AiStreamController extends Controller
         }
 
         $context = $request->input('context', []);
+        $hasSelection = !empty($context['has_selection']) && !empty($context['selected_text']);
         if (!isset($context['selected_text']) && !isset($context['target_text'])) {
             $context['target_text'] = $validated['text'];
         }
