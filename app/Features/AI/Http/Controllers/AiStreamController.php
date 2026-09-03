@@ -193,7 +193,13 @@ class AiStreamController extends Controller
                 ob_implicit_flush(1);
 
                 $sendEvent = function ($type, $data) {
-                    echo "event: {$type}\ndata: " . json_encode(['chunk' => $data, 'done' => false]) . "\n\n";
+                    $payload = ['done' => false];
+                    if ($type === 'status') {
+                        $payload['status_message'] = $data;
+                    } else {
+                        $payload['token'] = $data;
+                    }
+                    echo "data: " . json_encode($payload) . "\n\n";
                     if (ob_get_level() > 0) ob_flush();
                     flush();
                 };
@@ -213,7 +219,7 @@ class AiStreamController extends Controller
                     );
 
                     // Send the final closure event
-                    echo "event: done\ndata: " . json_encode(['chunk' => '', 'done' => true]) . "\n\n";
+                    echo "data: " . json_encode(['token' => '', 'done' => true]) . "\n\n";
 
                 } catch (\Throwable $e) {
                     \Log::error('AI Swarm Pipeline Failed: ' . $e->getMessage());

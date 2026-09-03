@@ -153,182 +153,6 @@ isContentEmpty(content) {
            plain === 'Start building your block content...';
 },
 
-async runMultiAgentPipeline(userTopic = '') {
-    const prompt = userTopic || this.aiPrompt;
-    if (!prompt || !prompt.trim()) {
-        this.addLog('WARN', 'Please provide a topic or prompt for the Multi-Agent Swarm.');
-        return;
-    }
-
-    const ed = this.getEditor();
-    if (!ed) return;
-
-    // Reset empty placeholder content before starting swarm
-    if (this.isContentEmpty(ed.getHTML ? ed.getHTML() : '')) {
-        if (typeof ed.setContent === 'function') {
-            ed.setContent('', false);
-        }
-    }
-
-    this.isTransforming = true;
-    this.showAiStreamBanner = true;
-    this.activeAction = 'multi_agent_swarm';
-    this.swarmTotalSteps = 5;
-
-    try {
-        let targetKw = this.targetKeyword;
-
-        // STEP 1: RESEARCHER & STRATEGIST (Grounding & SEO Target)
-        if (this.swarmSteps.researcher) {
-            this.swarmStepIndex = 1;
-            this.activeSwarmAgent = 'researcher';
-            this.swarmStatusMessage = 'Agent 1 (Researcher & SEO Strategist) analyzing search intent & vector cache...';
-            this.addLog('AGENT', '🎯 Swarm Step 1: Agent [Researcher & SEO Strategist] analyzing search intent & grounding.');
-            
-            if (!targetKw) {
-                let cleanPrompt = prompt.replace(/\b(create|write|generate|make|articale|article|blog|post|guide|in \d+\s*words?|words?|about|please|for|on)\b/gi, ' ').trim().replace(/\s+/g, ' ');
-                targetKw = cleanPrompt.split(/\s+/).slice(0, 4).join(' ');
-                if (targetKw) {
-                    this.targetKeyword = targetKw;
-                    Livewire.dispatch('applyTargetKeyword', { keyword: targetKw });
-                }
-            }
-        }
-        if (!targetKw) {
-            let cleanPrompt = prompt.replace(/\b(create|write|generate|make|articale|article|blog|post|guide|in \d+\s*words?|words?|about|please|for|on)\b/gi, ' ').trim().replace(/\s+/g, ' ');
-            targetKw = cleanPrompt.split(/\s+/).slice(0, 4).join(' ');
-        }
-
-        // STEP 2: OUTLINER & ORCHESTRATOR (Title & Heading Tree)
-        if (this.swarmSteps.outliner) {
-            this.swarmStepIndex = 2;
-            this.activeSwarmAgent = 'outliner';
-            this.swarmStatusMessage = 'Agent 2 (Outline Architect) creating H1/H2/H3 hierarchy & optimizing Title...';
-            this.addLog('AGENT', '📑 Swarm Step 2: Agent [Outline Architect] structuring headings tree.');
-
-            const titleResp = await fetch(config.transformRoute || '/api/ai/transform', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': config.csrfToken },
-                body: JSON.stringify({
-                    text: prompt,
-                    type: 'seo_fix_title',
-                    custom_instruction: "Generate a high-CTR, SEO-optimized title for: '" + prompt + "' frontloading '" + targetKw + "'",
-                    model: this.aiModel,
-                    context: {
-                        target_keyword: targetKw,
-                        document_title: prompt,
-                        action_tool: 'seo_fix_title'
-                    }
-                })
-            });
-            const titleText = await titleResp.text();
-            let titleData = {};
-            try { titleData = JSON.parse(titleText); } catch (e) { titleData = { success: false }; }
-            if (titleData.success && titleData.result) {
-                const cleanTitle = titleData.result.replace(/^["'#\s]+|["'\s]+$/g, '').trim();
-                this.title = cleanTitle;
-                Livewire.dispatch('applyTitle', { title: cleanTitle });
-                this.addLog('SEO', 'Agent [Outline Architect] applied optimized Title: "' + cleanTitle + '"');
-            }
-        }
-
-        // STEP 3: DRAFTSMAN (Full Article Synthesis)
-        if (this.swarmSteps.draftsman) {
-            this.swarmStepIndex = 3;
-            this.activeSwarmAgent = 'draftsman';
-            this.swarmStatusMessage = 'Agent 3 (Deep Section Draftsman) drafting comprehensive sections...';
-            this.addLog('AGENT', '✍️ Swarm Step 3: Agent [Draftsman] synthesizing comprehensive sections...');
-
-            await this.triggerAiTransform('custom', "Write a comprehensive, engaging, high-quality long-form article on: '" + prompt + "'. Include an engaging title (H1), an executive quick overview box, well-structured H2 and H3 sections covering key aspects in depth, actionable insights, a comparison table, and a clear summary conclusion.", 'document');
-        }
-
-        // STEP 4: RICH MEDIA & DATA ENGINEER (Comparison Table & FAQ Block)
-        if (this.swarmSteps.rich_media) {
-            this.swarmStepIndex = 4;
-            this.activeSwarmAgent = 'rich_media';
-            this.swarmStatusMessage = 'Agent 4 (Rich Media Engineer) verifying comparison table & interactive media...';
-            this.addLog('AGENT', '▦ Swarm Step 4: Agent [Rich Media & Data Engineer] verifying interactive comparison table.');
-
-            const currentDocHtml = ed.getHTML ? ed.getHTML() : '';
-            const alreadyHasTable = currentDocHtml.includes('<table') || currentDocHtml.includes('| --- |');
-
-            if (!alreadyHasTable) {
-                const tableResp = await fetch(config.transformRoute || '/api/ai/transform', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': config.csrfToken },
-                    body: JSON.stringify({
-                        text: prompt,
-                        type: 'comparison_table',
-                        custom_instruction: "Create a feature comparison matrix table with specs, pros/cons, and metrics for '" + targetKw + "'",
-                        model: this.aiModel,
-                        context: {
-                            target_keyword: targetKw,
-                            document_title: this.title || prompt,
-                            action_tool: 'comparison_table'
-                        }
-                    })
-                });
-                const tableText = await tableResp.text();
-                let tableData = {};
-                try { tableData = JSON.parse(tableText); } catch (e) { tableData = { success: false }; }
-                if (tableData.success && tableData.result && (tableData.result.includes('<table') || tableData.result.includes('| --- |'))) {
-                    this.insertContentIntoCanvas('<p></p>' + tableData.result, false);
-                    this.addLog('ASSETS', 'Agent [Rich Media Engineer] inserted interactive comparison table.');
-                }
-            } else {
-                this.addLog('ASSETS', 'Agent [Rich Media Engineer] verified comparison table already integrated by Draftsman.');
-            }
-        }
-
-        // STEP 5: RANK MATH 100/100 & META OPTIMIZER (Meta Description & Final Assembly)
-        if (this.swarmSteps.seo_meta) {
-            this.swarmStepIndex = 5;
-            this.activeSwarmAgent = 'rankmath_optimizer';
-            this.swarmStatusMessage = 'Agent 8 & 10 (Rank Math Optimizer & Assembler) finalizing 100/100 SEO & Meta...';
-            this.addLog('AGENT', '⌁ Swarm Step 5: Agent [Rank Math Optimizer] generating meta description & verifying SEO score.');
-
-            const metaResp = await fetch(config.transformRoute || '/api/ai/transform', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': config.csrfToken },
-                body: JSON.stringify({
-                    text: (ed.getText ? ed.getText().substring(0, 1200) : '') || prompt,
-                    type: 'seo_fix_meta',
-                    custom_instruction: "Generate a punchy 155-character meta description with focus keyword '" + targetKw + "'",
-                    model: this.aiModel,
-                    context: {
-                        target_keyword: targetKw,
-                        document_title: this.title || prompt,
-                        action_tool: 'seo_fix_meta'
-                    }
-                })
-            });
-            const metaText = await metaResp.text();
-            let metaData = {};
-            try { metaData = JSON.parse(metaText); } catch (e) { metaData = { success: false }; }
-            if (metaData.success && metaData.result) {
-                const cleanMeta = metaData.result.replace(/^["'\s]+|["'\s]+$/g, '').trim();
-                this.metaDescription = cleanMeta;
-                Livewire.dispatch('applyMetaDescription', { metaDescription: cleanMeta });
-                this.addLog('SEO', 'Agent [Rank Math Optimizer] generated Meta Description (' + cleanMeta.length + ' chars).');
-            }
-        }
-
-        const finalHtmlVal = ed.getHTML();
-        Livewire.dispatch('autosave', { html: finalHtmlVal, json: null });
-        this.saveLocalDraft(finalHtmlVal);
-        this.updateOutline();
-        this.updateActiveFormats();
-        this.addLog('SYSTEM', '🚀 Multi-Agent Swarm successfully published complete human-grade article!');
-    } catch (e) {
-        this.aiErrorMessage = e.message;
-        this.addLog('ERROR', 'Swarm execution interrupted: ' + e.message);
-    } finally {
-        this.isTransforming = false;
-        this.activeSwarmAgent = null;
-        this.swarmStatusMessage = '';
-    }
-},
-
 async applyTargetedIntelligenceFix(checkId, title, aiPrompt, targetType = 'insert') {
     this.closeContextMenu();
     this.showInlineAiPrompt = false;
@@ -752,7 +576,7 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto') {
         let fullResult = '';
 
         const existingDocContent = (ed ? ed.getHTML() : '').trim();
-        const isDocEmpty = this.isContentEmpty(existingDocContent) || this.activeAction === 'multi_agent_swarm';
+        const isDocEmpty = this.isContentEmpty(existingDocContent) || this.activeAction === 'multi_agent_pipeline';
 
         let lastCanvasUpdate = 0;
 
@@ -790,6 +614,9 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto') {
                         }
                         if (parsed.message) {
                             this.aiErrorMessage = parsed.message;
+                        }
+                        if (parsed.status_message) {
+                            this.swarmStatusMessage = parsed.status_message;
                         }
                     } catch (e) {}
                 }

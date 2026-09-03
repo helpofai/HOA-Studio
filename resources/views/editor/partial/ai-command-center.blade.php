@@ -274,7 +274,7 @@
                 <!-- 5. Animated Bars Multi-Agent Swarm Button -->
                 <button 
                     type="button" 
-                    x-on:click="runMultiAgentPipeline(aiPrompt)"
+                    x-on:click="triggerAiTransform('multi_agent_pipeline', aiPrompt, 'document')"
                     :disabled="isTransforming"
                     class="w-full py-2.5 px-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs shadow-md shadow-amber-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer select-none"
                 >
