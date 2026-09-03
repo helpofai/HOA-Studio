@@ -92,7 +92,7 @@
                                 <label class="text-xs font-medium text-slate-300 block">Gateway Base URL</label>
                                 <span class="text-[10px] text-violet-400 font-mono">Dynamic Endpoint</span>
                             </div>
-                            <x-glass.input wire:model="base_url" required placeholder="http://localhost:20128/v1 or https://*.trycloudflare.com/v1" />
+                            <x-glass.input wire:model.live.debounce.400ms="base_url" required placeholder="http://localhost:20128/v1 or https://*.trycloudflare.com/v1" />
                             
                             <!-- Quick Switch Presets -->
                             <div class="flex flex-wrap items-center gap-1.5 mt-2">

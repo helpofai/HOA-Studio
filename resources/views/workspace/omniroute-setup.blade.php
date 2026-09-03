@@ -353,7 +353,7 @@
                                 </div>
                                 <input 
                                     type="text" 
-                                    wire:model="user_custom_url" 
+                                    wire:model.live.debounce.400ms="user_custom_url" 
                                     placeholder="{{ $connection_type === 'cloudflare_tunnel' ? 'https://omni-gateway.yourdomain.com/v1' : 'http://localhost:20128/v1' }}" 
                                     class="w-full bg-slate-900 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
                                 />
