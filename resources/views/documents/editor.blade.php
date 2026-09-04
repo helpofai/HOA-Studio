@@ -93,6 +93,7 @@
 
     <!-- MODALS -->
     @include('editor.partial.modals')
+    @include('editor.partial.floating-telemetry')
 
     <!-- CLIENT SCRIPT LOGIC -->
     <div wire:ignore>
