@@ -73,7 +73,7 @@ class PipelineCoordinator
                 $result = $this->client->chatCompletion($resMessages, ['model' => 'auto', 'temperature' => 0.5]);
                 $extractedLsi = $result['choices'][0]['message']['content'] ?? "";
                 $sendEvent("status", "🧠 Synthesized Memory & Brand Voice Profile. Extracted Entities: " . substr($extractedLsi, 0, 40) . "...");
-            } catch (\Throwable $e) { }
+            } catch (\Throwable $e) { \Log::error('Architecture JSON Error: ' . $e->getMessage()); }
             usleep(200000); 
         }
 
@@ -94,7 +94,7 @@ class PipelineCoordinator
                     ['role' => 'user', 'content' => $userPrompt]
                 ], ['model' => 'auto', 'temperature' => 0.6]);
                 
-                $responseStr = $outResult['choices'][0]['message']['content'] ?? '';
+                $responseStr = $outResult['content'] ?? ($outResult['choices'][0]['message']['content'] ?? '');
                 // Clean markdown JSON ticks if the model returns them
                 $responseStr = preg_replace('/```json\s*/', '', $responseStr);
                 $responseStr = preg_replace('/```\s*/', '', $responseStr);
@@ -103,7 +103,7 @@ class PipelineCoordinator
                 if (isset($parsed['sections']) && is_array($parsed['sections'])) {
                     $outline = $parsed['sections'];
                 }
-            } catch (\Throwable $e) { }
+            } catch (\Throwable $e) { \Log::error('Architecture JSON Error: ' . $e->getMessage()); }
 
             // Fallback outline if LLM structuring failed
             if (empty($outline)) {
@@ -179,7 +179,7 @@ Follow these strict constraints:
                     ['role' => 'system', 'content' => 'You are a precise technical SEO robot.'],
                     ['role' => 'user', 'content' => $schemaPrompt]
                 ], ['model' => 'auto', 'temperature' => 0.2]);
-                $schemaCode = $schemaResult['choices'][0]['message']['content'] ?? '';
+                $schemaCode = $schemaResult['content'] ?? ($schemaResult['choices'][0]['message']['content'] ?? '');
                 if (strpos($schemaCode, '<script') !== false) {
                     $fullDraft .= "\n" . $schemaCode;
                     $sendEvent("chunk", "\n" . $schemaCode);
