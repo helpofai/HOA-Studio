@@ -705,8 +705,12 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto') {
                 }
             }).catch(err => console.warn('[Hybrid Router] Failed to record usage:', err));
         }
+            // After AI stream completes, trigger SEO audit
+            if (window.Livewire) {
+                Livewire.dispatch('queueSeoAudit');
+            }
 
-        // FINAL PERSISTENCE & SURGICAL PLACEMENT WITH YELLOW SELECTION & GREEN PROPOSAL BOX
+// FINAL PERSISTENCE & SURGICAL PLACEMENT WITH YELLOW SELECTION & GREEN PROPOSAL BOX
         if (fullResult.trim().length > 0) {
             if (effectivePlacement === 'sub_content_sub_agent') {
                 this.subAgentProposedText = fullResult;
