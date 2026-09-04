@@ -68,7 +68,7 @@ class SeoAnalyzer
     public function analyze(string $htmlContent, string $title = '', ?string $targetKeyword = null, array $secondaryKeywords = [], string $metaDescription = ''): array
     {
         // Spaced HTML for accurate word and sentence segmentation
-        $spacedHtml = preg_replace('/<\/(h[1-6]|p|div|li|blockquote|section|article)>/i', "$0. ", $htmlContent);
+        $spacedHtml = preg_replace('/<\/(h[1-6]|p|div|li|blockquote|section|article|td|th|tr)>/i', "$0. ", $htmlContent);
         $plainText = trim(preg_replace('/\s+/u', ' ', strip_tags($spacedHtml)));
         $words = !empty($plainText) ? preg_split('/\s+/u', $plainText, -1, PREG_SPLIT_NO_EMPTY) : [];
         $totalWords = count($words);
@@ -292,7 +292,7 @@ class SeoAnalyzer
             ],
             [
                 'id' => 'kw_in_url',
-                'title' => 'Focus Keyword in the URL',
+                'title' => 'Focus Keyword in URL Slug',
                 'desc' => 'Primary keyword is present in the permalink slug.',
                 'pass' => $kw ? $kwData['in_url'] : true,
                 'weight' => 4,
@@ -306,8 +306,8 @@ class SeoAnalyzer
             ],
             [
                 'id' => 'kw_in_intro',
-                'title' => 'Focus Keyword in First 10% of Content',
-                'desc' => 'Primary keyword appears in the introduction hook.',
+                'title' => 'Focus Keyword in First 10% (Intro)',
+                'desc' => 'Primary keyword appears in the opening introduction sentences.',
                 'pass' => $kw ? $kwData['in_first_10_pct'] : false,
                 'weight' => 4,
                 'severity' => 'critical',
@@ -320,8 +320,8 @@ class SeoAnalyzer
             ],
             [
                 'id' => 'kw_in_body',
-                'title' => 'Focus Keyword found in Content Body',
-                'desc' => 'Primary keyword is used naturally across paragraphs.',
+                'title' => 'Focus Keyword in Content Body',
+                'desc' => 'Primary keyword is referenced across paragraphs naturally.',
                 'pass' => $kw ? ($kwData['count'] >= 2 && !$kwData['keyword_stuffing_risk']) : false,
                 'weight' => 4,
                 'severity' => 'critical',
@@ -334,7 +334,7 @@ class SeoAnalyzer
             ],
             [
                 'id' => 'content_length',
-                'title' => 'Content Length Check',
+                'title' => 'Content Length Check (600+ words)',
                 'desc' => "Current length is {$totalWords} words (Optimal: 1,200+ words for comprehensive coverage).",
                 'pass' => $totalWords >= 1200,
                 'weight' => 2,
@@ -381,8 +381,8 @@ class SeoAnalyzer
             ],
             [
                 'id' => 'keyword_density',
-                'title' => "Keyword Density ({$kwData['density']}%)",
-                'desc' => 'Keyword density is within the ideal 0.8% - 2.5% range.',
+                'title' => 'Keyword Density (0.8% - 2.5%)',
+                'desc' => 'Keyword density is balanced without keyword stuffing.',
                 'pass' => $densityValid && ($kw ? $kwData['count'] > 0 : true),
                 'weight' => 4,
                 'severity' => $kwData['keyword_stuffing_risk'] ? 'critical' : 'warning',
@@ -408,7 +408,7 @@ class SeoAnalyzer
             ],
             [
                 'id' => 'external_links',
-                'title' => "External Outbound Citations ({$externalLinksCount})",
+                'title' => 'External Outbound Citations',
                 'desc' => 'Authoritative external citations found in content.',
                 'pass' => $externalLinksCount >= 2,
                 'weight' => 3,
@@ -422,7 +422,7 @@ class SeoAnalyzer
             ],
             [
                 'id' => 'internal_links',
-                'title' => "Internal Cluster Links ({$internalLinksCount})",
+                'title' => 'Internal Cluster Links',
                 'desc' => 'Internal links linking to related topics and resources.',
                 'pass' => $internalLinksCount >= 3,
                 'weight' => 2,
@@ -636,7 +636,86 @@ class SeoAnalyzer
             ],
         ];
 
-        // PILLAR 6: Technical & Competitive Analysis (10 Points Max)
+        // PILLAR 6: Google AI Overviews & GEO (Generative Engine Optimization) (15 Points Max)
+        $geoMetrics = $this->calculateGeoMetrics($htmlContent, $h2List, $plainText, $words);
+        
+        $geoChecks = [
+            [
+                'id' => 'geo_direct_answer',
+                'title' => 'AI Overview Direct Answer Snippet',
+                'desc' => $geoMetrics['has_direct_answer'] ? 'Direct 40-60 word definition answer detected beneath subheadings.' : 'No direct 40-60 word definition found directly under H2 subheadings.',
+                'pass' => $geoMetrics['has_direct_answer'],
+                'weight' => 4,
+                'severity' => 'critical',
+                'current_val' => $geoMetrics['has_direct_answer'] ? 'Direct snippet present' : 'Missing direct definition',
+                'goal_val' => '40-60 word direct definition',
+                'actionable_tip' => "Place a concise 40-60 word direct answer or definition immediately below your first H2 question heading. Google AI Overviews (SGE) extract this exact structure.",
+                'target_canvas_id' => 'seo-loc-geo_direct_answer',
+                'ai_prompt' => "Draft a concise 40-50 word direct definition answer box satisfying Google AI Overview snippet guidelines for the primary question.",
+                'manual_prompt' => "Add a 40-60 word direct definition or answer right below your first major H2 heading."
+            ],
+            [
+                'id' => 'geo_data_points',
+                'title' => 'Information Gain & Data Point Density',
+                'desc' => "Found {$geoMetrics['data_point_count']} verifiable statistics, metrics, or data points (target: 3+).",
+                'pass' => $geoMetrics['data_point_count'] >= 3,
+                'weight' => 3,
+                'severity' => 'warning',
+                'current_val' => $geoMetrics['data_point_count'] . ' data points/metrics',
+                'goal_val' => '3+ statistics or metrics',
+                'actionable_tip' => "Include at least 3 verifiable metrics, statistics, percentages, or research benchmarks to prove unique information gain to AI crawlers.",
+                'target_canvas_id' => 'seo-loc-kw_in_intro',
+                'ai_prompt' => "Add 2-3 credible statistics, benchmark percentages, or research data points into the content body.",
+                'manual_prompt' => "Incorporate specific statistics, percentages, and metrics to demonstrate original research."
+            ],
+            [
+                'id' => 'geo_structured_synthesis',
+                'title' => 'Structured Comparison Table / Matrix',
+                'desc' => $geoMetrics['has_structured_table'] ? 'HTML comparison table or feature matrix detected.' : 'No comparison table detected. Structured tables dominate AI search citations.',
+                'pass' => $geoMetrics['has_structured_table'],
+                'weight' => 3,
+                'severity' => 'warning',
+                'current_val' => $geoMetrics['has_structured_table'] ? 'Table present' : 'No comparison table',
+                'goal_val' => '1+ comparison table',
+                'actionable_tip' => "Insert a comparison table or structured feature matrix. AI search engines (Gemini & Perplexity) heavily prioritize tables for answer snapshots.",
+                'target_canvas_id' => 'seo-loc-geo_structured_synthesis',
+                'ai_prompt' => "Generate a clean HTML comparison table summarizing the core features, options, or pros/cons discussed.",
+                'manual_prompt' => "Add an HTML table comparing features, options, or metrics."
+            ],
+            [
+                'id' => 'geo_paa_questions',
+                'title' => 'People Also Ask (PAA) Question Headings',
+                'desc' => "Found {$geoMetrics['paa_question_count']} conversational question headings (target: 2+).",
+                'pass' => $geoMetrics['paa_question_count'] >= 2,
+                'weight' => 3,
+                'severity' => 'optimization',
+                'current_val' => $geoMetrics['paa_question_count'] . ' question headings',
+                'goal_val' => '2+ question headings',
+                'actionable_tip' => "Include at least 2 conversational question subheadings (e.g. 'How does...', 'What is the best...') to match Google People Also Ask queries.",
+                'target_canvas_id' => 'seo-loc-kw_in_subheadings',
+                'ai_prompt' => "Add 2 People Also Ask (PAA) question headings with direct answers.",
+                'manual_prompt' => "Structure subheadings as common search questions (e.g., 'How do I...', 'What is...')."
+            ],
+            [
+                'id' => 'geo_authoritative_quotes',
+                'title' => 'Expert Quotation & Source Attribution',
+                'desc' => $geoMetrics['has_expert_quote'] ? 'Authoritative quotes or source attributions detected.' : 'No expert quotes or source attributions found.',
+                'pass' => $geoMetrics['has_expert_quote'],
+                'weight' => 2,
+                'severity' => 'optimization',
+                'current_val' => $geoMetrics['has_expert_quote'] ? 'Attribution found' : '0 expert quotes',
+                'goal_val' => '1+ expert quote or study citation',
+                'actionable_tip' => "Include at least one authoritative quote, expert statement, or study citation in blockquote format to establish thought leadership.",
+                'target_canvas_id' => 'seo-loc-external_links',
+                'ai_prompt' => "Add an authoritative quote or expert statement citing research or industry leaders.",
+                'manual_prompt' => "Add a blockquote containing an expert quote or industry authority insight."
+            ],
+        ];
+
+        // Auto-Generate Verified Schema.org JSON-LD (Articles, FAQPage, HowTo)
+        $schemaData = app(SchemaGenerator::class)->generate($htmlContent, $title, $metaDescription);
+
+        // PILLAR 7: Technical & Competitive Analysis (10 Points Max)
         $technicalChecks = [
             [
                 'id' => 'competitive_gap_analysis',
@@ -670,49 +749,57 @@ class SeoAnalyzer
             ],
             [
                 'id' => 'schema_markup',
-                'title' => 'Schema Markup Presence',
-                'desc' => 'Content includes structured data (Schema.org) for rich snippets.',
-                'pass' => strpos($htmlContent, 'application/ld+json') !== false || strpos($htmlContent, 'schema.org') !== false,
+                'title' => 'Schema Markup Readiness',
+                'desc' => $schemaData['validation']['is_valid'] ? 'Verified Schema.org JSON-LD generated (' . $schemaData['recommended_type'] . ').' : 'Content includes structured data (Schema.org) for rich snippets.',
+                'pass' => $schemaData['validation']['is_valid'] || strpos($htmlContent, 'application/ld+json') !== false || strpos($htmlContent, 'schema.org') !== false,
                 'weight' => 3,
                 'severity' => 'optimization',
-                'current_val' => (strpos($htmlContent, 'application/ld+json') !== false || strpos($htmlContent, 'schema.org') !== false) ? 'Schema detected' : 'No schema',
-                'goal_val' => 'Article / FAQ JSON-LD schema',
-                'actionable_tip' => "Add Schema.org JSON-LD structured data for article or FAQ rich snippets.",
+                'current_val' => $schemaData['recommended_type'] . ' Ready',
+                'goal_val' => 'Valid JSON-LD schema',
+                'actionable_tip' => "Open the Schema Studio to view, copy, or inject your auto-generated Schema.org JSON-LD markup.",
                 'target_canvas_id' => 'seo-loc-meta',
                 'ai_prompt' => null,
-                'manual_prompt' => "Add Schema.org JSON-LD markup for articles, FAQs, how-tos, or other relevant types."
+                'manual_prompt' => "Add or verify Schema.org JSON-LD markup for rich snippets."
             ],
         ];
 
-        // Calculate Aggregate Score (0 - 100)
-        $totalEarned = 0;
-        $totalPossible = 100;
+        // Extract Semantic NLP Entities & LSI Keyword Density Matrix
+        $semanticEntities = $this->extractSemanticEntities($plainText, $targetKeyword, $secondaryKeywords, $words, $totalWords);
 
-        $allChecks = array_merge($basicChecks, $additionalChecks, $titleChecks, $contentReadabilityChecks, $eatChecks, $technicalChecks);
+        // Calculate Normalized Aggregate Score (0 - 100)
+        $totalEarned = 0;
+        $totalPossible = 0;
+
+        $allChecks = array_merge($basicChecks, $additionalChecks, $titleChecks, $contentReadabilityChecks, $eatChecks, $geoChecks, $technicalChecks);
 
         foreach ($allChecks as $check) {
+            $totalPossible += $check['weight'];
             if ($check['pass']) {
                 $totalEarned += $check['weight'];
             }
         }
 
+        $rawScore = $totalPossible > 0 ? ($totalEarned / $totalPossible) * 100 : 0;
+
         // Adjust score if no keyword provided (focus on general quality)
         if (!$kw) {
-            $totalEarned = max(30, min(85, (int) round($totalEarned * 0.85)));
+            $rawScore = max(30, min(85, round($rawScore * 0.85)));
         }
 
-        $finalScore = (int) max(0, min(100, $totalEarned));
+        $finalScore = (int) max(0, min(100, round($rawScore)));
 
         // Category pass counters
         $countPassed = fn($arr) => count(array_filter($arr, fn($c) => $c['pass']));
         $allRecommendations = $allChecks;
 
-                // Generate offline color-coded SEO markup map with in-canvas recommendations
+        // Generate offline color-coded SEO markup map with in-canvas recommendations
         $markedHtml = $this->generateMarkedHtml($htmlContent, $targetKeyword, $allChecks, $kwData, [
             'external_links' => $externalLinksCount,
             'internal_links' => $internalLinksCount,
             'h2_count' => count($h2List),
             'total_words' => $totalWords,
+            'geo_direct_answer' => $geoMetrics['has_direct_answer'],
+            'geo_structured_synthesis' => $geoMetrics['has_structured_table'],
         ]);
 
         return [
@@ -726,6 +813,15 @@ class SeoAnalyzer
                 'ari_score' => round($ariScore, 1),
                 'coleman_liau' => round($colemanLiau, 1),
             ],
+            'geo_readiness' => [
+                'has_direct_answer' => $geoMetrics['has_direct_answer'],
+                'data_points' => $geoMetrics['data_point_count'],
+                'has_table' => $geoMetrics['has_structured_table'],
+                'paa_count' => $geoMetrics['paa_question_count'],
+                'has_quotes' => $geoMetrics['has_expert_quote'],
+            ],
+            'schema_data' => $schemaData,
+            'semantic_entities' => $semanticEntities,
             'recommendations' => $allRecommendations,
             'rank_math' => [
                 'basic_seo' => [
@@ -752,6 +848,11 @@ class SeoAnalyzer
                     'title' => 'E-E-A-T & Authority',
                     'score_label' => $countPassed($eatChecks) . '/' . count($eatChecks) . ' Passed',
                     'checks' => $eatChecks,
+                ],
+                'geo_ai_search' => [
+                    'title' => 'AI Overviews & GEO Readiness',
+                    'score_label' => $countPassed($geoChecks) . '/' . count($geoChecks) . ' Passed',
+                    'checks' => $geoChecks,
                 ],
                 'technical_competitive' => [
                     'title' => 'Technical & Competitive Edge',
@@ -996,6 +1097,32 @@ class SeoAnalyzer
             }
         }
 
+        // D. Critical Issue: Missing Direct Answer Block for AI Overviews
+        if (isset($metrics['geo_direct_answer']) && !$metrics['geo_direct_answer']) {
+            $geoDirectCallout = '<div class="seo-canvas-callout seo-callout-critical" id="seo-loc-geo_direct_answer" style="background: rgba(168, 85, 247, 0.12); border: 1px solid rgba(168, 85, 247, 0.35); border-left: 5px solid #a855f7; border-radius: 10px; padding: 10px 14px; margin: 14px 0; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11.5px; color: #d8b4fe; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 4px 14px rgba(168, 85, 247, 0.12);"><div style="display: flex; align-items: center; gap: 8px;"><span style="background: #a855f7; color: #ffffff; border-radius: 4px; padding: 2px 7px; font-size: 9px; font-weight: 800; letter-spacing: 0.5px; font-family: monospace;">🟣 AI OVERVIEW</span><span><strong>Direct Answer Snippet Missing:</strong> Insert a 40-60 word definition or answer immediately below this heading for Google AI Overviews & Perplexity citation snippets.</span></div><span style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 6px; font-size: 10px; font-family: monospace; white-space: nowrap; color: #fff;">Position Zero</span></div>';
+            if (preg_match('/<\/h2>/i', $marked)) {
+                $marked = preg_replace('/(<\/h2>)/i', '$1' . $geoDirectCallout, $marked, 1);
+            }
+        }
+
+        // E. Warning Issue: Missing Structured Table / Matrix
+        if (isset($metrics['geo_structured_synthesis']) && !$metrics['geo_structured_synthesis']) {
+            $geoTableCallout = '<div class="seo-canvas-callout seo-callout-warning" id="seo-loc-geo_structured_synthesis" style="background: rgba(168, 85, 247, 0.12); border: 1px solid rgba(168, 85, 247, 0.35); border-left: 5px solid #a855f7; border-radius: 10px; padding: 9px 14px; margin: 14px 0; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11.5px; color: #d8b4fe; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 4px 14px rgba(168, 85, 247, 0.12);"><div style="display: flex; align-items: center; gap: 8px;"><span style="background: #a855f7; color: #ffffff; border-radius: 4px; padding: 2px 7px; font-size: 9px; font-weight: 800; letter-spacing: 0.5px; font-family: monospace;">📊 AI SYNTHESIS</span><span><strong>Comparison Table Gap:</strong> Insert an HTML comparison table or feature matrix. Google Gemini & Perplexity heavily prioritize structured tables for summary boxes.</span></div><span style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 6px; font-size: 10px; font-family: monospace; white-space: nowrap; color: #fff;">Comparison Table</span></div>';
+            
+            // Insert after second h2 or before last paragraph
+            if (preg_match_all('/<\/h2>/i', $marked, $h2m, PREG_OFFSET_CAPTURE) && count($h2m[0]) >= 2) {
+                $offset = $h2m[0][1][1] + strlen($h2m[0][1][0]);
+                $marked = substr_replace($marked, $geoTableCallout, $offset, 0);
+            } else {
+                $lastPPos = strrpos($marked, '<p');
+                if ($lastPPos !== false) {
+                    $marked = substr_replace($marked, $geoTableCallout . '<p', $lastPPos, 2);
+                } else {
+                    $marked .= $geoTableCallout;
+                }
+            }
+        }
+
         // 6. FLOATING IN-CANVAS COLOR SYSTEM LEGEND BAR (Fixed at the top of inspection mode)
         $legendBar = '<div class="seo-heatmap-legend-bar" style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 14px; padding: 10px 16px; margin-bottom: 20px; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.6); backdrop-filter: blur(16px);">'
             . '<div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #ffffff;">'
@@ -1006,11 +1133,184 @@ class SeoAnalyzer
             . '<span style="display: flex; align-items: center; gap: 5px; color: #fca5a5;"><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 6px #ef4444;"></span> 🔴 Critical Issue</span>'
             . '<span style="display: flex; align-items: center; gap: 5px; color: #fcd34d;"><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 6px #f59e0b;"></span> 🟡 Warning / Structure</span>'
             . '<span style="display: flex; align-items: center; gap: 5px; color: #93c5fd;"><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #3b82f6; box-shadow: 0 0 6px #3b82f6;"></span> 🔵 Authority & E-E-A-T</span>'
+            . '<span style="display: flex; align-items: center; gap: 5px; color: #d8b4fe;"><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #a855f7; box-shadow: 0 0 6px #a855f7;"></span> 🟣 AI Overview / GEO</span>'
             . '<span style="display: flex; align-items: center; gap: 5px; color: #6ee7b7;"><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span> 🟢 Focus Keyword</span>'
             . '</div>'
             . '</div>';
 
         return $legendBar . $marked;
+    }
+
+    /**
+     * Calculate Generative Engine Optimization (GEO) & AI Overview readiness metrics
+     */
+    protected function calculateGeoMetrics(string $htmlContent, array $h2List, string $plainText, array $words): array
+    {
+        // 1. Direct answer snippet detection (40-60 words directly after H2)
+        $hasDirectAnswer = false;
+        if (preg_match_all('/<h2[^>]*>.*?<\/h2>\s*<p[^>]*>(.*?)<\/p>/si', $htmlContent, $snippetMatches)) {
+            foreach ($snippetMatches[1] as $candidateSnippet) {
+                $snippetClean = trim(strip_tags($candidateSnippet));
+                $snippetWords = count(preg_split('/\s+/u', $snippetClean, -1, PREG_SPLIT_NO_EMPTY));
+                $lowerSnippet = mb_strtolower($snippetClean);
+                
+                // Disqualify conversational fluff
+                $isFluff = preg_match('/^(in this (article|guide|post|section)|welcome to|let\'s (dive|explore|take a look)|as we (know|see)|today we will)/i', $lowerSnippet);
+                
+                if ($snippetWords >= 28 && $snippetWords <= 75 && !$isFluff) {
+                    $hasDirectAnswer = true;
+                    break;
+                }
+            }
+        }
+
+        // 2. Data Point & Statistic Density
+        // Counts percentages (45%), currency ($500, €100), statistical multipliers (3x, 5 times), dates/years (2025, 2026), or numbers with units
+        preg_match_all('/(\b\d+(\.\d+)?%|\$\d+([,\.]\d+)?\b|€\d+([,\.]\d+)?\b|£\d+([,\.]\d+)?\b|\b\d+\s*(percent|million|billion|trillion|x\b|times|users|customers|seconds|ms\b|hours|days|kg|lbs)\b|\b\d{1,3}(,\d{3})+\b|\b202[4-9]\b|\b203[0-9]\b)/i', $plainText, $dataMatches);
+        $uniqueDataPoints = array_unique($dataMatches[0] ?? []);
+        $dataPointCount = count($uniqueDataPoints);
+
+        // 3. Structured comparison table or matrix
+        $hasStructuredTable = (strpos($htmlContent, '<table') !== false) || 
+                              (strpos($htmlContent, 'class="hoa-comparison-table"') !== false) ||
+                              (preg_match('/\|(.+)\|(.+)\|\n\|[-:\s|]+\|\n\|(.+)\|/m', $htmlContent) === 1);
+
+        // 4. People Also Ask (PAA) Question Headings
+        $paaQuestionCount = 0;
+        preg_match_all('/<h[2-3][^>]*>(.*?)<\/h[2-3]>/si', $htmlContent, $headings);
+        $questionStarters = ['who', 'what', 'when', 'where', 'why', 'how', 'is', 'are', 'can', 'will', 'should', 'which', 'does', 'do', 'vs', 'versus'];
+        foreach ($headings[1] ?? [] as $hText) {
+            $hClean = trim(strip_tags($hText));
+            $hLower = mb_strtolower($hClean);
+            if (str_ends_with($hClean, '?')) {
+                $paaQuestionCount++;
+                continue;
+            }
+            foreach ($questionStarters as $starter) {
+                if (str_starts_with($hLower, $starter . ' ') || str_starts_with($hLower, $starter . '\'')) {
+                    $paaQuestionCount++;
+                    break;
+                }
+            }
+        }
+
+        // 5. Authoritative Quotes & Source Attribution
+        $hasExpertQuote = (strpos($htmlContent, '<blockquote') !== false) ||
+                          (preg_match('/(according to|study (by|from)|research (by|from|conducted)|reported by|stated by|as noted by|Dr\.|Prof\.|Ph\.D\.)/i', $plainText) === 1) ||
+                          (preg_match('/(&ldquo;|&rdquo;|["“][^"”]{20,}["”])/u', $htmlContent) === 1);
+
+        return [
+            'has_direct_answer' => $hasDirectAnswer,
+            'data_point_count' => $dataPointCount,
+            'has_structured_table' => $hasStructuredTable,
+            'paa_question_count' => $paaQuestionCount,
+            'has_expert_quote' => $hasExpertQuote,
+        ];
+    }
+
+    /**
+     * Extract Semantic NLP Entities and LSI Keyword Density Matrix (SurferSEO / Clearscope style)
+     */
+    protected function extractSemanticEntities(string $plainText, ?string $targetKeyword, array $secondaryKeywords, array $words, int $totalWords): array
+    {
+        $entities = [];
+        $lowerText = mb_strtolower($plainText);
+        $totalWordsNorm = max(300, $totalWords);
+
+        // 1. Target Primary Keyword
+        if (!empty($targetKeyword)) {
+            $kwLower = mb_strtolower(trim($targetKeyword));
+            $cnt = mb_substr_count($lowerText, $kwLower);
+            $targetMin = max(2, (int) round(($totalWordsNorm / 350)));
+            $targetMax = max(5, (int) round(($totalWordsNorm / 120)));
+            $status = $cnt < $targetMin ? 'underused' : ($cnt > $targetMax ? 'overused' : 'optimal');
+            $entities[$kwLower] = [
+                'term' => $targetKeyword,
+                'type' => 'Primary Focus Keyword',
+                'count' => $cnt,
+                'min' => $targetMin,
+                'max' => $targetMax,
+                'status' => $status,
+                'importance' => 'high',
+            ];
+        }
+
+        // 2. User-Specified Secondary Keywords
+        foreach ($secondaryKeywords as $secKw) {
+            $secLower = mb_strtolower(trim($secKw));
+            if (empty($secLower) || isset($entities[$secLower])) continue;
+            $cnt = mb_substr_count($lowerText, $secLower);
+            $secMin = max(1, (int) round(($totalWordsNorm / 600)));
+            $secMax = max(3, (int) round(($totalWordsNorm / 200)));
+            $status = $cnt < $secMin ? 'underused' : ($cnt > $secMax ? 'overused' : 'optimal');
+            $entities[$secLower] = [
+                'term' => $secKw,
+                'type' => 'Secondary LSI',
+                'count' => $cnt,
+                'min' => $secMin,
+                'max' => $secMax,
+                'status' => $status,
+                'importance' => 'high',
+            ];
+        }
+
+        // 3. Automated NLP 2-Word and 3-Word Semantic Entity Extraction
+        $skipList = array_merge($this->stopWords, $this->powerWords, [
+            'can', 'will', 'use', 'get', 'also', 'just', 'make', 'like', 'one', 'new', 'well', 'way', 'even', 'want'
+        ]);
+
+        $candidatePhrases = [];
+        $wordsCount = count($words);
+
+        // Extract 2-word bi-grams
+        for ($i = 0; $i < $wordsCount - 1; $i++) {
+            $w1 = mb_strtolower(preg_replace('/[^a-zA-Z0-9-]/', '', $words[$i]));
+            $w2 = mb_strtolower(preg_replace('/[^a-zA-Z0-9-]/', '', $words[$i + 1]));
+            if (strlen($w1) < 3 || strlen($w2) < 3 || in_array($w1, $skipList) || in_array($w2, $skipList)) {
+                continue;
+            }
+            $phrase = $w1 . ' ' . $w2;
+            $candidatePhrases[$phrase] = ($candidatePhrases[$phrase] ?? 0) + 1;
+        }
+
+        // Extract 3-word tri-grams
+        for ($i = 0; $i < $wordsCount - 2; $i++) {
+            $w1 = mb_strtolower(preg_replace('/[^a-zA-Z0-9-]/', '', $words[$i]));
+            $w2 = mb_strtolower(preg_replace('/[^a-zA-Z0-9-]/', '', $words[$i + 1]));
+            $w3 = mb_strtolower(preg_replace('/[^a-zA-Z0-9-]/', '', $words[$i + 2]));
+            if (strlen($w1) < 3 || strlen($w3) < 3 || in_array($w1, $skipList) || in_array($w3, $skipList)) {
+                continue;
+            }
+            $phrase = $w1 . ' ' . $w2 . ' ' . $w3;
+            $candidatePhrases[$phrase] = ($candidatePhrases[$phrase] ?? 0) + 1;
+        }
+
+        // Sort candidates by frequency
+        arsort($candidatePhrases);
+
+        // Select top 8-12 prominent semantic entities
+        $added = 0;
+        foreach ($candidatePhrases as $phrase => $freq) {
+            if ($added >= 10) break;
+            if (isset($entities[$phrase]) || $freq < 1) continue;
+            
+            $recMin = max(1, (int) round(($totalWordsNorm / 500)));
+            $recMax = max(3, (int) round(($totalWordsNorm / 150)));
+            $status = $freq < $recMin ? 'underused' : ($freq > $recMax ? 'overused' : 'optimal');
+
+            $entities[$phrase] = [
+                'term' => ucwords($phrase),
+                'type' => 'Topical Entity',
+                'count' => $freq,
+                'min' => $recMin,
+                'max' => $recMax,
+                'status' => $status,
+                'importance' => $freq >= 2 ? 'high' : 'medium',
+            ];
+            $added++;
+        }
+
+        return array_values($entities);
     }
 
     protected function countSyllables(string $word): int

@@ -41,9 +41,11 @@ app/Features/
 
 ## 2. Tiptap Editor & Versioning Engine
 
-### 2.1 Editor Lifecycle
-The editor is built with `@tiptap/core`, `@tiptap/starter-kit`, `@tiptap/extension-bubble-menu`, `@tiptap/extension-character-count`, and `@tiptap/extension-typography`.
+### 2.1 Editor Lifecycle & Extensions Suite
+The editor is built with `@tiptap/core`, `@tiptap/starter-kit`, `@tiptap/extension-table` (with resizable columns), `@tiptap/extension-code-block-lowlight` (with `lowlight` syntax tokenizer), `@tiptap/extension-bubble-menu`, `@tiptap/extension-character-count`, `@tiptap/extension-task-list`, and `@tiptap/extension-typography`.
 
+- **Floating Table Operations Bar**: When cursor focus enters any table cell, a reactive floating toolbar docks above the table offering 1-click actions: Add Row Above/Below, Delete Row, Add Column Left/Right, Delete Column, Toggle Header Row, Merge/Split Cells, and Delete Table. Supported by right-click table context controls.
+- **Real-Time Code Highlighting (`CodeBlockLowlight`)**: 35+ programming languages parsed into AST tokens on the fly. Rendered with custom macOS terminal chrome, dynamic language selector dropdown, 1-click "Copy Code" button, and in-block <kbd>Tab</kbd> indentation (`enableTabIndentation: true`).
 - **Debounced Autosave**: Changes dispatch a debounced Livewire event every `1500ms` saving HTML and ProseMirror JSON.
 - **Reading Time Calculation**: Computed in real-time based on 200 words-per-minute average reading speed.
 

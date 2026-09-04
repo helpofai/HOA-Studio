@@ -243,7 +243,7 @@ class AiStreamController extends Controller
             ['role' => 'user', 'content' => $userContent],
         ];
 
-        return response()->stream(function () use ($client, $messages, $validated, $user, $recordUsage, $hasSelection, $context) {
+        return response()->stream(function () use ($client, $messages, $validated, $user, $recordUsage, $hasSelection, $context, $brain) {
             $accumulated = '';
             $routedModel = $validated['model'] ?? config('omniroute.default_model', 'auto');
 
@@ -251,9 +251,21 @@ class AiStreamController extends Controller
             @ob_implicit_flush(true);
             while (ob_get_level() > 0) { ob_end_flush(); }
 
+            $defaultTemperatures = [
+                'recreate' => 0.82,
+                'rewrite' => 0.78,
+                'polish' => 0.75,
+                'expand' => 0.75,
+                'shorten' => 0.55,
+                'simplify' => 0.60,
+                'generate_faq' => 0.70,
+                'seo_optimize' => 0.65,
+            ];
+            $actionTemp = $defaultTemperatures[$validated['type']] ?? 0.75;
+
             $streamOptions = [
                 'model' => $routedModel,
-                'temperature' => (float) ($validated['temperature'] ?? 0.75),
+                'temperature' => (float) ($validated['temperature'] ?? $actionTemp),
             ];
 
             if ($hasSelection) {
@@ -280,6 +292,14 @@ class AiStreamController extends Controller
                     echo "data: " . json_encode(['token' => $token, 'model' => $routedModel]) . "\n\n";
 
                     flush();
+                }
+
+                // Anti-Echo Safety Net: If AI returned identical text, apply algorithmic transformation
+                if ($hasSelection && trim(mb_strtolower($accumulated)) === trim(mb_strtolower($context['selected_text'] ?? ''))) {
+                    $fallback = $brain->executeLocalActionTransform($validated['type'], $context['selected_text'], $context);
+                    if (!empty($fallback)) {
+                        $accumulated = $fallback;
+                    }
                 }
 
                 $words = max(1, str_word_count(strip_tags($accumulated)));
@@ -499,6 +519,18 @@ class AiStreamController extends Controller
         $resolvedApiKey = $userApiKey ?: config('omniroute.api_key', 'omniroute-default-key');
         $routedModel = $validated['model'] ?? config('omniroute.default_model', 'auto');
 
+        $defaultTemperatures = [
+            'recreate' => 0.82,
+            'rewrite' => 0.78,
+            'polish' => 0.75,
+            'expand' => 0.75,
+            'shorten' => 0.55,
+            'simplify' => 0.60,
+            'generate_faq' => 0.70,
+            'seo_optimize' => 0.65,
+        ];
+        $actionTemp = $defaultTemperatures[$validated['type']] ?? 0.75;
+
         return response()->json([
             'success' => true,
             'messages' => [
@@ -506,7 +538,7 @@ class AiStreamController extends Controller
                 ['role' => 'user', 'content' => $userContent],
             ],
             'model' => $routedModel,
-            'temperature' => (float) ($validated['temperature'] ?? 0.75),
+            'temperature' => (float) ($validated['temperature'] ?? $actionTemp),
             'has_selection' => $hasSelection,
             'routing' => [
                 'mode' => $isLocal ? 'browser_direct' : 'server_proxy',

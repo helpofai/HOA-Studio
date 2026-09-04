@@ -624,7 +624,47 @@ details.hoa-faq p {
     background: rgba(255, 255, 255, 0.04);
 }
 
+.tiptap.ProseMirror .selectedCell {
+    background: rgba(99, 102, 241, 0.15) !important;
+    position: relative;
+}
+
+.tiptap.ProseMirror .selectedCell:after {
+    z-index: 2;
+    position: absolute;
+    content: "";
+    left: 0; right: 0; top: 0; bottom: 0;
+    background: rgba(99, 102, 241, 0.15);
+    outline: 2px solid rgba(129, 140, 248, 0.8);
+    pointer-events: none;
+}
+
+.tiptap.ProseMirror .column-resize-handle {
+    position: absolute;
+    right: -2px;
+    top: 0;
+    bottom: -2px;
+    width: 4px;
+    background-color: #818cf8;
+    pointer-events: none;
+    z-index: 20;
+    border-radius: 2px;
+    box-shadow: 0 0 8px rgba(129, 140, 248, 0.6);
+}
+
+.tiptap.ProseMirror.resize-cursor {
+    cursor: col-resize;
+}
+
 /* Code Blocks & Inline Code */
+.hoa-code-block-wrapper pre {
+    margin: 0 !important;
+    border-radius: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
 .tiptap.ProseMirror pre,
 #tiptap-content-target pre {
     background: rgba(2, 6, 23, 0.95);
@@ -636,7 +676,7 @@ details.hoa-faq p {
     font-family:
         ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     font-size: 0.9rem;
-    color: #38bdf8;
+    color: #e2e8f0;
     line-height: 1.6;
     box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6);
 }
@@ -658,6 +698,97 @@ details.hoa-faq p {
     padding: 0;
     border: none;
     color: inherit;
+}
+
+/* Lowlight & Highlight.js Syntax Highlighting Tokens (Dark IDE Theme) */
+.hljs-comment,
+.hljs-quote {
+    color: #64748b;
+    font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-subst {
+    color: #c084fc;
+    font-weight: 600;
+}
+
+.hljs-number,
+.hljs-literal,
+.hljs-variable.constant_ {
+    color: #fbbf24;
+}
+
+.hljs-string,
+.hljs-doctag,
+.hljs-regexp {
+    color: #34d399;
+}
+
+.hljs-title,
+.hljs-section,
+.hljs-selector-id {
+    color: #60a5fa;
+    font-weight: 600;
+}
+
+.hljs-title.class_,
+.hljs-class .hljs-title,
+.hljs-type {
+    color: #f472b6;
+    font-weight: 600;
+}
+
+.hljs-title.function_,
+.hljs-function .hljs-title {
+    color: #38bdf8;
+}
+
+.hljs-params,
+.hljs-variable {
+    color: #e2e8f0;
+}
+
+.hljs-attr,
+.hljs-attribute {
+    color: #a78bfa;
+}
+
+.hljs-tag,
+.hljs-name {
+    color: #f43f5e;
+}
+
+.hljs-symbol,
+.hljs-bullet {
+    color: #fb923c;
+}
+
+.hljs-built_in {
+    color: #22d3ee;
+}
+
+.hljs-meta {
+    color: #f59e0b;
+}
+
+.hljs-deletion {
+    color: #f87171;
+    background: rgba(239, 68, 68, 0.15);
+}
+
+.hljs-addition {
+    color: #4ade80;
+    background: rgba(34, 197, 94, 0.15);
+}
+
+.hljs-emphasis {
+    font-style: italic;
+}
+
+.hljs-strong {
+    font-weight: bold;
 }
 
 /* Horizontal Rule Divider */

@@ -1,4 +1,4 @@
-﻿{{--
+{{--
 /*
 |--------------------------------------------------------------------------
 | HelpOfAi (HOA) Professional Software - Content Intelligence Sidebar
@@ -56,7 +56,7 @@
             <button type="button" x-on:click="rightTab = 'quality'" :class="rightTab === 'quality' ? 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-white font-bold shadow-md shadow-indigo-600/30 border border-indigo-400/50' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" class="py-2 px-1 rounded-xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5" title="E-E-A-T Quality Audit">
                 <span class="text-sm">🏆</span><span class="text-[10px] font-bold truncate w-full">Audit</span>
             </button>
-            <button type="button" x-on:click="rightTab = 'outline'" :class="rightTab === 'outline' ? 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-white font-bold shadow-md shadow-indigo-600/30 border border-indigo-400/50' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" class="py-2 px-1 rounded-xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5" title="Interactive Document Outline">
+            <button type="button" x-on:click="rightTab = 'outline'; updateOutline()" :class="rightTab === 'outline' ? 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-white font-bold shadow-md shadow-indigo-600/30 border border-indigo-400/50' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" class="py-2 px-1 rounded-xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5" title="Interactive Document Outline">
                 <span class="text-sm">📑</span><span class="text-[10px] font-bold truncate w-full">Outline</span>
             </button>
             <button type="button" x-on:click="rightTab = 'versions'" :class="rightTab === 'versions' ? 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-white font-bold shadow-md shadow-indigo-600/30 border border-indigo-400/50' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" class="py-2 px-1 rounded-xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5" title="Version Snapshots Timeline">

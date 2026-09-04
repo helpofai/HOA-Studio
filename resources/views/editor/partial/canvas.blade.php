@@ -516,6 +516,67 @@
         </div>
     </template>
 
+    <!-- Floating Table Operations Toolbar (Teleported to body, reactive to activeFormats.table) -->
+    <template x-teleport="body">
+        <div 
+            id="tiptap-table-toolbar"
+            x-show="activeFormats.table"
+            x-cloak
+            x-transition:enter="transition ease-out duration-150"
+            x-transition:enter-start="opacity-0 -translate-y-1 scale-95"
+            x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+            class="hoa-table-floating-bar fixed z-[9990] flex items-center gap-1 p-1 bg-slate-950/98 border border-indigo-500/30 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.9)] backdrop-blur-2xl text-xs select-none"
+            style="display: none;"
+        >
+            <!-- Table Indicator Badge -->
+            <div class="flex items-center gap-1 px-2 py-1 bg-indigo-600/20 text-indigo-300 font-mono font-bold text-[10px] rounded-xl border border-indigo-500/30 select-none">
+                <span>▦</span>
+                <span>Table</span>
+            </div>
+
+            <!-- Row Operations -->
+            <div class="flex items-center gap-0.5 bg-white/[0.04] p-0.5 rounded-xl border border-white/5">
+                <button type="button" x-on:mousedown.prevent x-on:click="editorInstance?.addRowBefore?.()" class="px-2 py-1 flex items-center gap-1 rounded-lg text-slate-300 hover:bg-white/10 hover:text-white cursor-pointer transition-colors text-[11px]" title="Insert Row Above">
+                    <span>↑</span> <span>Row</span>
+                </button>
+                <button type="button" x-on:mousedown.prevent x-on:click="editorInstance?.addRowAfter?.()" class="px-2 py-1 flex items-center gap-1 rounded-lg text-slate-300 hover:bg-white/10 hover:text-white cursor-pointer transition-colors text-[11px]" title="Insert Row Below">
+                    <span>↓</span> <span>Row</span>
+                </button>
+                <button type="button" x-on:mousedown.prevent x-on:click="editorInstance?.deleteRow?.()" class="px-1.5 py-1 flex items-center gap-0.5 rounded-lg text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 cursor-pointer transition-colors text-[11px]" title="Delete Current Row">
+                    <span>✕</span> <span>Row</span>
+                </button>
+            </div>
+
+            <!-- Column Operations -->
+            <div class="flex items-center gap-0.5 bg-white/[0.04] p-0.5 rounded-xl border border-white/5">
+                <button type="button" x-on:mousedown.prevent x-on:click="editorInstance?.addColumnBefore?.()" class="px-2 py-1 flex items-center gap-1 rounded-lg text-slate-300 hover:bg-white/10 hover:text-white cursor-pointer transition-colors text-[11px]" title="Insert Column Left">
+                    <span>←</span> <span>Col</span>
+                </button>
+                <button type="button" x-on:mousedown.prevent x-on:click="editorInstance?.addColumnAfter?.()" class="px-2 py-1 flex items-center gap-1 rounded-lg text-slate-300 hover:bg-white/10 hover:text-white cursor-pointer transition-colors text-[11px]" title="Insert Column Right">
+                    <span>→</span> <span>Col</span>
+                </button>
+                <button type="button" x-on:mousedown.prevent x-on:click="editorInstance?.deleteColumn?.()" class="px-1.5 py-1 flex items-center gap-0.5 rounded-lg text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 cursor-pointer transition-colors text-[11px]" title="Delete Current Column">
+                    <span>✕</span> <span>Col</span>
+                </button>
+            </div>
+
+            <!-- Cell / Header Operations -->
+            <div class="flex items-center gap-0.5 bg-white/[0.04] p-0.5 rounded-xl border border-white/5">
+                <button type="button" x-on:mousedown.prevent x-on:click="editorInstance?.toggleHeaderRow?.()" class="px-2 py-1 flex items-center gap-1 rounded-lg text-slate-300 hover:bg-white/10 hover:text-white cursor-pointer transition-colors text-[11px]" title="Toggle Header Row">
+                    <span>🔲</span> <span>Header</span>
+                </button>
+                <button type="button" x-on:mousedown.prevent x-on:click="editorInstance?.mergeOrSplit?.()" class="px-2 py-1 flex items-center gap-1 rounded-lg text-slate-300 hover:bg-white/10 hover:text-white cursor-pointer transition-colors text-[11px]" title="Merge or Split Selected Cells">
+                    <span>🔗</span> <span>Merge/Split</span>
+                </button>
+            </div>
+
+            <!-- Delete Entire Table -->
+            <button type="button" x-on:mousedown.prevent x-on:click="editorInstance?.deleteTable?.()" class="px-2 py-1 flex items-center gap-1 rounded-xl text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 cursor-pointer transition-colors text-[11px] border border-rose-500/20" title="Delete Table">
+                <span>🗑️</span>
+            </button>
+        </div>
+    </template>
+
     <!-- Custom Right-Click Context Menu (Teleported to body to avoid backdrop-filter coordinate displacement) -->
     <template x-teleport="body">
         <div 
@@ -539,6 +600,49 @@
                 </span>
                 <span class="text-slate-500 text-[9px] font-mono">Menu</span>
             </div>
+
+            <!-- SECTION 0: TABLE CONTROLS (Only visible when right-clicking inside a table cell) -->
+            <template x-if="isTableContext">
+                <div class="space-y-0.5 pb-1 border-b border-white/10 mb-1">
+                    <div class="px-2 py-0.5 text-[9px] font-mono text-cyan-400 font-bold flex items-center justify-between">
+                        <span>▦ TABLE CONTROLS</span>
+                        <span class="text-[8px] text-slate-500">GRID</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-1 px-1">
+                        <button type="button" x-on:click="closeContextMenu(); editorInstance?.addRowBefore?.()" class="text-left px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-200 text-[11px] flex items-center gap-1.5 cursor-pointer">
+                            <span>↑</span> <span>Row Above</span>
+                        </button>
+                        <button type="button" x-on:click="closeContextMenu(); editorInstance?.addRowAfter?.()" class="text-left px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-200 text-[11px] flex items-center gap-1.5 cursor-pointer">
+                            <span>↓</span> <span>Row Below</span>
+                        </button>
+                        <button type="button" x-on:click="closeContextMenu(); editorInstance?.addColumnBefore?.()" class="text-left px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-200 text-[11px] flex items-center gap-1.5 cursor-pointer">
+                            <span>←</span> <span>Col Left</span>
+                        </button>
+                        <button type="button" x-on:click="closeContextMenu(); editorInstance?.addColumnAfter?.()" class="text-left px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-200 text-[11px] flex items-center gap-1.5 cursor-pointer">
+                            <span>→</span> <span>Col Right</span>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-1 px-1 pt-0.5">
+                        <button type="button" x-on:click="closeContextMenu(); editorInstance?.deleteRow?.()" class="text-left px-2 py-1 rounded-lg hover:bg-red-500/20 text-red-300 text-[11px] flex items-center gap-1 cursor-pointer">
+                            <span>✕</span> <span>Delete Row</span>
+                        </button>
+                        <button type="button" x-on:click="closeContextMenu(); editorInstance?.deleteColumn?.()" class="text-left px-2 py-1 rounded-lg hover:bg-red-500/20 text-red-300 text-[11px] flex items-center gap-1 cursor-pointer">
+                            <span>✕</span> <span>Delete Col</span>
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-1 px-1 pt-0.5">
+                        <button type="button" x-on:click="closeContextMenu(); editorInstance?.toggleHeaderRow?.()" class="flex-1 text-left px-2 py-1 rounded-lg hover:bg-white/10 text-slate-300 text-[11px] flex items-center gap-1 cursor-pointer">
+                            <span>🔲</span> <span>Toggle Header</span>
+                        </button>
+                        <button type="button" x-on:click="closeContextMenu(); editorInstance?.mergeOrSplit?.()" class="flex-1 text-left px-2 py-1 rounded-lg hover:bg-white/10 text-slate-300 text-[11px] flex items-center gap-1 cursor-pointer">
+                            <span>🔗</span> <span>Merge/Split</span>
+                        </button>
+                    </div>
+                    <button type="button" x-on:click="closeContextMenu(); editorInstance?.deleteTable?.()" class="w-full text-left px-2.5 py-1 rounded-lg hover:bg-red-500/20 text-red-400 hover:text-red-300 text-[11px] flex items-center gap-2 cursor-pointer mt-0.5">
+                        <span>🗑️</span> <span>Delete Table</span>
+                    </button>
+                </div>
+            </template>
 
             <!-- SECTION 1: CLIPBOARD & SELECTION ACTIONS -->
             <div class="space-y-0.5">
@@ -588,10 +692,10 @@
                 <button type="button" x-on:click="closeContextMenu(); triggerSubContentSubAgent('simplify')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer transition-colors">
                     <span class="text-pink-400">⚡</span> <span>Simplify (8th-Grade)</span>
                 </button>
-                <button type="button" x-on:click="closeContextMenu(); triggerAiTransform('generate_faq')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer transition-colors">
+                <button type="button" x-on:click="closeContextMenu(); triggerSubContentSubAgent('generate_faq')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer transition-colors">
                     <span class="text-indigo-400">❓</span> <span>Generate FAQ Block</span>
                 </button>
-                <button type="button" x-on:click="closeContextMenu(); triggerAiTransform('key_takeaways')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer transition-colors">
+                <button type="button" x-on:click="closeContextMenu(); triggerSubContentSubAgent('key_takeaways')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer transition-colors">
                     <span class="text-teal-400">💡</span> <span>Extract Key Takeaways</span>
                 </button>
                 <button type="button" x-on:click="closeContextMenu(); triggerSubContentSubAgent('seo_optimize')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer transition-colors">
@@ -779,7 +883,7 @@ style="display: none;"
         <div class="ai-proposal-header flex items-center justify-between pb-2.5 border-b border-emerald-500/30 font-mono">
             <div class="flex items-center gap-2">
                 <span class="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-                <span class="text-emerald-400 font-bold tracking-wider text-xs">✦ SUB-CONTENT-SUB-AGENT (RECREATING)</span>
+                <span class="text-emerald-400 font-bold tracking-wider text-xs" x-text="'✦ SUB-CONTENT-SUB-AGENT (' + (subAgentModeLabel || 'RECREATING').toUpperCase() + ')'">✦ SUB-CONTENT-SUB-AGENT (RECREATING)</span>
                 <span class="text-[10px] text-slate-400 font-mono" x-text="streamSpeedTokSec > 0 ? (streamSpeedTokSec + ' tok/s') : ''"></span>
                 <span class="text-[10px] text-indigo-300 font-mono px-2 py-0.5 rounded-md bg-indigo-950/80 border border-indigo-500/30" x-text="routedModel"></span>
             </div>
