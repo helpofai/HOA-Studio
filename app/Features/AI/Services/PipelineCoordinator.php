@@ -85,7 +85,7 @@ class PipelineCoordinator
         if (in_array('article_outline', $pipelineStages)) {
             $sendEvent("status", "📑 Architecting H2/H3 Section Outline & Data Structures...");
             
-            $sysPrompt = "You are an Executive Content Architect. Generate a logical, highly-structured article outline for the given topic. Output STRICTLY raw JSON in this format: {\"sections\": [{\"title\": \"H2 Title\", \"focus\": \"What to cover in this section\"}]}. NO markdown, NO conversational text. Just JSON.";
+            $sysPrompt = "You are an Executive Content Architect. Generate a logical, highly-structured article outline for simple topic. Output STRICTLY raw JSON. Format: {\"sections\": [{\"title\": \"H2 Title\", \"focus\": \"Key points to cover\"}]}. NO extra text. NO markdown.";
             $userPrompt = "Target Topic: {$topic}\nLSI Keywords to Include: {$extractedLsi}\nMake it detailed with 3 to 6 primary sections.";
             
             try {
@@ -150,16 +150,18 @@ Follow these strict constraints:
             
             $textBuffer = "";
             try {
-                $this->client->streamChat([
+                foreach ($this->client->streamChatCompletion([
                     ['role' => 'system', 'content' => $sysPrompt],
                     ['role' => 'user', 'content' => $userPrompt]
-                ], 'auto', 0.65, function ($chunk) use ($sendEvent, &$textBuffer) {
+                ], ['model' => 'auto', 'temperature' => 0.65]) as $chunk) {
                     if (!empty($chunk)) {
                         $textBuffer .= $chunk;
                         $sendEvent("chunk", $chunk);
                     }
-                });
-            } catch (\Throwable $e) { }
+                }
+            } catch (\Throwable $e) { 
+                \Log::error("Stream Writer Error: " . $e->getMessage());
+            }
 
             $fullDraft .= $textBuffer . "\n<br>\n";
             $sendEvent("chunk", "\n<br>\n");
