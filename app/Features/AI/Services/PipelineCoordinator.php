@@ -54,7 +54,7 @@ class PipelineCoordinator
         $knowledgeContext = "Base domain knowledge.";
         $extractedLsi = "";
         
-        if (in_array('keyword_research', $pipelineStages) || in_array('fact_check', $pipelineStages)) {
+        if (in_array('keyword_research', $pipelineStages) || in_array('fact_verification', $pipelineStages)) {
             $sendEvent("status", "🔍 Querying Vector Database & Analyzing SERP Entities...");
             
             try {
@@ -122,7 +122,7 @@ class PipelineCoordinator
         // ==========================================
         $sendEvent("status", "✍️ Commencing Distributed Section-by-Section Swarm Generation...");
         
-        $seoInstruction = in_array('seo_optimize', $pipelineStages) 
+        $seoInstruction = in_array('seo_optimization', $pipelineStages) 
                 ? "Ensure deep semantic SEO optimization. Naturally weave in variations of {$targetKeyword} and these LSI tokens: {$extractedLsi}." 
                 : "";
 
@@ -171,7 +171,7 @@ Follow these strict constraints:
         // ==========================================
         // STAGE 4: SCHEMA JSON-LD GENERATION
         // ==========================================
-        if (in_array('schema_jsonld', $pipelineStages)) {
+        if (in_array('schema_generation', $pipelineStages)) {
             $sendEvent("status", "🌐 Generating SEO Article Schema JSON-LD Maps...");
             try {
                 $schemaPrompt = "Generate standard JSON-LD Schema.org Article metadata for an article titled '{$topic}'. Provide ONLY valid JSON inside a <script type=\"application/ld+json\"> tag.";
