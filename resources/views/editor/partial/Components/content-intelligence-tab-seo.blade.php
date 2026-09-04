@@ -56,11 +56,11 @@
                         type="button" 
                         x-on:click="
                             showSeoHeatmap = !showSeoHeatmap; 
-                            const ed = getEditor();
+                            const ed = this.getEditor ? this.getEditor() : (typeof getEditor === 'function' ? getEditor() : null);
                             if(ed) {
                                 if(showSeoHeatmap) {
                                     window._originalSeoDraft = ed.getHTML();
-                                    ed.setContent(@js($seoData['marked_html'] ?? ''), false);
+                                    ed.setContent($wire.seoData?.marked_html || '', false);
                                     ed.setEditable(false);
                                 } else {
                                     ed.setContent(window._originalSeoDraft || '', false);
@@ -368,7 +368,7 @@
                                         @php
                                             $aiFixTarget = in_array($check['id'], ['kw_in_title', 'kw_at_beginning_of_title', 'title_has_number', 'title_has_power_word', 'title_length_optimal', 'title_sentiment_positive']) ? 'title' : ($check['id'] === 'kw_in_meta' ? 'meta' : 'insert');
                                         @endphp
-                                        x-on:click="triggerSurgicalFix('{{ $check['id'] }}', @js($check['ai_prompt'] ?? 'Optimize ' . $check['title']))"
+                                        x-on:click="applyTargetedIntelligenceFix('{{ $check['id'] }}', @js($check['title']), @js($check['ai_prompt'] ?? 'Optimize ' . $check['title']), '{{ $aiFixTarget }}')"
                                         class="px-2 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px] shadow-sm shadow-blue-600/30 flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
                                         :disabled="activeAction === '{{ $check['id'] }}' || !@js($check['ai_prompt'] ?? null)"
                                         title="{{ isset($check['ai_prompt']) ? 'AI surgically optimizes only this section' : 'Manual action required' }}"
