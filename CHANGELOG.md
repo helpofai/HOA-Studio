@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.7.0] - 2026-09-04
+
+### Added
+- **Multi-Agent Pipeline Coordinator:** Backend orchestrator mapping 15 frontend pipeline checkboxes to true multi-LLM generation cycles.
+- **Dynamic SSE Status Frames:** SSE stream multiplexes AI tokens with status_message streams for real-time UI updates.
+- **RAG Vector Injection:** Agentic loop invokes RetrieveRagContext to synthesize brand entities during generation.
+
+### Changed
+- Refactored Amber Swarm Button to bypass legacy JS fetch loops in favor of backend SSE pipeline.
+- Updated ContentWriterBrain to interpret multi-phase pipeline streams as native article generators.
+
+### Fixed
+- SSE parsing logic in TipTap no longer drops ghost tokens.
+- Resolved Livewire 500 errors from stale view caches and unclosed Blade directives.
+- LLM JSON markdown format extraction no longer causes Architect failures.
+
 ## [2.6.7] - 2026-09-03
 
 ### 🐛 Fixed
