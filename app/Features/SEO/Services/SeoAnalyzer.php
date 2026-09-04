@@ -268,6 +268,11 @@ class SeoAnalyzer
                 'desc' => 'Primary keyword appears in the document title tag.',
                 'pass' => $kw ? $kwData['in_title'] : false,
                 'weight' => 6,
+                'severity' => 'critical',
+                'current_val' => $kw ? ($kwData['in_title'] ? 'Found in title' : 'Missing from title') : 'No keyword set',
+                'goal_val' => "Include '" . ($targetKeyword ?: 'keyword') . "'",
+                'actionable_tip' => "Include your primary keyword '" . ($targetKeyword ?: 'keyword') . "' in the document title for core search indexing.",
+                'target_canvas_id' => 'seo-loc-title',
                 'ai_prompt' => $kw ? "Rewrite the document title to naturally include the focus keyword '{$targetKeyword}'." : null,
                 'manual_prompt' => "Manually edit the title to include your target keyword."
             ],
@@ -277,6 +282,11 @@ class SeoAnalyzer
                 'desc' => 'Primary keyword appears in the meta description.',
                 'pass' => $kw ? $kwData['in_meta'] : (!empty($metaDescription)),
                 'weight' => 5,
+                'severity' => 'warning',
+                'current_val' => !empty($metaDescription) ? ($kw && mb_strpos(mb_strtolower($metaDescription), $kw) !== false ? 'Found in meta' : 'Missing keyword') : 'Empty meta',
+                'goal_val' => '140-160 chars with keyword',
+                'actionable_tip' => "Write a 140-160 character meta description featuring '" . ($targetKeyword ?: 'keyword') . "' to improve click-through rates.",
+                'target_canvas_id' => 'seo-loc-meta',
                 'ai_prompt' => $kw ? "Write a compelling meta description that includes the focus keyword '{$targetKeyword}' and encourages clicks." : null,
                 'manual_prompt' => "Manually write a meta description including your target keyword."
             ],
@@ -286,6 +296,11 @@ class SeoAnalyzer
                 'desc' => 'Primary keyword is present in the permalink slug.',
                 'pass' => $kw ? $kwData['in_url'] : true,
                 'weight' => 4,
+                'severity' => 'warning',
+                'current_val' => $slug ?: 'untitled',
+                'goal_val' => "Clean slug with '" . ($targetKeyword ?: 'keyword') . "'",
+                'actionable_tip' => "Include your focus keyword in the URL permalink slug for clean hierarchy.",
+                'target_canvas_id' => 'seo-loc-meta',
                 'ai_prompt' => null, // URL changes require manual intervention
                 'manual_prompt' => "Edit the URL slug to include your target keyword."
             ],
@@ -295,6 +310,11 @@ class SeoAnalyzer
                 'desc' => 'Primary keyword appears in the introduction hook.',
                 'pass' => $kw ? $kwData['in_first_10_pct'] : false,
                 'weight' => 4,
+                'severity' => 'critical',
+                'current_val' => $kwData['in_first_10_pct'] ? 'Present in hook' : 'Missing in first 10%',
+                'goal_val' => 'Within opening 100 words',
+                'actionable_tip' => "Mention '" . ($targetKeyword ?: 'keyword') . "' in your opening paragraph so search engines and readers instantly confirm topic relevance.",
+                'target_canvas_id' => 'seo-loc-kw_in_intro',
                 'ai_prompt' => $kw ? "Rewrite the introduction to naturally include the focus keyword '{$targetKeyword}' in the first 10% of content." : null,
                 'manual_prompt' => "Edit the opening paragraph to include your target keyword naturally."
             ],
@@ -304,6 +324,11 @@ class SeoAnalyzer
                 'desc' => 'Primary keyword is used naturally across paragraphs.',
                 'pass' => $kw ? ($kwData['count'] >= 2 && !$kwData['keyword_stuffing_risk']) : false,
                 'weight' => 4,
+                'severity' => 'critical',
+                'current_val' => $kwData['count'] . ' mentions',
+                'goal_val' => '2+ natural mentions',
+                'actionable_tip' => "Refer to '" . ($targetKeyword ?: 'keyword') . "' at least twice throughout the body paragraphs to reinforce topic depth.",
+                'target_canvas_id' => 'seo-loc-kw_in_intro',
                 'ai_prompt' => $kw && $kwData['count'] < 2 ? "Increase natural usage of the focus keyword '{$targetKeyword}' throughout the content." : null,
                 'manual_prompt' => "Add more natural mentions of your target keyword throughout the content."
             ],
@@ -313,6 +338,11 @@ class SeoAnalyzer
                 'desc' => "Current length is {$totalWords} words (Optimal: 1,200+ words for comprehensive coverage).",
                 'pass' => $totalWords >= 1200,
                 'weight' => 2,
+                'severity' => 'warning',
+                'current_val' => $totalWords . ' words',
+                'goal_val' => '1,200+ words',
+                'actionable_tip' => $totalWords < 1200 ? "Add approximately " . (1200 - $totalWords) . " more words with sub-guides, examples, or tables to outrank competing articles." : "Comprehensive content length achieved.",
+                'target_canvas_id' => 'seo-loc-kw_in_intro',
             ],
         ];
 
@@ -327,6 +357,11 @@ class SeoAnalyzer
                 'desc' => 'Primary keyword found in H2 or H3 heading tags.',
                 'pass' => $kw ? $kwData['in_subheadings'] : (count($h2List) >= 2),
                 'weight' => 4,
+                'severity' => 'warning',
+                'current_val' => $kwData['in_subheadings'] ? 'Included in H2/H3' : 'Missing in headings',
+                'goal_val' => '1+ H2/H3 headings',
+                'actionable_tip' => "Add your focus keyword '" . ($targetKeyword ?: 'keyword') . "' to at least one prominent H2 subheading.",
+                'target_canvas_id' => 'seo-loc-kw_in_subheadings',
                 'ai_prompt' => $kw ? "Add H2 or H3 subheadings that include the focus keyword '{$targetKeyword}'." : null,
                 'manual_prompt' => "Create subheadings that include your target keyword."
             ],
@@ -336,6 +371,11 @@ class SeoAnalyzer
                 'desc' => 'Images contain descriptive alt text with the focus keyword.',
                 'pass' => $kw ? $kwData['in_img_alt'] : ($totalImages > 0),
                 'weight' => 3,
+                'severity' => 'optimization',
+                'current_val' => $totalImages . ' images (' . ($kwData['in_img_alt'] ? 'Alt match' : 'No keyword in alt') . ')',
+                'goal_val' => 'Descriptive alt with keyword',
+                'actionable_tip' => "Add an image with descriptive alt text containing '" . ($targetKeyword ?: 'keyword') . "'.",
+                'target_canvas_id' => 'seo-loc-kw_in_subheadings',
                 'ai_prompt' => $kw ? "Add descriptive alt text to images that includes the focus keyword '{$targetKeyword}'." : null,
                 'manual_prompt' => "Add alt text to images describing the content and including your target keyword."
             ],
@@ -345,6 +385,11 @@ class SeoAnalyzer
                 'desc' => 'Keyword density is within the ideal 0.8% - 2.5% range.',
                 'pass' => $densityValid && ($kw ? $kwData['count'] > 0 : true),
                 'weight' => 4,
+                'severity' => $kwData['keyword_stuffing_risk'] ? 'critical' : 'warning',
+                'current_val' => $kwData['density'] . '%',
+                'goal_val' => '0.8% - 2.5%',
+                'actionable_tip' => $kwData['density'] < 0.8 ? "Keyword density is low ({$kwData['density']}%). Weave '" . ($targetKeyword ?: 'keyword') . "' into 1-2 more sentences." : ($kwData['density'] > 2.5 ? "Density is high ({$kwData['density']}%). Reduce repetitive mentions to avoid over-optimization." : "Keyword density is balanced."),
+                'target_canvas_id' => 'seo-loc-kw_in_intro',
                 'ai_prompt' => $kw && $kwData['density'] < 0.8 ? "Increase usage of the focus keyword '{$targetKeyword}' to reach optimal density." : 
                             ($kw && $kwData['density'] > 2.5 ? "Reduce keyword usage to avoid stuffing while maintaining natural flow." : null),
                 'manual_prompt' => "Adjust keyword usage to maintain 0.8%-2.5% density range."
@@ -355,6 +400,11 @@ class SeoAnalyzer
                 'desc' => 'URL slug length is concise (under 75 characters).',
                 'pass' => $urlLengthValid,
                 'weight' => 2,
+                'severity' => 'optimization',
+                'current_val' => strlen($slug) . ' chars',
+                'goal_val' => '< 75 chars',
+                'actionable_tip' => "Keep permalink slugs concise and focused under 75 characters for cleaner URL sharing.",
+                'target_canvas_id' => 'seo-loc-meta',
             ],
             [
                 'id' => 'external_links',
@@ -362,6 +412,11 @@ class SeoAnalyzer
                 'desc' => 'Authoritative external citations found in content.',
                 'pass' => $externalLinksCount >= 2,
                 'weight' => 3,
+                'severity' => 'warning',
+                'current_val' => $externalLinksCount . ' external links',
+                'goal_val' => '2+ authoritative links',
+                'actionable_tip' => "Add 2+ authoritative outbound links to reputable research, papers, or documentation to prove authenticity.",
+                'target_canvas_id' => 'seo-loc-external_links',
                 'ai_prompt' => $externalLinksCount < 2 ? "Add 2 authoritative external links to reputable sources in your niche." : null,
                 'manual_prompt' => "Add links to authoritative sources that support your content."
             ],
@@ -371,6 +426,11 @@ class SeoAnalyzer
                 'desc' => 'Internal links linking to related topics and resources.',
                 'pass' => $internalLinksCount >= 3,
                 'weight' => 2,
+                'severity' => 'warning',
+                'current_val' => $internalLinksCount . ' internal links',
+                'goal_val' => '3+ internal links',
+                'actionable_tip' => "Add 3+ internal links to related guides or categories on your site to build topical clusters.",
+                'target_canvas_id' => 'seo-loc-external_links',
                 'ai_prompt' => $internalLinksCount < 3 ? "Add internal links to related content on your website." : null,
                 'manual_prompt' => "Link to other relevant pages on your website."
             ],
@@ -384,6 +444,11 @@ class SeoAnalyzer
                 'desc' => 'Primary keyword is front-loaded in the first half of the title.',
                 'pass' => $kw ? $titleStartsWithKw : (!empty($title)),
                 'weight' => 5,
+                'severity' => 'warning',
+                'current_val' => $titleStartsWithKw ? 'Front-loaded' : 'Not at beginning',
+                'goal_val' => 'In first 3 words',
+                'actionable_tip' => "Place '" . ($targetKeyword ?: 'keyword') . "' near the beginning of your title so it is immediately visible on search result pages.",
+                'target_canvas_id' => 'seo-loc-title',
                 'ai_prompt' => $kw ? "Rewrite title to start with the focus keyword '{$targetKeyword}' for better SEO and CTR." : null,
                 'manual_prompt' => "Move your target keyword to the beginning of the title."
             ],
@@ -393,6 +458,11 @@ class SeoAnalyzer
                 'desc' => 'Numbers in titles increase click-through rates (CTR) and set clear expectations.',
                 'pass' => $titleHasNumber,
                 'weight' => 3,
+                'severity' => 'optimization',
+                'current_val' => $titleHasNumber ? 'Number present' : 'No number',
+                'goal_val' => 'Include number/year (e.g. 2026, 7, 10)',
+                'actionable_tip' => "Include a number or year (e.g. '2026', '5 Steps') to increase Google click-through rates by up to 36%.",
+                'target_canvas_id' => 'seo-loc-title',
                 'ai_prompt' => null,
                 'manual_prompt' => "Add a relevant number to your title (e.g., '5 Ways', '10 Tips', '2024 Guide')."
             ],
@@ -402,6 +472,11 @@ class SeoAnalyzer
                 'desc' => $titleHasPowerWord ? "Power word detected ('{$matchedPowerWord}')." : 'Add a persuasive power word to boost CTR and engagement.',
                 'pass' => $titleHasPowerWord,
                 'weight' => 3,
+                'severity' => 'optimization',
+                'current_val' => $titleHasPowerWord ? "Power word: '{$matchedPowerWord}'" : 'No power word',
+                'goal_val' => "Include 'Ultimate', 'Proven', or 'Complete'",
+                'actionable_tip' => "Add an engaging power word like 'Ultimate', 'Proven', 'Complete', or 'Essential' to stimulate click motivation.",
+                'target_canvas_id' => 'seo-loc-title',
                 'ai_prompt' => $titleHasPowerWord ? null : "Add a power word like 'Ultimate', 'Proven', 'Essential', or 'Complete' to your title.",
                 'manual_prompt' => "Include an emotional/power word in your title."
             ],
@@ -411,6 +486,11 @@ class SeoAnalyzer
                 'desc' => 'Title length is ideal for search engine display (50-60 characters).',
                 'pass' => strlen($title) >= 50 && strlen($title) <= 60,
                 'weight' => 2,
+                'severity' => 'optimization',
+                'current_val' => strlen($title) . ' characters',
+                'goal_val' => '50 - 60 characters',
+                'actionable_tip' => strlen($title) < 50 ? "Title is short (" . strlen($title) . " chars). Aim for 50-60 chars to maximize pixel width in SERP." : "Title exceeds 60 chars (" . strlen($title) . "). Shorten to avoid SERP ellipsis truncation.",
+                'target_canvas_id' => 'seo-loc-title',
                 'ai_prompt' => strlen($title) < 50 ? "Extend title to 50-60 characters for better search visibility." : 
                             (strlen($title) > 60 ? "Shorten title to 50-60 characters to avoid truncation in search results." : null),
                 'manual_prompt' => "Adjust title length to 50-60 characters."
@@ -421,6 +501,11 @@ class SeoAnalyzer
                 'desc' => $titleSentiment['label'] === 'positive' ? 'Title conveys positive emotion and value.' : 'Consider more positive, benefit-driven language.',
                 'pass' => $titleSentiment['label'] === 'positive',
                 'weight' => 2,
+                'severity' => 'optimization',
+                'current_val' => ucfirst($titleSentiment['label'] ?? 'neutral'),
+                'goal_val' => 'Positive & benefit-focused',
+                'actionable_tip' => "Use positive, value-driven language to emphasize the user benefit of reading.",
+                'target_canvas_id' => 'seo-loc-title',
                 'ai_prompt' => $titleSentiment['label'] !== 'positive' ? "Rewrite title with more positive, benefit-oriented language." : null,
                 'manual_prompt' => "Make your title more positive and benefit-focused."
             ],
@@ -434,6 +519,11 @@ class SeoAnalyzer
                 'desc' => 'Content utilizes H2 and H3 tags for scannability and structure.',
                 'pass' => count($h2List) >= 2,
                 'weight' => 4,
+                'severity' => 'warning',
+                'current_val' => count($h2List) . ' H2 headings',
+                'goal_val' => '2+ H2 headings',
+                'actionable_tip' => "Break content into scannable subtopics using at least two H2 headings.",
+                'target_canvas_id' => 'seo-loc-kw_in_subheadings',
                 'ai_prompt' => count($h2List) < 2 ? "Add more H2 and H3 subheadings to improve content structure." : null,
                 'manual_prompt' => "Create a clear hierarchical structure with H2 and H3 headings."
             ],
@@ -443,6 +533,11 @@ class SeoAnalyzer
                 'desc' => 'Paragraphs are bite-sized (under 100 words each) for better readability.',
                 'pass' => $longParagraphsCount === 0 && $totalParagraphs >= 3,
                 'weight' => 4,
+                'severity' => 'warning',
+                'current_val' => $longParagraphsCount . ' bulky paragraphs (>100 words)',
+                'goal_val' => '0 bulky paragraphs',
+                'actionable_tip' => "Split long paragraphs into 2-3 sentence chunks to keep mobile readers engaged.",
+                'target_canvas_id' => 'seo-loc-kw_in_intro',
                 'ai_prompt' => $longParagraphsCount > 0 ? "Break long paragraphs into shorter, more digestible chunks." : null,
                 'manual_prompt' => "Split long paragraphs into shorter ones (aim for 60-100 words each)."
             ],
@@ -452,6 +547,11 @@ class SeoAnalyzer
                 'desc' => "Only {$longSentencesPct}% of sentences exceed 20 words (target: < 15%).",
                 'pass' => $longSentencesPct <= 15,
                 'weight' => 4,
+                'severity' => 'warning',
+                'current_val' => $longSentencesPct . '% sentences >20 words',
+                'goal_val' => '< 15% long sentences',
+                'actionable_tip' => "Split run-on sentences into shorter, punchy statements for higher readability scores.",
+                'target_canvas_id' => 'seo-loc-kw_in_intro',
                 'ai_prompt' => $longSentencesPct > 15 ? "Break long sentences into shorter, clearer statements." : null,
                 'manual_prompt' => "Split long sentences into shorter ones for better readability."
             ],
@@ -461,6 +561,11 @@ class SeoAnalyzer
                 'desc' => 'Content contains images, videos, tables, or other engaging media.',
                 'pass' => $totalImages >= 2 || (strpos($htmlContent, '<table') !== false) || (strpos($htmlContent, '<video') !== false),
                 'weight' => 3,
+                'severity' => 'optimization',
+                'current_val' => $totalImages . ' images, ' . (strpos($htmlContent, '<table') !== false ? 'Table present' : 'No table'),
+                'goal_val' => 'Images, table, or comparison card',
+                'actionable_tip' => "Add an informative comparison table, chart, or image to break up text and increase time-on-page.",
+                'target_canvas_id' => 'seo-loc-kw_in_subheadings',
                 'ai_prompt' => $totalImages < 2 && !(strpos($htmlContent, '<table') !== false) && !(strpos($htmlContent, '<video') !== false) ? 
                             "Add relevant images, tables, or videos to enhance engagement." : null,
                 'manual_prompt' => "Include images, videos, tables, or other media to break up text."
@@ -475,6 +580,11 @@ class SeoAnalyzer
                 'desc' => "E-E-A-T score: {$eEatScore}/100 - Demonstrates expertise and trustworthiness.",
                 'pass' => $eEatScore >= 70,
                 'weight' => 5,
+                'severity' => 'warning',
+                'current_val' => $eEatScore . '/100',
+                'goal_val' => '70+ E-E-A-T score',
+                'actionable_tip' => "Add first-hand experience observations, author bio, research data, and case study evidence.",
+                'target_canvas_id' => 'seo-loc-external_links',
                 'ai_prompt' => $eEatScore < 70 ? 
                             "Add author credentials, cite authoritative sources, include case studies, and show transparency." : null,
                 'manual_prompt' => "Enprove E-E-A-T by adding author bios, credentials, citations, and transparent information."
@@ -485,6 +595,11 @@ class SeoAnalyzer
                 'desc' => "Voice search readiness: {$voiceSearchScore}% - Optimized for conversational queries.",
                 'pass' => $voiceSearchScore >= 60,
                 'weight' => 4,
+                'severity' => 'optimization',
+                'current_val' => $voiceSearchScore . '%',
+                'goal_val' => '60%+ voice readiness',
+                'actionable_tip' => "Add an FAQ section with direct conversational answers to match voice assistant queries.",
+                'target_canvas_id' => 'seo-loc-external_links',
                 'ai_prompt' => $voiceSearchScore < 60 ? 
                             "Add FAQ sections, conversational language, and direct answers to common questions." : null,
                 'manual_prompt' => "Optimize for voice search by adding Q&A sections and natural language patterns."
@@ -495,6 +610,11 @@ class SeoAnalyzer
                 'desc' => "Featured snippet readiness: {$featuredSnippetScore}% - Likely to appear in position zero.",
                 'pass' => $featuredSnippetScore >= 50,
                 'weight' => 3,
+                'severity' => 'optimization',
+                'current_val' => $featuredSnippetScore . '%',
+                'goal_val' => '50%+ position-zero readiness',
+                'actionable_tip' => "Add a concise 40-50 word direct definition box or numbered list targeting Google's Position Zero.",
+                'target_canvas_id' => 'seo-loc-kw_in_intro',
                 'ai_prompt' => $featuredSnippetScore < 50 ? 
                             "Add direct answers, lists, tables, or definitions that target featured snippet opportunities." : null,
                 'manual_prompt' => "Structure content to target featured snippets with clear, concise answers."
@@ -505,6 +625,11 @@ class SeoAnalyzer
                 'desc' => "Content freshness: {$contentFreshness}% - Shows current, up-to-date information.",
                 'pass' => $contentFreshness >= 60,
                 'weight' => 3,
+                'severity' => 'optimization',
+                'current_val' => $contentFreshness . '%',
+                'goal_val' => '60%+ freshness signals',
+                'actionable_tip' => "Include 2026 data points, recent case studies, or contemporary statistics.",
+                'target_canvas_id' => 'seo-loc-external_links',
                 'ai_prompt' => $contentFreshness < 60 ? 
                             "Update statistics, add recent examples, and refresh outdated information." : null,
                 'manual_prompt' => "Update content with recent data, examples, and current information."
@@ -519,6 +644,11 @@ class SeoAnalyzer
                 'desc' => "Content depth score: {$competitiveGap['score']}% - Addresses key topics competitors cover.",
                 'pass' => $competitiveGap['score'] >= 70,
                 'weight' => 4,
+                'severity' => 'warning',
+                'current_val' => $competitiveGap['score'] . '% coverage',
+                'goal_val' => '70%+ depth score',
+                'actionable_tip' => !empty($competitiveGap['missing_topics']) ? "Cover competitor topic gaps: " . implode(', ', array_slice($competitiveGap['missing_topics'], 0, 3)) : "Cover key subtopics in your industry.",
+                'target_canvas_id' => 'seo-loc-kw_in_subheadings',
                 'ai_prompt' => $competitiveGap['score'] < 70 ? 
                             "Cover missing subtopics: " . implode(', ', $competitiveGap['missing_topics']) : null,
                 'manual_prompt' => "Research top-ranking pages and cover subtopics they address that you missed."
@@ -529,6 +659,11 @@ class SeoAnalyzer
                 'desc' => "Found {$kwData['semantic_variations_found']} semantic variations of your target keyword.",
                 'pass' => $kw ? $kwData['semantic_variations_found'] >= 5 : true,
                 'weight' => 3,
+                'severity' => 'optimization',
+                'current_val' => $kwData['semantic_variations_found'] . ' LSI variations',
+                'goal_val' => '5+ semantic variations',
+                'actionable_tip' => "Include natural LSI synonyms and related semantic phrases throughout the document.",
+                'target_canvas_id' => 'seo-loc-kw_in_intro',
                 'ai_prompt' => $kw && $kwData['semantic_variations_found'] < 5 ? 
                             "Use related terms and LSI keywords to enhance topical relevance." : null,
                 'manual_prompt' => "Include related terms, synonyms, and LSI keywords throughout your content."
@@ -539,6 +674,11 @@ class SeoAnalyzer
                 'desc' => 'Content includes structured data (Schema.org) for rich snippets.',
                 'pass' => strpos($htmlContent, 'application/ld+json') !== false || strpos($htmlContent, 'schema.org') !== false,
                 'weight' => 3,
+                'severity' => 'optimization',
+                'current_val' => (strpos($htmlContent, 'application/ld+json') !== false || strpos($htmlContent, 'schema.org') !== false) ? 'Schema detected' : 'No schema',
+                'goal_val' => 'Article / FAQ JSON-LD schema',
+                'actionable_tip' => "Add Schema.org JSON-LD structured data for article or FAQ rich snippets.",
+                'target_canvas_id' => 'seo-loc-meta',
                 'ai_prompt' => null,
                 'manual_prompt' => "Add Schema.org JSON-LD markup for articles, FAQs, how-tos, or other relevant types."
             ],
@@ -567,8 +707,13 @@ class SeoAnalyzer
         $countPassed = fn($arr) => count(array_filter($arr, fn($c) => $c['pass']));
         $allRecommendations = $allChecks;
 
-                // Generate offline color-coded SEO markup map
-        $markedHtml = $this->generateMarkedHtml($htmlContent, $targetKeyword);
+                // Generate offline color-coded SEO markup map with in-canvas recommendations
+        $markedHtml = $this->generateMarkedHtml($htmlContent, $targetKeyword, $allChecks, $kwData, [
+            'external_links' => $externalLinksCount,
+            'internal_links' => $internalLinksCount,
+            'h2_count' => count($h2List),
+            'total_words' => $totalWords,
+        ]);
 
         return [
             'marked_html' => $markedHtml,
@@ -762,33 +907,36 @@ class SeoAnalyzer
      */
 
     /**
-     * Generate color-coded offline SEO annotations directly inside content
+     * Generate color-coded offline SEO annotations and in-canvas recommendation banners directly inside content
      */
-    protected function generateMarkedHtml(string $htmlContent, ?string $targetKeyword): string
+    protected function generateMarkedHtml(string $htmlContent, ?string $targetKeyword, array $checks = [], array $kwData = [], array $metrics = []): string
     {
         if (empty(trim($htmlContent))) return $htmlContent;
 
         $marked = $htmlContent;
-        // Clean any existing marks
+
+        // 0. Clean previous marks and callout banners
+        $marked = preg_replace('/<div class="seo-canvas-callout[^>]*>.*?<\/div>/si', '', $marked);
+        $marked = preg_replace('/<div class="seo-heatmap-legend-bar[^>]*>.*?<\/div>/si', '', $marked);
         $marked = preg_replace('/<mark[^>]*>/i', '', $marked);
         $marked = preg_replace('/<\/mark>/i', '', $marked);
 
-        // 1. Highlight Focus Keyword (Green)
+        $kwClean = $targetKeyword ? htmlspecialchars(trim($targetKeyword), ENT_QUOTES, 'UTF-8') : '';
+
+        // 1. Highlight Focus Keyword Matches (Green)
         if ($targetKeyword) {
             $kw = preg_quote(trim($targetKeyword), '/');
-            // Lookbehind/ahead to avoid inside HTML tags
-            $marked = preg_replace("/({$kw})(?![^<]*>)/i", '<mark style="background-color: rgba(16, 185, 129, 0.3); border-bottom: 2px solid #10b981; color: inherit;" title="Target Keyword">$1</mark>', $marked);
+            $marked = preg_replace("/\b({$kw})\b(?![^<]*>)/i", '<mark style="background-color: rgba(16, 185, 129, 0.35); border-bottom: 2px solid #10b981; color: inherit; padding: 1px 5px; border-radius: 4px; font-weight: 600;" title="Focus Keyword: ' . $kwClean . '">$1</mark>', $marked);
         }
 
         // 2. Highlight E-E-A-T & Authority Signals (Blue)
-        $authorityWords = ['expert', 'professional', 'study', 'research', 'certified', 'proven', 'guaranteed', 'according to', 'statistics', 'evidence'];
+        $authorityWords = ['expert', 'professional', 'study', 'research', 'certified', 'proven', 'guaranteed', 'according to', 'statistics', 'evidence', 'case study', 'data', 'clinical', 'peer-reviewed'];
         foreach ($authorityWords as $word) {
             $w = preg_quote($word, '/');
-            $marked = preg_replace("/({$w})(?![^<]*>)/i", '<mark style="background-color: rgba(59, 130, 246, 0.3); border-bottom: 2px solid #3b82f6; color: inherit;" title="Authority / E-E-A-T Signal">$1</mark>', $marked);
+            $marked = preg_replace("/\b({$w})\b(?![^<]*>)/i", '<mark style="background-color: rgba(59, 130, 246, 0.3); border-bottom: 2px solid #3b82f6; color: inherit; padding: 1px 5px; border-radius: 4px;" title="Authority / E-E-A-T Signal: $1">$1</mark>', $marked);
         }
 
-        // 3. Highlight Sentence Length check (Red for > 20 words)
-        // Split by sentences using simple punctuation
+        // 3. Highlight Sentence Length check (Red dashed for sentences > 25 words)
         $sentences = preg_split('/(?<=[.?!])\s+/u', strip_tags($htmlContent), -1, PREG_SPLIT_NO_EMPTY);
         foreach ($sentences as $s) {
             $sText = trim($s);
@@ -796,24 +944,73 @@ class SeoAnalyzer
             
             if ($wordCount > 25 && strlen($sText) > 70) {
                 $escaped = preg_quote($sText, '/');
-                // Replace safely only if not overlapping existing tags
-                $marked = preg_replace('/' . $escaped . '(?![^<]*>)/i', '<mark style="background-color: rgba(239, 68, 68, 0.3); border-bottom: 2px solid #ef4444; color: inherit;" title="Long Sentence > 25 words (Hard to read)">$0</mark>', $marked, 1);
+                $marked = preg_replace('/' . $escaped . '(?![^<]*>)/i', '<mark style="background-color: rgba(239, 68, 68, 0.22); border-bottom: 2px dashed #ef4444; color: inherit; padding: 1px 4px; border-radius: 4px;" title="Run-on Sentence (' . $wordCount . ' words) — Split into shorter sentences">$0</mark>', $marked, 1);
             }
         }
         
-        // 4. Highlight Long Paragraphs (Yellow for > 100 words)
+        // 4. Highlight Long Paragraphs (Yellow/Amber left-border for > 100 words)
         if (preg_match_all('/<p[^>]*>(.*?)<\/p>/si', $marked, $pMatches)) {
             foreach ($pMatches[0] as $idx => $fullP) {
                 $pText = strip_tags($pMatches[1][$idx]);
                 $wordCount = count(preg_split('/\s+/u', trim($pText), -1, PREG_SPLIT_NO_EMPTY));
                 if ($wordCount > 100) {
-                    $markedP = str_replace('<p', '<p style="background-color: rgba(245, 158, 11, 0.2); border-left: 3px solid #f59e0b; padding-left: 10px;" title="Long Paragraph > 100 words (Poor Scannability)"', $fullP);
+                    $markedP = str_replace('<p', '<p style="background-color: rgba(245, 158, 11, 0.12); border-left: 3px solid #f59e0b; padding-left: 12px; border-radius: 0 8px 8px 0; margin-bottom: 1rem;" title="Bulky Paragraph (' . $wordCount . ' words) — Split for better mobile scannability"', $fullP);
                     $marked = str_replace($fullP, $markedP, $marked);
                 }
             }
         }
 
-        return $marked;
+        // 5. IN-CANVAS RECOMMENDATION BANNERS FOR MISSING ITEMS (Color-Coded Callouts)
+        // A. Critical Issue: Focus Keyword Missing in Introduction Hook
+        $inIntro = !empty($kwData['in_first_10_pct']);
+        if ($targetKeyword && !$inIntro) {
+            $introCallout = '<div class="seo-canvas-callout seo-callout-critical" id="seo-loc-kw_in_intro" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); border-left: 5px solid #ef4444; border-radius: 10px; padding: 10px 14px; margin: 14px 0; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11.5px; color: #fca5a5; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.12);"><div style="display: flex; align-items: center; gap: 8px;"><span style="background: #ef4444; color: #ffffff; border-radius: 4px; padding: 2px 7px; font-size: 9px; font-weight: 800; letter-spacing: 0.5px; font-family: monospace;">🔴 CRITICAL SEO</span><span><strong>Focus Keyword Missing in Intro:</strong> Primary keyword <em>&ldquo;' . $kwClean . '&rdquo;</em> does not appear in the opening paragraph. Insert it within the first 1-2 sentences.</span></div><span style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 6px; font-size: 10px; font-family: monospace; white-space: nowrap; color: #fff;">Line 1 Hook</span></div>';
+
+            if (preg_match('/<p[^>]*>/i', $marked)) {
+                $marked = preg_replace('/(<p[^>]*>)/i', $introCallout . '$1', $marked, 1);
+            } else {
+                $marked = $introCallout . $marked;
+            }
+        }
+
+        // B. Warning Issue: Focus Keyword Missing in Subheadings (H2, H3)
+        $inSubheadings = !empty($kwData['in_subheadings']);
+        if ($targetKeyword && !$inSubheadings) {
+            $headingCallout = '<div class="seo-canvas-callout seo-callout-warning" id="seo-loc-kw_in_subheadings" style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-left: 5px solid #f59e0b; border-radius: 10px; padding: 9px 14px; margin: 14px 0; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11.5px; color: #fcd34d; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.12);"><div style="display: flex; align-items: center; gap: 8px;"><span style="background: #f59e0b; color: #000000; border-radius: 4px; padding: 2px 7px; font-size: 9px; font-weight: 800; letter-spacing: 0.5px; font-family: monospace;">🟡 SUBHEADING TIP</span><span><strong>Missing Keyword in Headings:</strong> Include focus keyword <em>&ldquo;' . $kwClean . '&rdquo;</em> in at least one H2 or H3 heading for topical authority.</span></div><span style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 6px; font-size: 10px; font-family: monospace; white-space: nowrap; color: #fff;">H2 Structure</span></div>';
+
+            if (preg_match('/<h2[^>]*>/i', $marked)) {
+                $marked = preg_replace('/(<h2[^>]*>)/i', $headingCallout . '$1', $marked, 1);
+            }
+        }
+
+        // C. Warning Issue: Missing External Citations
+        $extLinks = $metrics['external_links'] ?? 0;
+        if ($extLinks < 2) {
+            $citationCallout = '<div class="seo-canvas-callout seo-callout-warning" id="seo-loc-external_links" style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.35); border-left: 5px solid #3b82f6; border-radius: 10px; padding: 9px 14px; margin: 14px 0; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11.5px; color: #93c5fd; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.12);"><div style="display: flex; align-items: center; gap: 8px;"><span style="background: #3b82f6; color: #ffffff; border-radius: 4px; padding: 2px 7px; font-size: 9px; font-weight: 800; letter-spacing: 0.5px; font-family: monospace;">🔵 AUTHORITY CITATION</span><span><strong>Outbound Citations Missing (' . $extLinks . '/2):</strong> Add 2+ authoritative external outbound links to reputable research, papers, or industry sources.</span></div><span style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 6px; font-size: 10px; font-family: monospace; white-space: nowrap; color: #fff;">E-E-A-T Signal</span></div>';
+
+            $lastPPos = strrpos($marked, '<p');
+            if ($lastPPos !== false) {
+                $marked = substr_replace($marked, $citationCallout . '<p', $lastPPos, 2);
+            } else {
+                $marked .= $citationCallout;
+            }
+        }
+
+        // 6. FLOATING IN-CANVAS COLOR SYSTEM LEGEND BAR (Fixed at the top of inspection mode)
+        $legendBar = '<div class="seo-heatmap-legend-bar" style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 14px; padding: 10px 16px; margin-bottom: 20px; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.6); backdrop-filter: blur(16px);">'
+            . '<div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #ffffff;">'
+            . '<span style="font-size: 14px;">🎨</span>'
+            . '<span>In-Canvas SEO Inspection & Heatmap:</span>'
+            . '</div>'
+            . '<div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-size: 10.5px; font-weight: 600;">'
+            . '<span style="display: flex; align-items: center; gap: 5px; color: #fca5a5;"><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 6px #ef4444;"></span> 🔴 Critical Issue</span>'
+            . '<span style="display: flex; align-items: center; gap: 5px; color: #fcd34d;"><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 6px #f59e0b;"></span> 🟡 Warning / Structure</span>'
+            . '<span style="display: flex; align-items: center; gap: 5px; color: #93c5fd;"><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #3b82f6; box-shadow: 0 0 6px #3b82f6;"></span> 🔵 Authority & E-E-A-T</span>'
+            . '<span style="display: flex; align-items: center; gap: 5px; color: #6ee7b7;"><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span> 🟢 Focus Keyword</span>'
+            . '</div>'
+            . '</div>';
+
+        return $legendBar . $marked;
     }
 
     protected function countSyllables(string $word): int

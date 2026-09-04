@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.7.1] - 2026-09-04
+
+### Added
+- **In-Canvas SEO Recommendation & Color-Coded Heatmap System:**
+  - Implemented real-time in-canvas visual callouts and annotations directly inside the editor canvas for missing SEO requirements.
+  - Added 4-tier visual color system: 🔴 Critical Issues (Missing intro focus keyword, keyword stuffing, run-on sentences), 🟡 Warnings & Structure (Missing subheading keyword, bulky paragraphs, missing outbound citations), 🔵 Authority & E-E-A-T (Citations, clinical/research references, trust terms), 🟢 Focus Keyword Optimization.
+  - Added floating in-canvas inspection legend bar and interactive `🎯 Locate in Content` buttons in the SEO tab to smoothly scroll and highlight targeted lines.
+  - Enriched 6-pillar SEO checks with actionable recommendation boxes, current vs. goal metrics, and severity indicators.
+
+---
+
 ## [2.7.0] - 2026-09-04
 
 ### Added
