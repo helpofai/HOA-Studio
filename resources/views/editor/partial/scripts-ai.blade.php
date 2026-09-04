@@ -164,6 +164,7 @@ async applyTargetedIntelligenceFix(checkId, title, aiPrompt, targetType = 'inser
     this.activeAction = checkId;
     this.showAiStreamBanner = true;
     this.liveAiStreamText = '';
+    this.pipelineStageLog = [];
     this.abortController = new AbortController();
 
     const currentFullHtml = ed.getHTML ? ed.getHTML() : '';
@@ -422,6 +423,7 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto') {
     this.isTransforming = true;
     this.activeAction = type;
     this.liveAiStreamText = '';
+    this.pipelineStageLog = [];
     this.showAiStreamBanner = true;
     
     this.abortController = new AbortController();
@@ -617,6 +619,14 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto') {
                         }
                         if (parsed.status_message) {
                             this.swarmStatusMessage = parsed.status_message;
+                            this.pipelineStageLog.push({ 
+                                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}), 
+                                msg: parsed.status_message 
+                            });
+                            this.$nextTick(() => {
+                                const logEl = document.getElementById('pipeline-log-container');
+                                if (logEl) logEl.scrollTop = logEl.scrollHeight;
+                            });
                         }
                     } catch (e) {}
                 }
@@ -661,6 +671,7 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto') {
 
         this.isTransforming = false;
         this.liveAiStreamText = '';
+    this.pipelineStageLog = [];
 
         // Record telemetry & deduct quota if streamed directly from browser
         if (isBrowserDirect && config.recordUsageRoute && fullResult.trim().length > 0) {
