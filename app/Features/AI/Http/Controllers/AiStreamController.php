@@ -196,6 +196,8 @@ class AiStreamController extends Controller
                     $payload = ['done' => false];
                     if ($type === 'status') {
                         $payload['status_message'] = $data;
+                    } elseif ($type === 'title') {
+                        $payload['generated_title'] = $data;
                     } else {
                         $payload['token'] = $data;
                     }
