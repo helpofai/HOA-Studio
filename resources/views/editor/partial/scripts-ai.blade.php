@@ -617,6 +617,15 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto') {
                         if (parsed.message) {
                             this.aiErrorMessage = parsed.message;
                         }
+                        if (parsed.generated_title) {
+                            const newTitle = parsed.generated_title;
+                            const titleInput = document.querySelector('input[wire\\:model\\.lazy="title"]');
+                            if (titleInput) titleInput.value = newTitle;
+                            if (window.Livewire) {
+                                Livewire.dispatch('updateTitle', { newTitle: newTitle });
+                            }
+                            this.addLog('SEO', 'Auto-generated Title: ' + newTitle);
+                        }
                         if (parsed.status_message) {
                             this.swarmStatusMessage = parsed.status_message;
                             this.pipelineStageLog.push({ 
