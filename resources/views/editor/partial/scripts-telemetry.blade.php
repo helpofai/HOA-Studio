@@ -1,18 +1,7 @@
 {{--
-/*
 |--------------------------------------------------------------------------
-| HelpOfAi (HOA) Professional Software - Editor Scripts: Telemetry & Logging
+| HelpOfAi (HOA) Professional Software - Telemetry & Logs
 |--------------------------------------------------------------------------
-|
-| Copyright (c) 2026 Rajib Adhikary. All Rights Reserved.
-|
-| Author      : Rajib Adhikary
-| Organization: HelpOfAi (HOA)
-| Website     : https://helpofai.com
-| Location    : Basta Purba Para, Aranghata, Nadia, West Bengal, India
-|
-|--------------------------------------------------------------------------
-*/
 --}}
 
 // Draggable Floating Selection Actions Bar (.editor-floating-actions)
@@ -80,4 +69,53 @@ addLog(level, msg) {
 
 clearLogs() {
     this.aiLogs = [];
+},
+
+// Floating Telemetry Window State
+showFloatingTelemetry: false,
+pipelineStageLog: [],
+draggingTelemetry: false,
+resizingTelemetry: false,
+startTelemetryX: 0,
+startTelemetryY: 0,
+startTelemetryW: 0,
+startTelemetryH: 0,
+telemetryX: window.innerWidth > 1024 ? window.innerWidth - 420 : 20,
+telemetryY: window.innerHeight > 1024 ? window.innerHeight - 500 : 80,
+telemetryW: 380,
+telemetryH: 400,
+
+startDragTelemetry(e) {
+    this.draggingTelemetry = true;
+    const cx = e.clientX || (e.touches && e.touches[0].clientX);
+    const cy = e.clientY || (e.touches && e.touches[0].clientY);
+    this.startTelemetryX = cx - this.telemetryX;
+    this.startTelemetryY = cy - this.telemetryY;
+},
+
+startResizeTelemetry(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    this.resizingTelemetry = true;
+    this.startTelemetryX = e.clientX || (e.touches && e.touches[0].clientX);
+    this.startTelemetryY = e.clientY || (e.touches && e.touches[0].clientY);
+    this.startTelemetryW = this.telemetryW;
+    this.startTelemetryH = this.telemetryH;
+},
+
+doMoveTelemetry(e) {
+    const cx = e.clientX || (e.touches && e.touches[0].clientX);
+    const cy = e.clientY || (e.touches && e.touches[0].clientY);
+    if (this.draggingTelemetry) {
+        this.telemetryX = Math.max(0, Math.min(window.innerWidth - this.telemetryW, cx - this.startTelemetryX));
+        this.telemetryY = Math.max(0, Math.min(window.innerHeight - 50, cy - this.startTelemetryY));
+    } else if (this.resizingTelemetry) {
+        this.telemetryW = Math.max(300, Math.min(window.innerWidth - this.telemetryX - 10, this.startTelemetryW + (cx - this.startTelemetryX)));
+        this.telemetryH = Math.max(250, Math.min(window.innerHeight - this.telemetryY - 10, this.startTelemetryH + (cy - this.startTelemetryY)));
+    }
+},
+
+endMoveTelemetry() {
+    this.draggingTelemetry = false;
+    this.resizingTelemetry = false;
 }
