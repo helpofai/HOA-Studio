@@ -106,6 +106,8 @@ EOT;
             'comparison_table' => "Generate a structured comparison table comparing key features, pros, cons, and performance metrics across top options. Output ONLY a clean HTML table (<table>...</table>).",
 
             // Content Intelligence Surgical Section-Specific Actions
+            'geo_direct_answer' => "You are a Generative Engine Optimization (GEO) specialist. Create a concise, authoritative 40-50 word direct definition box answering the primary topic or question for Google AI Overviews and Perplexity. Output ONLY the answer block in clean HTML (<blockquote class=\"geo-direct-answer\"><p><strong>Direct Answer:</strong> ...</p></blockquote>).",
+            'geo_data_points' => "You are an industry research analyst. Generate 3-4 verifiable statistics, benchmark metrics, or survey data points relevant to this topic with bold percentages and numbers. Output ONLY the bulleted list in clean HTML (<ul>...</ul>).",
             'seo_fix_intro' => "You are an elite SEO copy editor. Your task is to rewrite ONLY the introductory 1-2 paragraphs of the document to naturally front-load the target keyword within the opening 2 sentences. DO NOT write the rest of the document. Output ONLY the 1-2 opening paragraphs in clean HTML.",
             'seo_fix_subheadings' => "You are an SEO content architect. Add keyword-optimized H2 and H3 subheadings with concise transition paragraphs. Output ONLY the subheadings and short sections to be inserted, not the full document.",
             'seo_fix_citations' => "Generate an authoritative 'References & External Citations' block with 2-3 credible citations, links, and study references. Output ONLY the citation list/callout in clean HTML.",
@@ -114,6 +116,10 @@ EOT;
             'seo_fix_meta' => "Generate a punchy, click-optimized 150-160 character meta description featuring the focus keyword. Output ONLY the meta description as plain text.",
 
             // Custom Instruction & Full Publication Directives
+            'seo_auto_heal' => !empty($customInstruction)
+                ? $tiptapStyleGuide . "\n\nHolistic SEO Auto-Healing Directive:\n{$customInstruction}\n\nDeliver the complete optimized document in clean HTML without preamble or closing remarks."
+                : $tiptapStyleGuide . "\n\nTask: Holistically optimize and polish this document to resolve all SEO gaps, keyword front-loading, and Google AI Overview readiness while preserving original technical facts.",
+
             'custom' => !empty($customInstruction) 
                 ? $tiptapStyleGuide . "\n\nUser Instruction: {$customInstruction}\n\nDeliver an exhaustive, publication-grade document following all formatting permissions above without extraneous conversation."
                 : $tiptapStyleGuide . "\n\nImprove and refine the following text with professional headings, bold markers, and clean structure.",

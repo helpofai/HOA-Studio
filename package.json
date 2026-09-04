@@ -23,6 +23,7 @@
         "@tiptap/core": "3.30.5",
         "@tiptap/extension-bubble-menu": "^3.30.5",
         "@tiptap/extension-character-count": "^3.30.5",
+        "@tiptap/extension-code-block-lowlight": "^3.30.5",
         "@tiptap/extension-collaboration": "^3.30.5",
         "@tiptap/extension-collaboration-cursor": "^3.0.0",
         "@tiptap/extension-color": "^3.30.5",
@@ -48,6 +49,7 @@
         "@tiptap/y-tiptap": "^3.0.9",
         "alpinejs": "^3.16.2",
         "katex": "^0.18.4",
+        "lowlight": "^3.3.0",
         "lucide": "^1.33.0",
         "yjs": "^13.6.32"
     }

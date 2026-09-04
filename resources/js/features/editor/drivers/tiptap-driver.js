@@ -30,6 +30,144 @@ import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { Color } from '@tiptap/extension-color';
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import { common, createLowlight } from 'lowlight';
+
+const lowlight = createLowlight(common);
+
+/**
+ * Enterprise Custom Code Block with Dark Terminal Chrome, Language Selection, and 1-Click Copy
+ */
+export const CustomCodeBlockLowlight = CodeBlockLowlight.extend({
+    addNodeView() {
+        return ({ node, HTMLAttributes, getPos, editor }) => {
+            const dom = document.createElement('div');
+            dom.className = 'hoa-code-block-wrapper relative my-5 rounded-2xl border border-white/10 bg-slate-950/95 overflow-hidden shadow-2xl';
+
+            const header = document.createElement('div');
+            header.className = 'hoa-code-header flex items-center justify-between px-3.5 py-2 bg-slate-900/90 border-b border-white/10 select-none';
+            header.contentEditable = 'false';
+
+            // Left: macOS terminal dots + language select
+            const leftSide = document.createElement('div');
+            leftSide.className = 'flex items-center gap-2.5';
+            leftSide.innerHTML = `
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block"></span>
+                </div>
+            `;
+
+            const select = document.createElement('select');
+            select.className = 'bg-transparent text-[11px] font-mono font-bold text-indigo-400 hover:text-indigo-300 focus:outline-none cursor-pointer uppercase py-0.5 px-1.5 rounded hover:bg-white/5 border border-transparent hover:border-white/10 transition-colors';
+            
+            const languages = [
+                { value: 'javascript', label: 'JavaScript' },
+                { value: 'typescript', label: 'TypeScript' },
+                { value: 'python', label: 'Python' },
+                { value: 'php', label: 'PHP' },
+                { value: 'html', label: 'HTML' },
+                { value: 'css', label: 'CSS' },
+                { value: 'sql', label: 'SQL' },
+                { value: 'json', label: 'JSON' },
+                { value: 'bash', label: 'Bash' },
+                { value: 'markdown', label: 'Markdown' },
+                { value: 'yaml', label: 'YAML' },
+                { value: 'go', label: 'Go' },
+                { value: 'rust', label: 'Rust' },
+                { value: 'java', label: 'Java' },
+                { value: 'csharp', label: 'C#' },
+                { value: 'cpp', label: 'C++' },
+                { value: 'c', label: 'C' },
+                { value: 'diff', label: 'Diff' },
+                { value: 'text', label: 'Plain Text' },
+            ];
+
+            const currentLang = (node.attrs.language || 'javascript').toLowerCase();
+            let matched = false;
+
+            languages.forEach(l => {
+                const opt = document.createElement('option');
+                opt.value = l.value;
+                opt.textContent = l.label;
+                opt.className = 'bg-slate-900 text-slate-200';
+                if (l.value === currentLang) {
+                    opt.selected = true;
+                    matched = true;
+                }
+                select.appendChild(opt);
+            });
+
+            if (!matched && currentLang) {
+                const customOpt = document.createElement('option');
+                customOpt.value = currentLang;
+                customOpt.textContent = currentLang.toUpperCase();
+                customOpt.selected = true;
+                customOpt.className = 'bg-slate-900 text-slate-200';
+                select.appendChild(customOpt);
+            }
+
+            select.addEventListener('change', (e) => {
+                if (typeof getPos === 'function') {
+                    const pos = getPos();
+                    editor.chain().focus().command(({ tr }) => {
+                        tr.setNodeMarkup(pos, undefined, {
+                            ...node.attrs,
+                            language: e.target.value
+                        });
+                        return true;
+                    }).run();
+                }
+            });
+            leftSide.appendChild(select);
+
+            // Right: 1-Click Copy button
+            const copyBtn = document.createElement('button');
+            copyBtn.type = 'button';
+            copyBtn.className = 'hoa-copy-code-btn flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] font-medium text-slate-300 hover:text-white transition-all cursor-pointer border border-white/5';
+            copyBtn.innerHTML = '<span>📋</span> <span>Copy</span>';
+
+            copyBtn.addEventListener('click', () => {
+                const codeText = node.textContent;
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(codeText).then(() => {
+                        copyBtn.innerHTML = '<span class="text-emerald-400 font-bold">✓</span> <span class="text-emerald-300 font-bold">Copied!</span>';
+                        copyBtn.classList.add('bg-emerald-500/10', 'border-emerald-500/30');
+                        setTimeout(() => {
+                            copyBtn.innerHTML = '<span>📋</span> <span>Copy</span>';
+                            copyBtn.classList.remove('bg-emerald-500/10', 'border-emerald-500/30');
+                        }, 2000);
+                    }).catch(() => {});
+                }
+            });
+
+            header.appendChild(leftSide);
+            header.appendChild(copyBtn);
+
+            const pre = document.createElement('pre');
+            pre.className = 'p-4 overflow-x-auto font-mono text-sm leading-relaxed text-slate-200';
+            const code = document.createElement('code');
+            pre.appendChild(code);
+
+            dom.appendChild(header);
+            dom.appendChild(pre);
+
+            return {
+                dom,
+                contentDOM: code,
+                update(updatedNode) {
+                    if (updatedNode.type !== node.type) return false;
+                    const newLang = (updatedNode.attrs.language || 'javascript').toLowerCase();
+                    if (select.value !== newLang) {
+                        select.value = newLang;
+                    }
+                    return true;
+                }
+            };
+        };
+    }
+});
 
 /**
  * High-Fidelity Markdown & HTML Parser and Normalizer
@@ -264,6 +402,70 @@ export class TiptapDriver {
         }
     }
 
+    updateTableToolbar(editor = this.editor) {
+        const tableToolbarEl = document.getElementById('tiptap-table-toolbar');
+        if (!tableToolbarEl || !editor || editor.isDestroyed) return;
+
+        if (!editor.isActive('table')) {
+            tableToolbarEl.style.display = 'none';
+            return;
+        }
+
+        try {
+            const domSelection = window.getSelection();
+            if (!domSelection || domSelection.rangeCount === 0) {
+                tableToolbarEl.style.display = 'none';
+                return;
+            }
+
+            const anchorNode = domSelection.anchorNode;
+            const cell = (anchorNode?.nodeType === 1 ? anchorNode : anchorNode?.parentElement)?.closest('td, th');
+            const table = cell?.closest('table') || (anchorNode?.nodeType === 1 ? anchorNode : anchorNode?.parentElement)?.closest('table');
+
+            if (!table) {
+                tableToolbarEl.style.display = 'none';
+                return;
+            }
+
+            const tableRect = table.getBoundingClientRect();
+            const canvasEl = document.querySelector('.editor-canvas') || document.getElementById(this.elementId) || document.body;
+            const canvasRect = canvasEl ? canvasEl.getBoundingClientRect() : { left: 10, right: window.innerWidth - 10, top: 60, bottom: window.innerHeight - 10, width: window.innerWidth - 20 };
+
+            tableToolbarEl.style.display = 'flex';
+            tableToolbarEl.style.position = 'fixed';
+            tableToolbarEl.style.zIndex = 'var(--z-index-floating, 9990)';
+
+            const toolbarWidth = tableToolbarEl.offsetWidth || 400;
+            const toolbarHeight = tableToolbarEl.offsetHeight || 38;
+
+            // Center horizontally on table, clamped within canvas
+            const centerX = tableRect.left + (tableRect.width / 2);
+            let fixedLeft = centerX - (toolbarWidth / 2);
+
+            const minLeft = Math.max(8, canvasRect.left + 8);
+            const maxLeft = Math.min(window.innerWidth - toolbarWidth - 8, canvasRect.right - toolbarWidth - 8);
+            fixedLeft = Math.max(minLeft, Math.min(fixedLeft, Math.max(minLeft, maxLeft)));
+
+            // Position vertically directly above table top
+            let fixedTop = tableRect.top - toolbarHeight - 8;
+            const topBoundary = Math.max(60, canvasRect.top + 8);
+
+            // If table top scrolled above view, stick to top boundary of visible canvas
+            if (fixedTop < topBoundary) {
+                if (tableRect.bottom > topBoundary + toolbarHeight + 20) {
+                    fixedTop = topBoundary;
+                } else {
+                    fixedTop = tableRect.bottom + 8;
+                }
+            }
+
+            tableToolbarEl.style.left = `${Math.round(fixedLeft)}px`;
+            tableToolbarEl.style.top = `${Math.round(fixedTop)}px`;
+        } catch (e) {
+            tableToolbarEl.style.display = 'none';
+        }
+    }
+
     init() {
         const targetElement = document.getElementById(this.elementId);
         if (!targetElement) {
@@ -289,7 +491,14 @@ export class TiptapDriver {
                 heading: {
                     levels: [1, 2, 3, 4],
                 },
-                codeBlock: true,
+                codeBlock: false, // Handled by CustomCodeBlockLowlight with full syntax highlighting & terminal UI
+            }),
+            CustomCodeBlockLowlight.configure({
+                lowlight,
+                defaultLanguage: 'javascript',
+                enableTabIndentation: true,
+                exitOnTripleEnter: true,
+                exitOnArrowDown: true,
             }),
             Placeholder.configure({
                 placeholder: this.config.placeholder || 'Type / for AI commands or begin writing...',
@@ -371,17 +580,6 @@ export class TiptapDriver {
             },
             extensions: extensions,
             content: initialHtml,
-            onSelectionUpdate: ({ editor }) => {
-                try {
-                    const { state } = editor;
-                    const { from, to } = state.selection;
-                    const selected = (from !== to) ? state.doc.textBetween(from, to, ' ').trim() : '';
-                    window.hoaCurrentSelection = selected;
-                    window.dispatchEvent(new CustomEvent('editor:selection-change', {
-                        detail: { selectedText: selected, from, to }
-                    }));
-                } catch (err) {}
-            },
             onUpdate: ({ editor }) => {
                 if (typeof this.config.onUpdate === 'function') {
                     clearTimeout(this.saveTimeout);
@@ -405,18 +603,26 @@ export class TiptapDriver {
             },
             onSelectionUpdate: ({ editor }) => {
                 this.updateBubbleMenu(editor);
+                this.updateTableToolbar(editor);
 
-                if (typeof this.config.onSelectionChange === 'function') {
+                try {
                     const { state } = editor;
                     const { from, to, empty } = state.selection;
-                    const selectedText = state.doc.textBetween(from, to, ' ');
-                    this.config.onSelectionChange({
-                        selectedText: selectedText,
-                        isEmpty: empty,
-                        from: from,
-                        to: to
-                    });
-                }
+                    const selected = (!empty && from !== to) ? state.doc.textBetween(from, to, ' ').trim() : '';
+                    window.hoaCurrentSelection = selected;
+                    window.dispatchEvent(new CustomEvent('editor:selection-change', {
+                        detail: { selectedText: selected, from, to }
+                    }));
+
+                    if (typeof this.config.onSelectionChange === 'function') {
+                        this.config.onSelectionChange({
+                            selectedText: selected,
+                            isEmpty: empty,
+                            from: from,
+                            to: to
+                        });
+                    }
+                } catch (err) {}
 
                 if (typeof this.config.onFormatChange === 'function') {
                     this.config.onFormatChange();
@@ -424,10 +630,15 @@ export class TiptapDriver {
             },
         });
 
-        // Reposition bubble menu smoothly on container scroll or window resize
+        // Reposition bubble menu and table toolbar smoothly on container scroll or window resize
         this.scrollHandler = () => {
-            if (this.editor && !this.editor.isDestroyed && !this.editor.state.selection.empty) {
-                this.updateBubbleMenu(this.editor);
+            if (this.editor && !this.editor.isDestroyed) {
+                if (!this.editor.state.selection.empty) {
+                    this.updateBubbleMenu(this.editor);
+                }
+                if (this.editor.isActive('table')) {
+                    this.updateTableToolbar(this.editor);
+                }
             }
         };
 
@@ -442,6 +653,7 @@ export class TiptapDriver {
             setTimeout(() => {
                 if (this.editor && !this.editor.isDestroyed) {
                     this.updateBubbleMenu(this.editor);
+                    this.updateTableToolbar(this.editor);
                 }
             }, 10);
         });
@@ -454,7 +666,10 @@ export class TiptapDriver {
                 this.editor.view.focus();
             }
             const res = fn(this.editor);
-            setTimeout(() => this.updateBubbleMenu(this.editor), 20);
+            setTimeout(() => {
+                this.updateBubbleMenu(this.editor);
+                this.updateTableToolbar(this.editor);
+            }, 20);
             return res;
         } catch (error) {
             console.warn('[TiptapDriver] Command exec warning:', error);
@@ -489,6 +704,34 @@ export class TiptapDriver {
 
     getJSON() { return this.editor && !this.editor.isDestroyed ? this.editor.getJSON() : null; }
     getText() { return this.editor && !this.editor.isDestroyed ? this.editor.getText() : ''; }
+
+    setEditable(isEditable) {
+        const editable = Boolean(isEditable);
+        if (this.editor && !this.editor.isDestroyed) {
+            try {
+                this.editor.setEditable(editable);
+            } catch (e) {
+                console.warn('[TiptapDriver] setEditable error:', e);
+            }
+        }
+        const targetElement = document.getElementById(this.elementId);
+        if (targetElement) {
+            targetElement.setAttribute('contenteditable', String(editable));
+        }
+        const pmEl = document.querySelector('.ProseMirror');
+        if (pmEl) {
+            pmEl.setAttribute('contenteditable', String(editable));
+        }
+        return true;
+    }
+
+    isEditable() {
+        if (this.editor && !this.editor.isDestroyed) {
+            return this.editor.isEditable;
+        }
+        const pmEl = document.querySelector('.ProseMirror');
+        return pmEl ? pmEl.getAttribute('contenteditable') !== 'false' : true;
+    }
     
     setContent(content, emitUpdate = true) {
         const cleanHtml = normalizeContentToHtml(content);
@@ -695,6 +938,15 @@ export class TiptapDriver {
     addColumnAfter() { return this.execCommand(ed => ed.chain().focus().addColumnAfter().run()); }
     deleteColumn() { return this.execCommand(ed => ed.chain().focus().deleteColumn().run()); }
     deleteTable() { return this.execCommand(ed => ed.chain().focus().deleteTable().run()); }
+    toggleHeaderRow() { return this.execCommand(ed => ed.chain().focus().toggleHeaderRow().run()); }
+    toggleHeaderColumn() { return this.execCommand(ed => ed.chain().focus().toggleHeaderColumn().run()); }
+    toggleHeaderCell() { return this.execCommand(ed => ed.chain().focus().toggleHeaderCell().run()); }
+    mergeCells() { return this.execCommand(ed => ed.chain().focus().mergeCells().run()); }
+    splitCell() { return this.execCommand(ed => ed.chain().focus().splitCell().run()); }
+    mergeOrSplit() { return this.execCommand(ed => ed.chain().focus().mergeOrSplit().run()); }
+    fixTables() { return this.execCommand(ed => ed.chain().focus().fixTables().run()); }
+    goToNextCell() { return this.execCommand(ed => ed.chain().focus().goToNextCell().run()); }
+    goToPreviousCell() { return this.execCommand(ed => ed.chain().focus().goToPreviousCell().run()); }
 
     // --- Advanced Rich Callout & Blog Block Inserters ---
     insertCallout(type = 'tip', title = 'Pro-Tip', body = 'Your actionable insight here...') {
@@ -801,6 +1053,10 @@ export class TiptapDriver {
             } catch (e) {}
             this.editor = null;
         }
+        const tableToolbarEl = document.getElementById('tiptap-table-toolbar');
+        if (tableToolbarEl) tableToolbarEl.style.display = 'none';
+        const bubbleMenuEl = document.getElementById('tiptap-bubble-menu');
+        if (bubbleMenuEl) bubbleMenuEl.style.display = 'none';
     }
 }
 

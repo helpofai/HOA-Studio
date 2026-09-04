@@ -17,6 +17,8 @@
 
 namespace App\Features\AI\Services;
 
+use Illuminate\Support\Str;
+
 class ContentWriterBrain
 {
     /**
@@ -34,22 +36,49 @@ class ContentWriterBrain
         $docTitle = trim($context['document_title'] ?? '');
         $targetKeyword = trim($context['target_keyword'] ?? '');
 
+        // Synthesize missing surrounding context and narrative placement from full document
+        $narrativeRole = 'Core Document Exposition & Analysis';
+        if ($fullDocText !== '' && $selectedText !== '') {
+            $pos = mb_strpos($fullDocText, $selectedText);
+            if ($pos !== false) {
+                $docLen = mb_strlen($fullDocText);
+                $relPos = $docLen > 0 ? ($pos / $docLen) : 0.5;
+                if ($relPos < 0.15) {
+                    $narrativeRole = 'Document Opening & Introduction Hook';
+                } elseif ($relPos > 0.85) {
+                    $narrativeRole = 'Concluding Synthesis, Verdict & Action Steps';
+                } else {
+                    $narrativeRole = 'Mid-Article Analytical Deep-Dive & Argumentation';
+                }
+
+                if ($precedingText === '') {
+                    $preStart = max(0, $pos - 700);
+                    $precedingText = trim(mb_substr($fullDocText, $preStart, $pos - $preStart));
+                }
+                if ($followingText === '') {
+                    $postStart = $pos + mb_strlen($selectedText);
+                    $followingText = trim(mb_substr($fullDocText, $postStart, 700));
+                }
+            }
+        }
+
         // 1. Core Brain Memory Bank
-        $memoryBank = "=== 🧠 CONTENT WRITER BRAIN & MEMORY ===\n";
+        $memoryBank = "=== 🧠 CONTENT WRITER BRAIN & MEMORY (GLOBAL DOCUMENT MEMORY) ===\n";
         if ($docTitle !== '') {
-            $memoryBank .= "Document Title: {$docTitle}\n";
+            $memoryBank .= "Article Working Title: {$docTitle}\n";
         }
         if ($targetKeyword !== '') {
             $memoryBank .= "Target SEO Keyword: {$targetKeyword}\n";
         }
+        $memoryBank .= "Narrative Role of Selection: {$narrativeRole}\n";
         if ($fullDocText !== '') {
-            $memoryBank .= "Full Article Knowledge & Thematic Trajectory:\n\"\"\"\n" . mb_substr($fullDocText, 0, 10000) . "\n\"\"\"\n";
+            $memoryBank .= "Full Document Knowledge & Thematic Trajectory:\n\"\"\"\n" . mb_substr($fullDocText, 0, 10000) . "\n\"\"\"\n";
         }
         if ($precedingText !== '') {
-            $memoryBank .= "Immediate Preceding Context (Text Before Selection):\n\"\"\"\n{$precedingText}\n\"\"\"\n";
+            $memoryBank .= "Immediate Preceding Context (Flow Inflow):\n\"\"\"\n{$precedingText}\n\"\"\"\n";
         }
         if ($followingText !== '') {
-            $memoryBank .= "Immediate Following Context (Text After Selection):\n\"\"\"\n{$followingText}\n\"\"\"\n";
+            $memoryBank .= "Immediate Following Context (Flow Outflow):\n\"\"\"\n{$followingText}\n\"\"\"\n";
         }
         $memoryBank .= "=== END OF BRAIN MEMORY ===\n\n";
 
@@ -58,60 +87,77 @@ class ContentWriterBrain
 
         $toolDirective = match ($actionTool) {
             'recreate' => <<<EOT
-ACTION TOOL: RECREATE PARAGRAPH
+ACTION TOOL: RECREATE PARAGRAPH (STRUCTURAL & THEMATIC RE-ARCHITECTURE)
 OBJECTIVE:
 Completely re-architect and rewrite the marked text from scratch with elevated vocabulary, captivating cadence, and authoritative domain clarity{$kwSnippet}.
+DEEP DOCUMENT INTEGRATION:
+- Synthesize the overarching document title ('{$docTitle}') and the surrounding narrative flow from your Brain Memory.
+- Discard the old sentence structure entirely. Write completely fresh, high-impact prose that accomplishes the original paragraph's purpose with 10x higher clarity, fresh metaphors/analogies, and superior engagement.
 RULES:
-1. Absorb the entire article's thesis and surrounding narrative from your Brain Memory so this paragraph fits seamlessly into the document.
-2. Discard the old sentence structure and write fresh, powerful, high-impact prose.
-3. OUTPUT ONLY the single recreated paragraph. Do NOT output headings, bullet lists, or conversational filler.
+1. STRICT ANTI-ECHO GUARANTEE: Never repeat the original opening phrasing or sentence architecture. The paragraph must be noticeably re-imagined.
+2. Upgrade weak verbs and repetitive wording into authoritative domain terminology.
+3. OUTPUT ONLY the single recreated paragraph as pure prose. Do NOT output headings, bullet lists, or conversational filler.
 EOT,
 
             'rewrite', 'polish', 'rewrite_polish' => <<<EOT
-ACTION TOOL: REWRITE & POLISH
+ACTION TOOL: REWRITE & POLISH (SUBSTANTIVE STYLISTIC ELEVATION)
 OBJECTIVE:
-Significantly elevate the quality, flow, active voice, and articulateness of the marked text{$kwSnippet}.
+Significantly elevate the quality, flow, active voice, sentence rhythm, and articulateness of the marked text{$kwSnippet}.
+DEEP DOCUMENT INTEGRATION:
+- Read the preceding context and following context to ensure the rewritten paragraph transitions seamlessly into the next thought of the article.
+- Eliminate all passive voice, weak verbs, filler words (e.g. 'in order to', 'it is important to note', 'basically', 'due to the fact that'), and awkward phrasing.
 RULES:
-1. Eliminate passive voice, weak verbs, filler words, and awkward phrasing.
+1. STRICT ANTI-ECHO GUARANTEE: You are strictly forbidden from returning the original text unchanged or with only 1-2 trivial word swaps. The revision must be immediately and noticeably superior in style, impact, and rhythm.
 2. Maintain perfect narrative flow with the preceding and following paragraphs.
-3. You MUST provide a noticeable, high-quality revision — do NOT return the original text unchanged.
-4. OUTPUT ONLY the single rewritten paragraph as pure prose.
+3. OUTPUT ONLY the single rewritten paragraph as pure prose without markdown headings or conversational chatter.
 EOT,
 
             'expand' => <<<EOT
-ACTION TOOL: EXPAND WITH DEPTH
+ACTION TOOL: EXPAND WITH DEPTH (ANALYTICAL SUBSTANCE & RIGOR)
 OBJECTIVE:
-Deepen and expand the marked text with rich analytical substance, practical implications, and illustrative depth{$kwSnippet}.
+Deepen and expand the marked text with rich analytical substance, practical implications, illustrative depth, and concrete rationale{$kwSnippet}.
+DEEP DOCUMENT INTEGRATION:
+- Unpack the underlying 'why' and 'how' behind the statements in light of the document's central thesis ('{$docTitle}').
+- Provide practical real-world nuance or tactical considerations that directly connect to the surrounding paragraphs without generic fluff.
 RULES:
-1. Answer the unspoken 'why' and 'how' while ensuring no redundancy with the following text.
-2. Expand the content to approximately 1.5x - 2x depth without empty fluff.
+1. Expand the content to approximately 1.5x - 2.2x depth with high information density.
+2. Ensure seamless continuity with the following text — do not introduce repetitive points already covered.
 3. OUTPUT ONLY the expanded content (1 to 2 rich paragraphs).
 EOT,
 
-            'shorten' => <<<EOT
-ACTION TOOL: SHORTEN & CONDENSE
+            'shorten', 'condense' => <<<EOT
+ACTION TOOL: SHORTEN & CONDENSE (HIGH-DENSITY DISTILLATION)
 OBJECTIVE:
-Distill the marked text into its absolute, crystal-clear, high-impact essence.
+Distill the marked text into its absolute, crystal-clear, high-impact essence in 40% to 60% of the original word count.
+DEEP DOCUMENT INTEGRATION:
+- Identify the single most critical message this paragraph conveys within the document ('{$docTitle}').
+- Ruthlessly eliminate fluff, qualifiers, redundant subordinate clauses, and filler adjectives.
 RULES:
-1. Cut unnecessary words, qualifiers, and redundancies ruthlessly.
-2. Preserve 100% of the core factual meaning in fewer, punchier sentences.
+1. Preserve 100% of the core factual substance and domain insight.
+2. Combine fragmented sentences into punchy, high-velocity active statements.
 3. OUTPUT ONLY the condensed paragraph.
 EOT,
 
-            'simplify' => <<<EOT
-ACTION TOOL: SIMPLIFY (8TH-GRADE)
+            'simplify', 'simplify_8th' => <<<EOT
+ACTION TOOL: SIMPLIFY (8TH-GRADE READING LEVEL / HEMINGWAY STYLE)
 OBJECTIVE:
-Translate dense or academic phrasing into effortless, crisp plain English (Hemingway style).
+Translate dense, multi-clause, or academic phrasing into effortless, crisp plain English at an 8th-grade reading level.
+DEEP DOCUMENT INTEGRATION:
+- Ensure the simplified text maintains the intelligent core insight within the broader article ('{$docTitle}') while removing all cognitive friction for the reader.
+- Replace polysyllabic jargon with common, powerful everyday words (e.g. 'utilize' -> 'use', 'facilitate' -> 'help', 'optimal' -> 'best').
 RULES:
-1. Replace jargon with clear, accessible words and crisp sentence structure.
-2. Maintain the intelligent core insight while maximizing scannability and ease of reading.
+1. Keep sentences short (average 12-16 words) with clean subject-verb-object structures.
+2. Maximize readability and scannability while keeping the tone smart and respectful.
 3. OUTPUT ONLY the simplified paragraph.
 EOT,
 
-            'generate_faq' => <<<EOT
-ACTION TOOL: GENERATE FAQ BLOCK
+            'generate_faq', 'faq' => <<<EOT
+ACTION TOOL: GENERATE FAQ BLOCK (SEARCH INTENT ANSWERS)
 OBJECTIVE:
-Generate 2 to 3 high-value, genuine FAQ questions and concise answers based on the marked content{$kwSnippet}.
+Generate 2 to 3 high-value, search-intent FAQ questions and authoritative answers directly addressing queries readers will have about this content{$kwSnippet}.
+DEEP DOCUMENT INTEGRATION:
+- Align questions with the document's primary theme ('{$docTitle}') and target keyword.
+- Answer each question directly in 2 to 3 concise, authoritative sentences with key entities highlighted in **bold**.
 FORMAT:
 ### [Question Text]?
 [Direct 2-3 sentence answer with **bold key terms**.]
@@ -129,14 +175,18 @@ RULES:
 Output ONLY the bulleted list with bold leading concepts.
 EOT,
 
-            'seo_optimize' => <<<EOT
-ACTION TOOL: SEO OPTIMIZE TEXT
+            'seo_optimize', 'seo' => <<<EOT
+ACTION TOOL: SEO OPTIMIZE TEXT (AI OVERVIEWS & TOPICAL AUTHORITY)
 OBJECTIVE:
-Optimize the marked text for search authority, semantic entity density, and AI search extraction{$kwSnippet}.
+Optimize the marked text for search authority, semantic entity density, and AI search engine extraction (Google AI Overviews, Perplexity, GEO){$kwSnippet}.
+DEEP DOCUMENT INTEGRATION:
+- Naturally weave the focus keyword ('{$targetKeyword}') and topically relevant semantic LSI entities into the text without keyword stuffing.
+- Front-load primary subject matter so search bots and AI answer engines immediately parse the core entity-relationship.
+- Emphasize critical entities and conclusions in **bold**.
 RULES:
-1. Naturally weave relevant semantic terms and bold key entities (**bold terms**).
-2. Ensure high scannability and topical relevance while matching surrounding tone.
-3. OUTPUT ONLY the optimized paragraph.
+1. Preserve natural, compelling editorial voice.
+2. Ensure high scannability and structured flow.
+3. OUTPUT ONLY the SEO-optimized paragraph as pure prose.
 EOT,
 
             // Tone Shifting
@@ -321,25 +371,57 @@ EOT,
         // 3. Strict Execution & Typographical Guardrails
         $guardrail = <<<EOT
 CRITICAL SURGICAL & TYPOGRAPHICAL DIRECTIVES:
-1. TARGET ISOLATION:
+1. STRICT ANTI-ECHO GUARANTEE:
+   - You are STRICTLY FORBIDDEN from returning the original text unchanged or with mere punctuation/synonym swapping.
+   - You MUST execute a noticeable, high-value qualitative transformation matching the requested action.
+2. TARGET ISOLATION:
    - Transform ONLY the exact text enclosed within <target_marked_content>.
    - NEVER repeat surrounding paragraphs, full document outlines, or unrelated sections.
-2. HEADING TYPE INTEGRITY:
+3. HEADING TYPE INTEGRITY:
    - If the marked text is a standard paragraph or sentence, output STRICTLY a standard body paragraph without ANY markdown headings (#, ##, ###), title tags, label prefixes (e.g. "**Revised:**", "**Rewritten:**", "Introduction:"), or bullet lists.
    - If the marked text is an H2 heading, output ONLY a single updated H2 heading (## ...).
    - If the marked text is an H3 heading, output ONLY a single updated H3 heading (### ...).
-   - NEVER convert a standard paragraph into a heading.
-3. ZERO SPACING & FORMATTING BLOAT:
+   - NEVER convert a standard paragraph into a heading unless the action tool explicitly specifies it (like 'generate_faq').
+4. ZERO SPACING & FORMATTING BLOAT:
    - Output clean, tight prose without leading/trailing empty lines, excessive line breaks, or redundant blank paragraphs.
-4. ZERO CONVERSATIONAL CHATTER:
+5. ZERO CONVERSATIONAL CHATTER:
    - Output pure finished text immediately with zero conversational preambles (no "Here is...", no "Sure!", no "Certainly!").
 EOT;
 
         $systemPrompt = $memoryBank . "\n" . $toolDirective . "\n\n" . $guardrail;
 
-        $userContent = "<target_marked_content>\n{$selectedText}\n</target_marked_content>";
-        if (!empty($customInstruction) && !in_array($customInstruction, ['rewrite', 'recreate', 'polish', 'custom', $actionTool])) {
-            $userContent .= "\n\nSpecific Editorial Instruction: {$customInstruction}";
+        $actionNameUpper = strtoupper(str_replace('_', ' ', $actionTool));
+        $docTitleDisplay = $docTitle !== '' ? $docTitle : 'Content Production Workspace';
+        $targetKeywordDisplay = $targetKeyword !== '' ? "'{$targetKeyword}'" : 'Topical Authority';
+        $placementSummary = "Narrative Placement: {$narrativeRole}\n";
+        if ($precedingText !== '') {
+            $placementSummary .= "Preceding Flow Context: \"" . Str::limit($precedingText, 160) . "\"\n";
+        }
+        if ($followingText !== '') {
+            $placementSummary .= "Following Flow Context: \"" . Str::limit($followingText, 160) . "\"\n";
+        }
+
+        $userContent = <<<EOT
+DOCUMENT INTELLIGENCE CONTEXT:
+- Document Title: {$docTitleDisplay}
+- Target Keyword: {$targetKeywordDisplay}
+{$placementSummary}
+ACTION TO EXECUTE: [{$actionNameUpper}]
+
+ORIGINAL TARGET CONTENT TO TRANSFORM:
+<target_marked_content>
+{$selectedText}
+</target_marked_content>
+
+CRITICAL EXECUTION MANDATE:
+1. Understand the full document thesis and narrative placement before writing.
+2. Execute the [{$actionNameUpper}] transformation decisively on the marked content.
+3. STRICT ANTI-ECHO PROTOCOL: Under NO circumstances return the original text unchanged. You MUST provide a distinct, noticeably upgraded result.
+4. Output ONLY the pure transformed text without introductory greetings, commentary, or meta-labels.
+EOT;
+
+        if (!empty($customInstruction) && !in_array($customInstruction, ['rewrite', 'recreate', 'polish', 'expand', 'shorten', 'simplify', 'generate_faq', 'seo_optimize', $actionTool])) {
+            $userContent .= "\n\nAdditional Editorial Guidance: {$customInstruction}";
         }
 
         return [
@@ -451,12 +533,13 @@ EOT;
      */
     public function isFullArticleType(string $type, ?string $customInstruction = null, array $context = []): bool
     {
-        if (in_array($type, ['full_article', 'article', 'blog_post', 'generate_article', 'pipeline_article', 'multi_agent_pipeline'])) {
+        if (in_array($type, ['full_article', 'article', 'blog_post', 'generate_article', 'pipeline_article', 'multi_agent_pipeline', 'seo_auto_heal'])) {
             return true;
         }
 
         $componentTypes = [
             'comparison_table', 'quick_answer', 'generate_faq', 'faq', 'key_takeaways',
+            'geo_direct_answer', 'geo_data_points',
             'seo_fix_title', 'seo_fix_meta', 'seo_fix_intro', 'seo_fix_subheadings',
             'seo_fix_citations', 'seo_fix_density', 'content_gaps', 'eeat_trust',
             'generate_outline', 'outline', 'summarize', 'tldr', 'action_items',
@@ -480,5 +563,278 @@ EOT;
         }
 
         return false;
+    }
+
+    /**
+     * Algorithmic zero-token local transformation engine (Offline / Quota-exhausted fallback)
+     *
+     * @param string $actionTool
+     * @param string $selectedText
+     * @param array $context
+     * @return string
+     */
+    public function executeLocalActionTransform(string $actionTool, string $selectedText, array $context = []): string
+    {
+        $text = trim($selectedText);
+        if ($text === '') {
+            return '';
+        }
+
+        $docTitle = trim($context['document_title'] ?? '');
+        $targetKeyword = trim($context['target_keyword'] ?? '');
+
+        // Normalize action tool name
+        $action = match ($actionTool) {
+            'polish', 'rewrite_polish' => 'rewrite',
+            'condense' => 'shorten',
+            'simplify_8th' => 'simplify',
+            'faq' => 'generate_faq',
+            'seo' => 'seo_optimize',
+            default => $actionTool,
+        };
+
+        return match ($action) {
+            'recreate' => $this->localRecreate($text, $docTitle, $targetKeyword),
+            'rewrite' => $this->localRewrite($text, $targetKeyword),
+            'expand' => $this->localExpand($text, $docTitle, $targetKeyword),
+            'shorten' => $this->localShorten($text),
+            'simplify' => $this->localSimplify($text),
+            'generate_faq' => $this->localGenerateFaq($text, $docTitle, $targetKeyword),
+            'seo_optimize' => $this->localSeoOptimize($text, $targetKeyword),
+            'key_takeaways' => $this->localKeyTakeaways($text),
+            default => $this->localRewrite($text, $targetKeyword),
+        };
+    }
+
+    protected function localRecreate(string $text, string $docTitle, string $targetKeyword): string
+    {
+        $replacements = [
+            '/\bimportant\b/i' => 'pivotal',
+            '/\bgood\b/i' => 'exceptional',
+            '/\buse\b/i' => 'leverage',
+            '/\busing\b/i' => 'leveraging',
+            '/\bused\b/i' => 'leveraged',
+            '/\buses\b/i' => 'leverages',
+            '/\bhelp\b/i' => 'accelerate',
+            '/\bhelps\b/i' => 'accelerates',
+            '/\bhelping\b/i' => 'accelerating',
+            '/\bmake\b/i' => 'architect',
+            '/\bmakes\b/i' => 'architects',
+            '/\bchange\b/i' => 'transform',
+            '/\bchanges\b/i' => 'transforms',
+            '/\bshow\b/i' => 'demonstrate',
+            '/\bshows\b/i' => 'demonstrates',
+            '/\bneed\b/i' => 'require',
+            '/\bneeds\b/i' => 'requires',
+            '/\bproblem\b/i' => 'bottleneck',
+            '/\bproblems\b/i' => 'bottlenecks',
+            '/\bfix\b/i' => 'remedy',
+            '/\bfixes\b/i' => 'remedies',
+            '/\bbig\b/i' => 'substantial',
+            '/\bfast\b/i' => 'high-velocity',
+            '/\bnew\b/i' => 'next-generation',
+            '/\bbest\b/i' => 'premier',
+            '/\bsimple\b/i' => 'frictionless',
+        ];
+
+        $recreated = preg_replace(array_keys($replacements), array_values($replacements), $text);
+
+        // Discard old sentence opening with a dynamic rhetorical lead-in
+        $sentences = preg_split('/(?<=[.?!])\s+/', $recreated, -1, PREG_SPLIT_NO_EMPTY);
+        if (!empty($sentences)) {
+            $first = ltrim($sentences[0]);
+            $first = lcfirst($first);
+            if ($docTitle !== '') {
+                $leadIn = "To systematically advance {$docTitle}, ";
+            } elseif ($targetKeyword !== '') {
+                $leadIn = "When strategically implementing {$targetKeyword}, ";
+            } else {
+                $leadIn = "Fundamentally, ";
+            }
+            $sentences[0] = $leadIn . $first;
+            $recreated = implode(' ', $sentences);
+        }
+
+        // Anti-echo guarantee: If identical, append authoritative strategic synthesis
+        if (trim($recreated) === trim($text)) {
+            $recreated = "Fundamentally, " . lcfirst($text) . " This approach ensures enduring clarity, precision, and operational resilience.";
+        }
+
+        return $recreated;
+    }
+
+    protected function localRewrite(string $text, string $targetKeyword): string
+    {
+        $fillers = [
+            '/\bin order to\b/i' => 'to',
+            '/\bdue to the fact that\b/i' => 'because',
+            '/\bat this point in time\b/i' => 'currently',
+            '/\bfor the purpose of\b/i' => 'to',
+            '/\bin the event that\b/i' => 'if',
+            '/\bit is important to note that\s*/i' => '',
+            '/\bit should be noted that\s*/i' => '',
+            '/\bbasically,\s*/i' => '',
+            '/\bessentially,\s*/i' => '',
+            '/\bvery\s+/i' => '',
+            '/\breally\s+/i' => '',
+            '/\bquite\s+/i' => '',
+            '/\bis able to\b/i' => 'can',
+            '/\bhas the ability to\b/i' => 'can',
+            '/\bserves to\b/i' => 'directly',
+        ];
+
+        $polished = preg_replace(array_keys($fillers), array_values($fillers), $text);
+        $polished = preg_replace('/\s{2,}/', ' ', trim($polished));
+
+        // Capitalize sentences after punctuation
+        $polished = preg_replace_callback('/(^|[.!?]\s+)([a-z])/', function ($matches) {
+            return $matches[1] . strtoupper($matches[2]);
+        }, $polished);
+
+        // Anti-echo guarantee
+        if (trim($polished) === trim($text)) {
+            $words = explode(' ', $polished);
+            if (count($words) > 3) {
+                $polished = "Notably, " . lcfirst($polished);
+            }
+        }
+
+        return $polished;
+    }
+
+    protected function localExpand(string $text, string $docTitle, string $targetKeyword): string
+    {
+        $expanded = $text;
+
+        $analyticalExpansion = "\n\nSpecifically, this dynamic establishes a resilient foundation by addressing the nuanced operational trade-offs inherent in modern execution.";
+        if ($targetKeyword !== '') {
+            $analyticalExpansion .= " Aligning directly with {$targetKeyword} empowers practitioners to eliminate systemic bottlenecks while maintaining uncompromising qualitative consistency.";
+        } elseif ($docTitle !== '') {
+            $analyticalExpansion .= " Within the strategic framework of {$docTitle}, this ensures that every stage delivers measurable tactical impact.";
+        }
+
+        return trim($expanded . $analyticalExpansion);
+    }
+
+    protected function localShorten(string $text): string
+    {
+        // Strip parentheticals and filler phrases
+        $condensed = preg_replace('/\([^)]*\)/', '', $text);
+
+        $stripPatterns = [
+            '/\b(in order to|due to the fact that|as a matter of fact|at the end of the day|it goes without saying that|needless to say)\b/i' => '',
+            '/\b(basically|essentially|actually|literally|virtually|practically|frankly|honestly)\b/i' => '',
+            '/\b(very|extremely|really|quite|somewhat|fairly|pretty much)\b/i' => '',
+        ];
+
+        $condensed = preg_replace(array_keys($stripPatterns), array_values($stripPatterns), $condensed);
+        $condensed = preg_replace('/\s{2,}/', ' ', trim($condensed));
+
+        $sentences = preg_split('/(?<=[.?!])\s+/', $condensed, -1, PREG_SPLIT_NO_EMPTY);
+        if (count($sentences) > 2) {
+            // Retain the first and most informative sentences
+            $condensed = $sentences[0] . ' ' . end($sentences);
+        }
+
+        return trim($condensed);
+    }
+
+    protected function localSimplify(string $text): string
+    {
+        $jargonMap = [
+            '/\butilize\b/i' => 'use',
+            '/\butilizes\b/i' => 'uses',
+            '/\butilized\b/i' => 'used',
+            '/\butilizing\b/i' => 'using',
+            '/\bfacilitate\b/i' => 'help',
+            '/\bfacilitates\b/i' => 'helps',
+            '/\bfacilitated\b/i' => 'helped',
+            '/\bsubsequently\b/i' => 'then',
+            '/\bcommence\b/i' => 'start',
+            '/\bcommences\b/i' => 'starts',
+            '/\bterminate\b/i' => 'end',
+            '/\bterminates\b/i' => 'ends',
+            '/\bimplement\b/i' => 'set up',
+            '/\bimplements\b/i' => 'sets up',
+            '/\bendeavor\b/i' => 'try',
+            '/\bsubstantiate\b/i' => 'prove',
+            '/\boptimal\b/i' => 'best',
+            '/\bparamount\b/i' => 'key',
+            '/\bconsequently\b/i' => 'so',
+            '/\bdisseminate\b/i' => 'share',
+            '/\bexpedite\b/i' => 'speed up',
+            '/\bcomprehensive\b/i' => 'complete',
+            '/\bfundamental\b/i' => 'basic',
+            '/\bprioritize\b/i' => 'focus on',
+            '/\bdemonstrate\b/i' => 'show',
+            '/\bdemonstrates\b/i' => 'shows',
+            '/\bsufficient\b/i' => 'enough',
+        ];
+
+        $simplified = preg_replace(array_keys($jargonMap), array_values($jargonMap), $text);
+        // Break semicolons into full stops
+        $simplified = str_replace(';', '.', $simplified);
+        $simplified = preg_replace('/\s{2,}/', ' ', trim($simplified));
+
+        // Capitalize after periods
+        $simplified = preg_replace_callback('/(^|[.!?]\s+)([a-z])/', function ($matches) {
+            return $matches[1] . strtoupper($matches[2]);
+        }, $simplified);
+
+        return $simplified;
+    }
+
+    protected function localGenerateFaq(string $text, string $docTitle, string $targetKeyword): string
+    {
+        $clean = trim(strip_tags($text));
+        $firstSentence = preg_split('/(?<=[.?!])\s+/', $clean)[0] ?? $clean;
+        $subject = $targetKeyword !== '' ? $targetKeyword : ($docTitle !== '' ? $docTitle : 'this process');
+
+        $faq = "### What is the primary purpose of {$subject}?\n";
+        $faq .= "**" . ucfirst($subject) . "** plays a vital role by establishing a clear, actionable workflow that eliminates complexity and ensures high reliability.\n\n";
+
+        $faq .= "### How does this impact overall implementation?\n";
+        $faq .= "By directly addressing core operational constraints, this approach provides **measurable consistency** and accelerates long-term project outcomes.\n\n";
+
+        $faq .= "### What is the key takeaway to remember?\n";
+        $faq .= "The foundational principle is that **{$firstSentence}** provides the clearest benchmark for sustained progress.";
+
+        return $faq;
+    }
+
+    protected function localSeoOptimize(string $text, string $targetKeyword): string
+    {
+        $clean = trim($text);
+
+        // If target keyword is defined and not yet in text, weave into opening
+        if ($targetKeyword !== '' && !str_contains(mb_strtolower($clean), mb_strtolower($targetKeyword))) {
+            $clean = "**" . ucfirst($targetKeyword) . "** is essential here: " . lcfirst($clean);
+        }
+
+        // Bold key analytical phrases and nouns
+        $clean = preg_replace('/\b(key takeaway|best practice|proven strategy|primary benefit|essential metric)\b/i', '**$1**', $clean);
+
+        return $clean;
+    }
+
+    protected function localKeyTakeaways(string $text): string
+    {
+        $sentences = preg_split('/(?<=[.?!])\s+/', trim(strip_tags($text)), -1, PREG_SPLIT_NO_EMPTY);
+        $bullets = [];
+
+        $labels = ['Core Principle', 'Strategic Impact', 'Actionable Execution'];
+        $i = 0;
+        foreach ($sentences as $sentence) {
+            if ($i >= 3) break;
+            $label = $labels[$i] ?? 'Insight';
+            $bullets[] = "- **{$label}:** " . trim($sentence);
+            $i++;
+        }
+
+        if (empty($bullets)) {
+            $bullets[] = "- **Core Insight:** " . trim($text);
+        }
+
+        return implode("\n", $bullets);
     }
 }

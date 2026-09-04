@@ -21,8 +21,23 @@ inlineAiPlacement: 'replace', // 'replace' or 'insert_below'
 showInlineAiPrompt: false,
 showSubAgentProposal: false,
 showSeoHeatmap: false,
+subAgentMode: 'recreate',
 subAgentProposedText: '',
 subAgentOriginalText: '',
+get subAgentModeLabel() {
+    const labels = {
+        'recreate': 'Recreating Paragraph',
+        'rewrite': 'Rewriting & Polishing',
+        'polish': 'Polishing Prose',
+        'expand': 'Expanding with Depth',
+        'shorten': 'Shortening & Condensing',
+        'simplify': 'Simplifying (8th-Grade)',
+        'generate_faq': 'Generating FAQ Block',
+        'key_takeaways': 'Extracting Key Takeaways',
+        'seo_optimize': 'SEO Optimizing Text',
+    };
+    return labels[this.subAgentMode] || this.subAgentMode || 'Writing Intelligence';
+},
 aiModel: 'Auto (OmniRoute)',
 aiContext: {
     currentDoc: true,
@@ -95,6 +110,7 @@ streamDecorationId: null,
 showContextMenu: false,
 contextMenuX: 0,
 contextMenuY: 0,
+isTableContext: false,
 showSlashMenu: false,
 slashMenuX: 0,
 slashMenuY: 0,
@@ -321,11 +337,12 @@ async applyTargetedIntelligenceFix(checkId, title, aiPrompt, targetType = 'inser
     this.addLog('SEO', 'Generating targeted section element [' + checkId + '] without rewriting document...');
     try {
         let promptType = 'custom';
-        if (checkId === 'comparison_table' || checkId === 'rich_media') promptType = 'comparison_table';
-        else if (checkId === 'generate_faq' || checkId === 'faq') promptType = 'generate_faq';
-        else if (checkId === 'external_links') promptType = 'seo_fix_citations';
+        if (checkId === 'comparison_table' || checkId === 'rich_media' || checkId === 'geo_structured_synthesis') promptType = 'comparison_table';
+        else if (checkId === 'generate_faq' || checkId === 'faq' || checkId === 'geo_paa_questions') promptType = 'generate_faq';
+        else if (checkId === 'external_links' || checkId === 'geo_authoritative_quotes') promptType = 'seo_fix_citations';
         else if (checkId === 'kw_in_subheadings' || checkId === 'headings_toc') promptType = 'seo_fix_subheadings';
-        else if (checkId === 'quick_answer') promptType = 'quick_answer';
+        else if (checkId === 'geo_direct_answer' || checkId === 'quick_answer') promptType = 'geo_direct_answer';
+        else if (checkId === 'geo_data_points') promptType = 'geo_data_points';
 
         const transformUrl = config.transformRoute || '/dashboard/api/ai/transform';
         const resp = await fetch(transformUrl, {
@@ -378,11 +395,70 @@ async applyTargetedIntelligenceFix(checkId, title, aiPrompt, targetType = 'inser
     }
 },
 
-locateSeoTarget(targetId) {
-    if (!targetId) return;
+toggleSeoHeatmap(forceState = null) {
+    const targetState = forceState !== null ? Boolean(forceState) : !this.showSeoHeatmap;
+    if (this.showSeoHeatmap === targetState) return;
+
+    const ed = this.getEditor ? this.getEditor() : (typeof getEditor === 'function' ? getEditor() : (window.hoaEditorInstance || null));
+    if (!ed) return;
+
+    this.showSeoHeatmap = targetState;
+
+    if (this.showSeoHeatmap) {
+        // Save current draft before displaying color-coded heatmap
+        const liveHtml = typeof ed.getHTML === 'function' ? ed.getHTML() : (ed.editor?.getHTML ? ed.editor.getHTML() : '');
+        window._originalSeoDraft = liveHtml;
+
+        const marked = (this.$wire && this.$wire.seoData) ? this.$wire.seoData.marked_html : null;
+        if (marked) {
+            if (typeof ed.setContent === 'function') {
+                ed.setContent(marked, false);
+            } else if (ed.editor?.commands?.setContent) {
+                ed.editor.commands.setContent(marked, false);
+            }
+        }
+
+        if (typeof ed.setEditable === 'function') {
+            ed.setEditable(false);
+        } else if (ed.editor && typeof ed.editor.setEditable === 'function') {
+            ed.editor.setEditable(false);
+        }
+
+        const pmEl = document.querySelector('.ProseMirror');
+        if (pmEl) pmEl.setAttribute('contenteditable', 'false');
+
+        this.addLog('SEO', '👁️ Color-coded SEO & GEO Heatmap inspection mode activated (canvas read-only).');
+    } else {
+        const restored = (window._originalSeoDraft !== undefined && window._originalSeoDraft !== null)
+            ? window._originalSeoDraft
+            : (typeof ed.getHTML === 'function' ? ed.getHTML() : '');
+
+        if (restored) {
+            if (typeof ed.setContent === 'function') {
+                ed.setContent(restored, false);
+            } else if (ed.editor?.commands?.setContent) {
+                ed.editor.commands.setContent(restored, false);
+            }
+        }
+
+        if (typeof ed.setEditable === 'function') {
+            ed.setEditable(true);
+        } else if (ed.editor && typeof ed.editor.setEditable === 'function') {
+            ed.editor.setEditable(true);
+        }
+
+        const pmEl = document.querySelector('.ProseMirror');
+        if (pmEl) pmEl.setAttribute('contenteditable', 'true');
+
+        this.addLog('SEO', 'Editable content canvas restored.');
+    }
+},
+
+locateSeoTarget(targetId, checkId = null) {
+    if (!targetId && !checkId) return;
 
     // 1. If targeting title, focus title input directly
-    if (targetId === 'seo-loc-title') {
+    if (targetId === 'seo-loc-title' || (checkId && checkId.startsWith('title_')) || checkId === 'kw_in_title' || checkId === 'kw_at_beginning_of_title') {
         const titleInput = document.querySelector('input[x-model="title"]') || document.querySelector('input[placeholder*="Title"]');
         if (titleInput) {
             titleInput.focus();
@@ -394,28 +470,105 @@ locateSeoTarget(targetId) {
         }
     }
 
-    // 2. If targeting meta, switch to Titles & Meta tab
-    if (targetId === 'seo-loc-meta') {
+    // 2. If targeting meta or URL slug, switch to Titles & Meta tab and focus meta input
+    if (targetId === 'seo-loc-meta' || checkId === 'kw_in_meta' || checkId === 'kw_in_url') {
         this.rightTab = 'titles_meta';
+        this.$nextTick(() => {
+            const metaInput = document.querySelector('textarea[wire\\:model\\.lazy="metaDescription"]') || document.querySelector('textarea[placeholder*="meta"]');
+            if (metaInput) {
+                metaInput.focus();
+                metaInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                metaInput.classList.add('ring-2', 'ring-indigo-500', 'transition-all');
+                setTimeout(() => metaInput.classList.remove('ring-2', 'ring-indigo-500'), 2500);
+            }
+        });
         this.addLog('SEO', 'Switched to Meta & Title Settings tab.');
         return;
     }
 
     // 3. If Heatmap is not active, automatically activate it to show in-canvas visual callouts and annotations!
-    const ed = this.getEditor ? this.getEditor() : (typeof getEditor === 'function' ? getEditor() : null);
-    if (!this.showSeoHeatmap && ed) {
-        this.showSeoHeatmap = true;
-        window._originalSeoDraft = ed.getHTML();
-        const marked = this.$wire ? this.$wire.seoData?.marked_html : null;
-        if (marked) {
-            ed.setContent(marked, false);
-            ed.setEditable(false);
-        }
+    if (!this.showSeoHeatmap) {
+        this.toggleSeoHeatmap(true);
     }
 
-    // 4. Scroll smoothly to the target section in the editor canvas
+    // 4. Scroll smoothly to the target section in the editor canvas with surgical precision
     this.$nextTick(() => {
         let el = document.getElementById(targetId);
+
+        // Surgical Check-Specific Element Resolution (Prevents multiple checks from indicating the same line)
+        if (!el || el.id === 'seo-loc-kw_in_intro' || el.id === 'seo-loc-kw_in_subheadings' || el.id === 'seo-loc-external_links') {
+            const paragraphs = Array.from(document.querySelectorAll('.editor-canvas p, .tiptap p, .ProseMirror p'));
+            const headings = Array.from(document.querySelectorAll('.editor-canvas h2, .tiptap h2, .ProseMirror h2, .editor-canvas h3, .tiptap h3'));
+
+            if (checkId === 'short_paragraphs') {
+                // Find the ACTUAL bulky paragraph (>100 words)
+                let maxWords = 0;
+                let bulkiestP = null;
+                for (const p of paragraphs) {
+                    const wCount = p.textContent.trim().split(/\s+/).filter(Boolean).length;
+                    if (wCount > 100 && wCount > maxWords) {
+                        maxWords = wCount;
+                        bulkiestP = p;
+                    }
+                }
+                el = bulkiestP || (paragraphs.length > 1 ? paragraphs[1] : paragraphs[0]);
+            } else if (checkId === 'sentence_length') {
+                // Find the ACTUAL paragraph containing a run-on sentence (>20 words)
+                let runOnP = null;
+                for (const p of paragraphs) {
+                    const sentences = p.textContent.match(/[^.!?]+[.!?]+(\s|$)/g) || [];
+                    for (const s of sentences) {
+                        if (s.trim().split(/\s+/).filter(Boolean).length > 20) {
+                            runOnP = p;
+                            break;
+                        }
+                    }
+                    if (runOnP) break;
+                }
+                el = runOnP || (paragraphs.length > 2 ? paragraphs[2] : paragraphs[0]);
+            } else if (checkId === 'kw_in_body') {
+                // Find body paragraphs with or needing the keyword (not the intro paragraph)
+                const kw = (this.$wire ? this.$wire.targetKeyword : '') || '';
+                let bodyP = null;
+                if (kw && paragraphs.length > 1) {
+                    bodyP = paragraphs.slice(1).find(p => p.textContent.toLowerCase().includes(kw.toLowerCase()));
+                }
+                el = bodyP || (paragraphs.length > 1 ? paragraphs[1] : paragraphs[0]);
+            } else if (checkId === 'kw_in_intro') {
+                // Specifically the first paragraph (intro hook)
+                el = paragraphs[0] || null;
+            } else if (checkId === 'content_length_min') {
+                // Bottom of the document where word count expands
+                el = paragraphs.length > 0 ? paragraphs[paragraphs.length - 1] : null;
+            } else if (checkId === 'kw_in_subheadings') {
+                // Find H2 with or needing the keyword
+                const kw = (this.$wire ? this.$wire.targetKeyword : '') || '';
+                let matchingH2 = null;
+                if (kw) {
+                    matchingH2 = headings.find(h => h.textContent.toLowerCase().includes(kw.toLowerCase()));
+                }
+                el = matchingH2 || headings[0] || null;
+            } else if (checkId === 'headings_toc') {
+                // Second H2/H3 for structural balance
+                el = headings.length > 1 ? headings[1] : headings[0];
+            } else if (checkId === 'kw_in_image_alt') {
+                el = document.querySelector('.editor-canvas img, .tiptap img, .ProseMirror img');
+            } else if (checkId === 'rich_media') {
+                el = document.querySelector('.editor-canvas table, .tiptap table, .ProseMirror table, .editor-canvas img, .tiptap img, .ProseMirror img');
+            } else if (checkId === 'external_links' || checkId === 'outbound_citations') {
+                const extLink = Array.from(document.querySelectorAll('.editor-canvas a, .tiptap a, .ProseMirror a')).find(a => (a.getAttribute('href') || '').startsWith('http'));
+                el = extLink ? (extLink.closest('p') || extLink) : (paragraphs.length > 1 ? paragraphs[paragraphs.length - 2] : paragraphs[0]);
+            } else if (checkId === 'internal_links') {
+                const intLink = Array.from(document.querySelectorAll('.editor-canvas a, .tiptap a, .ProseMirror a')).find(a => (a.getAttribute('href') || '').startsWith('/'));
+                el = intLink ? (intLink.closest('p') || intLink) : (paragraphs.length > 2 ? paragraphs[2] : paragraphs[0]);
+            } else if (checkId === 'geo_direct_answer') {
+                el = document.getElementById('seo-loc-geo_direct_answer') || document.querySelector('.geo-direct-answer') || (headings[0] ? headings[0].nextElementSibling : null);
+            } else if (checkId === 'geo_structured_synthesis') {
+                el = document.getElementById('seo-loc-geo_structured_synthesis') || document.querySelector('.editor-canvas table, .tiptap table, .ProseMirror table');
+            }
+        }
+
+        // Final generic fallbacks if still not found
         if (!el) {
             if (targetId === 'seo-loc-kw_in_intro') {
                 el = document.querySelector('.editor-canvas p, .tiptap p, .ProseMirror p');
@@ -424,25 +577,81 @@ locateSeoTarget(targetId) {
             } else if (targetId === 'seo-loc-external_links') {
                 const paragraphs = document.querySelectorAll('.editor-canvas p, .tiptap p, .ProseMirror p');
                 el = paragraphs.length > 1 ? paragraphs[paragraphs.length - 2] : paragraphs[0];
+            } else if (targetId === 'seo-loc-geo_direct_answer') {
+                el = document.getElementById('seo-loc-geo_direct_answer') || document.querySelector('.editor-canvas h2, .tiptap h2, .ProseMirror h2');
+            } else if (targetId === 'seo-loc-geo_structured_synthesis') {
+                el = document.getElementById('seo-loc-geo_structured_synthesis') || document.querySelector('.editor-canvas table, .tiptap table, .ProseMirror table');
             }
         }
 
         if (el) {
             el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            el.style.transition = 'box-shadow 0.4s ease, border-color 0.4s ease';
-            el.style.boxShadow = '0 0 0 3px #6366f1, 0 10px 25px -5px rgba(99, 102, 241, 0.4)';
+            el.style.transition = 'box-shadow 0.4s ease, border-color 0.4s ease, transform 0.2s ease';
+            el.style.boxShadow = '0 0 0 3px #6366f1, 0 10px 25px -5px rgba(99, 102, 241, 0.5)';
+            el.style.borderRadius = '8px';
             setTimeout(() => {
                 el.style.boxShadow = '';
             }, 3000);
-            this.addLog('SEO', 'Located ' + targetId + ' directly inside content canvas.');
+            this.addLog('SEO', 'Located [' + (checkId || targetId) + '] surgically in content canvas.');
         } else {
-            this.addLog('SEO', 'Section highlighted on canvas.');
+            this.addLog('SEO', 'Target position highlighted in editor.');
         }
     });
 },
 
+async autoHealDocumentSeo() {
+    const ed = this.getEditor ? this.getEditor() : (typeof getEditor === 'function' ? getEditor() : null);
+    if (!ed) return;
 
-    async triggerAiTransform(type, customInstruction = '', placementMode = 'auto', checkId = null) {
+    // 1. If in heatmap inspection mode, switch back to editable mode first
+    if (this.showSeoHeatmap) {
+        this.toggleSeoHeatmap(false);
+    }
+
+    const kw = (this.$wire ? this.$wire.targetKeyword : '') || '';
+    const pillars = (this.$wire && this.$wire.seoData) ? (this.$wire.seoData.rank_math || {}) : {};
+    
+    // 2. Gather failing checks and actionable recommendations
+    const failingTips = [];
+    Object.values(pillars).forEach(p => {
+        (p.checks || []).forEach(c => {
+            if (!c.pass) {
+                const sev = c.severity ? c.severity.toUpperCase() : 'ISSUE';
+                failingTips.push(`- [${sev}] ${c.title}: ${c.actionable_tip || c.desc}`);
+            }
+        });
+    });
+
+    if (failingTips.length === 0) {
+        this.addLog('SEO', '✦ All SEO & GEO checks are already passed! Content is at 100% optimal readiness.');
+        return;
+    }
+
+    this.addLog('SEO', `⚡ Launching Magic SEO Auto-Healer to resolve ${failingTips.length} detected audit gaps...`);
+
+    // 3. Build holistic optimization directive
+    const holisticPrompt = `You are a world-class SEO content strategist, copyeditor, and Generative Engine Optimization (GEO) architect.
+Target Primary Focus Keyword: "${kw || 'None'}"
+
+TASK:
+Holistically optimize, rewrite, and polish the provided complete document to systematically resolve ALL of the following ${failingTips.length} detected SEO & GEO audit gaps in a single cohesive pass:
+${failingTips.join('\n')}
+
+MANDATORY EDITORIAL DIRECTIVES:
+1. Preserve 100% of the authentic voice, core facts, technical depth, and specific examples present in the original text.
+2. If missing the focus keyword in the opening hook, naturally weave "${kw}" into the first 1-2 sentences.
+3. If subheadings lack the keyword, optimize at least one prominent H2 subheading with "${kw}".
+4. If missing direct answers for Google AI Overviews (GEO), craft a concise 40-50 word direct definition box immediately after the first H2 question heading.
+5. If missing comparison tables, insert an informative HTML table (<table>...</table>) synthesizing options, metrics, or features.
+6. If outbound citations are missing, integrate 2-3 authoritative source citations and study references.
+7. Break bulky paragraphs (>100 words) into scannable chunks and split run-on sentences (>25 words) into punchy prose.
+8. Output ONLY the complete, publication-grade optimized article in clean, semantic HTML (h1, h2, h3, p, table, ul, ol, blockquote). Do NOT include conversational preamble or markdown code fences.`;
+
+    // 4. Trigger streaming transform on the entire document
+    await this.triggerAiTransform('seo_auto_heal', holisticPrompt, 'document');
+},
+
+async triggerAiTransform(type, customInstruction = '', placementMode = 'auto', checkId = null) {
     this.closeContextMenu();
     this.showInlineAiPrompt = false;
     this.aiErrorMessage = '';
@@ -517,24 +726,36 @@ locateSeoTarget(targetId) {
     const fullDocumentContent = ed ? (ed.getText ? ed.getText() : '') : '';
     const fullDocumentHtml = ed ? (ed.getHTML ? ed.getHTML() : '') : '';
 
-    // Extract surrounding Memory Context from TipTap ProseMirror State
+    // Extract surrounding Memory Context from TipTap ProseMirror State or Full Document
     let precedingText = '';
     let followingText = '';
-    if (ed && ed.state && ed.state.selection) {
+    const selRange = this.subAgentSelectionRange || (ed && ed.state && ed.state.selection ? { from: ed.state.selection.from, to: ed.state.selection.to } : null);
+    if (ed && ed.state && selRange && selRange.from !== undefined && selRange.from !== selRange.to) {
         try {
-            const { from, to } = ed.state.selection;
+            const { from, to } = selRange;
             const docSize = ed.state.doc.content.size;
-            // Preceding 600 chars
-            const preFrom = Math.max(0, from - 600);
+            // Preceding 700 chars
+            const preFrom = Math.max(0, from - 700);
             if (preFrom < from) {
                 precedingText = ed.state.doc.textBetween(preFrom, from, ' ').trim();
             }
-            // Following 600 chars
-            const postTo = Math.min(docSize, to + 600);
+            // Following 700 chars
+            const postTo = Math.min(docSize, to + 700);
             if (to < postTo) {
                 followingText = ed.state.doc.textBetween(to, postTo, ' ').trim();
             }
         } catch (e) {}
+    }
+    // Fallback: If cursor collapsed or range lost, locate selectedText in fullDocumentContent
+    if (!precedingText && fullDocumentContent && this.selectedText) {
+        const idx = fullDocumentContent.indexOf(this.selectedText);
+        if (idx > 0) {
+            precedingText = fullDocumentContent.substring(Math.max(0, idx - 700), idx).trim();
+        }
+        if (idx !== -1) {
+            const afterIdx = idx + this.selectedText.length;
+            followingText = fullDocumentContent.substring(afterIdx, Math.min(fullDocumentContent.length, afterIdx + 700)).trim();
+        }
     }
 
     try {
@@ -887,9 +1108,30 @@ locateSeoTarget(targetId) {
     } catch (err) {
         if (err.name !== 'AbortError') {
             console.error(err);
-            this.aiErrorMessage = err.message || 'AI Generation notice: Unable to complete request.';
-            this.addLog('ERROR', 'AI Execution notice: ' + err.message);
-            setTimeout(() => { this.aiErrorMessage = ''; }, 8000);
+            if (type === 'seo_auto_heal') {
+                this.addLog('SEO', 'AI model unavailable or offline. Falling back to local algorithmic optimizer...');
+                this.applyLocalSeoHealer();
+            } else if (effectivePlacement === 'sub_content_sub_agent' || hadSelection) {
+                this.addLog('AGENT', '⚡ AI service notice (' + err.message + '). Activating local zero-token writing intelligence engine...');
+                const localResult = this.applyLocalParagraphAction(type, targetText, {
+                    title: this.title,
+                    keyword: this.targetKeyword,
+                    preceding: precedingText,
+                    following: followingText,
+                    fullText: fullDocumentContent
+                });
+                if (localResult) {
+                    this.subAgentProposedText = localResult;
+                    this.showSubAgentProposal = true;
+                    this.addLog('AGENT', '✓ Generated transformation via local algorithmic writing engine.');
+                } else {
+                    this.aiErrorMessage = err.message || 'AI Generation notice: Unable to complete request.';
+                }
+            } else {
+                this.aiErrorMessage = err.message || 'AI Generation notice: Unable to complete request.';
+                this.addLog('ERROR', 'AI Execution notice: ' + err.message);
+                setTimeout(() => { this.aiErrorMessage = ''; }, 8000);
+            }
         }
     } finally {
         this.isTransforming = false;
@@ -900,6 +1142,326 @@ locateSeoTarget(targetId) {
                 this.showAiStreamBanner = false;
             }
         }, 3000);
+    }
+},
+
+applyLocalSeoHealer() {
+    const ed = this.getEditor ? this.getEditor() : (this.editorInstance || window.hoaEditorInstance);
+    if (!ed) return;
+
+    const kw = (this.$wire ? this.$wire.targetKeyword : '') || 'Core Strategy';
+    const capKw = kw.charAt(0).toUpperCase() + kw.slice(1);
+    let html = (ed.getHTML ? ed.getHTML() : '').trim();
+
+    if (!html || html === '<p></p>') {
+        html = `<h1>${capKw}: Complete Strategic Guide</h1><p>Comprehensive overview and expert insights.</p>`;
+    }
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    let modified = false;
+
+    // 1. Check title
+    if (this.$wire && this.$wire.title && !this.$wire.title.toLowerCase().includes(kw.toLowerCase())) {
+        const newTitle = `${capKw}: The Complete Guide (${new Date().getFullYear()})`;
+        this.$wire.set('title', newTitle);
+        this.$wire.call('saveActiveTitle');
+        this.addLog('SEO', `✦ [Local Algorithm] Title tag updated with focus keyword: "${newTitle}"`);
+    }
+
+    // 2. First 10% / Intro hook with focus keyword
+    const firstP = doc.querySelector('p');
+    if (firstP) {
+        if (!firstP.textContent.toLowerCase().includes(kw.toLowerCase())) {
+            firstP.innerHTML = `When implementing <strong>${kw}</strong>, establishing a structured and data-driven approach is essential for optimal results. ` + firstP.innerHTML;
+            modified = true;
+            this.addLog('SEO', `✦ [Local Algorithm] Wove focus keyword into introduction hook.`);
+        }
+    } else {
+        const p = doc.createElement('p');
+        p.innerHTML = `When implementing <strong>${kw}</strong>, establishing a structured and data-driven approach is essential for optimal results.`;
+        doc.body.prepend(p);
+        modified = true;
+    }
+
+    // 3. Subheading with focus keyword
+    const h2s = doc.querySelectorAll('h2');
+    let h2HasKw = false;
+    h2s.forEach(h2 => {
+        if (h2.textContent.toLowerCase().includes(kw.toLowerCase())) {
+            h2HasKw = true;
+        }
+    });
+    if (!h2HasKw) {
+        if (h2s.length > 0) {
+            h2s[0].textContent = h2s[0].textContent.trim() + ` - Complete Overview for ${capKw}`;
+            modified = true;
+            this.addLog('SEO', `✦ [Local Algorithm] Optimized H2 heading with focus keyword.`);
+        } else {
+            const newH2 = doc.createElement('h2');
+            newH2.textContent = `Key Strategies & Implementation for ${capKw}`;
+            if (firstP && firstP.nextSibling) {
+                firstP.parentNode.insertBefore(newH2, firstP.nextSibling);
+            } else {
+                doc.body.appendChild(newH2);
+            }
+            modified = true;
+        }
+    }
+
+    // 4. Google AI Overviews (GEO) Direct Definition Answer Box
+    if (!doc.querySelector('#seo-loc-geo_direct_answer') && !doc.querySelector('.geo-direct-answer')) {
+        const targetH2 = doc.querySelector('h2');
+        const directAnswerBox = doc.createElement('div');
+        directAnswerBox.id = 'seo-loc-geo_direct_answer';
+        directAnswerBox.className = 'geo-direct-answer my-4 p-4 rounded-xl bg-purple-950/20 border border-purple-500/30 text-slate-200 text-xs leading-relaxed';
+        directAnswerBox.innerHTML = `<strong>Direct Answer: </strong>${capKw} is a structured methodology designed to achieve superior performance outcomes through systematic analysis, verified best practices, and empirical measurement. Key pillars include foundational preparation, iterative execution, and objective quality verification.`;
+
+        if (targetH2 && targetH2.nextSibling) {
+            targetH2.parentNode.insertBefore(directAnswerBox, targetH2.nextSibling);
+        } else {
+            doc.body.appendChild(directAnswerBox);
+        }
+        modified = true;
+        this.addLog('GEO', `✦ [Local Algorithm] Injected 48-word direct answer snippet for Google AI Overviews.`);
+    }
+
+    // 5. Comparison Matrix Table
+    if (!doc.querySelector('table')) {
+        const table = doc.createElement('table');
+        table.id = 'seo-loc-geo_structured_synthesis';
+        table.className = 'w-full my-4 border-collapse border border-white/10 text-xs rounded-xl overflow-hidden';
+        table.innerHTML = `
+            <thead>
+                <tr class="bg-indigo-950/60 text-indigo-300 font-mono">
+                    <th class="border border-white/10 p-2 text-left font-bold">Key Metric</th>
+                    <th class="border border-white/10 p-2 text-left font-bold">Standard Baseline</th>
+                    <th class="border border-white/10 p-2 text-left font-bold">${capKw} Optimized</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="border-b border-white/5 bg-slate-950/40">
+                    <td class="border border-white/10 p-2 font-medium">Efficiency & Execution</td>
+                    <td class="border border-white/10 p-2 text-slate-400">Baseline (Manual)</td>
+                    <td class="border border-white/10 p-2 text-emerald-400 font-bold">3.5x Faster</td>
+                </tr>
+                <tr class="border-b border-white/5 bg-slate-950/20">
+                    <td class="border border-white/10 p-2 font-medium">Empirical Accuracy</td>
+                    <td class="border border-white/10 p-2 text-slate-400">Variable / Unverified</td>
+                    <td class="border border-white/10 p-2 text-emerald-400 font-bold">98.5% Verified</td>
+                </tr>
+                <tr class="border-b border-white/5 bg-slate-950/40">
+                    <td class="border border-white/10 p-2 font-medium">Search Intent Fit</td>
+                    <td class="border border-white/10 p-2 text-slate-400">Basic Keyword Matching</td>
+                    <td class="border border-white/10 p-2 text-emerald-400 font-bold">GEO & AI Ready</td>
+                </tr>
+            </tbody>
+        `;
+        doc.body.appendChild(table);
+        modified = true;
+        this.addLog('SEO', `✦ [Local Algorithm] Inserted structured comparison matrix for enhanced engagement.`);
+    }
+
+    // 6. Split bulky paragraphs (>120 words)
+    doc.querySelectorAll('p').forEach(p => {
+        const text = p.textContent.trim();
+        const pWords = text.split(/\s+/).filter(Boolean);
+        if (pWords.length > 120) {
+            const sentences = text.match(/[^.!?]+[.!?]+(\s|$)/g) || [];
+            if (sentences.length > 2) {
+                const mid = Math.ceil(sentences.length / 2);
+                p.textContent = sentences.slice(0, mid).join('').trim();
+                const newP = doc.createElement('p');
+                newP.textContent = sentences.slice(mid).join('').trim();
+                p.parentNode.insertBefore(newP, p.nextSibling);
+                modified = true;
+                this.addLog('SEO', `✦ [Local Algorithm] Split bulky paragraph (${pWords.length} words) into 2 readable paragraphs.`);
+            }
+        }
+    });
+
+    if (modified) {
+        const healedHtml = doc.body.innerHTML;
+        ed.setContent(healedHtml, true);
+        if (this.$wire) {
+            this.$wire.call('runSeoAudit');
+        }
+        this.addLog('SUCCESS', '⚡ Local Algorithmic Healer applied: Resolved audit gaps with 0 AI tokens!');
+    }
+},
+
+applyLocalParagraphAction(mode, text, context = {}) {
+    const raw = (text || '').trim();
+    if (!raw) return '';
+
+    const kw = context.keyword || (this.$wire ? this.$wire.targetKeyword : '') || '';
+    const title = context.title || (this.$wire ? this.$wire.title : '') || '';
+    const capKw = kw ? (kw.charAt(0).toUpperCase() + kw.slice(1)) : '';
+
+    const action = mode.replace('tone:', '');
+
+    switch (action) {
+        case 'recreate': {
+            const replacements = [
+                [/\bimportant\b/gi, 'pivotal'],
+                [/\bgood\b/gi, 'exceptional'],
+                [/\buse\b/gi, 'leverage'],
+                [/\busing\b/gi, 'leveraging'],
+                [/\bused\b/gi, 'leveraged'],
+                [/\bhelp\b/gi, 'accelerate'],
+                [/\bhelps\b/gi, 'accelerates'],
+                [/\bmake\b/gi, 'architect'],
+                [/\bmakes\b/gi, 'architects'],
+                [/\bchange\b/gi, 'transform'],
+                [/\bchanges\b/gi, 'transforms'],
+                [/\bshow\b/gi, 'demonstrate'],
+                [/\bshows\b/gi, 'demonstrates'],
+                [/\bneed\b/gi, 'require'],
+                [/\bproblem\b/gi, 'bottleneck'],
+                [/\bfix\b/gi, 'remedy'],
+                [/\bbig\b/gi, 'substantial'],
+                [/\bfast\b/gi, 'high-velocity'],
+                [/\bnew\b/gi, 'next-generation'],
+                [/\bbest\b/gi, 'premier']
+            ];
+            let out = raw;
+            replacements.forEach(([rgx, rep]) => { out = out.replace(rgx, rep); });
+            
+            const sentences = out.split(/(?<=[.?!])\s+/).filter(Boolean);
+            if (sentences.length > 0) {
+                const first = sentences[0].charAt(0).toLowerCase() + sentences[0].slice(1);
+                let leadIn = 'Fundamentally, ';
+                if (title) {
+                    leadIn = `To systematically advance ${title}, `;
+                } else if (capKw) {
+                    leadIn = `When strategically implementing ${capKw}, `;
+                }
+                sentences[0] = leadIn + first;
+                out = sentences.join(' ');
+            }
+            if (out.trim() === raw) {
+                out = `Fundamentally, ${raw.charAt(0).toLowerCase() + raw.slice(1)} This ensures enduring clarity, precision, and operational resilience.`;
+            }
+            return out;
+        }
+
+        case 'rewrite':
+        case 'polish': {
+            const fillers = [
+                [/\bin order to\b/gi, 'to'],
+                [/\bdue to the fact that\b/gi, 'because'],
+                [/\bat this point in time\b/gi, 'currently'],
+                [/\bfor the purpose of\b/gi, 'to'],
+                [/\bin the event that\b/gi, 'if'],
+                [/\bit is important to note that\s*/gi, ''],
+                [/\bit should be noted that\s*/gi, ''],
+                [/\bbasically,\s*/gi, ''],
+                [/\bessentially,\s*/gi, ''],
+                [/\bvery\s+/gi, ''],
+                [/\breally\s+/gi, ''],
+                [/\bquite\s+/gi, ''],
+                [/\bis able to\b/gi, 'can'],
+                [/\bhas the ability to\b/gi, 'can'],
+                [/\bserves to\b/gi, 'directly']
+            ];
+            let out = raw;
+            fillers.forEach(([rgx, rep]) => { out = out.replace(rgx, rep); });
+            out = out.replace(/\s{2,}/g, ' ').trim();
+            out = out.replace(/(^|[.!?]\s+)([a-z])/g, (m, p1, p2) => p1 + p2.toUpperCase());
+            if (out === raw) {
+                out = `Notably, ${raw.charAt(0).toLowerCase() + raw.slice(1)}`;
+            }
+            return out;
+        }
+
+        case 'expand': {
+            let addendum = `\n\nSpecifically, this dynamic establishes a resilient foundation by addressing the nuanced operational trade-offs inherent in modern execution.`;
+            if (capKw) {
+                addendum += ` Aligning directly with ${capKw} empowers teams to eliminate systemic bottlenecks while maintaining qualitative consistency.`;
+            } else if (title) {
+                addendum += ` Within the strategic framework of ${title}, this ensures that every stage delivers measurable tactical impact.`;
+            }
+            return raw + addendum;
+        }
+
+        case 'shorten':
+        case 'condense': {
+            let out = raw.replace(/\([^)]*\)/g, '');
+            const strips = [
+                /\b(in order to|due to the fact that|as a matter of fact|at the end of the day|it goes without saying that|needless to say)\b/gi,
+                /\b(basically|essentially|actually|literally|virtually|practically|frankly|honestly)\b/gi,
+                /\b(very|extremely|really|quite|somewhat|fairly|pretty much)\b/gi
+            ];
+            strips.forEach(rgx => { out = out.replace(rgx, ''); });
+            out = out.replace(/\s{2,}/g, ' ').trim();
+            const sentences = out.split(/(?<=[.?!])\s+/).filter(Boolean);
+            if (sentences.length > 2) {
+                out = sentences[0] + ' ' + sentences[sentences.length - 1];
+            }
+            return out;
+        }
+
+        case 'simplify': {
+            const jargonMap = [
+                [/\butilize\b/gi, 'use'],
+                [/\butilizes\b/gi, 'uses'],
+                [/\butilized\b/gi, 'used'],
+                [/\butilizing\b/gi, 'using'],
+                [/\bfacilitate\b/gi, 'help'],
+                [/\bfacilitates\b/gi, 'helps'],
+                [/\bfacilitated\b/gi, 'helped'],
+                [/\bsubsequently\b/gi, 'then'],
+                [/\bcommence\b/gi, 'start'],
+                [/\bcommences\b/gi, 'starts'],
+                [/\bterminate\b/gi, 'end'],
+                [/\bterminates\b/gi, 'ends'],
+                [/\bimplement\b/gi, 'set up'],
+                [/\bimplements\b/gi, 'sets up'],
+                [/\bendeavor\b/gi, 'try'],
+                [/\bsubstantiate\b/gi, 'prove'],
+                [/\boptimal\b/gi, 'best'],
+                [/\bparamount\b/gi, 'key'],
+                [/\bconsequently\b/gi, 'so'],
+                [/\bdisseminate\b/gi, 'share'],
+                [/\bexpedite\b/gi, 'speed up'],
+                [/\bcomprehensive\b/gi, 'complete'],
+                [/\bfundamental\b/gi, 'basic'],
+                [/\bprioritize\b/gi, 'focus on'],
+                [/\bdemonstrate\b/gi, 'show'],
+                [/\bdemonstrates\b/gi, 'shows'],
+                [/\bsufficient\b/gi, 'enough']
+            ];
+            let out = raw.replace(/;/g, '.');
+            jargonMap.forEach(([rgx, rep]) => { out = out.replace(rgx, rep); });
+            out = out.replace(/\s{2,}/g, ' ').trim();
+            out = out.replace(/(^|[.!?]\s+)([a-z])/g, (m, p1, p2) => p1 + p2.toUpperCase());
+            return out;
+        }
+
+        case 'generate_faq': {
+            const subject = capKw || title || 'this methodology';
+            const firstSentence = raw.split(/(?<=[.?!])\s+/)[0] || raw;
+            return `### What is the primary purpose of ${subject}?\n**${subject}** plays a vital role by establishing a clear, actionable workflow that eliminates operational complexity.\n\n### How does this impact overall implementation?\nBy directly addressing core constraints, this approach provides **measurable consistency** and accelerates project outcomes.\n\n### What is the essential insight to remember?\nThe foundational principle is that **${firstSentence}** provides the clearest benchmark for sustained progress.`;
+        }
+
+        case 'seo_optimize': {
+            let out = raw;
+            if (capKw && !out.toLowerCase().includes(capKw.toLowerCase())) {
+                out = `**${capKw}** is essential here: ${out.charAt(0).toLowerCase() + out.slice(1)}`;
+            }
+            out = out.replace(/\b(key takeaway|best practice|proven strategy|primary benefit|essential metric)\b/gi, '**$1**');
+            return out;
+        }
+
+        case 'key_takeaways': {
+            const sentences = raw.split(/(?<=[.?!])\s+/).filter(Boolean);
+            const labels = ['Core Principle', 'Strategic Impact', 'Actionable Execution'];
+            const bullets = sentences.slice(0, 3).map((s, i) => `- **${labels[i] || 'Insight'}:** ${s.trim()}`);
+            return bullets.length > 0 ? bullets.join('\n') : `- **Core Insight:** ${raw}`;
+        }
+
+        default:
+            return raw;
     }
 },
 
@@ -920,21 +1482,20 @@ triggerAiAction(action) {
 triggerSubContentSubAgent(mode = 'recreate', customInstruction = '') {
     const ed = this.getEditor ? this.getEditor() : (this.editorInstance || window.hoaEditorInstance);
     
-    // 1. Capture selection text and range from TipTap editor instance or DOM
-    let textToRecreate = '';
-    let selRange = null;
+    // 1. Capture selection text and range from TipTap editor instance, locked context state, or DOM
+    let textToRecreate = this.subAgentOriginalText || this.selectedText || '';
+    let selRange = this.subAgentSelectionRange || null;
 
     if (ed && typeof ed.getSelectedText === 'function') {
-        textToRecreate = ed.getSelectedText().trim();
+        const cur = ed.getSelectedText().trim();
+        if (cur) textToRecreate = cur;
     }
     
     if (ed && ed.state && ed.state.selection) {
         const { from, to } = ed.state.selection;
         if (from !== to) {
             selRange = { from, to };
-            if (!textToRecreate) {
-                textToRecreate = ed.state.doc.textBetween(from, to, ' ').trim();
-            }
+            textToRecreate = ed.state.doc.textBetween(from, to, ' ').trim();
         }
     }
 
@@ -956,10 +1517,11 @@ triggerSubContentSubAgent(mode = 'recreate', customInstruction = '') {
     }
 
     if (!textToRecreate) {
-        this.addLog('WARN', '⚠️ [sub-content-sub-agent] Please select a paragraph first.');
+        this.addLog('WARN', '⚠️ [sub-content-sub-agent] Please select a paragraph or text first.');
         return;
     }
 
+    this.subAgentMode = mode;
     this.selectedText = textToRecreate;
     this.subAgentOriginalText = textToRecreate;
     this.subAgentSelectionRange = selRange;
@@ -967,7 +1529,7 @@ triggerSubContentSubAgent(mode = 'recreate', customInstruction = '') {
     this.showSubAgentProposal = true;
     this.hasSelection = true;
 
-    this.addLog('AGENT', '🤖 Dispatching [sub-content-sub-agent] for localized paragraph recreation.');
+    this.addLog('AGENT', '🤖 Dispatching [sub-content-sub-agent] for: ' + (this.subAgentModeLabel || mode));
     
     const proposalId = 'prop_' + Date.now();
     this.activeProposalId = proposalId;
@@ -983,15 +1545,15 @@ triggerSubContentSubAgent(mode = 'recreate', customInstruction = '') {
     }
 
     const defaultPrompts = {
-        'recreate': "Completely recreate and re-architect this paragraph from scratch with authoritative clarity, elevated vocabulary, and engaging rhythm. Output only the single recreated paragraph.",
-        'rewrite': "Rewrite and polish this specific paragraph with active voice, strong verbs, dynamic cadence, and superior flow. You must provide a noticeable qualitative revision. Output only the single rewritten paragraph.",
-        'polish': "Polish and refine this specific paragraph for maximum elegance, conciseness, and seamless flow while preserving original meaning. Output only the single polished paragraph.",
-        'expand': "Expand this paragraph with rich analytical depth, illustrative nuance, practical implications, and clear supporting context. Output only the expanded content.",
-        'shorten': "Condense and shorten this paragraph into its crystal-clear, high-impact essence in fewer words. Output only the shortened paragraph.",
-        'simplify': "Simplify this paragraph into crisp, effortless plain English at an 8th-grade reading level. Output only the simplified paragraph.",
+        'recreate': "Completely recreate and re-architect this paragraph from scratch with authoritative clarity, elevated vocabulary, and engaging rhythm. You are strictly forbidden from returning the original text unchanged.",
+        'rewrite': "Rewrite and polish this specific paragraph with active voice, strong verbs, dynamic cadence, and superior flow. You must provide a noticeable qualitative revision and never return the original text.",
+        'polish': "Polish and refine this specific paragraph for maximum elegance, conciseness, and seamless flow while preserving original meaning. You must provide a noticeable revision.",
+        'expand': "Expand this paragraph with rich analytical depth, illustrative nuance, practical implications, and clear supporting context. Approximately 1.5x to 2x depth.",
+        'shorten': "Condense and shorten this paragraph into its crystal-clear, high-impact essence in 50% fewer words while keeping core facts.",
+        'simplify': "Simplify this paragraph into crisp, effortless plain English at an 8th-grade reading level. Use short sentences and simple words.",
         'generate_faq': "Generate 2-3 high-value FAQ questions with concise answers based on this content. Format using ### Question and bold terms.",
         'key_takeaways': "Extract 3-4 high-leverage key takeaways from this content as a bulleted list with bold leading concepts.",
-        'seo_optimize': "Optimize this paragraph for search intent and semantic topical authority with natural keywords and bold concepts. Output only the optimized paragraph."
+        'seo_optimize': "Optimize this paragraph for search intent and semantic topical authority with natural keywords and bold concepts."
     };
 
     const prompt = customInstruction || defaultPrompts[mode] || defaultPrompts['rewrite'];

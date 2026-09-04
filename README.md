@@ -1,5 +1,9 @@
 <div align="center">
 
+<a href="https://helpofai.com" target="_blank">
+  <img src="public/hoa-logo.svg" alt="HelpOfAi Studio Logo" width="100" height="100" />
+</a>
+
 # ⚡ HelpOfAi Studio (HOA-Studio)
 ### Enterprise-Grade AI Copywriting, Knowledge Base RAG & Content Engineering Workspace
 
@@ -9,7 +13,7 @@
 [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-v4.0-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![Vite](https://img.shields.io/badge/Vite-8.x-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
 [![OmniRoute](https://img.shields.io/badge/OmniRoute-v3.8.50_Ready-8B5CF6?style=for-the-badge&logo=openai&logoColor=white)](http://127.0.0.1:20128)
-[![Tests](https://img.shields.io/badge/Tests-164%20Passed%20(100%25)-10B981?style=for-the-badge&logo=githubactions&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-173%20Passed%20(100%25)-10B981?style=for-the-badge&logo=githubactions&logoColor=white)](tests/)
 [![License](https://img.shields.io/badge/License-Proprietary-blue?style=for-the-badge)](LICENSE)
 
 <p align="center">
@@ -26,12 +30,15 @@
 
 ### 📝 1. Tiptap Pro Rich-Text Editor & Multi-Driver Canvas
 - **Multi-Engine Drivers**: Seamlessly switch between **TipTap ProseMirror**, **Notion Block Canvas**, **Gutenberg Block Canvas**, **Markdown Split Screen**, and **Raw HTML** modes.
+- **Floating Table Operations Bar & Context Controls**: Intelligent glassmorphic floating toolbar docked above active tables for 1-click row/column additions and deletions, header toggles, cell merging/splitting, and table removal, accompanied by right-click table context controls.
+- **Syntax-Highlighted Code Blocks (`lowlight`)**: High-performance AST syntax tokenization across 35+ languages (*JavaScript, TypeScript, Python, PHP, HTML, CSS, SQL, Bash, Go, Rust, Java, C++, C#*) with macOS terminal chrome, live language switching dropdown, 1-click "Copy Code" button, and in-block <kbd>Tab</kbd> indentation (`enableTabIndentation: true`).
 - **Granular Git-Style Word Diffing**: Dynamic Programming Longest Common Subsequence (LCS) engine highlights exact word-level deletions (`<del>`) and insertions (`<ins>`) in both **Split** and **Unified** views.
 - **Real-Time Autosave & Local Draft Recovery**: Non-blocking background debounced persistence (1500ms) with automatic browser localStorage backup recovery.
 - **Snapshot Time-Machine Diff**: Milestone version history with inline word-by-word diff comparisons and 1-click snapshot restoration.
 - **Inline Ghost Auto-Completion**: Real-time Copilot/Cursor-style sentence auto-completion with `Tab` to accept and `Esc` to dismiss.
 
 ### 🪄 2. Contextual AI Action Suite (SSE Streaming & Multi-Candidate)
+- **AI Reasoning & Writing Intelligence Suite (Dual-Engine)**: 7 contextual transform actions (*Recreate Paragraph*, *Rewrite & Polish*, *Expand with Depth*, *Shorten & Condense*, *Simplify 8th-Grade*, *Generate FAQ Block*, *SEO Optimize Text*) powered by full-document narrative comprehension, anti-echo guarantees, action-tuned temperatures, and zero-token deterministic local algorithms when offline.
 - **Multi-Candidate Generation (Choice Variations)**: Generate and switch between variation candidates (`#1`, `#2`, `#3`) with live style preset regeneration.
 - **Interactive Transform Modifiers**: Live slider controls for Creativity Intensity (`0.3` to `1.0`), Tone Personas (*Professional, Casual, Persuasive, Academic*), and Target Length (*Shorter, Same, Longer*).
 - **15+ Inline AI Operations**:

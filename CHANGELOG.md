@@ -7,6 +7,90 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.7.4] - 2026-09-05
+
+### Added
+- **Floating Table Operations Toolbar (`hoa-table-floating-bar`):**
+  - Added an intelligent, glassmorphic floating toolbar that docks directly above active tables whenever the cursor is inside any table cell.
+  - Quick 1-click actions: Insert Row Above (↑), Insert Row Below (↓), Delete Row (✕), Insert Column Left (←), Insert Column Right (→), Delete Column (✕), Toggle Header Row (🔲), Merge/Split Selected Cells (🔗), and Delete Entire Table (🗑️).
+  - Built-in canvas boundary protection and sticky positioning when scrolling long tables.
+- **Context Menu Table Controls Section:**
+  - Dynamic table grid controls in the custom right-click context menu, detecting when the user right-clicks inside any `table`, `th`, or `td` element.
+- **Complete TipTap 3 Table Methods Suite:**
+  - Expanded `TiptapDriver` with `toggleHeaderRow()`, `toggleHeaderColumn()`, `toggleHeaderCell()`, `mergeCells()`, `splitCell()`, `mergeOrSplit()`, `fixTables()`, `goToNextCell()`, and `goToPreviousCell()`.
+  - Added custom CSS styles for multi-cell selections (`.selectedCell`) with glowing indigo border and high-contrast column resize handles (`.column-resize-handle`).
+- **Real-Time Code Syntax Highlighting Suite (`CodeBlockLowlight`):**
+  - Integrated `@tiptap/extension-code-block-lowlight` powered by `lowlight` (highlight.js v11) covering 35+ common languages (JavaScript, TypeScript, Python, PHP, HTML, CSS, SQL, JSON, Bash, Markdown, Go, Rust, Java, C++, C#, etc.).
+  - Added custom `CustomCodeBlockLowlight` NodeView featuring:
+    - Sleek macOS terminal header with colored dots (`● ● ●`).
+    - Interactive language selector dropdown with live syntax switching.
+    - 1-Click "Copy Code" button with instant visual `"Copied! ✓"` feedback.
+    - In-block <kbd>Tab</kbd> indentation (`enableTabIndentation: true`) and effortless exit navigation.
+  - High-fidelity dark IDE theme CSS tokens (`hljs-keyword`, `hljs-string`, `hljs-title`, `hljs-number`, `hljs-comment`, `hljs-built_in`, `hljs-function`).
+
+## [2.7.3] - 2026-09-04
+
+### Added
+- **Dynamic AI Reasoning & Writing Intelligence Suite:**
+  - Upgraded surgical paragraph transformation engine across all 7 right-click writing intelligence actions:
+    - *Recreate Paragraph* (`recreate`): Completely re-architects sentence structures and syntax from scratch using domain authority and high-engagement rhetoric.
+    - *Rewrite & Polish* (`rewrite`): Substantive qualitative enhancement eliminating passive voice, weak verbs, and wordy filler phrases.
+    - *Expand with Depth* (`expand`): Adds deep analytical rigor, tactical implications, and concrete real-world rationale (1.5x–2.2x depth).
+    - *Shorten & Condense* (`shorten`): Distills selected text into its punchy essence in 40%–60% of original word count.
+    - *Simplify (8th-Grade)* (`simplify`): Replaces polysyllabic academic abstractions with crisp, effortless plain English (Hemingway style).
+    - *Generate FAQ Block* (`generate_faq`): Formulates 2–3 high-intent search questions with authoritative answers and bold key entities.
+    - *SEO Optimize Text* (`seo_optimize`): Naturally front-loads primary entities and weaves focus keywords for Google AI Overviews and GEO readiness.
+- **Deep Full-Document Narrative Comprehension:**
+  - `ContentWriterBrain::buildSurgicalPrompt` now synthesizes the entire document thesis, working title, primary focus keyword, narrative placement role (Opening hook, Core body analysis, Concluding synthesis), and surrounding inflow/outflow context.
+  - Automatically derives preceding and following text from the document even if the client cursor collapsed.
+- **Zero-Token Local Algorithmic Writing Engine (Offline / Quota Fallback):**
+  - Added pure-PHP and client-side JavaScript deterministic transformation algorithms (`executeLocalActionTransform` and `applyLocalParagraphAction`) for all 7 actions.
+  - Activates seamlessly if external AI models are unavailable, network is disconnected, or monthly word quotas are exhausted.
+- **Strict Anti-Echo Guarantee & Calibrated Temperatures:**
+  - Added explicit anti-echo mandates in both system and user prompts to forbid returning unchanged text.
+  - Dynamic temperature tuning per action (`recreate`: 0.82, `rewrite`: 0.78, `expand`: 0.75, `shorten`: 0.55, `simplify`: 0.60, `generate_faq`: 0.70, `seo_optimize`: 0.65).
+  - Controller safety net automatically intercepts and transforms any identical text echoes before completing stream.
+- **Interactive In-Canvas Sub-Agent Proposal Card:**
+  - Locked ProseMirror selection range on right-click to eliminate selection loss.
+  - Dynamic sub-agent proposal inspector showing exact active mode badge, token velocity, and model badge.
+
+## [2.7.2] - 2026-09-04
+
+### Added
+- **Google AI Overviews & Generative Engine Optimization (GEO) Pillar:**
+  - Added dedicated 7th SEO pillar evaluating direct definition snippets (40-60 words under H2), verifiable data point density, comparison table presence, and People Also Ask (PAA) query coverage.
+  - Integrated in-canvas visual callouts (`#seo-loc-geo_direct_answer`, `#seo-loc-geo_structured_synthesis`) and canvas locator.
+- **1-Click Magic SEO & GEO Auto-Healer:**
+  - Master action in SEO tab dynamically aggregating all detected failing checks into a unified editorial directive, performing a single-pass holistic optimization without disjointed piecemeal rewriting.
+- **Dynamic Schema.org JSON-LD Studio & Validator:**
+  - Added `SchemaGenerator` service generating verified `BlogPosting`, `FAQPage`, and `HowTo` structured data.
+  - Interactive Schema Studio in SEO tab with live syntax-highlighted JSON-LD, 1-click clipboard copy, and direct document injection.
+- **Semantic NLP Entity Density Matrix:**
+  - Real-time SurferSEO/Clearscope-style topical entity extraction with bi-gram and tri-gram analysis.
+  - Interactive density chips with color-coded usage status (Underused, Optimal, Overused).
+- **Multi-Platform SERP & Social Simulator:**
+  - Interactive live preview in Titles & Meta tab supporting Google Desktop, Google Mobile, Google AI Overviews (Gemini), X/Twitter Summary Cards, and LinkedIn/Facebook OpenGraph cards.
+
+- **Comprehensive Content Intelligence Sidebar Overhaul:**
+  - **10-Point E-E-A-T Quality Audit:** Empirical evaluation across all 10 true E-E-A-T & GEO dimensions (search intent, topic coverage, original value, readability, SEO structure, internal linking, outbound citations, E-E-A-T signals, GEO readiness, technical SEO) with diagnostic progress bars, granular feedback, and 1-Click Master E-E-A-T Auto-Healer.
+  - **Titles & Meta Descriptions:** Added real-time character counters (50-65 chars title, 120-160 chars meta), full meta description persistence in `SeoAnalysis::metrics['meta_description']` and seamless integration with `SeoAnalyzer`.
+  - **AI Content Ideas & Gaps:** Added 1-click `⚡ AI Draft Section` to automatically draft missing gap sections into the editor canvas, plus structured comparison table generator.
+  - **Keywords Density Matrix:** Real-time primary keyword density percentage and occurrence tracker with dynamic color tiers (0.8%–2.5% optimal), plus real-time secondary keyword usage tracking.
+  - **Outline & Versions:** Added instant `↻ Sync` on tab activation and hardened diff inspection across all editor drivers.
+
+- **Dual-Engine Architecture (With AI & Local Algorithmic Fallback):**
+  - All Content Intelligence features (Viral Titles, Meta Descriptions, LSI Semantic Keywords, FAQ Generation, Content Gaps, Quick Answers, and Auto-Healing) now operate on a dual-engine architecture:
+    - **With AI**: Leverages OmniRoute LLM streaming, deep semantic reasoning, and dynamic context synthesis.
+    - **Without AI / Local Algorithmic Engine**: Executes deterministic statistical NLP, n-gram extraction, linguistic formulaic headline models, and DOM AST structural healers.
+    - If the AI model is unavailable, offline, or monthly word quota is reached, features automatically and seamlessly execute native local algorithms with zero tokens and zero downtime.
+
+### Fixed
+- **SEO Heatmap Toggle & Editor Canvas Read-Only State:**
+  - Resolved `Uncaught TypeError: ed.setEditable is not a function` by adding `setEditable` and `isEditable` methods to `TiptapDriver`.
+  - Added unified `toggleSeoHeatmap(forceState)` method in Alpine editor state to safely stash live drafts, toggle read-only inspection mode, and restore editable content cleanly.
+
+---
+
 ## [2.7.1] - 2026-09-04
 
 ### Added

@@ -1,0 +1,171 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <style>
+      @keyframes hoaLogoRotate {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      @keyframes hoaTextShimmer {
+        0%, 100% {
+          filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.45));
+          opacity: 0.95;
+        }
+        50% {
+          filter: drop-shadow(0 0 18px rgba(6, 182, 212, 0.75));
+          opacity: 1;
+        }
+      }
+      @keyframes hoaSparklePulse {
+        0%, 100% {
+          transform: scale(0.85);
+          opacity: 0.6;
+        }
+        50% {
+          transform: scale(1.25);
+          opacity: 1;
+        }
+      }
+      .hoa-rotator {
+        transform-origin: 100px 100px;
+        animation: hoaLogoRotate 4s linear infinite;
+      }
+      .hoa-shimmer-text {
+        animation: hoaTextShimmer 3s ease-in-out infinite;
+      }
+      .hoa-sparkle {
+        transform-origin: 154px 44px;
+        animation: hoaSparklePulse 2.5s ease-in-out infinite;
+      }
+    </style>
+
+    <!-- Outer Drop Shadow Glow Filter -->
+    <filter id="hoa-outer-glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#6366f1" flood-opacity="0.45" />
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="#06b6d4" flood-opacity="0.35" />
+    </filter>
+
+    <!-- Outer Rounded Rectangle Clip Path -->
+    <clipPath id="hoa-outer-clip">
+      <rect x="10" y="10" width="180" height="180" rx="44" />
+    </clipPath>
+
+    <!-- 4 Quadrant Seamless Gradient Transitions -->
+    <!-- Q1 (Top-Right): Cyan -> Indigo -->
+    <linearGradient id="hoa-grad-q1" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#06b6d4" />
+      <stop offset="50%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#6366f1" />
+    </linearGradient>
+
+    <!-- Q2 (Bottom-Right): Indigo -> Purple -->
+    <linearGradient id="hoa-grad-q2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1" />
+      <stop offset="50%" stop-color="#8b5cf6" />
+      <stop offset="100%" stop-color="#a855f7" />
+    </linearGradient>
+
+    <!-- Q3 (Bottom-Left): Purple -> Pink -->
+    <linearGradient id="hoa-grad-q3" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7" />
+      <stop offset="50%" stop-color="#d946ef" />
+      <stop offset="100%" stop-color="#ec4899" />
+    </linearGradient>
+
+    <!-- Q4 (Top-Left): Pink -> Cyan -->
+    <linearGradient id="hoa-grad-q4" x1="100%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#ec4899" />
+      <stop offset="50%" stop-color="#14b8a6" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+
+    <!-- Main HOA Typography Gradient -->
+    <linearGradient id="hoa-text-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a5b4fc" />
+      <stop offset="35%" stop-color="#c084fc" />
+      <stop offset="70%" stop-color="#818cf8" />
+      <stop offset="100%" stop-color="#22d3ee" />
+    </linearGradient>
+
+    <!-- Subtitle STUDIO Gradient -->
+    <linearGradient id="hoa-sub-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#67e8f9" />
+      <stop offset="50%" stop-color="#e0e7ff" />
+      <stop offset="100%" stop-color="#c084fc" />
+    </linearGradient>
+
+    <!-- Inner Ambient Radial Glow -->
+    <radialGradient id="hoa-ambient" cx="25%" cy="25%" r="75%">
+      <stop offset="0%" stop-color="#818cf8" stop-opacity="0.28" />
+      <stop offset="55%" stop-color="#4f46e5" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#020617" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Outer Shadow Container -->
+  <g filter="url(#hoa-outer-glow)">
+    <!-- Base Outer Card -->
+    <rect x="10" y="10" width="180" height="180" rx="44" fill="#6366f1" />
+
+    <!-- Clipped Animated Rotating Gradient Layer -->
+    <g clip-path="url(#hoa-outer-clip)">
+      <g class="hoa-rotator">
+        <!-- Dual Animation: SMIL Native + CSS Keyframes -->
+        <animateTransform 
+          attributeName="transform" 
+          type="rotate" 
+          from="0 100 100" 
+          to="360 100 100" 
+          dur="4s" 
+          repeatCount="indefinite" 
+        />
+        <!-- 4 Sweeping Gradient Sectors forming 360-degree Conic Spectrum -->
+        <path d="M 100 100 L 100 -50 A 150 150 0 0 1 250 100 Z" fill="url(#hoa-grad-q1)" />
+        <path d="M 100 100 L 250 100 A 150 150 0 0 1 100 250 Z" fill="url(#hoa-grad-q2)" />
+        <path d="M 100 100 L 100 250 A 150 150 0 0 1 -50 100 Z" fill="url(#hoa-grad-q3)" />
+        <path d="M 100 100 L -50 100 A 150 150 0 0 1 100 -50 Z" fill="url(#hoa-grad-q4)" />
+      </g>
+    </g>
+
+    <!-- Inner Core Slate 950 Card (Leaving 3px Animated Border) -->
+    <rect x="13.5" y="13.5" width="173" height="173" rx="40.5" fill="#020617" />
+
+    <!-- Inner Ambient Radial Lighting -->
+    <rect x="13.5" y="13.5" width="173" height="173" rx="40.5" fill="url(#hoa-ambient)" />
+
+    <!-- Subtle Glass Edge Stroke -->
+    <rect x="14" y="14" width="172" height="172" rx="40" fill="none" stroke="rgba(255, 255, 255, 0.12)" stroke-width="1" />
+  </g>
+
+  <!-- Animated Star / Sparkle in Top-Right -->
+  <g class="hoa-sparkle">
+    <path d="M 154 36 Q 154 44 162 44 Q 154 44 154 52 Q 154 44 146 44 Q 154 44 154 36 Z" fill="#22d3ee" opacity="0.9" />
+    <circle cx="154" cy="44" r="1.5" fill="#ffffff" />
+  </g>
+
+  <!-- Typography with Shimmer Glow -->
+  <g class="hoa-shimmer-text">
+    <!-- 1. Main Brand Text: HOA -->
+    <text 
+      x="100" 
+      y="115" 
+      text-anchor="middle" 
+      font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" 
+      font-size="52" 
+      font-weight="900" 
+      letter-spacing="3" 
+      fill="url(#hoa-text-grad)"
+    >HOA</text>
+
+    <!-- 2. Subtitle: STUDIO -->
+    <text 
+      x="100" 
+      y="144" 
+      text-anchor="middle" 
+      font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace" 
+      font-size="14.5" 
+      font-weight="800" 
+      letter-spacing="7" 
+      fill="url(#hoa-sub-grad)"
+    >STUDIO</text>
+  </g>
+</svg>

@@ -198,8 +198,18 @@ openContextMenu(event) {
     this.showContextMenu = true;
 
     const ed = this.getEditor ? this.getEditor() : (this.editorInstance || window.hoaEditorInstance);
+    this.isTableContext = Boolean(event.target && event.target.closest('table, td, th')) || Boolean(ed && ed.isActive?.('table'));
     let captured = '';
-    if (ed && typeof ed.getSelectedText === 'function') {
+    let selRange = null;
+
+    if (ed && ed.state && ed.state.selection) {
+        const { from, to } = ed.state.selection;
+        if (from !== to) {
+            selRange = { from, to };
+            captured = ed.state.doc.textBetween(from, to, ' ').trim();
+        }
+    }
+    if (!captured && ed && typeof ed.getSelectedText === 'function') {
         captured = ed.getSelectedText().trim();
     }
     if (!captured && window.getSelection) {
@@ -213,6 +223,8 @@ openContextMenu(event) {
     }
     if (captured) {
         this.selectedText = captured;
+        this.subAgentOriginalText = captured;
+        this.subAgentSelectionRange = selRange;
         this.hasSelection = true;
     }
     this.addLog('INFO', 'AI Context menu opened at (' + this.contextMenuX + ', ' + this.contextMenuY + ')');
@@ -220,6 +232,7 @@ openContextMenu(event) {
 
 closeContextMenu() {
     this.showContextMenu = false;
+    this.isTableContext = false;
 },
 
 async copySelection() {
