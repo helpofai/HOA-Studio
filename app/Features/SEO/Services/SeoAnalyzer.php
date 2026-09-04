@@ -777,14 +777,14 @@ class SeoAnalyzer
         if ($targetKeyword) {
             $kw = preg_quote(trim($targetKeyword), '/');
             // Lookbehind/ahead to avoid inside HTML tags
-            $marked = preg_replace("/(?<!<[^>]>)({$kw})(?![^<]*>)/i", '<mark style="background-color: rgba(16, 185, 129, 0.3); border-bottom: 2px solid #10b981; color: inherit;" title="Target Keyword">$1</mark>', $marked);
+            $marked = preg_replace("/({$kw})(?![^<]*>)/i", '<mark style="background-color: rgba(16, 185, 129, 0.3); border-bottom: 2px solid #10b981; color: inherit;" title="Target Keyword">$1</mark>', $marked);
         }
 
         // 2. Highlight E-E-A-T & Authority Signals (Blue)
         $authorityWords = ['expert', 'professional', 'study', 'research', 'certified', 'proven', 'guaranteed', 'according to', 'statistics', 'evidence'];
         foreach ($authorityWords as $word) {
             $w = preg_quote($word, '/');
-            $marked = preg_replace("/(?<!<[^>]>)({$w})(?![^<]*>)/i", '<mark style="background-color: rgba(59, 130, 246, 0.3); border-bottom: 2px solid #3b82f6; color: inherit;" title="Authority / E-E-A-T Signal">$1</mark>', $marked);
+            $marked = preg_replace("/({$w})(?![^<]*>)/i", '<mark style="background-color: rgba(59, 130, 246, 0.3); border-bottom: 2px solid #3b82f6; color: inherit;" title="Authority / E-E-A-T Signal">$1</mark>', $marked);
         }
 
         // 3. Highlight Sentence Length check (Red for > 20 words)
@@ -815,7 +815,6 @@ class SeoAnalyzer
 
         return $marked;
     }
-}
 
     protected function countSyllables(string $word): int
     {
