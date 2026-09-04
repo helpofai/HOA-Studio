@@ -181,6 +181,17 @@
 
             </div>
 
+            <!-- Color System Visual Legend -->
+            <div class="p-2.5 rounded-xl bg-slate-950/80 border border-white/10 flex items-center justify-between text-[10px] font-mono select-none shadow-sm">
+                <span class="text-slate-400 font-bold">Audit Colors:</span>
+                <div class="flex items-center gap-2.5 flex-wrap">
+                    <span class="flex items-center gap-1 text-rose-300"><span class="w-2 h-2 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50"></span> 🔴 Critical</span>
+                    <span class="flex items-center gap-1 text-amber-300"><span class="w-2 h-2 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50"></span> 🟡 Warning</span>
+                    <span class="flex items-center gap-1 text-blue-300"><span class="w-2 h-2 rounded-full bg-blue-500 shadow-sm shadow-blue-500/50"></span> 🔵 Authority</span>
+                    <span class="flex items-center gap-1 text-emerald-300"><span class="w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50"></span> 🟢 Passed</span>
+                </div>
+            </div>
+
 
 
 
@@ -350,44 +361,87 @@
                                             <svg class="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
                                         </div>
                                     @else
-                                        <div class="w-5 h-5 shrink-0 rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center mt-0.5 shadow-sm shadow-rose-500/20">
-                                            <svg class="w-3 h-3 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                        @php
+                                            $sev = $check['severity'] ?? 'warning';
+                                            $badgeBg = $sev === 'critical' ? 'bg-rose-500/20 border-rose-500/40 text-rose-400 shadow-rose-500/20' : ($sev === 'warning' ? 'bg-amber-500/20 border-amber-500/40 text-amber-400 shadow-amber-500/20' : 'bg-blue-500/20 border-blue-500/40 text-blue-400 shadow-blue-500/20');
+                                        @endphp
+                                        <div class="w-5 h-5 shrink-0 rounded-full {{ $badgeBg }} border flex items-center justify-center mt-0.5 shadow-sm">
+                                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                                         </div>
                                     @endif
                                     
                                     <div class="flex-1 min-w-0">
-                                        <h4 class="text-[11px] font-bold {{ $check['pass'] ? 'text-white' : 'text-slate-200' }} leading-tight mb-0.5">{{ $check['title'] }}</h4>
+                                        <div class="flex items-center justify-between gap-1.5 mb-0.5">
+                                            <h4 class="text-[11px] font-bold {{ $check['pass'] ? 'text-white' : 'text-slate-200' }} leading-tight truncate">{{ $check['title'] }}</h4>
+                                            @if(!$check['pass'] && isset($check['severity']))
+                                                @php
+                                                    $sevPill = $check['severity'] === 'critical' ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' : ($check['severity'] === 'warning' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-blue-500/20 text-blue-300 border-blue-500/40');
+                                                @endphp
+                                                <span class="text-[8.5px] font-mono font-extrabold px-1.5 py-0.2 rounded border {{ $sevPill }} uppercase shrink-0">
+                                                    {{ $check['severity'] }}
+                                                </span>
+                                            @endif
+                                        </div>
                                         <p class="text-[10px] {{ $check['pass'] ? 'text-emerald-300' : 'text-slate-400' }} leading-snug">{{ $check['desc'] }}</p>
                                     </div>
                                 </div>
                                 
                                 @if(!$check['pass'])
-                                <div class="flex gap-1.5 pl-7 mt-1.5">
-                                    <button 
-                                        type="button" 
-                                        @php
-                                            $aiFixTarget = in_array($check['id'], ['kw_in_title', 'kw_at_beginning_of_title', 'title_has_number', 'title_has_power_word', 'title_length_optimal', 'title_sentiment_positive']) ? 'title' : ($check['id'] === 'kw_in_meta' ? 'meta' : 'insert');
-                                        @endphp
-                                        x-on:click="applyTargetedIntelligenceFix('{{ $check['id'] }}', @js($check['title']), @js($check['ai_prompt'] ?? 'Optimize ' . $check['title']), '{{ $aiFixTarget }}')"
-                                        class="px-2 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-[10px] shadow-sm shadow-blue-600/30 flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-                                        :disabled="activeAction === '{{ $check['id'] }}' || !@js($check['ai_prompt'] ?? null)"
-                                        title="{{ isset($check['ai_prompt']) ? 'AI surgically optimizes only this section' : 'Manual action required' }}"
-                                        x-show="@js($check['ai_prompt'] ?? false) !== false"
-                                    >
-                                        <span class="hourglass w-3 h-3" x-show="activeAction === '{{ $check['id'] }}'" style="display: none;"></span>
-                                        <span x-text="activeAction === '{{ $check['id'] }}' ? 'Working...' : '✨ AI Fix'"></span>
-                                    </button>
-                                    <button 
-                                        type="button" 
-                                        x-on:click="manualView['{{ $check['id'] }}'] = !manualView['{{ $check['id'] }}']"
-                                        class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 transition-all flex items-center gap-1 cursor-pointer text-[10px]"
-                                    >
-                                        <span>✏️ Manual</span>
-                                    </button>
-                                </div>
+                                <div class="mt-1 p-2 rounded-xl bg-slate-950/80 border border-white/10 space-y-2 text-[10px]">
+                                    @if(isset($check['current_val']) || isset($check['goal_val']))
+                                        <div class="flex items-center justify-between font-mono text-[9.5px] text-slate-400 border-b border-white/5 pb-1">
+                                            <span>Current: <strong class="text-white">{{ $check['current_val'] ?? 'Missing' }}</strong></span>
+                                            <span>Goal: <strong class="text-indigo-300">{{ $check['goal_val'] ?? 'Optimized' }}</strong></span>
+                                        </div>
+                                    @endif
 
-                                <div x-show="manualView['{{ $check['id'] }}']" x-transition style="display: none;" class="mt-2 pl-7 text-[10px] text-slate-400 font-mono italic">
-                                    {{ $check['manual_prompt'] ?? 'Manually edit this section to pass the check.' }}
+                                    @if(isset($check['actionable_tip']))
+                                        <div class="text-[10px] text-amber-200/90 leading-relaxed flex items-start gap-1.5">
+                                            <span class="text-amber-400 shrink-0 mt-0.5">💡</span>
+                                            <span>{{ $check['actionable_tip'] }}</span>
+                                        </div>
+                                    @endif
+                                    
+                                    <div class="flex items-center gap-1.5 pt-0.5 flex-wrap">
+                                        @if(isset($check['ai_prompt']))
+                                            <button 
+                                                type="button" 
+                                                @php
+                                                    $aiFixTarget = in_array($check['id'], ['kw_in_title', 'kw_at_beginning_of_title', 'title_has_number', 'title_has_power_word', 'title_length_optimal', 'title_sentiment_positive']) ? 'title' : ($check['id'] === 'kw_in_meta' ? 'meta' : 'insert');
+                                                @endphp
+                                                x-on:click="applyTargetedIntelligenceFix('{{ $check['id'] }}', @js($check['title']), @js($check['ai_prompt']), '{{ $aiFixTarget }}')"
+                                                class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[10px] shadow-sm shadow-indigo-600/30 flex items-center justify-center gap-1 transition-all cursor-pointer disabled:opacity-50"
+                                                :disabled="activeAction === '{{ $check['id'] }}'"
+                                                title="AI surgically optimizes this check"
+                                            >
+                                                <span class="hourglass w-3 h-3" x-show="activeAction === '{{ $check['id'] }}'" style="display: none;"></span>
+                                                <span x-text="activeAction === '{{ $check['id'] }}' ? 'Working...' : '✨ AI Fix'"></span>
+                                            </button>
+                                        @endif
+                                        
+                                        @if(isset($check['target_canvas_id']))
+                                            <button 
+                                                type="button" 
+                                                x-on:click="locateSeoTarget('{{ $check['target_canvas_id'] }}')"
+                                                class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-white/15 text-slate-300 hover:text-white border border-white/10 transition-all flex items-center gap-1 cursor-pointer text-[10px]"
+                                                title="Locate line in content editor"
+                                            >
+                                                <span>🎯 Locate in Content</span>
+                                            </button>
+                                        @endif
+
+                                        <button 
+                                            type="button" 
+                                            x-on:click="manualView['{{ $check['id'] }}'] = !manualView['{{ $check['id'] }}']"
+                                            class="px-2 py-1 rounded-lg bg-slate-900 hover:bg-white/10 text-slate-400 hover:text-slate-200 border border-white/10 transition-all flex items-center gap-1 cursor-pointer text-[10px]"
+                                        >
+                                            <span>✏️ Manual</span>
+                                        </button>
+                                    </div>
+
+                                    <div x-show="manualView['{{ $check['id'] }}']" x-transition style="display: none;" class="mt-1.5 p-2 rounded-lg bg-slate-900 border border-white/5 text-[9.5px] text-slate-300 font-mono">
+                                        {{ $check['manual_prompt'] ?? 'Manually edit this section to pass the check.' }}
+                                    </div>
                                 </div>
                                 @endif
                             </div>

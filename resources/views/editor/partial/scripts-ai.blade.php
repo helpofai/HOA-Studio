@@ -378,6 +378,69 @@ async applyTargetedIntelligenceFix(checkId, title, aiPrompt, targetType = 'inser
     }
 },
 
+locateSeoTarget(targetId) {
+    if (!targetId) return;
+
+    // 1. If targeting title, focus title input directly
+    if (targetId === 'seo-loc-title') {
+        const titleInput = document.querySelector('input[x-model="title"]') || document.querySelector('input[placeholder*="Title"]');
+        if (titleInput) {
+            titleInput.focus();
+            titleInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            titleInput.classList.add('ring-2', 'ring-indigo-500', 'transition-all');
+            setTimeout(() => titleInput.classList.remove('ring-2', 'ring-indigo-500'), 2500);
+            this.addLog('SEO', 'Navigated directly to Document Title input.');
+            return;
+        }
+    }
+
+    // 2. If targeting meta, switch to Titles & Meta tab
+    if (targetId === 'seo-loc-meta') {
+        this.rightTab = 'titles_meta';
+        this.addLog('SEO', 'Switched to Meta & Title Settings tab.');
+        return;
+    }
+
+    // 3. If Heatmap is not active, automatically activate it to show in-canvas visual callouts and annotations!
+    const ed = this.getEditor ? this.getEditor() : (typeof getEditor === 'function' ? getEditor() : null);
+    if (!this.showSeoHeatmap && ed) {
+        this.showSeoHeatmap = true;
+        window._originalSeoDraft = ed.getHTML();
+        const marked = this.$wire ? this.$wire.seoData?.marked_html : null;
+        if (marked) {
+            ed.setContent(marked, false);
+            ed.setEditable(false);
+        }
+    }
+
+    // 4. Scroll smoothly to the target section in the editor canvas
+    this.$nextTick(() => {
+        let el = document.getElementById(targetId);
+        if (!el) {
+            if (targetId === 'seo-loc-kw_in_intro') {
+                el = document.querySelector('.editor-canvas p, .tiptap p, .ProseMirror p');
+            } else if (targetId === 'seo-loc-kw_in_subheadings') {
+                el = document.querySelector('.editor-canvas h2, .tiptap h2, .ProseMirror h2');
+            } else if (targetId === 'seo-loc-external_links') {
+                const paragraphs = document.querySelectorAll('.editor-canvas p, .tiptap p, .ProseMirror p');
+                el = paragraphs.length > 1 ? paragraphs[paragraphs.length - 2] : paragraphs[0];
+            }
+        }
+
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.style.transition = 'box-shadow 0.4s ease, border-color 0.4s ease';
+            el.style.boxShadow = '0 0 0 3px #6366f1, 0 10px 25px -5px rgba(99, 102, 241, 0.4)';
+            setTimeout(() => {
+                el.style.boxShadow = '';
+            }, 3000);
+            this.addLog('SEO', 'Located ' + targetId + ' directly inside content canvas.');
+        } else {
+            this.addLog('SEO', 'Section highlighted on canvas.');
+        }
+    });
+},
+
 
     async triggerAiTransform(type, customInstruction = '', placementMode = 'auto', checkId = null) {
     this.closeContextMenu();
