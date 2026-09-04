@@ -66,12 +66,12 @@
         class="bg-indigo-950/90 border-b border-indigo-500/30 px-4 py-2.5 flex items-center justify-between cursor-move hover:bg-indigo-900 transition-colors shrink-0"
     >
         <div class="flex items-center gap-2 select-none">
-            <span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-indigo-400 to-purple-400 animate-pulse" x-show="isTransforming"></span>
-            <span class="w-2.5 h-2.5 rounded-full bg-slate-600" x-show="!isTransforming"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-indigo-400 to-purple-400 animate-pulse" x-show="$root.isTransforming"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-slate-600" x-show="!$root.isTransforming"></span>
             <span class="text-xs font-bold text-white uppercase tracking-wider block">Pipeline Process</span>
         </div>
         <div class="flex items-center gap-2">
-            <button type="button" @click="showFloatingTelemetry = false" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer">
+            <button type="button" @click="$root.showFloatingTelemetry = false" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
@@ -81,19 +81,19 @@
     <div class="p-4 bg-slate-950/95 flex-1 flex flex-col gap-3 min-h-0 relative">
         <div class="flex items-center justify-between shrink-0 border-b border-white/5 pb-2">
             <span class="text-[10px] uppercase font-bold text-indigo-400">Execution Log</span>
-            <span class="text-[9px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 font-mono" x-text="pipelineStageLog.length + ' Stages'"></span>
+            <span class="text-[9px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 font-mono" x-text="$root.pipelineStageLog.length + ' Stages'"></span>
         </div>
 
         <!-- Log Container -->
         <div id="pipeline-log-container" class="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-2">
-            <template x-if="pipelineStageLog.length === 0">
+            <template x-if="$root.pipelineStageLog.length === 0">
                 <div class="text-xs text-slate-500 italic py-4 text-center">Pipeline idle. Start an AI Transform to see real-time steps.</div>
             </template>
-            <template x-for="(log, i) in pipelineStageLog" :key="i">
+            <template x-for="(log, i) in $root.pipelineStageLog" :key="i">
                 <div class="flex gap-3 items-start animate-fade-in group">
                     <div class="shrink-0 flex flex-col items-center mt-0.5">
-                        <div class="w-2 h-2 rounded-full" :class="i === pipelineStageLog.length - 1 && isTransforming ? 'bg-indigo-400 animate-pulse' : 'bg-emerald-500'"></div>
-                        <div class="w-reverse h-full border-l border-white/10 my-1" x-show="i !== pipelineStageLog.length - 1"></div>
+                        <div class="w-2 h-2 rounded-full" :class="i === $root.pipelineStageLog.length - 1 && $root.isTransforming ? 'bg-indigo-400 animate-pulse' : 'bg-emerald-500'"></div>
+                        <div class="w-reverse h-full border-l border-white/10 my-1" x-show="i !== $root.pipelineStageLog.length - 1"></div>
                     </div>
                     <div class="pb-3 border-b border-white/[0.03] w-full group-last:border-transparent">
                         <span class="text-[9px] font-mono text-slate-500 block mb-0.5" x-text="log.time"></span>
