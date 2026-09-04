@@ -377,7 +377,37 @@ async applyTargetedIntelligenceFix(checkId, title, aiPrompt, targetType = 'inser
     }
 },
 
-async triggerAiTransform(type, customInstruction = '', placementMode = 'auto') {
+
+    // -----------------------------------------------------------------------------------
+    // SURGICAL AI SEO FIXER LOGIC
+    // -----------------------------------------------------------------------------------
+    triggerSurgicalFix(checkId, prompt) {
+        if (!prompt) return;
+        this.addLog('SEO', 'Initiating Surgical AI Fix for: ' + checkId);
+        
+        let mappedAction = 'rewrite'; // Default
+        
+        // Map specific SEO checks to specific action targets if needed:
+        if (['kw_in_title', 'kw_at_beginning_of_title', 'title_has_number', 'title_has_power_word', 'title_sentiment_positive', 'title_length_optimal'].includes(checkId)) {
+            mappedAction = 'title';
+        } else if (checkId === 'kw_in_meta') {
+            mappedAction = 'meta';
+        } else if (['kw_in_intro', 'kw_in_body', 'content_length', 'kw_in_subheadings', 'keyword_density', 'external_links', 'internal_links', 'headings_toc', 'short_paragraphs', 'sentence_length', 'eeat_score'].includes(checkId)) {
+            mappedAction = 'sub_content_sub_agent'; // Let the AI insert a proposal block
+        }
+
+        // Specifically set the mode and active action so UI spins
+        this.activeAction = checkId;
+        
+        // Use custom system dispatch if we are explicitly replacing target text
+        if (mappedAction === 'title' || mappedAction === 'meta') {
+            this.triggerAiTransform('custom', prompt, "auto", checkId);
+        } else {
+            // For general content fixes, spawn the AI Proposal Block
+            this.triggerAiTransform('custom', prompt, "sub_content_sub_agent", checkId);
+        }
+    },
+async triggerAiTransform(type, customInstruction = '', placementMode = 'auto', checkId = null) {
     this.closeContextMenu();
     this.showInlineAiPrompt = false;
     this.aiErrorMessage = '';
