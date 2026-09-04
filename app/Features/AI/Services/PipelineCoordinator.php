@@ -153,10 +153,11 @@ Follow these strict constraints:
                 foreach ($this->client->streamChatCompletion([
                     ['role' => 'system', 'content' => $sysPrompt],
                     ['role' => 'user', 'content' => $userPrompt]
-                ], ['model' => 'auto', 'temperature' => 0.65]) as $chunk) {
-                    if (!empty($chunk)) {
-                        $textBuffer .= $chunk;
-                        $sendEvent("chunk", $chunk);
+                ], ['model' => 'auto', 'temperature' => 0.65]) as $payload) {
+                    $token = is_array($payload) ? ($payload['token'] ?? '') : $payload;
+                    if (!empty($token)) {
+                        $textBuffer .= $token;
+                        $sendEvent("chunk", $token);
                     }
                 }
             } catch (\Throwable $e) { 
