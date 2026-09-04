@@ -20,6 +20,7 @@ inlineAiPrompt: '',
 inlineAiPlacement: 'replace', // 'replace' or 'insert_below'
 showInlineAiPrompt: false,
 showSubAgentProposal: false,
+showSeoHeatmap: false,
 subAgentProposedText: '',
 subAgentOriginalText: '',
 aiModel: 'Auto (OmniRoute)',

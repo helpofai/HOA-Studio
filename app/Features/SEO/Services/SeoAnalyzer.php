@@ -567,7 +567,11 @@ class SeoAnalyzer
         $countPassed = fn($arr) => count(array_filter($arr, fn($c) => $c['pass']));
         $allRecommendations = $allChecks;
 
+                // Generate offline color-coded SEO markup map
+        $markedHtml = $this->generateMarkedHtml($htmlContent, $targetKeyword);
+
         return [
+            'marked_html' => $markedHtml,
             'score' => $finalScore,
             'readability_score' => $fleschScore,
             'reading_grade' => $readingGrade,
@@ -756,6 +760,63 @@ class SeoAnalyzer
      * @param string $word Word to analyze
      * @return int Estimated syllable count
      */
+
+    /**
+     * Generate color-coded offline SEO annotations directly inside content
+     */
+    protected function generateMarkedHtml(string $htmlContent, ?string $targetKeyword): string
+    {
+        if (empty(trim($htmlContent))) return $htmlContent;
+
+        $marked = $htmlContent;
+        // Clean any existing marks
+        $marked = preg_replace('/<mark[^>]*>/i', '', $marked);
+        $marked = preg_replace('/<\/mark>/i', '', $marked);
+
+        // 1. Highlight Focus Keyword (Green)
+        if ($targetKeyword) {
+            $kw = preg_quote(trim($targetKeyword), '/');
+            // Lookbehind/ahead to avoid inside HTML tags
+            $marked = preg_replace("/(?<!<[^>]>)({$kw})(?![^<]*>)/i", '<mark style="background-color: rgba(16, 185, 129, 0.3); border-bottom: 2px solid #10b981; color: inherit;" title="Target Keyword">$1</mark>', $marked);
+        }
+
+        // 2. Highlight E-E-A-T & Authority Signals (Blue)
+        $authorityWords = ['expert', 'professional', 'study', 'research', 'certified', 'proven', 'guaranteed', 'according to', 'statistics', 'evidence'];
+        foreach ($authorityWords as $word) {
+            $w = preg_quote($word, '/');
+            $marked = preg_replace("/(?<!<[^>]>)({$w})(?![^<]*>)/i", '<mark style="background-color: rgba(59, 130, 246, 0.3); border-bottom: 2px solid #3b82f6; color: inherit;" title="Authority / E-E-A-T Signal">$1</mark>', $marked);
+        }
+
+        // 3. Highlight Sentence Length check (Red for > 20 words)
+        // Split by sentences using simple punctuation
+        $sentences = preg_split('/(?<=[.?!])\s+/u', strip_tags($htmlContent), -1, PREG_SPLIT_NO_EMPTY);
+        foreach ($sentences as $s) {
+            $sText = trim($s);
+            $wordCount = count(preg_split('/\s+/u', $sText, -1, PREG_SPLIT_NO_EMPTY));
+            
+            if ($wordCount > 25 && strlen($sText) > 70) {
+                $escaped = preg_quote($sText, '/');
+                // Replace safely only if not overlapping existing tags
+                $marked = preg_replace('/' . $escaped . '(?![^<]*>)/i', '<mark style="background-color: rgba(239, 68, 68, 0.3); border-bottom: 2px solid #ef4444; color: inherit;" title="Long Sentence > 25 words (Hard to read)">$0</mark>', $marked, 1);
+            }
+        }
+        
+        // 4. Highlight Long Paragraphs (Yellow for > 100 words)
+        if (preg_match_all('/<p[^>]*>(.*?)<\/p>/si', $marked, $pMatches)) {
+            foreach ($pMatches[0] as $idx => $fullP) {
+                $pText = strip_tags($pMatches[1][$idx]);
+                $wordCount = count(preg_split('/\s+/u', trim($pText), -1, PREG_SPLIT_NO_EMPTY));
+                if ($wordCount > 100) {
+                    $markedP = str_replace('<p', '<p style="background-color: rgba(245, 158, 11, 0.2); border-left: 3px solid #f59e0b; padding-left: 10px;" title="Long Paragraph > 100 words (Poor Scannability)"', $fullP);
+                    $marked = str_replace($fullP, $markedP, $marked);
+                }
+            }
+        }
+
+        return $marked;
+    }
+}
+
     protected function countSyllables(string $word): int
     {
         $word = mb_strtolower(preg_replace('/[^a-zA-Z]/', '', $word));
