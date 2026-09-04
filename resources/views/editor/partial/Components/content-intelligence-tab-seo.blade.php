@@ -47,22 +47,35 @@
 
 
                         <div class="flex items-baseline gap-1.5 mt-0.5">
-
-
-
                             <span class="text-3xl font-black font-mono {{ $scoreBadge['color'] }}">{{ $score }}</span>
-
-
-
                             <span class="text-xs font-mono text-slate-400">/ 100</span>
-
-
-
                         </div>
-
-
-
                     </div>
+                    <!-- SEO Heatmap Toggle -->
+                    <button 
+                        type="button" 
+                        x-on:click="
+                            showSeoHeatmap = !showSeoHeatmap; 
+                            const ed = getEditor();
+                            if(ed) {
+                                if(showSeoHeatmap) {
+                                    window._originalSeoDraft = ed.getHTML();
+                                    ed.setContent(@js($seoData['marked_html'] ?? ''), false);
+                                    ed.setEditable(false);
+                                } else {
+                                    ed.setContent(window._originalSeoDraft || '', false);
+                                    ed.setEditable(true);
+                                }
+                            }
+                        "
+                        :class="showSeoHeatmap ? 'bg-indigo-600 text-white border-indigo-400 shadow-indigo-500/30' : 'bg-slate-950/50 text-slate-300 border-white/10 hover:text-white'"
+                        class="px-2.5 py-1.5 rounded-xl border text-xs font-bold shadow-sm transition-all flex flex-col items-center justify-center h-[42px] cursor-pointer gap-0.5"
+                        title="Toggle the Offline Color-Coded SEO Heatmap directly in the editor"
+                    >
+                        <svg x-show="showSeoHeatmap" style="display:none;" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                        <span x-text="showSeoHeatmap ? 'CLOSE' : '👁️ HEATMAP'"></span>
+                    </button>
+                    
 
 
 
