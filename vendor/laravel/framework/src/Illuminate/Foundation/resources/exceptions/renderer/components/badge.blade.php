@@ -1,4 +1,4 @@
-props(['type' => 'default', 'variant' => 'soft'])
+@props(['type' => 'default', 'variant' => 'soft'])
 
 @php
 $baseClasses = 'inline-flex w-fit shrink-0 items-center justify-center gap-1 font-mono leading-3 uppercase transition-colors dark:border [&_svg]:size-2.5 h-6 min-w-5 rounded-md px-1.5 text-xs/none';

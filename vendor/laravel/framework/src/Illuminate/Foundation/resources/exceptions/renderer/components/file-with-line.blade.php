@@ -1,4 +1,4 @@
-props(['frame', 'direction' => 'ltr'])
+@props(['frame', 'direction' => 'ltr'])
 
 @php
     $file = $frame->file();

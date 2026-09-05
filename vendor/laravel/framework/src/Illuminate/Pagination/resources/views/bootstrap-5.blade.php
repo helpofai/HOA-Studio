@@ -1,4 +1,4 @@
-if ($paginator->hasPages())
+@if ($paginator->hasPages())
     <nav class="d-flex justify-items-center justify-content-between">
         <div class="d-flex justify-content-between flex-fill d-sm-none">
             <ul class="pagination">

@@ -1,4 +1,4 @@
-props(['exception', 'request'])
+@props(['exception', 'request'])
 
 <div
     x-data="{

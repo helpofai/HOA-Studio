@@ -1,4 +1,4 @@
-props(['queries'])
+@props(['queries'])
 
 <div
     {{ $attributes->merge(['class' => "flex flex-col gap-2.5 bg-neutral-50 dark:bg-white/1 border border-neutral-200 dark:border-neutral-800 rounded-xl p-2.5 shadow-xs"]) }}

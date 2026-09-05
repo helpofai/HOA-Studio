@@ -329,3 +329,80 @@ cancelLossySwitch() {
     this.pendingEngine = null;
     this.addLog('INFO', 'Cancelled lossy switch.');
 },
+
+copyStatusText: '',
+copyStatusTimeout: null,
+copyDocumentContent(format) {
+    const ed = this.getEditor();
+    if (!ed) return;
+
+    let textToCopy = '';
+    if (format === 'html') {
+        textToCopy = ed.getHTML ? ed.getHTML() : '';
+    } else if (format === 'text') {
+        textToCopy = ed.getText ? ed.getText() : '';
+    } else if (format === 'json') {
+        const json = ed.getJSON ? ed.getJSON() : {};
+        textToCopy = JSON.stringify(json, null, 2);
+    } else if (format === 'markdown') {
+        const html = ed.getHTML ? ed.getHTML() : '';
+        textToCopy = this.htmlToMarkdown(html);
+    }
+
+    if (!textToCopy) return;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            this.copyStatusText = 'Copied ' + format.toUpperCase() + '!';
+            if (this.copyStatusTimeout) clearTimeout(this.copyStatusTimeout);
+            this.copyStatusTimeout = setTimeout(() => {
+                this.copyStatusText = '';
+            }, 2500);
+            this.addLog('SUCCESS', 'Copied document as ' + format.toUpperCase() + ' to clipboard.');
+        }).catch(err => {
+            console.error('Clipboard copy failed:', err);
+        });
+    } else {
+        // Fallback for older browsers
+        const textarea = document.createElement('textarea');
+        textarea.value = textToCopy;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            this.copyStatusText = 'Copied ' + format.toUpperCase() + '!';
+            if (this.copyStatusTimeout) clearTimeout(this.copyStatusTimeout);
+            this.copyStatusTimeout = setTimeout(() => {
+                this.copyStatusText = '';
+            }, 2500);
+            this.addLog('SUCCESS', 'Copied document as ' + format.toUpperCase() + ' to clipboard.');
+        } catch (e) {
+            console.error('Fallback copy failed:', e);
+        }
+        document.body.removeChild(textarea);
+    }
+},
+
+htmlToMarkdown(html) {
+    if (!html) return '';
+    let md = html;
+    md = md.replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n');
+    md = md.replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n');
+    md = md.replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n\n');
+    md = md.replace(/<h4[^>]*>(.*?)<\/h4>/gi, '#### $1\n\n');
+    md = md.replace(/<(strong|b)[^>]*>(.*?)<\/(strong|b)>/gi, '**$2**');
+    md = md.replace(/<(em|i)[^>]*>(.*?)<\/(em|i)>/gi, '*$2*');
+    md = md.replace(/<pre><code>(.*?)<\/code><\/pre>/gis, '```\n$1\n```\n\n');
+    md = md.replace(/<code[^>]*>(.*?)<\/code>/gi, '`$1`');
+    md = md.replace(/<blockquote[^>]*>(.*?)<\/blockquote>/gis, '> $1\n\n');
+    md = md.replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n');
+    md = md.replace(/<\/(ul|ol)>/gi, '\n');
+    md = md.replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n\n');
+    md = md.replace(/<br\s*\/?>/gi, '\n');
+    md = md.replace(/<a\s+[^>]*href=["\']([^"\']*)["\'][^>]*>(.*?)<\/a>/gi, '[$2]($1)');
+    const div = document.createElement('div');
+    div.innerHTML = md;
+    return (div.textContent || div.innerText || '').trim() + '\n';
+},

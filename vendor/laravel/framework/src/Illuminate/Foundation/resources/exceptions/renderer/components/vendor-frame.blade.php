@@ -1,4 +1,4 @@
-props(['frame'])
+@props(['frame'])
 
 <div class="grid gap-3 p-4 bg-neutral-50 dark:bg-transparent overflow-x-auto rounded-lg">
     @if($frame->previous())

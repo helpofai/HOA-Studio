@@ -90,6 +90,19 @@ class DocumentImportExportSharingTest extends TestCase
         $this->assertStringContainsString('Mastering AI SEO 2026', $docx);
     }
 
+    public function test_document_can_be_exported_to_json_ast()
+    {
+        $exporter = new DocumentExporter();
+        $json = $exporter->exportJson($this->document);
+
+        $this->assertJson($json);
+        $data = json_decode($json, true);
+        $this->assertEquals('HelpOfAi Studio Document Engine', $data['generator']);
+        $this->assertEquals('Mastering AI SEO 2026', $data['document']['title']);
+        $this->assertArrayHasKey('html', $data);
+        $this->assertArrayHasKey('plain_text', $data);
+    }
+
     public function test_export_endpoint_returns_file_download_for_authorized_user()
     {
         $response = $this->actingAs($this->user)
@@ -98,6 +111,38 @@ class DocumentImportExportSharingTest extends TestCase
         $response->assertStatus(200);
         $response->assertHeader('Content-Type', 'text/markdown; charset=UTF-8');
         $response->assertHeader('Content-Disposition', 'attachment; filename="mastering-ai-seo-2026.md"');
+    }
+
+    public function test_export_endpoint_returns_json_ast_download_for_authorized_user()
+    {
+        $response = $this->actingAs($this->user)
+            ->get(route('documents.export', ['id' => $this->document->id, 'format' => 'json']));
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'application/json; charset=UTF-8');
+        $response->assertHeader('Content-Disposition', 'attachment; filename="mastering-ai-seo-2026.json"');
+        $this->assertJson($response->getContent());
+    }
+
+    public function test_export_endpoint_returns_docx_download_for_authorized_user()
+    {
+        $response = $this->actingAs($this->user)
+            ->get(route('documents.export', ['id' => $this->document->id, 'format' => 'docx']));
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'application/vnd.ms-word; charset=UTF-8');
+        $response->assertHeader('Content-Disposition', 'attachment; filename="mastering-ai-seo-2026.doc"');
+    }
+
+    public function test_print_pdf_endpoint_returns_printable_html_for_authorized_user()
+    {
+        $response = $this->actingAs($this->user)
+            ->get(route('documents.print-pdf', ['id' => $this->document->id]));
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'text/html; charset=UTF-8');
+        $response->assertSee('window.print()', false);
+        $response->assertSee('Mastering AI SEO 2026');
     }
 
     public function test_document_can_be_imported_from_markdown_file()

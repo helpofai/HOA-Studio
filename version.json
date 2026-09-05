@@ -1,8 +1,8 @@
 {
     "name": "HelpOfAi Studio (HOA-Studio)",
-    "version": "2.7.4",
-    "version_code": 274,
-    "build_number": "20260905.1",
+    "version": "2.7.5",
+    "version_code": 275,
+    "build_number": "20260905.2",
     "release_date": "2026-09-05",
     "channel": "stable",
     "min_php_version": "8.2.0",

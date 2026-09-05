@@ -34,6 +34,7 @@ class DashboardTest extends TestCase
         $this->actingAs($user);
 
         Livewire::test(DashboardPage::class)
+            ->call('loadDashboard')
             ->assertStatus(200)
             ->assertSee('Welcome back, ' . $user->name)
             ->assertSee('Tech Blog')

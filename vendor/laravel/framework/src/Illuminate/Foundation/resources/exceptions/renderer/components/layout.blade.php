@@ -1,4 +1,4 @@
-use('Illuminate\Foundation\Exceptions\Renderer\Renderer')
+@use('Illuminate\Foundation\Exceptions\Renderer\Renderer')
 <!DOCTYPE html>
 <html lang="en">
 <head>

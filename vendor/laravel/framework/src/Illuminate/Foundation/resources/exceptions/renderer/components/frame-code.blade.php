@@ -1,4 +1,4 @@
-props(['code', 'highlightedLine'])
+@props(['code', 'highlightedLine'])
 
 <div
     class="text-sm rounded-b-lg bg-neutral-50 border-t border-neutral-100 dark:bg-neutral-900 dark:border-white/10"

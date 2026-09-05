@@ -53,6 +53,10 @@ class UserOmniRouteSetupPage extends Component
     public bool $hasPersonalKey = false;
     public string $default_model = 'auto';
 
+    // Backwards-compatible aliases for client health probes
+    public string $custom_endpoint = '';
+    public string $api_key = '';
+
     // Model Filters & Pagination
     public string $modelSearch = '';
     public string $modelStatusFilter = 'all'; // 'all', 'working', 'failed', 'untested', 'free_tier', 'combos', 'reasoning'
@@ -134,6 +138,9 @@ class UserOmniRouteSetupPage extends Component
                 $this->connection_type = 'custom_proxy';
             }
         }
+
+        $this->custom_endpoint = $this->user_custom_url;
+        $this->api_key = $this->user_api_key;
 
         $this->testGatewayConnection();
         $this->fetchConsoleLogs();

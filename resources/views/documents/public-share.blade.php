@@ -153,6 +153,9 @@
                                 <a href="{{ route('public.export', ['token' => $share->share_token, 'format' => 'docx']) }}" class="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white/10 hover:text-white transition-colors">
                                     <span>📘 Word (.doc)</span>
                                 </a>
+                                <a href="{{ route('public.export', ['token' => $share->share_token, 'format' => 'json']) }}" class="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white/10 hover:text-white transition-colors">
+                                    <span>📦 JSON AST (.json)</span>
+                                </a>
                             </div>
                         </div>
                     @endif

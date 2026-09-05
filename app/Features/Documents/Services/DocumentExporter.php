@@ -256,4 +256,42 @@ HTML;
 </html>
 XML;
     }
+
+    /**
+     * Export document as formatted JSON AST with schema metadata
+     */
+    public function exportJson(Document $document): string
+    {
+        $json = $document->content->content_json ?? null;
+        $title = $document->title;
+        $wordCount = $document->word_count;
+        $readingTime = $document->reading_time_minutes;
+
+        $ast = null;
+        if (!empty($json)) {
+            $ast = is_string($json) ? json_decode($json, true) : $json;
+        }
+
+        $payload = [
+            'schema' => 'https://json-schema.org/draft/2020-12/schema',
+            'generator' => 'HelpOfAi Studio Document Engine',
+            'version' => '2.7.4',
+            'document' => [
+                'id' => $document->id,
+                'title' => $title,
+                'slug' => $document->slug,
+                'status' => $document->status,
+                'word_count' => $wordCount,
+                'character_count' => $document->character_count,
+                'reading_time_minutes' => $readingTime,
+                'created_at' => $document->created_at?->toIso8601String(),
+                'updated_at' => $document->updated_at?->toIso8601String(),
+            ],
+            'ast' => $ast,
+            'html' => $document->content->content_html ?? '',
+            'plain_text' => $document->content->content_plain ?? '',
+        ];
+
+        return json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+    }
 }

@@ -143,22 +143,137 @@
                 x-transition:enter="transition ease-out duration-150"
                 x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                class="absolute right-0 mt-2 w-52 rounded-2xl bg-slate-900/98 border border-white/20 p-2 shadow-2xl z-[100] space-y-1 backdrop-blur-2xl"
+                class="absolute right-0 mt-2 w-64 rounded-2xl bg-slate-900/98 border border-white/20 p-2.5 shadow-2xl z-[100] space-y-1.5 backdrop-blur-2xl"
                 style="display: none;"
             >
-                <div class="px-2 py-1 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Export Document As</div>
-                <a href="{{ route('documents.export', ['id' => $document->id, 'format' => 'html']) }}" class="flex items-center gap-2.5 p-2 rounded-xl text-xs text-slate-200 hover:bg-white/10 transition-colors">
-                    <span>🌐</span> HTML Webpage
+                <!-- Live Copy Notification Toast inside menu -->
+                <div 
+                    x-show="copyStatusText" 
+                    x-cloak
+                    x-transition
+                    class="px-2.5 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-semibold flex items-center justify-center gap-1.5 animate-pulse"
+                >
+                    <span>✓</span>
+                    <span x-text="copyStatusText"></span>
+                </div>
+
+                <div class="px-2 py-0.5 text-[10px] uppercase font-bold text-slate-500 tracking-wider flex items-center justify-between">
+                    <span>File Downloads</span>
+                    <span class="text-[9px] text-slate-600 font-mono">UTF-8</span>
+                </div>
+
+                <a 
+                    href="{{ route('documents.export', ['id' => $document->id, 'format' => 'md']) }}" 
+                    x-on:click="if (isDirty) performAutosave()"
+                    class="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-slate-200 hover:bg-white/10 hover:text-white transition-colors group"
+                >
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-base group-hover:scale-110 transition-transform">📝</span>
+                        <span class="font-medium">Markdown</span>
+                    </div>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono text-slate-400 bg-white/5 border border-white/10">.md</span>
                 </a>
-                <a href="{{ route('documents.export', ['id' => $document->id, 'format' => 'md']) }}" class="flex items-center gap-2.5 p-2 rounded-xl text-xs text-slate-200 hover:bg-white/10 transition-colors">
-                    <span>📝</span> Markdown (.md)
+
+                <a 
+                    href="{{ route('documents.export', ['id' => $document->id, 'format' => 'html']) }}" 
+                    x-on:click="if (isDirty) performAutosave()"
+                    class="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-slate-200 hover:bg-white/10 hover:text-white transition-colors group"
+                >
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-base group-hover:scale-110 transition-transform">🌐</span>
+                        <span class="font-medium">HTML Webpage</span>
+                    </div>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">.html</span>
                 </a>
-                <a href="{{ route('documents.export', ['id' => $document->id, 'format' => 'txt']) }}" class="flex items-center gap-2.5 p-2 rounded-xl text-xs text-slate-200 hover:bg-white/10 transition-colors">
-                    <span>📄</span> Plain Text (.txt)
+
+                <a 
+                    href="{{ route('documents.export', ['id' => $document->id, 'format' => 'docx']) }}" 
+                    x-on:click="if (isDirty) performAutosave()"
+                    class="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-slate-200 hover:bg-white/10 hover:text-white transition-colors group"
+                >
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-base group-hover:scale-110 transition-transform">📘</span>
+                        <span class="font-medium">Word Document</span>
+                    </div>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono text-blue-400 bg-blue-500/10 border border-blue-500/20">.docx</span>
                 </a>
-                <a href="{{ route('documents.export', ['id' => $document->id, 'format' => 'json']) }}" class="flex items-center gap-2.5 p-2 rounded-xl text-xs text-slate-200 hover:bg-white/10 transition-colors">
-                    <span>📦</span> JSON AST
+
+                <a 
+                    href="{{ route('documents.export', ['id' => $document->id, 'format' => 'txt']) }}" 
+                    x-on:click="if (isDirty) performAutosave()"
+                    class="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-slate-200 hover:bg-white/10 hover:text-white transition-colors group"
+                >
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-base group-hover:scale-110 transition-transform">📄</span>
+                        <span class="font-medium">Plain Text</span>
+                    </div>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono text-slate-400 bg-white/5 border border-white/10">.txt</span>
                 </a>
+
+                <a 
+                    href="{{ route('documents.export', ['id' => $document->id, 'format' => 'json']) }}" 
+                    x-on:click="if (isDirty) performAutosave()"
+                    class="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-slate-200 hover:bg-white/10 hover:text-white transition-colors group"
+                >
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-base group-hover:scale-110 transition-transform">📦</span>
+                        <span class="font-medium">JSON AST</span>
+                    </div>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20">.json</span>
+                </a>
+
+                <!-- Print & PDF Section -->
+                <div class="border-t border-white/10 my-1 pt-1"></div>
+                <div class="px-2 py-0.5 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Print & PDF</div>
+                <a 
+                    href="{{ route('documents.print-pdf', ['id' => $document->id]) }}" 
+                    target="_blank"
+                    x-on:click="if (isDirty) performAutosave()"
+                    class="flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-slate-200 hover:bg-white/10 hover:text-white transition-colors group"
+                >
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-base group-hover:scale-110 transition-transform">🖨️</span>
+                        <span class="font-medium">Print / Save as PDF</span>
+                    </div>
+                    <span class="px-1.5 py-0.5 rounded text-[10px] font-mono text-purple-400 bg-purple-500/10 border border-purple-500/20">.pdf</span>
+                </a>
+
+                <!-- Quick Clipboard Copy Section -->
+                <div class="border-t border-white/10 my-1 pt-1"></div>
+                <div class="px-2 py-0.5 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Quick Copy</div>
+                <button 
+                    type="button"
+                    x-on:click="copyDocumentContent('markdown')"
+                    class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-slate-300 hover:bg-white/10 hover:text-white transition-colors text-left cursor-pointer group"
+                >
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-sm group-hover:scale-110 transition-transform">📋</span>
+                        <span>Copy Markdown</span>
+                    </div>
+                    <span class="text-[10px] text-slate-500 font-mono">Clip</span>
+                </button>
+                <button 
+                    type="button"
+                    x-on:click="copyDocumentContent('html')"
+                    class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-slate-300 hover:bg-white/10 hover:text-white transition-colors text-left cursor-pointer group"
+                >
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-sm group-hover:scale-110 transition-transform">📋</span>
+                        <span>Copy HTML</span>
+                    </div>
+                    <span class="text-[10px] text-slate-500 font-mono">Clip</span>
+                </button>
+                <button 
+                    type="button"
+                    x-on:click="copyDocumentContent('text')"
+                    class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs text-slate-300 hover:bg-white/10 hover:text-white transition-colors text-left cursor-pointer group"
+                >
+                    <div class="flex items-center gap-2.5">
+                        <span class="text-sm group-hover:scale-110 transition-transform">📋</span>
+                        <span>Copy Plain Text</span>
+                    </div>
+                    <span class="text-[10px] text-slate-500 font-mono">Clip</span>
+                </button>
             </div>
         </div>
     </div>
