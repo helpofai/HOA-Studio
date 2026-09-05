@@ -87,4 +87,9 @@ class Document extends Model
     {
         return $this->hasMany(DocumentShare::class);
     }
+
+    public function blogPost(): HasOne
+    {
+        return $this->hasOne(\App\Features\Blog\Models\BlogPost::class);
+    }
 }

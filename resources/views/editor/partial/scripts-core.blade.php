@@ -92,7 +92,7 @@ readingTime: 1,
 
 showLeftPanel: localStorage.getItem('hoa_editor_show_left_panel') !== null ? (localStorage.getItem('hoa_editor_show_left_panel') === 'true') : true,
 showRightPanel: localStorage.getItem('hoa_editor_show_right_panel') !== null ? (localStorage.getItem('hoa_editor_show_right_panel') === 'true') : true,
-rightTab: 'seo',
+rightTab: 'post',
 targetWordGoal: 1200,
 serpView: 'desktop',
 

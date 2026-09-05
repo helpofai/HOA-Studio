@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.7.6] - 2026-09-05
 
 ### Added
+- **Public Blog Post Publishing System & Reader Platform (`/blog`):**
+  - Integrated public blog directory (`/blog`) with ambient lighting, search, category filter badges, pagination, and sticky spotlight hero cards.
+  - Built article reader page (`/blog/{slug}`) with reading time estimates, table of contents, author profile cards, and related posts.
+  - Added dashboard Blog Manager (`/dashboard/blog`) for authors to manage, draft, publish, and delete blog posts with Livewire 3 reactivity.
+  - Added defensive database migration `2026_09_05_000001_create_blog_posts_table.php` with safe existence checks.
+- **WordPress-Style Post Settings Tab & Publishing Suite (Section 1):**
+  - Added dedicated **Post** tab positioned as Section 1 in the Content Intelligence sidebar with default active focus.
+  - Featured Image manager with live thumbnail preview, custom URL input, presets, and 1-click removal.
+  - WordPress-style Category checklist with radio selectors, primary badge, and inline "+ Add New Category" creator.
+  - Interactive Tag chips with Enter key addition, removal buttons, and quick popular suggestions.
+  - AI Excerpt generator and live slug/permalink editor with 1-click URL copying.
+  - Status & Visibility controls (`published` / `draft`, sticky spotlight hero toggle).
+  - Header toolbar blog publishing shortcut with synchronization to sidebar Section 1.
 - **Codebase Snapshot Restore Points Bulk Selection Suite:**
   - Added multi-select checkbox controls to restore points table with reactive row highlighting (`bg-violet-600/15 border-l-2 border-violet-500`).
   - Added glassmorphic **Bulk Select** preset options dropdown (Select All, Select Auto Updates, Select Manual Snapshots, and Clear Selection).

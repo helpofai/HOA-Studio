@@ -36,14 +36,20 @@ use App\Features\Auth\Livewire\RegisterPage;
 use App\Features\Dashboard\Livewire\DashboardPage;
 use App\Features\Documents\Livewire\DocumentEditor;
 use App\Features\Documents\Livewire\DocumentsPage;
+use App\Features\Blog\Livewire\BlogIndexPage;
+use App\Features\Blog\Livewire\BlogPostPage;
+use App\Features\Blog\Livewire\BlogManagerPage;
 use App\Features\Projects\Livewire\ProjectsPage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-// Public Landing Page
+// Public Landing Page & Blog Routes
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
+
+Route::get('/blog', BlogIndexPage::class)->name('blog.index');
+Route::get('/blog/{slug}', BlogPostPage::class)->name('blog.show');
 
 // Guest Authentication Routes
 Route::middleware('guest')->group(function () {
@@ -65,6 +71,7 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::get('/editor', \App\Features\Documents\Http\Controllers\OpenEditorController::class)->name('editor');
     Route::get('/documents', DocumentsPage::class)->name('documents.index');
     Route::get('/documents/{id}', DocumentEditor::class)->name('documents.editor');
+    Route::get('/blog', BlogManagerPage::class)->name('dashboard.blog');
     Route::get('/templates', TemplatesHubPage::class)->name('templates.index');
     Route::get('/brand-voices', BrandVoicePage::class)->name('brand-voices.index');
     Route::get('/knowledge-base', KnowledgeBasePage::class)->name('knowledge-base.index');

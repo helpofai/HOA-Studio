@@ -26,6 +26,9 @@
 namespace App\Features\Documents\Livewire;
 
 use App\Features\AI\Models\AiProvider;
+use App\Features\Blog\Actions\PublishDocumentToBlog;
+use App\Features\Blog\Actions\UnpublishDocumentFromBlog;
+use App\Features\Blog\Models\BlogPost;
 use App\Features\Documents\Actions\CreateDocumentShare;
 use App\Features\Documents\Actions\RestoreDocumentVersion;
 use App\Features\Documents\Actions\RevokeDocumentShare;
@@ -98,6 +101,21 @@ class DocumentEditor extends Component
     public array $aiContentGaps = [];
     public ?array $aiQualityAudit = null;
 
+    // Blog Publishing State
+    public bool $showBlogModal = false;
+    public bool $isPublishedToBlog = false;
+    public ?int $blogPostId = null;
+    public string $blogTitle = '';
+    public string $blogSlug = '';
+    public string $blogCategory = 'Artificial Intelligence';
+    public string $blogTags = '';
+    public string $blogFeaturedImage = '';
+    public string $blogExcerpt = '';
+    public string $blogStatus = 'published';
+    public bool $blogIsFeatured = false;
+    public ?string $blogPublishedUrl = null;
+    public int $blogViewsCount = 0;
+
     public function mount(int $id, SeoAnalyzer $analyzer)
     {
         $document = Document::with(['content', 'project'])
@@ -133,6 +151,7 @@ class DocumentEditor extends Component
         );
 
         $this->generateQualityAudit();
+        $this->loadBlogState();
     }
 
     #[On('autosave')]
@@ -805,7 +824,129 @@ class DocumentEditor extends Component
         session()->flash('share_status', 'Share link has been revoked.');
     }
 
-public function render()
+    // ==========================================
+    // Blog Publishing System
+    // ==========================================
+
+    public function openBlogModal(): void
+    {
+        $this->loadBlogState();
+        $this->showBlogModal = true;
+    }
+
+    public function loadBlogState(): void
+    {
+        $post = BlogPost::where('document_id', $this->documentId)->first();
+
+        if ($post) {
+            $this->isPublishedToBlog = ($post->status === 'published');
+            $this->blogPostId = $post->id;
+            $this->blogTitle = $post->title;
+            $this->blogSlug = $post->slug;
+            $this->blogCategory = $post->category ?: 'Artificial Intelligence';
+            $this->blogTags = implode(', ', $post->tags ?? []);
+            $this->blogFeaturedImage = $post->featured_image ?? '';
+            $this->blogExcerpt = $post->excerpt ?? '';
+            $this->blogStatus = $post->status;
+            $this->blogIsFeatured = (bool) $post->is_featured;
+            $this->blogViewsCount = (int) $post->views_count;
+            $this->blogPublishedUrl = route('blog.show', $post->slug);
+        } else {
+            $this->isPublishedToBlog = false;
+            $this->blogPostId = null;
+            $this->blogTitle = $this->title ?: 'Untitled Article';
+            $this->blogSlug = BlogPost::generateUniqueSlug($this->title ?: 'article');
+            $this->blogCategory = 'Artificial Intelligence';
+            $this->blogTags = '';
+            $this->blogFeaturedImage = '';
+            $plain = trim(strip_tags($this->contentHtml));
+            $this->blogExcerpt = \Illuminate\Support\Str::limit(preg_replace('/\s+/', ' ', $plain), 220);
+            $this->blogStatus = 'published';
+            $this->blogIsFeatured = false;
+            $this->blogViewsCount = 0;
+            $this->blogPublishedUrl = null;
+        }
+    }
+
+    public function generateBlogExcerpt(): void
+    {
+        $plain = trim(strip_tags($this->contentHtml));
+        $this->blogExcerpt = \Illuminate\Support\Str::limit(preg_replace('/\s+/', ' ', $plain), 240);
+        session()->flash('blog_status', 'Excerpt auto-generated from current document content.');
+    }
+
+    public function publishToBlog(PublishDocumentToBlog $action): void
+    {
+        $user = Auth::user();
+        $document = Document::with('content')->where('user_id', $user->id)->findOrFail($this->documentId);
+
+        $this->validate([
+            'blogTitle' => 'required|string|min:3|max:255',
+            'blogCategory' => 'required|string|max:100',
+            'blogSlug' => 'nullable|string|max:255',
+        ]);
+
+        $tags = array_filter(array_map('trim', explode(',', $this->blogTags)));
+
+        $post = $action->execute($document, $user, [
+            'title' => $this->blogTitle,
+            'slug' => $this->blogSlug,
+            'excerpt' => $this->blogExcerpt,
+            'content_html' => $this->contentHtml,
+            'featured_image' => $this->blogFeaturedImage ?: null,
+            'category' => $this->blogCategory,
+            'tags' => $tags,
+            'status' => $this->blogStatus,
+            'is_featured' => $this->blogIsFeatured,
+        ]);
+
+        $this->loadBlogState();
+        session()->flash('blog_status', "Article successfully published! Live at: {$post->public_url}");
+    }
+
+    public function unpublishFromBlog(UnpublishDocumentFromBlog $action): void
+    {
+        $user = Auth::user();
+        $document = Document::where('user_id', $user->id)->findOrFail($this->documentId);
+
+        $action->execute($document);
+        $this->loadBlogState();
+        session()->flash('blog_status', 'Article has been unpublished and moved to draft.');
+    }
+
+    public function removeFeaturedImage(): void
+    {
+        $this->blogFeaturedImage = '';
+        session()->flash('blog_status', 'Featured image removed.');
+    }
+
+    public function setBlogCategory(string $category): void
+    {
+        $this->blogCategory = $category;
+    }
+
+    public function addBlogTag(string $tag): void
+    {
+        $tag = trim($tag);
+        if (empty($tag)) {
+            return;
+        }
+
+        $existingTags = array_filter(array_map('trim', explode(',', $this->blogTags)));
+        if (!in_array($tag, $existingTags)) {
+            $existingTags[] = $tag;
+            $this->blogTags = implode(', ', $existingTags);
+        }
+    }
+
+    public function removeBlogTag(string $tagToRemove): void
+    {
+        $existingTags = array_filter(array_map('trim', explode(',', $this->blogTags)));
+        $filtered = array_values(array_filter($existingTags, fn($t) => strcasecmp($t, trim($tagToRemove)) !== 0));
+        $this->blogTags = implode(', ', $filtered);
+    }
+
+    public function render()
     {
         $document = Document::with(['versions.creator', 'project'])->findOrFail($this->documentId);
         $projects = Project::where('user_id', Auth::id())->get();
@@ -820,12 +961,15 @@ public function render()
             ->orderBy('name')
             ->get(['id', 'name', 'slug', 'is_local']);
 
+        $blogCategories = BlogPost::defaultCategories();
+
         return view('documents.editor', [
             'document'           => $document,
             'projects'           => $projects,
             'availableEditors'   => $availableEditors,
             'availableAiModels'  => $availableAiModels,
             'availableProviders' => $availableProviders,
+            'blogCategories'     => $blogCategories,
         ]);
     }
 }

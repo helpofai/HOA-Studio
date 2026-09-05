@@ -181,6 +181,29 @@
                             </div>
                         </a>
 
+                        <!-- Blog Articles -->
+                        <a 
+                            href="{{ route('dashboard.blog') }}" 
+                            wire:navigate
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('dashboard.blog') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
+                        >
+                            <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">📰</span>
+                            <span 
+                                x-show="!collapsed" 
+                                x-transition:enter="transition-all duration-300 ease-out"
+                                x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
+                                x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
+                                x-transition:leave="transition-all duration-150 ease-in"
+                                x-transition:leave-start="opacity-100 translate-x-0 max-w-[180px]"
+                                x-transition:leave-end="opacity-0 -translate-x-2 max-w-0"
+                                class="truncate overflow-hidden whitespace-nowrap text-[13.5px]"
+                            >Blog Articles</span>
+
+                            <div x-show="collapsed" class="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-slate-900/95 border border-white/15 text-white text-xs font-semibold shadow-xl backdrop-blur-md opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 z-50 whitespace-nowrap">
+                                Blog Articles
+                            </div>
+                        </a>
+
                         <!-- Projects -->
                         <a 
                             href="{{ route('projects.index') }}" 
