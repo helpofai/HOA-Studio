@@ -136,4 +136,123 @@ class AdminUserManagementTest extends TestCase
             'id' => $this->targetUser->id,
         ]);
     }
+
+    public function test_non_admin_cannot_access_user_management()
+    {
+        $response = $this->actingAs($this->targetUser)->get(route('admin.users'));
+        $response->assertStatus(403);
+    }
+
+    public function test_admin_can_use_bulk_selection_and_grant_bonus()
+    {
+        $user2 = User::factory()->create([
+            'role' => 'user',
+            'plan' => 'starter',
+            'bonus_word_quota' => 0,
+        ]);
+
+        $this->actingAs($this->admin);
+
+        Livewire::test(AdminUsersPage::class)
+            ->set('selectedUsers', [$this->targetUser->id, $user2->id])
+            ->call('bulkGrantBonus', 25000)
+            ->assertHasNoErrors();
+
+        $this->targetUser->refresh();
+        $user2->refresh();
+
+        $this->assertEquals(25000, $this->targetUser->bonus_word_quota);
+        $this->assertEquals(25000, $user2->bonus_word_quota);
+    }
+
+    public function test_admin_can_bulk_assign_role_and_plan()
+    {
+        $user2 = User::factory()->create([
+            'role' => 'user',
+            'plan' => 'starter',
+        ]);
+
+        $this->actingAs($this->admin);
+
+        Livewire::test(AdminUsersPage::class)
+            ->set('selectedUsers', [$this->targetUser->id, $user2->id])
+            ->call('bulkAssignRole', 'pro')
+            ->set('selectedUsers', [$this->targetUser->id, $user2->id])
+            ->call('bulkChangePlan', 'pro')
+            ->assertHasNoErrors();
+
+        $this->targetUser->refresh();
+        $user2->refresh();
+
+        $this->assertEquals('pro', $this->targetUser->role);
+        $this->assertEquals('pro', $this->targetUser->plan);
+        $this->assertEquals('pro', $user2->role);
+        $this->assertEquals('pro', $user2->plan);
+    }
+
+    public function test_admin_can_bulk_reset_used_quota()
+    {
+        $this->targetUser->update(['used_word_quota' => 8500]);
+
+        $this->actingAs($this->admin);
+
+        Livewire::test(AdminUsersPage::class)
+            ->set('selectedUsers', [$this->targetUser->id])
+            ->call('bulkResetUsedQuota')
+            ->assertHasNoErrors();
+
+        $this->targetUser->refresh();
+        $this->assertEquals(0, $this->targetUser->used_word_quota);
+    }
+
+    public function test_admin_cannot_delete_self_in_bulk_delete()
+    {
+        $this->actingAs($this->admin);
+
+        Livewire::test(AdminUsersPage::class)
+            ->set('selectedUsers', [$this->admin->id, $this->targetUser->id])
+            ->call('bulkDeleteUsers')
+            ->assertHasNoErrors();
+
+        // Admin must still exist
+        $this->assertDatabaseHas('users', ['id' => $this->admin->id]);
+        // Target user is deleted
+        $this->assertDatabaseMissing('users', ['id' => $this->targetUser->id]);
+    }
+
+    public function test_admin_can_view_roles_matrix_tab()
+    {
+        $this->actingAs($this->admin);
+
+        Livewire::test(AdminUsersPage::class)
+            ->set('activeTab', 'roles')
+            ->assertSee('Roles, Access Limits')
+            ->assertSee('Administrator')
+            ->assertSee('Editor')
+            ->assertSee('Pro')
+            ->assertSee('User')
+            ->assertSee('Member');
+    }
+
+    public function test_admin_can_export_users_csv()
+    {
+        $this->actingAs($this->admin);
+
+        $component = Livewire::test(AdminUsersPage::class)
+            ->call('exportSelectedCsv');
+
+        $this->assertNotNull($component);
+    }
+
+    public function test_admin_can_export_users_json()
+    {
+        $this->actingAs($this->admin);
+
+        $component = Livewire::test(AdminUsersPage::class)
+            ->call('exportSelectedJson');
+
+        $this->assertNotNull($component);
+    }
 }
+
+
