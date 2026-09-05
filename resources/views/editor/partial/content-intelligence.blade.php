@@ -41,6 +41,9 @@
 
         <!-- Responsive Multi-Row Tab Navigation Grid -->
         <div class="grid grid-cols-4 gap-1 p-1.5 rounded-2xl bg-slate-950/90 border border-white/10 text-xs font-mono select-none shadow-inner backdrop-blur-md">
+            <button type="button" x-on:click="rightTab = 'post'" :class="rightTab === 'post' ? 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-white font-bold shadow-md shadow-indigo-600/30 border border-indigo-400/50' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" class="py-2 px-1 rounded-xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5" title="Post Settings (Featured Image, Categories, Tags)">
+                <span class="text-sm">📝</span><span class="text-[10px] font-bold truncate w-full">Post</span>
+            </button>
             <button type="button" x-on:click="rightTab = 'seo'" :class="rightTab === 'seo' ? 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-white font-bold shadow-md shadow-indigo-600/30 border border-indigo-400/50' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" class="py-2 px-1 rounded-xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5" title="Rank Math 100/100 SEO Audit">
                 <span class="text-sm">🎯</span><span class="text-[10px] font-bold truncate w-full">SEO</span>
             </button>
@@ -65,6 +68,7 @@
         </div>
 
         {{-- Tab Content Panels (each tab is a dedicated sub-partial for clean maintainability) --}}
+        @include('editor.partial.Components.content-intelligence-tab-post')
         @include('editor.partial.Components.content-intelligence-tab-seo')
         @include('editor.partial.Components.content-intelligence-tab-titles-meta')
         @include('editor.partial.Components.content-intelligence-tab-ai-ideas')

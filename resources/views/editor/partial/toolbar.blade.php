@@ -112,6 +112,21 @@
             </button>
         </div>
 
+        <!-- Blog Publishing Button -->
+        <button 
+            type="button" 
+            wire:click="openBlogModal" 
+            x-on:click="if (!showRightPanel) { toggleRightPanel(); } rightTab = 'post'"
+            class="px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 {{ $isPublishedToBlog ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300 shadow-md shadow-emerald-500/15 ring-1 ring-emerald-500/30' : 'bg-slate-900/90 border-white/10 hover:border-violet-500/40 text-slate-300 hover:text-white' }}"
+            title="{{ $isPublishedToBlog ? 'Article is Live on Blog — Click to manage post' : 'Publish this article to the public Blog' }}"
+        >
+            <span>📰</span>
+            <span class="hidden sm:inline">{{ $isPublishedToBlog ? 'Blog Post' : 'Post to Blog' }}</span>
+            @if($isPublishedToBlog)
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            @endif
+        </button>
+
         <!-- Share & Public Link Button -->
         <button 
             type="button" 
