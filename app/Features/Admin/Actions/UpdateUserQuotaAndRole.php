@@ -56,8 +56,16 @@ class UpdateUserQuotaAndRole
             $user->used_word_quota = (int) $data['used_word_quota'];
         }
 
+        if (isset($data['bonus_word_quota'])) {
+            $user->bonus_word_quota = max(0, (int) $data['bonus_word_quota']);
+        }
+
         if (isset($data['is_active'])) {
             $user->is_active = (bool) $data['is_active'];
+        }
+
+        if (isset($data['email_verified'])) {
+            $user->email_verified_at = $data['email_verified'] ? ($user->email_verified_at ?: now()) : null;
         }
 
         if (!empty($data['password'])) {
