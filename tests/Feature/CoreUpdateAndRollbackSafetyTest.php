@@ -17,10 +17,12 @@
 
 namespace Tests\Feature;
 
+use App\Features\Admin\Livewire\AdminUpdatesPage;
 use App\Features\Admin\Services\CoreUpdateService;
 use App\Features\Admin\Services\HealthProberService;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class CoreUpdateAndRollbackSafetyTest extends TestCase
@@ -105,5 +107,54 @@ class CoreUpdateAndRollbackSafetyTest extends TestCase
         $appended = $service->syncEnvVariables();
 
         $this->assertIsArray($appended);
+    }
+
+    public function test_admin_can_bulk_delete_restore_snapshots()
+    {
+        $service = app(CoreUpdateService::class);
+        $s1 = $service->createRestorePoint('Test Snapshot 1');
+        $s2 = $service->createRestorePoint('Test Snapshot 2');
+
+        $initialPoints = $service->getRestorePoints();
+        $this->assertGreaterThanOrEqual(2, count($initialPoints));
+
+        $deletedCount = $service->deleteRestorePoints([$s1['id'], $s2['id']]);
+        $this->assertEquals(2, $deletedCount);
+
+        $remainingPoints = $service->getRestorePoints();
+        $ids = array_column($remainingPoints, 'id');
+        $this->assertNotContains($s1['id'], $ids);
+        $this->assertNotContains($s2['id'], $ids);
+    }
+
+    public function test_admin_can_prune_older_restore_snapshots()
+    {
+        $service = app(CoreUpdateService::class);
+        $service->createRestorePoint('Snapshot A');
+        $service->createRestorePoint('Snapshot B');
+        $service->createRestorePoint('Snapshot C');
+        $service->createRestorePoint('Snapshot D');
+
+        $pruned = $service->pruneOlderRestorePoints(2);
+        $this->assertGreaterThanOrEqual(2, $pruned);
+
+        $points = $service->getRestorePoints();
+        $this->assertLessThanOrEqual(2, count($points));
+    }
+
+    public function test_livewire_bulk_selection_and_deletion()
+    {
+        $service = app(CoreUpdateService::class);
+        $s1 = $service->createRestorePoint('Bulk Test 1');
+        $s2 = $service->createRestorePoint('Bulk Test 2');
+
+        Livewire::actingAs($this->admin)
+            ->test(AdminUpdatesPage::class)
+            ->set('selectAll', true)
+            ->assertSet('selectAll', true)
+            ->call('selectAllRestorePoints')
+            ->call('bulkDeleteRestorePoints')
+            ->assertSet('selectedRestorePoints', [])
+            ->assertSet('selectAll', false);
     }
 }

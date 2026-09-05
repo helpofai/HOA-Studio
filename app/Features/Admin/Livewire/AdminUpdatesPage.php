@@ -31,6 +31,8 @@ class AdminUpdatesPage extends Component
     public array $updateInfo = [];
     public array $versionMeta = [];
     public array $restorePoints = [];
+    public array $selectedRestorePoints = [];
+    public bool $selectAll = false;
     public array $dbSnapshots = [];
     public array $dbDetails = [];
     public array $migrationsData = [];
@@ -196,6 +198,143 @@ class AdminUpdatesPage extends Component
         } catch (\Throwable $e) {
             $this->feedbackType = 'error';
             $this->feedbackMessage = "Failed to delete snapshot: {$e->getMessage()}";
+        }
+    }
+
+    public function updatedSelectAll($value)
+    {
+        if ($value) {
+            $this->selectedRestorePoints = array_values(array_column($this->restorePoints, 'id'));
+        } else {
+            $this->selectedRestorePoints = [];
+        }
+    }
+
+    public function updatedSelectedRestorePoints()
+    {
+        $total = count($this->restorePoints);
+        $this->selectAll = ($total > 0 && count($this->selectedRestorePoints) === $total);
+    }
+
+    public function clearSelectedRestorePoints()
+    {
+        $this->selectedRestorePoints = [];
+        $this->selectAll = false;
+    }
+
+    public function selectAllRestorePoints()
+    {
+        $this->selectedRestorePoints = array_values(array_column($this->restorePoints, 'id'));
+        $this->selectAll = true;
+    }
+
+    public function selectAutoSnapshots()
+    {
+        $this->selectedRestorePoints = [];
+        foreach ($this->restorePoints as $rp) {
+            $label = strtolower($rp['label'] ?? '');
+            if (str_contains($label, 'pre-update') || str_contains($label, 'auto') || ($rp['type'] ?? '') === 'auto') {
+                $this->selectedRestorePoints[] = $rp['id'];
+            }
+        }
+        $total = count($this->restorePoints);
+        $this->selectAll = ($total > 0 && count($this->selectedRestorePoints) === $total);
+    }
+
+    public function selectManualSnapshots()
+    {
+        $this->selectedRestorePoints = [];
+        foreach ($this->restorePoints as $rp) {
+            $label = strtolower($rp['label'] ?? '');
+            if (str_contains($label, 'manual') || str_contains($label, 'admin')) {
+                $this->selectedRestorePoints[] = $rp['id'];
+            }
+        }
+        $total = count($this->restorePoints);
+        $this->selectAll = ($total > 0 && count($this->selectedRestorePoints) === $total);
+    }
+
+    public function getSelectedSizeMb(): float
+    {
+        $total = 0.0;
+        foreach ($this->restorePoints as $rp) {
+            if (in_array($rp['id'], $this->selectedRestorePoints, true)) {
+                $total += (float) ($rp['file_size_mb'] ?? 0);
+            }
+        }
+        return round($total, 2);
+    }
+
+    public function bulkDeleteRestorePoints(CoreUpdateService $updateService)
+    {
+        if (empty($this->selectedRestorePoints)) {
+            $this->feedbackType = 'error';
+            $this->feedbackMessage = 'No restore snapshots selected for deletion.';
+            return;
+        }
+
+        $count = count($this->selectedRestorePoints);
+        $freedMb = $this->getSelectedSizeMb();
+
+        try {
+            $deleted = $updateService->deleteRestorePoints($this->selectedRestorePoints);
+            $this->restorePoints = $updateService->getRestorePoints();
+            $this->selectedRestorePoints = [];
+            $this->selectAll = false;
+            $this->feedbackType = 'success';
+            $this->feedbackMessage = "Successfully deleted {$deleted} snapshot(s) and freed ~{$freedMb} MB disk space.";
+            $this->updateLogs[] = [
+                'time' => date('H:i:s'),
+                'type' => 'success',
+                'message' => "Bulk deleted {$deleted} restore snapshot(s) (~{$freedMb} MB freed)",
+            ];
+        } catch (\Throwable $e) {
+            $this->feedbackType = 'error';
+            $this->feedbackMessage = "Bulk deletion failed: {$e->getMessage()}";
+        }
+    }
+
+    public function bulkDownloadRestorePoints(CoreUpdateService $updateService)
+    {
+        if (empty($this->selectedRestorePoints)) {
+            $this->feedbackType = 'error';
+            $this->feedbackMessage = 'No restore snapshots selected for download.';
+            return;
+        }
+
+        if (count($this->selectedRestorePoints) === 1) {
+            return $this->downloadRestorePoint($this->selectedRestorePoints[0], $updateService);
+        }
+
+        $bundle = $updateService->bundleRestorePoints($this->selectedRestorePoints);
+        if (!$bundle || !file_exists($bundle)) {
+            $this->feedbackType = 'error';
+            $this->feedbackMessage = 'Failed to generate bulk snapshot archive bundle.';
+            return;
+        }
+
+        return response()->download($bundle, basename($bundle), [
+            'Content-Type' => 'application/zip',
+        ]);
+    }
+
+    public function pruneOlderRestorePoints(CoreUpdateService $updateService, int $keep = 3)
+    {
+        try {
+            $deleted = $updateService->pruneOlderRestorePoints($keep);
+            $this->restorePoints = $updateService->getRestorePoints();
+            $this->selectedRestorePoints = [];
+            $this->selectAll = false;
+            $this->feedbackType = 'success';
+            $this->feedbackMessage = "Pruned older snapshots. Retained {$keep} latest snapshot(s) and deleted {$deleted} older snapshot(s).";
+            $this->updateLogs[] = [
+                'time' => date('H:i:s'),
+                'type' => 'info',
+                'message' => "Pruned older snapshots: retained {$keep} latest, removed {$deleted}",
+            ];
+        } catch (\Throwable $e) {
+            $this->feedbackType = 'error';
+            $this->feedbackMessage = "Pruning failed: {$e->getMessage()}";
         }
     }
 

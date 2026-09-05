@@ -405,19 +405,192 @@
         </div>
 
         <!-- Full Codebase Snapshot Restore Points -->
-        <div class="space-y-4">
-            <div class="flex items-center justify-between">
-                <h3 class="text-base font-bold text-white tracking-tight flex items-center gap-2">
-                    <span>⏱️ Codebase Snapshot Restore Points</span>
-                    <span class="text-xs font-mono text-slate-500">({{ count($restorePoints) }} saved)</span>
-                </h3>
+        <div class="space-y-4" x-data="{ optionsOpen: false }">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <h3 class="text-base font-bold text-white tracking-tight flex items-center gap-2">
+                        <span>⏱️ Codebase Snapshot Restore Points</span>
+                    </h3>
+                    <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-slate-800/80 text-slate-400 border border-white/10">
+                        {{ count($restorePoints) }} saved
+                    </span>
+                    @php
+                        $totalDiskMb = array_sum(array_column($restorePoints, 'file_size_mb'));
+                    @endphp
+                    @if($totalDiskMb > 0)
+                        <span class="text-[11px] font-mono px-2 py-0.5 rounded-full bg-violet-950/60 text-violet-300 border border-violet-500/30">
+                            📦 {{ round($totalDiskMb, 1) }} MB total
+                        </span>
+                    @endif
+                </div>
+
+                <!-- Top Quick Action Buttons & Selection Presets -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <!-- Selection Presets Dropdown -->
+                    @if(count($restorePoints) > 0)
+                        <div class="relative" x-data="{ open: false }">
+                            <button 
+                                type="button" 
+                                @click="open = !open" 
+                                @click.outside="open = false"
+                                class="px-3 py-1.5 rounded-xl bg-slate-900 border border-white/10 hover:border-violet-500/40 text-xs font-semibold text-slate-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+                            >
+                                <span>☑️ Bulk Select</span>
+                                <svg class="w-3.5 h-3.5 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+
+                            <div 
+                                x-show="open" 
+                                x-transition:enter="transition ease-out duration-100"
+                                x-transition:enter-start="transform opacity-0 scale-95"
+                                x-transition:enter-end="transform opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-75"
+                                x-transition:leave-start="transform opacity-100 scale-100"
+                                x-transition:leave-end="transform opacity-0 scale-95"
+                                class="absolute right-0 mt-2 w-52 rounded-2xl bg-slate-900/98 border border-white/20 p-2 shadow-2xl z-30 space-y-1 backdrop-blur-2xl text-xs"
+                                style="display: none;"
+                            >
+                                <button 
+                                    type="button" 
+                                    wire:click="selectAllRestorePoints" 
+                                    @click="open = false" 
+                                    class="w-full text-left px-3 py-1.5 rounded-lg hover:bg-violet-600/20 text-slate-300 hover:text-white transition-colors flex items-center justify-between cursor-pointer"
+                                >
+                                    <span>Select All</span>
+                                    <span class="font-mono text-[10px] text-slate-500">{{ count($restorePoints) }}</span>
+                                </button>
+                                <button 
+                                    type="button" 
+                                    wire:click="selectAutoSnapshots" 
+                                    @click="open = false" 
+                                    class="w-full text-left px-3 py-1.5 rounded-lg hover:bg-violet-600/20 text-slate-300 hover:text-white transition-colors flex items-center justify-between cursor-pointer"
+                                >
+                                    <span>Select Auto Updates</span>
+                                    <span>🤖</span>
+                                </button>
+                                <button 
+                                    type="button" 
+                                    wire:click="selectManualSnapshots" 
+                                    @click="open = false" 
+                                    class="w-full text-left px-3 py-1.5 rounded-lg hover:bg-violet-600/20 text-slate-300 hover:text-white transition-colors flex items-center justify-between cursor-pointer"
+                                >
+                                    <span>Select Manual Snapshots</span>
+                                    <span>👤</span>
+                                </button>
+                                <div class="border-t border-white/5 my-1"></div>
+                                <button 
+                                    type="button" 
+                                    wire:click="clearSelectedRestorePoints" 
+                                    @click="open = false" 
+                                    class="w-full text-left px-3 py-1.5 rounded-lg hover:bg-white/5 text-slate-400 hover:text-slate-200 transition-colors flex items-center justify-between cursor-pointer"
+                                >
+                                    <span>Clear Selection</span>
+                                    <span>✕</span>
+                                </button>
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Prune Older Snapshots Quick Button -->
+                    @if(count($restorePoints) > 3)
+                        <button 
+                            type="button" 
+                            wire:click="pruneOlderRestorePoints(3)" 
+                            wire:confirm="Prune older snapshots and keep only the 3 most recent backups? Older archives will be permanently removed to free disk space."
+                            wire:loading.attr="disabled"
+                            class="px-3 py-1.5 rounded-xl bg-slate-900 border border-white/10 hover:border-amber-500/40 text-xs font-semibold text-amber-300 hover:text-amber-200 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+                            title="Keep 3 latest snapshots and delete all older ones"
+                        >
+                            <span>🧹</span>
+                            <span>Prune (Keep 3)</span>
+                        </button>
+                    @endif
+
+                    <!-- Create Snapshot Button -->
+                    <button 
+                        type="button" 
+                        wire:click="createSnapshot"
+                        wire:loading.attr="disabled"
+                        class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-xs shadow-md shadow-violet-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
+                        title="Create an on-demand snapshot of the current codebase and database"
+                    >
+                        <span wire:loading.remove wire:target="createSnapshot">➕ Create Snapshot</span>
+                        <span wire:loading wire:target="createSnapshot">Creating...</span>
+                    </button>
+                </div>
             </div>
+
+            <!-- Floating / Docked Bulk Action Ribbon (Active when 1 or more snapshots are selected) -->
+            @if(count($selectedRestorePoints) > 0)
+                <div class="p-3.5 rounded-2xl bg-gradient-to-r from-violet-950/90 via-slate-900/95 to-indigo-950/90 border border-violet-500/40 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3 animate-fade-in backdrop-blur-xl">
+                    <div class="flex items-center gap-3">
+                        <span class="inline-flex items-center justify-center w-7 h-7 rounded-xl bg-violet-600 text-white font-mono font-bold text-xs shadow-md shadow-violet-600/30">
+                            {{ count($selectedRestorePoints) }}
+                        </span>
+                        <div>
+                            <span class="text-xs font-bold text-white">
+                                {{ count($selectedRestorePoints) }} {{ Str::plural('snapshot', count($selectedRestorePoints)) }} selected
+                            </span>
+                            <span class="text-[11px] font-mono text-violet-300 ml-1.5">
+                                (~{{ $this->getSelectedSizeMb() }} MB)
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Bulk Actions Toolbar -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <!-- Bulk Download Button -->
+                        <button 
+                            type="button" 
+                            wire:click="bulkDownloadRestorePoints" 
+                            class="px-3 py-1.5 rounded-xl bg-slate-900/90 border border-white/10 hover:border-violet-500/40 text-xs font-semibold text-slate-200 hover:text-white transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                            title="Download selected snapshot archives as zip"
+                        >
+                            <span>📥</span>
+                            <span>Download ({{ count($selectedRestorePoints) }})</span>
+                        </button>
+
+                        <!-- Bulk Delete Button -->
+                        <button 
+                            type="button" 
+                            wire:click="bulkDeleteRestorePoints" 
+                            wire:confirm="Permanently delete the {{ count($selectedRestorePoints) }} selected snapshot archives from server disk? This action cannot be undone."
+                            wire:loading.attr="disabled"
+                            class="px-3 py-1.5 rounded-xl bg-rose-600/20 border border-rose-500/40 hover:bg-rose-600/40 text-xs font-semibold text-rose-300 hover:text-white transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                            title="Permanently delete selected snapshot archives"
+                        >
+                            <span wire:loading.remove wire:target="bulkDeleteRestorePoints">🗑️ Delete ({{ count($selectedRestorePoints) }})</span>
+                            <span wire:loading wire:target="bulkDeleteRestorePoints">Deleting...</span>
+                        </button>
+
+                        <!-- Clear Selection Button -->
+                        <button 
+                            type="button" 
+                            wire:click="clearSelectedRestorePoints" 
+                            class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                            title="Clear selection"
+                        >
+                            ✕ Clear
+                        </button>
+                    </div>
+                </div>
+            @endif
 
             <x-glass.card variant="standard" class="p-0 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs">
                         <thead class="bg-slate-900/80 text-slate-400 border-b border-white/5 uppercase text-[10px]">
                             <tr>
+                                <th class="p-4 w-10 text-center">
+                                    <input 
+                                        type="checkbox" 
+                                        wire:model.live="selectAll" 
+                                        class="rounded border-white/20 bg-slate-900 text-violet-600 focus:ring-violet-500 focus:ring-offset-slate-950 w-4 h-4 cursor-pointer" 
+                                        title="Select or deselect all snapshots"
+                                    />
+                                </th>
                                 <th class="p-4">Snapshot ID</th>
                                 <th class="p-4">Label</th>
                                 <th class="p-4">Version</th>
@@ -428,7 +601,18 @@
                         </thead>
                         <tbody class="divide-y divide-white/5 text-slate-200">
                             @forelse($restorePoints as $rp)
-                                <tr class="hover:bg-white/5 transition-colors">
+                                @php
+                                    $isSelected = in_array($rp['id'], $selectedRestorePoints, true);
+                                @endphp
+                                <tr class="hover:bg-white/5 transition-colors {{ $isSelected ? 'bg-violet-600/15 border-l-2 border-violet-500' : '' }}">
+                                    <td class="p-4 w-10 text-center">
+                                        <input 
+                                            type="checkbox" 
+                                            wire:model.live="selectedRestorePoints" 
+                                            value="{{ $rp['id'] }}" 
+                                            class="rounded border-white/20 bg-slate-900 text-violet-600 focus:ring-violet-500 focus:ring-offset-slate-950 w-4 h-4 cursor-pointer"
+                                        />
+                                    </td>
                                     <td class="p-4 font-mono font-bold text-violet-300">
                                         {{ $rp['id'] }}
                                     </td>
@@ -492,7 +676,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="p-8 text-center text-slate-500 font-mono text-xs">
+                                    <td colspan="7" class="p-8 text-center text-slate-500 font-mono text-xs">
                                         No restore snapshots recorded yet. Snapshots are created automatically before each update or on-demand.
                                     </td>
                                 </tr>

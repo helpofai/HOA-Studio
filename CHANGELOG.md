@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.7.6] - 2026-09-05
+
+### Added
+- **Codebase Snapshot Restore Points Bulk Selection Suite:**
+  - Added multi-select checkbox controls to restore points table with reactive row highlighting (`bg-violet-600/15 border-l-2 border-violet-500`).
+  - Added glassmorphic **Bulk Select** preset options dropdown (Select All, Select Auto Updates, Select Manual Snapshots, and Clear Selection).
+  - Added floating / docked **Bulk Action Toolbar** with real-time selection counter and storage footprint calculation (`~X MB`).
+  - Integrated **Bulk Download**: Packages multiple selected snapshot archives and SQL dumps into a single combined ZIP (`snapshots_bundle_YYYYMMDD_HHmmss.zip`).
+  - Integrated **Bulk Delete**: Batch removes selected snapshot archives and SQL dumps with atomic manifest updates and immediate disk space recovery.
+  - Added **Prune Old (Keep 3)** 1-click action to automatically retain the 3 most recent backups and purge older snapshots.
+  - Added cumulative disk storage footprint badge to section header (`📦 X MB total`).
+
 ## [2.7.5] - 2026-09-05
 
 ### Fixed
