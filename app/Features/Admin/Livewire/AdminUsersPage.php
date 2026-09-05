@@ -125,6 +125,36 @@ class AdminUsersPage extends Component
     // Bulk Selection Suite
     // ==========================================
 
+    public function toggleSelectAll(): void
+    {
+        $pageIds = $this->getCurrentPageUserIds();
+        if (empty($pageIds)) {
+            return;
+        }
+
+        $allSelected = count(array_intersect($pageIds, $this->selectedUsers)) === count($pageIds);
+
+        if ($allSelected) {
+            $this->selectedUsers = array_values(array_diff($this->selectedUsers, $pageIds));
+            $this->selectAll = false;
+        } else {
+            $this->selectedUsers = array_values(array_unique(array_merge($this->selectedUsers, $pageIds)));
+            $this->selectAll = true;
+        }
+    }
+
+    public function toggleUserSelection(int $userId): void
+    {
+        if (in_array($userId, $this->selectedUsers)) {
+            $this->selectedUsers = array_values(array_diff($this->selectedUsers, [$userId]));
+        } else {
+            $this->selectedUsers[] = $userId;
+        }
+
+        $pageIds = $this->getCurrentPageUserIds();
+        $this->selectAll = (!empty($pageIds) && count(array_intersect($pageIds, $this->selectedUsers)) === count($pageIds));
+    }
+
     public function updatedSelectAll($value)
     {
         if ($value) {

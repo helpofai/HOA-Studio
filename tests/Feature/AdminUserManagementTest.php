@@ -253,6 +253,19 @@ class AdminUserManagementTest extends TestCase
 
         $this->assertNotNull($component);
     }
+
+    public function test_admin_can_toggle_select_all_and_user_selection()
+    {
+        $this->actingAs($this->admin);
+
+        Livewire::test(AdminUsersPage::class)
+            ->call('toggleUserSelection', $this->targetUser->id)
+            ->assertSet('selectedUsers', [$this->targetUser->id])
+            ->call('toggleUserSelection', $this->targetUser->id)
+            ->assertSet('selectedUsers', [])
+            ->call('toggleSelectAll')
+            ->assertSet('selectAll', true);
+    }
 }
 
 
