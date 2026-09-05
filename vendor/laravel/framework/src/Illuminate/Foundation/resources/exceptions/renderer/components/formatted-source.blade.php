@@ -1,4 +1,4 @@
-props(['frame'])
+@props(['frame'])
 
 @php
     $class = $frame->class();

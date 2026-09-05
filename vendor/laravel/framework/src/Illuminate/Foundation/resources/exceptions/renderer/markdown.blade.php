@@ -1,4 +1,4 @@
- {{ $exception->class() }} - {!! $exception->title() !!}
+# {{ $exception->class() }} - {!! $exception->title() !!}
 
 {!! $exception->message() !!}
 

@@ -131,7 +131,7 @@ class AdminMailNotificationTest extends TestCase
     {
         Mail::fake();
 
-        $admin = User::factory()->create(['role' => 'admin', 'email' => 'admin@helpofai.com']);
+        $admin = User::factory()->create(['role' => 'admin', 'email' => 'admin_' . uniqid() . '@helpofai.com']);
 
         $alert = new SecurityAlertNotification(
             title: "Brute Force Attack Blocked",

@@ -1,4 +1,4 @@
-props(['routeParameters'])
+@props(['routeParameters'])
 
 <div class="flex flex-col gap-3">
     <h2 class="text-lg font-semibold">Routing parameters</h2>

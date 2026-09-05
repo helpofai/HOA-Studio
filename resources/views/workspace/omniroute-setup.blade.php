@@ -26,15 +26,18 @@
 <div 
     class="space-y-8 animate-fade-in pb-12"
     x-data="{
+        showKey: false,
+        activePoint: null,
+        hoverIndex: null,
         checkClientHealth() {
-            const rawUrl = $wire.get('custom_endpoint') || '';
+            const rawUrl = $wire.get('user_custom_url') || $wire.get('base_url') || '';
             const isLocal = rawUrl.includes('localhost') || rawUrl.includes('127.0.0.1');
             const isLiveServer = !['localhost', '127.0.0.1'].includes(window.location.hostname);
 
             if (isLocal && isLiveServer) {
                 const t0 = performance.now();
                 fetch('http://127.0.0.1:20128/v1/models', {
-                    headers: { 'Authorization': 'Bearer ' + ($wire.get('api_key') || 'omniroute-default-key') }
+                    headers: { 'Authorization': 'Bearer ' + ($wire.get('user_api_key') || 'omniroute-default-key') }
                 }).then(res => {
                     if (res.ok) {
                         const lat = Math.max(1, Math.round(performance.now() - t0));
@@ -44,7 +47,7 @@
             }
         }
     }"
-    x-init="checkClientHealth(); $watch('$wire.custom_endpoint', () => checkClientHealth())"
+    x-init="checkClientHealth(); $watch('$wire.user_custom_url', () => checkClientHealth())"
 >
     <!-- Header Section -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -327,7 +330,7 @@
                         </div>
                     @endif
 
-                    <form wire:submit="saveUserKey" x-data="{ showKey: false }" class="space-y-4">
+                    <form wire:key="omniroute-user-key-form" wire:submit="saveUserKey" x-data="{ showKey: false }" class="space-y-4">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <!-- Master Gateway API Key with Show/Hide Toggle -->
                             <div>
@@ -337,16 +340,16 @@
                                     </label>
                                     <button 
                                         type="button" 
-                                        x-on:click="showKey = !showKey" 
+                                        x-on:click="$data.showKey = !$data.showKey" 
                                         class="text-[11px] text-indigo-400 hover:text-indigo-300 font-mono flex items-center gap-1 transition-colors cursor-pointer"
                                     >
-                                        <span x-show="!showKey">👁️ Show Key</span>
-                                        <span x-show="showKey">🔒 Hide Key</span>
+                                        <span x-show="!$data.showKey">👁️ Show Key</span>
+                                        <span x-show="$data.showKey">🔒 Hide Key</span>
                                     </button>
                                 </div>
-                                <div class="relative">
+                                <div wire:key="omniroute-user-key-input-wrapper" class="relative">
                                     <input 
-                                        :type="showKey ? 'text' : 'password'" 
+                                        :type="($data.showKey ?? false) ? 'text' : 'password'" 
                                         wire:model="user_api_key" 
                                         placeholder="sk-or-v1-..." 
                                         class="w-full bg-slate-900 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono pr-10"
@@ -354,12 +357,12 @@
                                     />
                                     <button 
                                         type="button" 
-                                        x-on:click="showKey = !showKey" 
+                                        x-on:click="$data.showKey = !$data.showKey" 
                                         class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs cursor-pointer p-1"
-                                        :title="showKey ? 'Hide key' : 'Show key'"
+                                        :title="($data.showKey ?? false) ? 'Hide key' : 'Show key'"
                                     >
-                                        <span x-show="!showKey">👁️</span>
-                                        <span x-show="showKey">🙈</span>
+                                        <span x-show="!$data.showKey">👁️</span>
+                                        <span x-show="$data.showKey">🙈</span>
                                     </button>
                                 </div>
                                 @error('user_api_key') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror

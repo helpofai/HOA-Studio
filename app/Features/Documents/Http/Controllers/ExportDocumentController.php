@@ -121,6 +121,13 @@ class ExportDocumentController extends Controller
                     ->header('Content-Type', 'application/vnd.ms-word; charset=UTF-8')
                     ->header('Content-Disposition', 'attachment; filename="' . $slug . '.doc"');
 
+            case 'json':
+            case 'ast':
+                $content = $this->exporter->exportJson($document);
+                return response($content)
+                    ->header('Content-Type', 'application/json; charset=UTF-8')
+                    ->header('Content-Disposition', 'attachment; filename="' . $slug . '.json"');
+
             default:
                 abort(400, 'Unsupported export format.');
         }

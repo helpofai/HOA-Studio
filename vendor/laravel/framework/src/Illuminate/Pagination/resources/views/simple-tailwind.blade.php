@@ -1,4 +1,4 @@
-if ($paginator->hasPages())
+@if ($paginator->hasPages())
     <nav role="navigation" aria-label="{{ __('Pagination Navigation') }}" class="flex gap-2 items-center justify-between">
 
         @if ($paginator->onFirstPage())

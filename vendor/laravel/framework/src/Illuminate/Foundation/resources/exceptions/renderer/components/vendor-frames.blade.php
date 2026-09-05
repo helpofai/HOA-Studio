@@ -1,4 +1,4 @@
-props(['frames'])
+@props(['frames'])
 
 @use('Illuminate\Support\Str')
 

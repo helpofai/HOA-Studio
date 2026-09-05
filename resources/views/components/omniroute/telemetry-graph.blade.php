@@ -234,6 +234,7 @@
 
     <!-- Premium Multi-Layer Curved SVG Area Chart Canvas -->
     <div 
+        wire:key="telemetry-svg-container-{{ $timeRange }}-{{ $statusFilter }}"
         x-ref="svgContainer"
         x-on:mousemove="handleMouseMove($event)"
         x-on:mouseleave="handleMouseLeave()"
@@ -355,12 +356,12 @@
             @endif
 
             <!-- Interactive Cursor Tracking Line -->
-            <g x-show="activePoint" x-cloak style="display: none;">
+            <g x-show="$data.activePoint" x-cloak style="display: none;">
                 <!-- Vertical Crosshair Line -->
                 <line 
-                    :x1="(activePoint && activePoint.x !== undefined) ? activePoint.x : 0" 
+                    :x1="($data.activePoint && $data.activePoint.x !== undefined) ? $data.activePoint.x : 0" 
                     y1="10" 
-                    :x2="(activePoint && activePoint.x !== undefined) ? activePoint.x : 0" 
+                    :x2="($data.activePoint && $data.activePoint.x !== undefined) ? $data.activePoint.x : 0" 
                     y2="155" 
                     stroke="rgba(255, 255, 255, 0.4)" 
                     stroke-width="1.5" 
@@ -368,8 +369,8 @@
                 />
                 <!-- Outer Glowing Ring -->
                 <circle 
-                    :cx="(activePoint && activePoint.x !== undefined) ? activePoint.x : 0" 
-                    :cy="(activePoint && activePoint.y !== undefined) ? activePoint.y : 0" 
+                    :cx="($data.activePoint && $data.activePoint.x !== undefined) ? $data.activePoint.x : 0" 
+                    :cy="($data.activePoint && $data.activePoint.y !== undefined) ? $data.activePoint.y : 0" 
                     r="7" 
                     fill="none" 
                     stroke="{{ $activeTheme['stroke'] }}" 
@@ -378,8 +379,8 @@
                 />
                 <!-- Inner Solid Dot -->
                 <circle 
-                    :cx="(activePoint && activePoint.x !== undefined) ? activePoint.x : 0" 
-                    :cy="(activePoint && activePoint.y !== undefined) ? activePoint.y : 0" 
+                    :cx="($data.activePoint && $data.activePoint.x !== undefined) ? $data.activePoint.x : 0" 
+                    :cy="($data.activePoint && $data.activePoint.y !== undefined) ? $data.activePoint.y : 0" 
                     r="5" 
                     fill="#ffffff" 
                     stroke="{{ $activeTheme['stroke'] }}" 
@@ -390,40 +391,40 @@
 
         <!-- Floating Live HUD Tooltip -->
         <div 
-            x-show="activePoint && activePoint.bucket"
+            x-show="$data.activePoint && $data.activePoint.bucket"
             x-cloak
             class="absolute z-30 pointer-events-none min-w-[170px] p-3 rounded-xl bg-slate-900/95 border border-violet-500/40 shadow-2xl text-xs font-mono text-white backdrop-blur-xl transition-all duration-75"
-            :style="(activePoint && activePoint.x !== undefined) ? ('top: 10px; left: ' + Math.min(80, Math.max(10, (activePoint.x / 800) * 100)) + '%; transform: translateX(-50%);') : 'display: none;'"
+            :style="($data.activePoint && $data.activePoint.x !== undefined) ? ('top: 10px; left: ' + Math.min(80, Math.max(10, ($data.activePoint.x / 800) * 100)) + '%; transform: translateX(-50%);') : 'display: none;'"
             style="display: none;"
         >
             <div class="font-bold text-violet-300 pb-1.5 mb-1.5 border-b border-white/10 flex items-center justify-between">
-                <span x-text="'🕒 ' + (activePoint?.bucket?.time_label ?? '')"></span>
-                <span class="text-emerald-400 font-bold" x-text="(activePoint?.bucket?.avg_latency ?? 0) + 'ms'"></span>
+                <span x-text="'🕒 ' + ($data.activePoint?.bucket?.time_label ?? '')"></span>
+                <span class="text-emerald-400 font-bold" x-text="($data.activePoint?.bucket?.avg_latency ?? 0) + 'ms'"></span>
             </div>
             <div class="space-y-1 text-[11px]">
                 <div class="flex items-center justify-between text-slate-300">
                     <span>Total Calls:</span>
-                    <span class="font-bold text-white" x-text="activePoint?.bucket?.total_requests ?? 0"></span>
+                    <span class="font-bold text-white" x-text="$data.activePoint?.bucket?.total_requests ?? 0"></span>
                 </div>
                 <div class="flex items-center justify-between text-emerald-400">
                     <span>🟢 Pass (200 OK):</span>
-                    <span class="font-bold" x-text="activePoint?.bucket?.pass ?? 0"></span>
+                    <span class="font-bold" x-text="$data.activePoint?.bucket?.pass ?? 0"></span>
                 </div>
                 <div class="flex items-center justify-between text-sky-400">
                     <span>🔵 Info (Routed):</span>
-                    <span class="font-bold" x-text="activePoint?.bucket?.info ?? 0"></span>
+                    <span class="font-bold" x-text="$data.activePoint?.bucket?.info ?? 0"></span>
                 </div>
                 <div class="flex items-center justify-between text-amber-400">
                     <span>🟡 Warn (Retried):</span>
-                    <span class="font-bold" x-text="activePoint?.bucket?.warning ?? 0"></span>
+                    <span class="font-bold" x-text="$data.activePoint?.bucket?.warning ?? 0"></span>
                 </div>
                 <div class="flex items-center justify-between text-rose-400">
                     <span>🔴 Fail (Error):</span>
-                    <span class="font-bold" x-text="activePoint?.bucket?.fail ?? 0"></span>
+                    <span class="font-bold" x-text="$data.activePoint?.bucket?.fail ?? 0"></span>
                 </div>
                 <div class="flex items-center justify-between text-violet-300 pt-1 border-t border-white/5 font-semibold">
                     <span>Tokens Streamed:</span>
-                    <span x-text="Number(activePoint?.bucket?.tokens ?? 0).toLocaleString()"></span>
+                    <span x-text="Number($data.activePoint?.bucket?.tokens ?? 0).toLocaleString()"></span>
                 </div>
             </div>
         </div>

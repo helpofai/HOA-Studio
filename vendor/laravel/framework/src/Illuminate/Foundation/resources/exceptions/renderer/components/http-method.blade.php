@@ -1,4 +1,4 @@
-props(['method'])
+@props(['method'])
 
 @php
 $type = match ($method) {

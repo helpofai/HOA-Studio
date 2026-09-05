@@ -36,14 +36,14 @@ class AdminUserManagementTest extends TestCase
 
         $this->admin = User::factory()->create([
             'name' => 'Master Admin',
-            'email' => 'admin@helpofai.com',
+            'email' => 'admin_' . uniqid() . '@helpofai.com',
             'role' => 'admin',
             'plan' => 'enterprise',
         ]);
 
         $this->targetUser = User::factory()->create([
             'name' => 'John Creator',
-            'email' => 'john@creator.com',
+            'email' => 'john_' . uniqid() . '@creator.com',
             'role' => 'user',
             'plan' => 'starter',
             'monthly_word_quota' => 15000,

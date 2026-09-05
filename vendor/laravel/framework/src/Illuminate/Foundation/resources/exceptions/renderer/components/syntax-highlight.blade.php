@@ -1,4 +1,4 @@
-props([
+@props([
     'code',
     'language',
     'editor' => false,

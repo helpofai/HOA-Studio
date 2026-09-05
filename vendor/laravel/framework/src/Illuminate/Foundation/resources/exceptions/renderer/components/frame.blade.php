@@ -1,4 +1,4 @@
-props(['frame'])
+@props(['frame'])
 
 <div
     x-data="{

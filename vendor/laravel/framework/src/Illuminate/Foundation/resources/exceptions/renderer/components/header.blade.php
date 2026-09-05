@@ -1,4 +1,4 @@
-props(['exception'])
+@props(['exception'])
 
 <div class="flex flex-col pt-8 sm:pt-16 overflow-x-auto">
     <div class="flex flex-col gap-5 mb-8">

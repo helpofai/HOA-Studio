@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.7.5] - 2026-09-05
+
+### Fixed
+- **OmniRoute Telemetry & Settings Alpine Scope Stability:**
+  - Resolved `ReferenceError: activePoint is not defined` during periodic Livewire DOM morphing cycles by migrating telemetry cursor tracking and floating HUD expressions to `$data.activePoint`.
+  - Resolved `ReferenceError: showKey is not defined` on `/dashboard/ai-models/omniroute` by declaring reactive key state on root components and evaluating `$data.showKey ?? false`.
+  - Added deterministic `wire:key` DOM anchoring across the SVG canvas container, user API key forms, and password input containers.
+- **Framework View Cache Integrity:**
+  - Reinstalled and sanitized vendor framework blade views, ensuring 100% clean compilation for all exception handling, pagination, and mailer templates.
+
+### Added
+- **Multi-Format Document Export Engine:**
+  - Added native TipTap JSON AST document export (`application/json`) with indented formatting.
+  - Added direct MS Word `.docx` file export with HTML document envelopes.
+  - Integrated zero-dialog browser print/PDF preview formatting (`window.print()`).
+  - Added 1-click Rich Text & HTML clipboard copying with visual confirmation toasts.
+
 ## [2.7.4] - 2026-09-05
 
 ### Added

@@ -1,4 +1,4 @@
-props(['headers'])
+@props(['headers'])
 
 <div class="flex flex-col gap-3">
     <h2 class="text-lg font-semibold text-neutral-900 dark:text-white">Headers</h2>

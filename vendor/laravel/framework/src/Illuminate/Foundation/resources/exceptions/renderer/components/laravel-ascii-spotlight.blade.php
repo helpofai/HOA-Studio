@@ -1,4 +1,4 @@
-div
+<div
     class="relative text-neutral-400 dark:text-neutral-400"
     x-data="{ spotlight: { x: 0, y: 0 } }"
     @mousemove="const rect = $el.getBoundingClientRect(); spotlight = { x: $event.clientX - rect.left, y: $event.clientY - rect.top }">

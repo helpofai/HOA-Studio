@@ -79,17 +79,18 @@ class AuthSecurityProtectionTest extends TestCase
 
     public function test_login_brute_force_rate_limiter_triggers_after_failed_attempts()
     {
-        RateLimiter::clear('login:account:victim@example.com|127.0.0.1');
+        $targetEmail = 'victim_rl_' . uniqid() . '@example.com';
+        RateLimiter::clear("login:account:{$targetEmail}|127.0.0.1");
 
         $user = User::factory()->create([
-            'email' => 'victim@example.com',
+            'email' => $targetEmail,
             'password' => Hash::make('RealSecretPass!99'),
         ]);
 
         // Attempt 5 incorrect logins to trigger Rate Limiter
         for ($i = 0; $i < 5; $i++) {
             Livewire::test(LoginPage::class)
-                ->set('email', 'victim@example.com')
+                ->set('email', $targetEmail)
                 ->set('password', 'WrongPassword' . $i)
                 ->call('login')
                 ->assertHasErrors(['email']);
@@ -97,7 +98,7 @@ class AuthSecurityProtectionTest extends TestCase
 
         // The 6th attempt should be blocked with rate limiting message
         Livewire::test(LoginPage::class)
-            ->set('email', 'victim@example.com')
+            ->set('email', $targetEmail)
             ->set('password', 'RealSecretPass!99') // Even with correct password, blocked by cooldown
             ->call('login')
             ->assertHasErrors(['email']);

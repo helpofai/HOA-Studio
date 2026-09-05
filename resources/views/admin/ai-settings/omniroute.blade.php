@@ -26,6 +26,9 @@
 <div 
     class="space-y-8 max-w-6xl mx-auto"
     x-data="{
+        showKey: false,
+        activePoint: null,
+        hoverIndex: null,
         isHybridSyncing: false,
         clientHealthTimer: null,
         async checkClientHealth() {
@@ -156,7 +159,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Configuration Form (2 Cols) -->
         <div class="lg:col-span-2 space-y-6">
-            <form wire:submit="saveConfiguration" x-data="{ showKey: false }" class="space-y-6">
+            <form wire:key="admin-omniroute-config-form" wire:submit="saveConfiguration" x-data="{ showKey: false }" class="space-y-6">
                 <!-- Gateway Endpoint & Key -->
                 <x-glass.card variant="elevated" class="p-6 sm:p-8 space-y-4 border border-violet-500/20">
                     <div class="flex items-center justify-between pb-3 border-b border-white/5">
@@ -206,17 +209,17 @@
                                 <label class="text-xs font-medium text-slate-300">Master Gateway API Key</label>
                                 <button 
                                     type="button" 
-                                    x-on:click="showKey = !showKey" 
+                                    x-on:click="$data.showKey = !$data.showKey" 
                                     class="text-[11px] text-violet-400 hover:text-violet-300 flex items-center gap-1 transition-colors cursor-pointer"
                                 >
-                                    <span x-show="!showKey" class="flex items-center gap-1">
+                                    <span x-show="!$data.showKey" class="flex items-center gap-1">
                                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                         </svg>
                                         <span>Show</span>
                                     </span>
-                                    <span x-show="showKey" class="flex items-center gap-1 text-violet-300" style="display: none;">
+                                    <span x-show="$data.showKey" class="flex items-center gap-1 text-violet-300" style="display: none;">
                                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
                                         </svg>
@@ -224,25 +227,25 @@
                                     </span>
                                 </button>
                             </div>
-                            <div class="relative">
+                            <div wire:key="admin-omniroute-key-input-wrapper" class="relative">
                                 <input 
                                     wire:model="api_key" 
-                                    x-bind:type="showKey ? 'text' : 'password'" 
+                                    x-bind:type="($data.showKey ?? false) ? 'text' : 'password'" 
                                     required 
                                     placeholder="omniroute-default-key" 
                                     class="w-full bg-slate-900/90 border border-white/10 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white focus:outline-none focus:border-violet-500 font-mono tracking-wider transition-all placeholder:text-slate-500"
                                 />
                                 <button 
                                     type="button" 
-                                    x-on:click="showKey = !showKey" 
+                                    x-on:click="$data.showKey = !$data.showKey" 
                                     class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
                                     title="Toggle API Key Visibility"
                                 >
-                                    <svg x-show="!showKey" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg x-show="!$data.showKey" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                     </svg>
-                                    <svg x-show="showKey" class="w-4 h-4 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display: none;">
+                                    <svg x-show="$data.showKey" class="w-4 h-4 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display: none;">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
                                     </svg>
                                 </button>

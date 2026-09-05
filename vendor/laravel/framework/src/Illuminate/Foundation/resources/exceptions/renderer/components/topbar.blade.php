@@ -1,4 +1,4 @@
-props(['title', 'markdown'])
+@props(['title', 'markdown'])
 
 <script>
     const markdown = {{ Illuminate\Support\Js::from($markdown) }}
