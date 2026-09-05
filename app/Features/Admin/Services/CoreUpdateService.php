@@ -341,6 +341,114 @@ class CoreUpdateService
     }
 
     /**
+     * Bulk delete multiple snapshot restore points and their backup archives.
+     *
+     * @param array<string> $restorePointIds
+     * @return int Number of deleted snapshots
+     */
+    public function deleteRestorePoints(array $restorePointIds): int
+    {
+        if (empty($restorePointIds)) {
+            return 0;
+        }
+
+        $manifests = $this->getRestorePoints();
+        $deletedCount = 0;
+
+        $manifests = array_values(array_filter($manifests, function ($rp) use ($restorePointIds, &$deletedCount) {
+            if (in_array($rp['id'], $restorePointIds, true)) {
+                if (!empty($rp['file_backup']) && File::exists($rp['file_backup'])) {
+                    @unlink($rp['file_backup']);
+                }
+                if (!empty($rp['db_backup'])) {
+                    if (File::exists($rp['db_backup'])) @unlink($rp['db_backup']);
+                    if (File::exists("{$rp['db_backup']}.sqlite")) @unlink("{$rp['db_backup']}.sqlite");
+                }
+                $deletedCount++;
+                return false;
+            }
+            return true;
+        }));
+
+        File::put($this->manifestFile, json_encode($manifests, JSON_PRETTY_PRINT));
+
+        return $deletedCount;
+    }
+
+    /**
+     * Bundle multiple snapshot archives into a single ZIP for bulk download.
+     *
+     * @param array<string> $restorePointIds
+     * @return string|null Path to created bundle zip file
+     */
+    public function bundleRestorePoints(array $restorePointIds): ?string
+    {
+        $manifests = $this->getRestorePoints();
+        $targets = [];
+        foreach ($manifests as $rp) {
+            if (in_array($rp['id'], $restorePointIds, true)) {
+                $targets[] = $rp;
+            }
+        }
+
+        if (empty($targets)) {
+            return null;
+        }
+
+        if (count($targets) === 1 && !empty($targets[0]['file_backup']) && File::exists($targets[0]['file_backup'])) {
+            return $targets[0]['file_backup'];
+        }
+
+        $tempDir = storage_path('app/updates/temp');
+        if (!File::exists($tempDir)) {
+            File::makeDirectory($tempDir, 0755, true, true);
+        }
+
+        $bundleName = 'snapshots_bundle_' . date('Ymd_His') . '.zip';
+        $bundlePath = "{$tempDir}/{$bundleName}";
+
+        if (class_exists('ZipArchive')) {
+            $zip = new \ZipArchive();
+            if ($zip->open($bundlePath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
+                foreach ($targets as $rp) {
+                    if (!empty($rp['file_backup']) && File::exists($rp['file_backup'])) {
+                        $zip->addFile($rp['file_backup'], basename($rp['file_backup']));
+                    }
+                    if (!empty($rp['db_backup']) && File::exists($rp['db_backup'])) {
+                        $zip->addFile($rp['db_backup'], basename($rp['db_backup']));
+                    }
+                    if (!empty($rp['db_backup']) && File::exists("{$rp['db_backup']}.sqlite")) {
+                        $zip->addFile("{$rp['db_backup']}.sqlite", basename("{$rp['db_backup']}.sqlite"));
+                    }
+                }
+                $zip->close();
+                return $bundlePath;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Prune older snapshots, keeping only the latest $keep snapshots.
+     *
+     * @param int $keep
+     * @return int Number of pruned snapshots
+     */
+    public function pruneOlderRestorePoints(int $keep = 3): int
+    {
+        $manifests = $this->getRestorePoints();
+        if (count($manifests) <= $keep) {
+            return 0;
+        }
+
+        $toPrune = array_slice($manifests, $keep);
+        $pruneIds = array_column($toPrune, 'id');
+
+        return $this->deleteRestorePoints($pruneIds);
+    }
+
+    /**
      * Get all available restore points.
      */
     public function getRestorePoints(): array
