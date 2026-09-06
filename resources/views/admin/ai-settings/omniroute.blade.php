@@ -159,7 +159,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Configuration Form (2 Cols) -->
         <div class="lg:col-span-2 space-y-6">
-            <form wire:key="admin-omniroute-config-form" wire:submit="saveConfiguration" x-data="{ showKey: false }" class="space-y-6">
+            <form wire:key="admin-omniroute-config-form" wire:submit="saveConfiguration" class="space-y-6">
                 <!-- Gateway Endpoint & Key -->
                 <x-glass.card variant="elevated" class="p-6 sm:p-8 space-y-4 border border-violet-500/20">
                     <div class="flex items-center justify-between pb-3 border-b border-white/5">

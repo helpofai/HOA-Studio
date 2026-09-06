@@ -29,8 +29,49 @@ Before creating, editing, refactoring, or deleting any files or features, AI age
 1. **Run Verifications**:
    - Run tests: `@php artisan test` (Ensure 100% pass rate).
    - Verify build: `npm run build` (Ensure 0 compilation errors).
-2. **Transparent Summary Output**:
+2. **Mandatory Schema Synchronization**:
+   - **ALWAYS update [`SYSTEM-ARCHITECTURE-SCHEMA.md`](./SYSTEM-ARCHITECTURE-SCHEMA.md) immediately upon completing any new feature, connection, or upgrade**. Record the new file paths, synaptic connections, input/output flows, and event triggers so the neuro-brain schema remains 100% live.
+3. **Transparent Summary Output**:
    - Provide a clear, structured list of all files that were **Created**, **Modified**, or **Deleted** along with the rationale and purpose of each change.
+
+---
+
+## 🎯 ROOT-CAUSE SURGERY & ZERO-REGRESSION PROTOCOL
+
+When debugging, modifying, or repairing code, AI agents **MUST NEVER** apply blind guesses, hasty patches, or destructive modifications:
+
+### 1. 🚫 Zero-Guesswork Root-Cause Investigation:
+- **Never Guess**: Never assume the reason for an error or apply superficial band-aids. Find the real, factual error directly from system logs (`storage/logs/laravel.log`, browser console, database exceptions, or HTTP 500 stack traces).
+- **Trace Full Feature Roots & Connections**: Before altering any code, trace every connected dependency—which backend controllers, Livewire properties/methods, Blade views, Alpine scripts, event listeners, and database models are connected to this feature and its related features. Understand the full structural tree first.
+
+### 2. 🎯 Surgical Isolation (Do NOT Touch Working Features):
+- **Surgical Fix**: Fix ONLY the isolated root cause.
+- **Hands Off Working Code**: Strictly DO NOT touch, rewrite, or disturb adjacent features or code blocks that are already working properly.
+- **Permission-First Upgrades**: If, during your investigation, you spot opportunities to optimize, refactor, or modernize neighboring code, **DO NOT touch it**. Instead, clearly explain your recommended upgrade and obtain the **USER'S explicit permission** before making any changes.
+
+---
+
+## 🧩 EXISTING FEATURE INTEGRATION & BEST-PLACEMENT PROTOCOL
+
+When building a new feature or upgrading an existing one, AI agents **MUST ALWAYS** follow this placement and protection protocol:
+
+### 1. 🔍 Comprehensive Existing Feature Analysis:
+- Before creating a new feature or upgrading an existing one, thoroughly examine all existing features across the system to understand what is already built and how each module behaves.
+
+### 2. 📍 Optimal Placement & Seamless Connection:
+- Determine whether and where the new feature needs to connect with existing features.
+- Identify the single best, most intuitive place in the architecture and user experience to connect it (e.g., toolbar action, content intelligence tab, pipeline stage, service provider, or event listener) rather than bolting on redundant or conflicting UI/logic.
+
+### 3. 🛡️ Strict Non-Breaking Guarantee:
+- Existing features must **NEVER** be broken, degraded, or regressed when adding or connecting new functionality. Zero breakages of existing systems is an absolute, non-negotiable standard.
+
+---
+
+## 🧠 SYSTEM ARCHITECTURE SCHEMA (`SYSTEM-ARCHITECTURE-SCHEMA.md`)
+
+The repository maintains an interactive, neuro-brain architectural blueprint in [`SYSTEM-ARCHITECTURE-SCHEMA.md`](./SYSTEM-ARCHITECTURE-SCHEMA.md):
+- **Instant System Topology**: AI agents must consult [`SYSTEM-ARCHITECTURE-SCHEMA.md`](./SYSTEM-ARCHITECTURE-SCHEMA.md) to immediately understand how all 13 feature modules (`AI`, `Admin`, `Auth`, `Blog`, `BrandVoice`, `Dashboard`, `Documents`, `KnowledgeBase`, `Projects`, `SEO`, `Templates`, `Usage`, `WordPress`), files, event buses, and data pipelines are interconnected without having to read through thousands of lines across the entire codebase.
+- **Mandatory Schema Maintenance**: Whenever an AI agent creates a new feature, adds a new connection, or upgrades an existing feature, the agent **MUST ALWAYS update [`SYSTEM-ARCHITECTURE-SCHEMA.md`](./SYSTEM-ARCHITECTURE-SCHEMA.md)** to keep the neuro-brain schema, connection lines, and synaptic nodes 100% accurate and up to date.
 
 ---
 
@@ -166,7 +207,10 @@ Whenever features or fixes are completed, bump the version code and synchronize 
 ### 6. 🚀 `PRODUCTION-GUIDE.md` Update (If Deployment Changes)
 - Document any new web server requirements, PHP extensions, cron jobs, background queue workers, or shared hosting guidelines.
 
-### 7. 🧪 Test Suite & Production Build Verification
+### 7. 🧠 `SYSTEM-ARCHITECTURE-SCHEMA.md` Update (Mandatory For Every Feature)
+- **ALWAYS record new feature data upon completion**: Update the neuro-brain Mermaid diagram, Master Synapse Matrix, deep specification cards, connected file paths, and event buses in [`SYSTEM-ARCHITECTURE-SCHEMA.md`](./SYSTEM-ARCHITECTURE-SCHEMA.md).
+
+### 8. 🧪 Test Suite & Production Build Verification
 - **Run Full PHPUnit Suite**: `php artisan test` (Must achieve 100% pass rate).
 - **Run Vite Production Build**: `npm run build` (Must exit cleanly with code 0).
 

@@ -2,7 +2,7 @@
 
 
 
-        <div x-show="rightTab === 'seo'" class="space-y-3.5">
+        <div x-show="rightTab === 'seo'" class="space-y-3.5" style="display: none;">
 
 
 
@@ -133,29 +133,11 @@
 
 
                     <button 
-
-
-
                         type="button" 
-
-
-
                         wire:click="toggleSeoDrawer" 
-
-
-
-                        class="px-2.5 py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white font-mono text-[10.5px] font-bold border border-indigo-500/30 transition-colors shrink-0 cursor-pointer"
-
-
-
+                        class="px-2.5 py-1 rounded-lg {{ $showSeoDrawer ? 'bg-indigo-600 text-white shadow-sm' : 'bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white' }} font-mono text-[10.5px] font-bold border border-indigo-500/30 transition-colors shrink-0 cursor-pointer"
                     >
-
-
-
-                        {{ !empty($targetKeyword) ? 'Edit Keyword' : '+ Set Keyword' }}
-
-
-
+                        {{ $showSeoDrawer ? '✕ Close' : (!empty($targetKeyword) ? 'Edit Keyword' : '+ Set Keyword') }}
                     </button>
 
 
@@ -233,61 +215,28 @@
 
 
                         <input 
-
-
-
                             type="text" 
-
-
-
                             wire:model.lazy="targetKeyword" 
-
-
-
-                            placeholder="e.g. deepseek v4 flash review"
-
-
-
-                            class="flex-1 bg-slate-950 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono shadow-inner"
-
-
-
-                        />
-
-
-
+                            wire:keydown.enter="runSeoAudit" 
+                            placeholder="e.g. deepseek v4 flash review" 
+                            class="flex-1 bg-slate-950 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono shadow-inner" 
+                        /> 
                         <button 
-
-
-
                             type="button" 
-
-
-
                             wire:click="runSeoAudit" 
-
-
-
-                            class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition-all cursor-pointer"
-
-
-
-                        >
-
-
-
-                            Analyze
-
-
-
-                        </button>
-
-
-
-                    </div>
-
-
-
+                            class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition-all cursor-pointer" 
+                        > 
+                            Analyze 
+                        </button> 
+                        <button 
+                            type="button" 
+                            wire:click="toggleSeoDrawer" 
+                            class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-white/10 text-slate-400 hover:text-white text-xs font-semibold border border-white/10 transition-all cursor-pointer" 
+                            title="Close drawer" 
+                        > 
+                            ✕ 
+                        </button> 
+                    </div> 
                 </div>
 
 

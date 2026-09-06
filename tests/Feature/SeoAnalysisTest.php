@@ -3,13 +3,17 @@
 namespace Tests\Feature;
 
 use App\Features\AI\Models\AiProvider;
+use App\Features\Documents\Livewire\DocumentEditor;
 use App\Features\Documents\Models\Document;
 use App\Features\Documents\Models\DocumentContent;
 use App\Features\SEO\Actions\AnalyzeDocumentSeo;
+use App\Features\SEO\Actions\GenerateSeoMetadata;
+use App\Features\SEO\Services\SchemaGenerator;
 use App\Features\SEO\Services\SeoAnalyzer;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class SeoAnalysisTest extends TestCase
@@ -17,6 +21,7 @@ class SeoAnalysisTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Document $document;
 
     protected function setUp(): void
@@ -59,7 +64,7 @@ class SeoAnalysisTest extends TestCase
 
     public function test_seo_analyzer_evaluates_document_metrics_and_scores(): void
     {
-        $analyzer = new SeoAnalyzer();
+        $analyzer = new SeoAnalyzer;
         $html = $this->document->content->content_html;
         $title = $this->document->title;
 
@@ -76,11 +81,11 @@ class SeoAnalysisTest extends TestCase
 
     public function test_seo_analyzer_evaluates_geo_readiness_and_ai_overviews(): void
     {
-        $analyzer = new SeoAnalyzer();
-        $html = '<h1>Guide to Autonomous AI Agents</h1>' .
-                '<h2>What is an Autonomous AI Agent?</h2>' .
-                '<p>An autonomous AI agent is an advanced software system powered by large language models that independently plans, reasons, and executes multi-step workflows to accomplish complex objectives with minimal human intervention in real-time production environments.</p>' .
-                '<table class="hoa-comparison-table"><tr><th>Agent</th><th>Speed</th></tr><tr><td>OmniRoute</td><td>25ms</td></tr></table>' .
+        $analyzer = new SeoAnalyzer;
+        $html = '<h1>Guide to Autonomous AI Agents</h1>'.
+                '<h2>What is an Autonomous AI Agent?</h2>'.
+                '<p>An autonomous AI agent is an advanced software system powered by large language models that independently plans, reasons, and executes multi-step workflows to accomplish complex objectives with minimal human intervention in real-time production environments.</p>'.
+                '<table class="hoa-comparison-table"><tr><th>Agent</th><th>Speed</th></tr><tr><td>OmniRoute</td><td>25ms</td></tr></table>'.
                 '<p>According to research from Stanford University, multi-agent frameworks improved efficiency by 48% across 1,200 benchmarks in 2026.</p>';
 
         $results = $analyzer->analyze($html, 'Guide to Autonomous AI Agents in 2026', 'ai agent');
@@ -95,16 +100,16 @@ class SeoAnalysisTest extends TestCase
 
     public function test_schema_generator_detects_faq_howto_and_article_jsonld(): void
     {
-        $generator = app(\App\Features\SEO\Services\SchemaGenerator::class);
-        $html = '<h1>How to Deploy an AI Agent</h1>' .
-                '<p>Deploying an autonomous agent requires distributed architecture and model routing gateways.</p>' .
-                '<h2>Step 1: Install OmniRoute Gateway</h2>' .
-                '<p>Download the binary or launch the docker daemon container on port 20128.</p>' .
-                '<h2>Step 2: Configure Model Fallbacks</h2>' .
-                '<p>Specify primary and backup providers in the multi-provider routing matrix.</p>' .
-                '<h3>What is the recommended server memory?</h3>' .
-                '<p>We recommend at least 8GB of RAM for local model execution and caching.</p>' .
-                '<h3>Can I use cloud providers?</h3>' .
+        $generator = app(SchemaGenerator::class);
+        $html = '<h1>How to Deploy an AI Agent</h1>'.
+                '<p>Deploying an autonomous agent requires distributed architecture and model routing gateways.</p>'.
+                '<h2>Step 1: Install OmniRoute Gateway</h2>'.
+                '<p>Download the binary or launch the docker daemon container on port 20128.</p>'.
+                '<h2>Step 2: Configure Model Fallbacks</h2>'.
+                '<p>Specify primary and backup providers in the multi-provider routing matrix.</p>'.
+                '<h3>What is the recommended server memory?</h3>'.
+                '<p>We recommend at least 8GB of RAM for local model execution and caching.</p>'.
+                '<h3>Can I use cloud providers?</h3>'.
                 '<p>Yes, OpenAI, Anthropic, and DeepSeek endpoints integrate seamlessly.</p>';
 
         $results = $generator->generate($html, 'How to Deploy an AI Agent', 'A comprehensive step-by-step deployment guide.');
@@ -152,8 +157,8 @@ class SeoAnalysisTest extends TestCase
             ], 200),
         ]);
 
-        \Livewire\Livewire::actingAs($this->user)
-            ->test(\App\Features\Documents\Livewire\DocumentEditor::class, ['id' => $this->document->id])
+        Livewire::actingAs($this->user)
+            ->test(DocumentEditor::class, ['id' => $this->document->id])
             ->set('targetKeyword', 'AI Agents')
             ->call('runSeoAudit')
             ->assertHasNoErrors()
@@ -170,8 +175,8 @@ class SeoAnalysisTest extends TestCase
 
     public function test_document_editor_mounts_with_complete_rank_math_checklist_and_controls(): void
     {
-        $component = \Livewire\Livewire::actingAs($this->user)
-            ->test(\App\Features\Documents\Livewire\DocumentEditor::class, ['id' => $this->document->id]);
+        $component = Livewire::actingAs($this->user)
+            ->test(DocumentEditor::class, ['id' => $this->document->id]);
 
         $seoData = $component->get('seoData');
         $this->assertIsArray($seoData);
@@ -212,8 +217,8 @@ class SeoAnalysisTest extends TestCase
 
     public function test_document_editor_mounts_with_complete_10_point_eeat_quality_audit(): void
     {
-        $component = \Livewire\Livewire::actingAs($this->user)
-            ->test(\App\Features\Documents\Livewire\DocumentEditor::class, ['id' => $this->document->id]);
+        $component = Livewire::actingAs($this->user)
+            ->test(DocumentEditor::class, ['id' => $this->document->id]);
 
         $qa = $component->get('aiQualityAudit');
         $this->assertIsArray($qa);
@@ -276,8 +281,8 @@ class SeoAnalysisTest extends TestCase
         ]);
         $this->assertFalse($this->user->hasQuota(1));
 
-        /** @var \App\Features\SEO\Actions\GenerateSeoMetadata $generator */
-        $generator = app(\App\Features\SEO\Actions\GenerateSeoMetadata::class);
+        /** @var GenerateSeoMetadata $generator */
+        $generator = app(GenerateSeoMetadata::class);
         $docHtml = '<h2>DeepSeek AI Architecture</h2><p>DeepSeek models provide high efficiency and performance for enterprise tasks.</p>';
 
         // 2. Titles generation without AI (Local Algorithm)
@@ -323,12 +328,40 @@ class SeoAnalysisTest extends TestCase
         $this->assertStringContainsStringIgnoringCase('DeepSeek V4', $quickAnswer);
 
         // 8. Livewire integration: generating titles without AI seamlessly populates editor state
-        \Livewire\Livewire::actingAs($this->user)
-            ->test(\App\Features\Documents\Livewire\DocumentEditor::class, ['id' => $this->document->id])
+        Livewire::actingAs($this->user)
+            ->test(DocumentEditor::class, ['id' => $this->document->id])
             ->set('targetKeyword', 'DeepSeek V4')
             ->call('generateSeoTitles')
             ->assertSet('seoErrorMessage', '')
             ->assertCount('aiTitles', 3)
             ->assertCount('aiSeoResults', 3);
+    }
+
+    public function test_run_seo_audit_with_live_html_returns_color_marked_html_for_heatmap(): void
+    {
+        $liveHtml = '<h1>DeepSeek AI Architecture</h1><p>DeepSeek AI is an advanced deep learning framework for enterprise automation.</p>';
+
+        $test = Livewire::actingAs($this->user)
+            ->test(DocumentEditor::class, ['id' => $this->document->id])
+            ->set('targetKeyword', 'DeepSeek AI')
+            ->call('runSeoAudit', $liveHtml)
+            ->assertHasNoErrors();
+
+        $marked = $test->instance()->runSeoAudit($liveHtml);
+        $this->assertIsString($marked);
+        $this->assertStringContainsString('seo-heatmap-legend-bar', $marked);
+        $this->assertStringContainsString('DeepSeek AI', $marked);
+        $this->assertStringContainsString('<mark', $marked);
+    }
+
+    public function test_toggle_seo_drawer_toggles_state(): void
+    {
+        Livewire::actingAs($this->user)
+            ->test(DocumentEditor::class, ['id' => $this->document->id])
+            ->assertSet('showSeoDrawer', false)
+            ->call('toggleSeoDrawer')
+            ->assertSet('showSeoDrawer', true)
+            ->call('toggleSeoDrawer')
+            ->assertSet('showSeoDrawer', false);
     }
 }

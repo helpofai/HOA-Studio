@@ -274,4 +274,106 @@ class ContextualAiTransformTest extends TestCase
             'type' => 'custom',
         ]);
     }
+
+    public function test_pipeline_coordinator_resolves_topic_and_isolates_pipeline_data_from_final_article(): void
+    {
+        Http::fake([
+            '*/chat/completions' => Http::response([
+                'choices' => [
+                    [
+                        'message' => [
+                            'role' => 'assistant',
+                            'content' => json_encode([
+                                'sections' => [
+                                    ['title' => 'DeepSeek Architecture Overview', 'focus' => 'Mixture-of-Experts and Multi-Head Latent Attention.'],
+                                    ['title' => 'Inference Benchmarks and Efficiency', 'focus' => 'Throughput and latency comparisons.'],
+                                ]
+                            ]),
+                        ],
+                    ],
+                ],
+                'usage' => ['total_tokens' => 80],
+                'model' => 'anthropic/claude-3-7-sonnet',
+            ], 200),
+            '*/embeddings' => Http::response([
+                'data' => [
+                    ['embedding' => array_fill(0, 1536, 0.01)],
+                ],
+            ], 200),
+        ]);
+
+        $brain = app(\App\Features\AI\Services\ContentWriterBrain::class);
+        $client = app(\App\Features\AI\Services\OmniRouteClient::class);
+        $coordinator = new \App\Features\AI\Services\PipelineCoordinator($brain, $client);
+
+        $events = [];
+        $sendEvent = function ($type, $data) use (&$events) {
+            $events[] = ['type' => $type, 'data' => $data];
+        };
+
+        $fullDraft = $coordinator->executeAgenticPipeline(
+            pipelineStages: [
+                'search_intent', 'keyword_research', 'article_outline',
+                'section_generation', 'schema_generation', 'publish_assembly'
+            ],
+            topic: 'Document Context',
+            context: ['target_keyword' => 'DeepSeek AI'],
+            customInstruction: 'create blogpost/article about deepseek ai in 1000 words',
+            user: $this->user,
+            sendEvent: $sendEvent
+        );
+
+        // 1. Verify title was emitted with DeepSeek AI
+        $titleEvents = array_filter($events, fn($e) => $e['type'] === 'title');
+        $this->assertNotEmpty($titleEvents);
+        $title = array_values($titleEvents)[0]['data'];
+        $this->assertStringContainsString('DeepSeek AI', $title);
+
+        // 2. Verify pipeline intelligence events were emitted for modal popup
+        $stageEvents = array_filter($events, fn($e) => $e['type'] === 'pipeline_stage');
+        $this->assertNotEmpty($stageEvents);
+
+        $keywordEvents = array_filter($events, fn($e) => $e['type'] === 'pipeline_keywords');
+        $this->assertNotEmpty($keywordEvents);
+
+        $outlineEvents = array_filter($events, fn($e) => $e['type'] === 'pipeline_outline');
+        $this->assertNotEmpty($outlineEvents);
+
+        $schemaEvents = array_filter($events, fn($e) => $e['type'] === 'pipeline_schema');
+        $this->assertNotEmpty($schemaEvents);
+
+        // 3. Verify Canvas Isolation: final draft has H1 and H2, but does NOT contain raw <script> tag
+        $this->assertStringContainsString('<h1>', $fullDraft);
+        $this->assertStringContainsString('DeepSeek AI', $fullDraft);
+        $this->assertStringContainsString('<h2>', $fullDraft);
+        $this->assertStringNotContainsString('<script type="application/ld+json">', $fullDraft);
+    }
+
+    public function test_pipeline_coordinator_dynamically_adapts_to_multiple_domains_and_intents(): void
+    {
+        $brain = app(\App\Features\AI\Services\ContentWriterBrain::class);
+        $client = app(\App\Features\AI\Services\OmniRouteClient::class);
+        $coordinator = new \App\Features\AI\Services\PipelineCoordinator($brain, $client);
+
+        // 1. Gaming Listicle
+        $gamingMeta = $coordinator->detectDomainAndIntent('Genshin Impact', 'top 10 best mobile games');
+        $this->assertEquals('gaming', $gamingMeta['domain']);
+        $this->assertEquals('listicle', $gamingMeta['intent']);
+        $gamingTitle = $coordinator->generateArticleTitle('Genshin Impact', 'Genshin Impact', $gamingMeta['domain'], $gamingMeta['intent']);
+        $this->assertStringContainsString('Top Genshin Impact', $gamingTitle);
+
+        // 2. Business How-To
+        $bizMeta = $coordinator->detectDomainAndIntent('B2B SaaS Growth', 'how to scale saas revenue');
+        $this->assertEquals('business', $bizMeta['domain']);
+        $this->assertEquals('howto', $bizMeta['intent']);
+        $bizTitle = $coordinator->generateArticleTitle('B2B SaaS Growth', 'SaaS Growth', $bizMeta['domain'], $bizMeta['intent']);
+        $this->assertStringContainsString('How to Scale with B2B SaaS Growth', $bizTitle);
+
+        // 3. Health Deep Dive
+        $healthMeta = $coordinator->detectDomainAndIntent('Keto Diet', 'comprehensive analysis of keto diet');
+        $this->assertEquals('health', $healthMeta['domain']);
+        $this->assertEquals('deepdive', $healthMeta['intent']);
+        $healthTitle = $coordinator->generateArticleTitle('Keto Diet', 'Keto Diet', $healthMeta['domain'], $healthMeta['intent']);
+        $this->assertStringContainsString('Keto Diet: The Definitive Evidence-Based Guide', $healthTitle);
+    }
 }

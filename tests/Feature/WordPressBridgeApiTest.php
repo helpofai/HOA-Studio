@@ -122,4 +122,76 @@ class WordPressBridgeApiTest extends TestCase
         $response->assertStatus(200);
         $response->assertHeader('Content-Type', 'text/event-stream; charset=UTF-8');
     }
+
+    public function test_wordpress_stream_falls_back_to_custom_instruction_when_text_is_null_or_empty(): void
+    {
+        $user = User::factory()->create([
+            'monthly_word_quota' => 10000,
+            'used_word_quota' => 0,
+        ]);
+        $tokenResult = UserStudioToken::createTokenForUser($user, 'Stream Fallback Site');
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $tokenResult['plainTextToken'],
+            'Accept' => 'text/event-stream',
+        ])->post('/api/v1/wordpress/stream', [
+            'text' => '',
+            'type' => 'generate',
+            'custom_instruction' => 'Write a comprehensive guide on modern SEO.',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'text/event-stream; charset=UTF-8');
+    }
+
+    public function test_wordpress_stream_returns_error_event_when_both_text_and_instruction_empty(): void
+    {
+        $user = User::factory()->create([
+            'monthly_word_quota' => 10000,
+            'used_word_quota' => 0,
+        ]);
+        $tokenResult = UserStudioToken::createTokenForUser($user, 'Stream Empty Site');
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $tokenResult['plainTextToken'],
+            'Accept' => 'text/event-stream',
+        ])->post('/api/v1/wordpress/stream', [
+            'text' => '',
+            'type' => 'generate',
+            'custom_instruction' => '',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'text/event-stream; charset=UTF-8');
+
+        $content = $response->streamedContent();
+
+        $this->assertStringContainsString('Please provide a prompt instruction', $content);
+        $this->assertStringContainsString('"done":true', $content);
+    }
+
+    public function test_wordpress_stream_returns_quota_exhausted_event_when_user_has_no_quota(): void
+    {
+        $user = User::factory()->create([
+            'monthly_word_quota' => 1000,
+            'used_word_quota' => 1000,
+        ]);
+        $tokenResult = UserStudioToken::createTokenForUser($user, 'Stream Quota Exhausted Site');
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer ' . $tokenResult['plainTextToken'],
+            'Accept' => 'text/event-stream',
+        ])->post('/api/v1/wordpress/stream', [
+            'text' => 'Some text',
+            'type' => 'generate',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'text/event-stream; charset=UTF-8');
+
+        $content = $response->streamedContent();
+
+        $this->assertStringContainsString('quota exhausted', $content);
+        $this->assertStringContainsString('"done":true', $content);
+    }
 }

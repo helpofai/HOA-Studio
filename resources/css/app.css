@@ -10,6 +10,7 @@
 @import "tailwindcss";
 @import "./design-system/tokens.css";
 @import "./design-system/glass.css";
+@import "./markdown.css";
 @import "./ai-highlights.css";
 @import "./navigation-progress.css";
 @import "./welcome.css";

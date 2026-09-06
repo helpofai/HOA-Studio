@@ -286,7 +286,7 @@
                 <span class="text-[10px] text-slate-500 font-mono" x-text="showEeatGuide ? '▲ Less' : '▼ More'"></span>
             </button>
 
-            <div x-show="showEeatGuide" x-collapse class="mt-2 p-3 rounded-xl bg-slate-950/70 border border-indigo-500/20 space-y-2 text-[10px] text-slate-300 font-sans leading-relaxed">
+            <div x-show="showEeatGuide" x-transition class="mt-2 p-3 rounded-xl bg-slate-950/70 border border-indigo-500/20 space-y-2 text-[10px] text-slate-300 font-sans leading-relaxed">
                 <p>
                     <strong class="text-white">Google E-E-A-T</strong> (Experience, Expertise, Authoritativeness, Trustworthiness) and <strong class="text-white">GEO</strong> (Generative Engine Optimization) evaluate whether content is written by authentic practitioners and structured for AI answer extraction:
                 </p>

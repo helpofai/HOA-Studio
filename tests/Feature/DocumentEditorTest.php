@@ -111,4 +111,35 @@ class DocumentEditorTest extends TestCase
 
         $this->assertEquals('gutenberg', $doc->fresh()->editor_type);
     }
+
+    public function test_long_title_is_safely_truncated_without_sql_exception(): void
+    {
+        $user = User::factory()->create();
+        $doc = (new CreateDocument())->execute($user, [
+            'title' => 'Initial Title',
+            'content_html' => '<p>Initial content</p>',
+        ]);
+
+        $this->actingAs($user);
+
+        // Generate a 500-character title (longer than MySQL VARCHAR(255))
+        $veryLongTitle = str_repeat('A very long comprehensive guide headline for testing purposes. ', 10);
+        $this->assertGreaterThan(255, mb_strlen($veryLongTitle));
+
+        // Test applyTitle
+        Livewire::test(DocumentEditor::class, ['id' => $doc->id])
+            ->call('applyTitle', $veryLongTitle);
+
+        $doc->refresh();
+        $this->assertLessThanOrEqual(255, mb_strlen($doc->title));
+        $this->assertNotEmpty($doc->title);
+
+        // Test autosave with long title
+        $component = Livewire::test(DocumentEditor::class, ['id' => $doc->id]);
+        $component->set('title', $veryLongTitle)
+            ->call('autosave', '<p>Updated content</p>');
+
+        $doc->refresh();
+        $this->assertLessThanOrEqual(255, mb_strlen($doc->title));
+    }
 }

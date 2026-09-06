@@ -71,7 +71,7 @@
             </div>
         </button>
 
-        <div x-show="activeSection === 'summary'" x-collapse class="p-3.5 pt-0 space-y-3 border-t border-white/5 text-xs text-slate-300">
+        <div x-show="activeSection === 'summary'" x-transition class="p-3.5 pt-0 space-y-3 border-t border-white/5 text-xs text-slate-300">
             <!-- Visibility & Status Selection -->
             <div class="grid grid-cols-2 gap-2 pt-2">
                 <div>
@@ -103,9 +103,9 @@
                     <span class="text-white font-medium">{{ auth()->user()->name ?? 'Author' }}</span>
                 </div>
                 <div class="flex items-center gap-2 font-mono text-slate-400">
-                    <span>{{ $wordCount }} words</span>
+                    <span x-text="wordCount + ' words'">{{ $wordCount }} words</span>
                     <span>&bull;</span>
-                    <span>{{ $readingTimeMinutes }} min read</span>
+                    <span x-text="(readingTime || Math.max(1, Math.ceil(wordCount / 200))) + ' min read'">{{ $readingTimeMinutes }} min read</span>
                 </div>
             </div>
 
@@ -178,7 +178,7 @@
             </div>
         </button>
 
-        <div x-show="activeSection === 'image'" x-collapse class="p-3.5 pt-0 space-y-3 border-t border-white/5 text-xs">
+        <div x-show="activeSection === 'image'" x-transition class="p-3.5 pt-0 space-y-3 border-t border-white/5 text-xs">
             @if(!empty($blogFeaturedImage))
                 <!-- Image Preview Box -->
                 <div class="space-y-2 pt-2">
@@ -282,7 +282,7 @@
             </div>
         </button>
 
-        <div x-show="activeSection === 'categories'" x-collapse class="p-3.5 pt-0 space-y-3 border-t border-white/5 text-xs">
+        <div x-show="activeSection === 'categories'" x-transition class="p-3.5 pt-0 space-y-3 border-t border-white/5 text-xs">
             <div class="space-y-1.5 pt-2 max-h-48 overflow-y-auto custom-scrollbar pr-1">
                 @php
                     $availableCats = $blogCategories ?? \App\Features\Blog\Models\BlogPost::defaultCategories();
@@ -371,7 +371,7 @@
             </div>
         </button>
 
-        <div x-show="activeSection === 'tags'" x-collapse class="p-3.5 pt-0 space-y-3 border-t border-white/5 text-xs">
+        <div x-show="activeSection === 'tags'" x-transition class="p-3.5 pt-0 space-y-3 border-t border-white/5 text-xs">
             <!-- Add Tag Input -->
             <div class="flex items-center gap-1.5 pt-2">
                 <input 
@@ -448,7 +448,7 @@
             </div>
         </button>
 
-        <div x-show="activeSection === 'excerpt'" x-collapse class="p-3.5 pt-0 space-y-3 border-t border-white/5 text-xs">
+        <div x-show="activeSection === 'excerpt'" x-transition class="p-3.5 pt-0 space-y-3 border-t border-white/5 text-xs">
             <div class="space-y-1.5 pt-2">
                 <div class="flex items-center justify-between text-[10px] text-slate-400 font-mono">
                     <span>Summary description</span>

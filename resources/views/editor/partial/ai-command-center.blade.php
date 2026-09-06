@@ -272,6 +272,22 @@
                         </label>
                     </template>
                 </div>
+
+                <!-- View Pipeline Data Popup Trigger -->
+                <div class="pt-1">
+                    <button 
+                        type="button" 
+                        x-on:click="showPipelinePopup = true"
+                        class="w-full py-1.5 px-2.5 rounded-xl bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-300 hover:text-white border border-indigo-500/30 flex items-center justify-between text-[10.5px] font-mono transition-colors cursor-pointer"
+                        title="Open 15-Stage Production Pipeline Monitor Popup (x)"
+                    >
+                        <span class="flex items-center gap-1.5">
+                            <span>📊</span>
+                            <span>View Pipeline Data Popup</span>
+                        </span>
+                        <span class="text-[9.5px] px-1.5 py-0.2 rounded bg-indigo-600/30 font-bold" x-text="getPipelineCompletedCount() + '/15'"></span>
+                    </button>
+                </div>
             </div>
 
             <!-- Action Buttons: Write Live & Multi-Agent Swarm -->

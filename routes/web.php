@@ -95,7 +95,7 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
 });
 
 // WordPress & Studio Connect REST API (Authenticated via Studio Connect Token Bearer)
-use App\Features\AI\Http\Controllers\WordPressBridgeController;
+use App\Features\WordPress\Http\Controllers\WordPressBridgeController;
 
 Route::prefix('api/v1/wordpress')->middleware('auth.studio')->group(function () {
     Route::post('/connect', [WordPressBridgeController::class, 'connect'])->name('api.wordpress.connect');
@@ -103,6 +103,11 @@ Route::prefix('api/v1/wordpress')->middleware('auth.studio')->group(function () 
     Route::post('/transform', [WordPressBridgeController::class, 'transform'])->name('api.wordpress.transform');
     Route::post('/sync-document', [WordPressBridgeController::class, 'syncDocument'])->name('api.wordpress.sync-document');
 });
+
+// WordPress Plugin ZIP Download Route (Authenticated Users)
+Route::get('/dashboard/wordpress/plugin/download', [WordPressBridgeController::class, 'downloadPlugin'])
+    ->name('dashboard.wordpress.download')
+    ->middleware(['auth']);
 
 // Public Document Sharing Routes
 Route::get('/share/{token}', PublicDocumentPage::class)->name('public.share');

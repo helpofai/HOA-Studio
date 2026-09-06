@@ -188,7 +188,14 @@ class AiStreamController extends Controller
             // MULTI-AGENT SWARM PIPELINE WITH VECTOR MEMORY & AGENTIC CHUNKING
             // -------------------------------------------------------------------------------- //
             
-            return response()->stream(function () use ($validated, $context, $pipelineStages, $user, $client, $brain, $recordUsage, $hasSelection) {
+            $rawText = trim($validated['text'] ?? '');
+            $customInst = trim($validated['custom_instruction'] ?? '');
+            $resolvedTopic = $rawText;
+            if ($rawText === 'Document Context' || empty($rawText) || strcasecmp($rawText, 'document') === 0) {
+                $resolvedTopic = !empty($customInst) ? $customInst : ($context['document_title'] ?? 'The Definitive Guide');
+            }
+
+            return response()->stream(function () use ($validated, $context, $pipelineStages, $user, $client, $brain, $recordUsage, $hasSelection, $resolvedTopic) {
                 // Pre-configure the SSE header cleanly for real-time state feedback
                 ob_implicit_flush(1);
 
@@ -198,6 +205,16 @@ class AiStreamController extends Controller
                         $payload['status_message'] = $data;
                     } elseif ($type === 'title') {
                         $payload['generated_title'] = $data;
+                    } elseif ($type === 'pipeline_stage') {
+                        $payload['pipeline_stage'] = $data;
+                    } elseif ($type === 'pipeline_outline') {
+                        $payload['pipeline_outline'] = $data;
+                    } elseif ($type === 'pipeline_keywords') {
+                        $payload['pipeline_keywords'] = $data;
+                    } elseif ($type === 'pipeline_schema') {
+                        $payload['pipeline_schema'] = $data;
+                    } elseif ($type === 'pipeline_data') {
+                        $payload['pipeline_data'] = $data;
                     } else {
                         $payload['token'] = $data;
                     }
@@ -210,10 +227,10 @@ class AiStreamController extends Controller
                     // Initiate the Pipeline Coordinator
                     $coordinator = app(\App\Features\AI\Services\PipelineCoordinator::class);
                     
-                    // Run the 15-stage workflow (simulated or real LLM calls)
+                    // Run the 15-stage workflow
                     $fullDraft = $coordinator->executeAgenticPipeline(
                         $pipelineStages,
-                        $validated['text'],
+                        $resolvedTopic,
                         $context,
                         $validated['custom_instruction'] ?? null,
                         $user,
@@ -484,8 +501,15 @@ class AiStreamController extends Controller
             $systemPrompt = $brainPrompt['system'];
             $userContent = $brainPrompt['user'];
         } else {
+            $rawText = trim($validated['text'] ?? '');
+            $customInst = trim($validated['custom_instruction'] ?? '');
+            $resolvedTopic = $rawText;
+            if ($rawText === 'Document Context' || empty($rawText) || strcasecmp($rawText, 'document') === 0) {
+                $resolvedTopic = !empty($customInst) ? $customInst : ($context['document_title'] ?? 'The Definitive Guide');
+            }
+
             $brainPrompt = $brain->buildPipelineArticlePrompt(
-                $validated['text'],
+                $resolvedTopic,
                 $context,
                 $pipelineStages,
                 $validated['custom_instruction'] ?? null

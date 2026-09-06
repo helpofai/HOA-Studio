@@ -1,4 +1,5 @@
-{{--
+﻿{{--
+/*
 |--------------------------------------------------------------------------
 | HelpOfAi (HOA) Professional Software - Version History & Snapshots Tab
 |--------------------------------------------------------------------------
@@ -11,9 +12,10 @@
 | Location    : Basta Purba Para, Aranghata, Nadia, West Bengal, India
 |
 |--------------------------------------------------------------------------
+*/
 --}}
 
-<!-- ─── TAB 7: SNAPSHOT VERSIONS TIMELINE & TIME-MACHINE DIFF ───────── -->
+<!-- ─── TAB 8: SNAPSHOT VERSIONS TIMELINE & TIME-MACHINE DIFF ───────── -->
 <div x-show="rightTab === 'versions'" class="space-y-3" style="display: none;" x-data="{ selectedSnapshot: null, showSnapshotDiff: false, snapshotDiffHtml: '' }">
     <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-white/10 space-y-2.5 shadow-inner">
         <div class="flex items-center justify-between pb-1 border-b border-white/5">
@@ -31,25 +33,25 @@
                     <span>🔍 Comparing vs</span>
                     <span class="text-indigo-400 font-mono" x-text="'Version #' + selectedSnapshot?.version_number"></span>
                 </div>
-                <button type="button" x-on:click="showSnapshotDiff = false; selectedSnapshot = null;" class="text-slate-400 hover:text-white text-xs cursor-pointer">✕ Close</button>
+                <button type="button" x-on:click="showSnapshotDiff = false; selectedSnapshot = null; snapshotDiffHtml = '';" class="text-slate-400 hover:text-white text-xs cursor-pointer">✕ Close</button>
             </div>
 
             <p class="text-[10px] text-slate-400 leading-snug">Review differences between your live canvas and this snapshot:</p>
             
             <!-- Word Level Diff Box -->
-            <div class="max-h-48 overflow-y-auto hoa-custom-scrollbar p-2 rounded-lg bg-slate-900/90 border border-white/5 font-mono text-[11px] leading-relaxed select-text" x-html="computeWordDiff(selectedSnapshot?.content_html || '', (editorInstance || (typeof getEditor === 'function' ? getEditor() : null) || window.hoaEditorInstance)?.getHTML ? (editorInstance || (typeof getEditor === 'function' ? getEditor() : null) || window.hoaEditorInstance).getHTML() : '').unifiedHtml"></div>
+            <div class="max-h-48 overflow-y-auto hoa-custom-scrollbar p-2 rounded-lg bg-slate-900/90 border border-white/5 font-mono text-[11px] leading-relaxed select-text" x-html="snapshotDiffHtml || '<span class=\'text-slate-500\'>No changes detected.</span>'"></div>
 
             <div class="flex items-center justify-between pt-1 border-t border-white/5 font-mono text-[10.5px]">
                 <button 
                     type="button" 
-                    x-on:click="$wire.restoreVersion(selectedSnapshot.id); showSnapshotDiff = false;" 
+                    x-on:click="$wire.restoreVersion(selectedSnapshot.id); showSnapshotDiff = false; snapshotDiffHtml = '';" 
                     class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition-colors cursor-pointer"
                 >
                     ✓ Restore This Snapshot
                 </button>
                 <button 
                     type="button" 
-                    x-on:click="showSnapshotDiff = false;" 
+                    x-on:click="showSnapshotDiff = false; selectedSnapshot = null; snapshotDiffHtml = '';" 
                     class="px-2 py-1 rounded-lg bg-slate-900 hover:bg-white/10 text-slate-300 transition-colors cursor-pointer"
                 >
                     Keep Current Live
@@ -71,7 +73,7 @@
                         <div class="flex items-center gap-1.5">
                             <button 
                                 type="button" 
-                                x-on:click="selectedSnapshot = { id: {{ $v->id }}, version_number: {{ $v->version_number }}, content_html: @js($v->content_html ?? '') }; showSnapshotDiff = true;" 
+                                x-on:click="selectedSnapshot = { id: {{ $v->id }}, version_number: {{ $v->version_number }}, content_html: @js($v->content_html ?? '') }; snapshotDiffHtml = computeWordDiff(selectedSnapshot.content_html, ((typeof getEditor === 'function' ? getEditor() : null) || window.hoaEditorInstance)?.getHTML ? ((typeof getEditor === 'function' ? getEditor() : null) || window.hoaEditorInstance).getHTML() : '').unifiedHtml; showSnapshotDiff = true;" 
                                 class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white transition-colors cursor-pointer"
                                 title="Compare snapshot diff against current canvas"
                             >

@@ -63,6 +63,22 @@ class Document extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::saving(function (Document $doc) {
+            if (isset($doc->attributes['title'])) {
+                $clean = trim(preg_replace('/\s+/u', ' ', strip_tags((string) $doc->attributes['title'])));
+                $doc->attributes['title'] = mb_substr($clean ?: 'Untitled Document', 0, 190);
+            }
+        });
+    }
+
+    public function setTitleAttribute($value): void
+    {
+        $clean = trim(preg_replace('/\s+/u', ' ', strip_tags((string) $value)));
+        $this->attributes['title'] = mb_substr($clean ?: 'Untitled Document', 0, 190);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

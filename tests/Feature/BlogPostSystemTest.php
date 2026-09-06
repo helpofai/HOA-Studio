@@ -105,6 +105,85 @@ class BlogPostSystemTest extends TestCase
         $response->assertSee('Jane Author');
     }
 
+    public function test_guest_sees_previous_and_next_navigation_in_publisher_layout()
+    {
+        $firstPost = BlogPost::create([
+            'user_id' => $this->author->id,
+            'document_id' => $this->document->id,
+            'title' => 'First Pioneer Post',
+            'slug' => 'first-pioneer-post',
+            'content_html' => '<h2>Part 1</h2><p>First article body.</p>',
+            'category' => 'Technology',
+            'status' => 'published',
+            'published_at' => now()->subDays(2),
+        ]);
+
+        $secondPost = BlogPost::create([
+            'user_id' => $this->author->id,
+            'document_id' => $this->document->id,
+            'title' => 'Second Progressive Post',
+            'slug' => 'second-progressive-post',
+            'content_html' => '<h2>Part 2</h2><p>Second article body.</p>',
+            'category' => 'Technology',
+            'status' => 'published',
+            'published_at' => now()->subDay(),
+        ]);
+
+        $thirdPost = BlogPost::create([
+            'user_id' => $this->author->id,
+            'document_id' => $this->document->id,
+            'title' => 'Third Future Post',
+            'slug' => 'third-future-post',
+            'content_html' => '<h2>Part 3</h2><p>Third article body.</p>',
+            'category' => 'Technology',
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+
+        $response = $this->get(route('blog.show', $secondPost->slug));
+        $response->assertStatus(200);
+        $response->assertSee('Second Progressive Post');
+        $response->assertSee('First Pioneer Post');
+        $response->assertSee('Third Future Post');
+        $response->assertSee('Previous Article');
+        $response->assertSee('Next Article');
+        $response->assertSee('Similar');
+        $response->assertSee('By Author');
+        $response->assertSee('Trending');
+    }
+
+    public function test_guest_can_view_article_with_mermaid_ascii_and_matrix_tables()
+    {
+        $complexPost = BlogPost::create([
+            'user_id' => $this->author->id,
+            'document_id' => $this->document->id,
+            'title' => 'Technical Architecture Blueprint',
+            'slug' => 'technical-architecture-blueprint',
+            'content_html' => '
+                <h2>System Schemas</h2>
+                <pre class="language-mermaid"><code>erDiagram USERS ||--o{ DOCUMENTS : creates</code></pre>
+                <h2>Hybrid Routing Architecture</h2>
+                <pre><code>┌────────┐\n│ CLIENT │\n└────────┘</code></pre>
+                <h2>Permissions Matrix</h2>
+                <table>
+                    <thead><tr><th>Feature</th><th>Pro</th></tr></thead>
+                    <tbody><tr><td>RAG Sources</td><td>✓</td></tr></tbody>
+                </table>
+            ',
+            'category' => 'Architecture',
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+
+        $response = $this->get(route('blog.show', $complexPost->slug));
+        $response->assertStatus(200);
+        $response->assertSee('Technical Architecture Blueprint');
+        $response->assertSee('language-mermaid');
+        $response->assertSee('erDiagram');
+        $response->assertSee('CLIENT');
+        $response->assertSee('Permissions Matrix');
+    }
+
     public function test_guest_cannot_view_draft_blog_article()
     {
         $draftPost = BlogPost::create([

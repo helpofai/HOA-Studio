@@ -180,6 +180,7 @@
                         <input 
                             type="text" 
                             wire:model.lazy="title" 
+                            maxlength="190"
                             placeholder="Enter primary document title..."
                             class="flex-1 bg-slate-950 border border-white/15 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-sans"
                         />

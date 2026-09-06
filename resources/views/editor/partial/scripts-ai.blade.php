@@ -21,6 +21,8 @@ inlineAiPlacement: 'replace', // 'replace' or 'insert_below'
 showInlineAiPrompt: false,
 showSubAgentProposal: false,
 showSeoHeatmap: false,
+seoHeatmapHtml: '',
+isAnalyzingHeatmap: false,
 subAgentMode: 'recreate',
 subAgentProposedText: '',
 subAgentOriginalText: '',
@@ -97,6 +99,144 @@ setPipelinePreset(preset) {
         allKeys.forEach(k => this.pipelineStages[k].enabled = false);
         this.addLog('AI', 'Cleared all pipeline stages.');
     }
+},
+
+// 15-Stage Production Pipeline Modal & Intelligence State
+showPipelinePopup: false,
+pipelineActiveTab: 'stages',
+pipelinePopupData: {
+    topic: '',
+    title: '',
+    lsiKeywords: '',
+    outline: [],
+    schemaJsonLd: '',
+    rawStageData: '',
+    stages: [
+        { id: 1, key: 'search_intent', icon: '🔍', name: 'Search Intent Analysis', status: 'pending', detail: 'Analyzes user search intent, audience profile & core hook' },
+        { id: 2, key: 'keyword_research', icon: '🏷️', name: 'Keyword & Entity Research', status: 'pending', detail: 'Extracts high-value semantic LSI entities & RAG knowledge' },
+        { id: 3, key: 'serp_competitor', icon: '🌐', name: 'SERP & Competitor Analysis', status: 'pending', detail: 'Formulates competitive depth benchmarks & superiority' },
+        { id: 4, key: 'content_gaps', icon: '🎯', name: 'Content Gap Closure', status: 'pending', detail: 'Bridges overlooked edge cases, practical caveats & FAQs' },
+        { id: 5, key: 'article_outline', icon: '📑', name: 'Outline Architecture', status: 'pending', detail: 'Architects non-overlapping H2/H3 structural chapters' },
+        { id: 6, key: 'section_generation', icon: '✍️', name: 'Section-by-Section Synthesis', status: 'pending', detail: 'Drafts publisher-grade prose directly into canvas' },
+        { id: 7, key: 'fact_verification', icon: '🛡️', name: 'Fact & Source Grounding', status: 'pending', detail: 'Validates technical metrics, parameters & domain accuracy' },
+        { id: 8, key: 'originality_check', icon: '✨', name: 'Originality & Novelty Check', status: 'pending', detail: 'Ensures unique thought-leadership with zero generic filler' },
+        { id: 9, key: 'seo_optimization', icon: '⌁', name: 'SEO Deep Optimization', status: 'pending', detail: 'Aligns keyword density, headers, and scannable visual anchors' },
+        { id: 10, key: 'readability_opt', icon: '📖', name: 'Readability & Cadence Flow', status: 'pending', detail: 'Tunes sentence cadence, active voice, and transitional rhythm' },
+        { id: 11, key: 'internal_links', icon: '🔗', name: 'Internal Link Suggestions', status: 'pending', detail: 'Identifies contextual high-intent internal link hooks' },
+        { id: 12, key: 'media_suggestions', icon: '🖼️', name: 'Rich Media & Comparison Table', status: 'pending', detail: 'Formats structured comparison matrices and tables' },
+        { id: 13, key: 'schema_generation', icon: '📋', name: 'Schema FAQ & JSON-LD', status: 'pending', detail: 'Compiles Schema.org Article & FAQPage JSON-LD structures' },
+        { id: 14, key: 'quality_audit', icon: '🏆', name: 'Final 10-Point Quality Audit', status: 'pending', detail: 'Validates editorial compliance with enterprise publishing standards' },
+        { id: 15, key: 'publish_assembly', icon: '🚀', name: 'Publish-Ready Assembly', status: 'pending', detail: 'Assembles clean final article into TipTap editor canvas' }
+    ]
+},
+
+getPipelineCompletedCount() {
+    if (!this.pipelinePopupData || !Array.isArray(this.pipelinePopupData.stages)) return 0;
+    return this.pipelinePopupData.stages.filter(s => s.status === 'completed').length;
+},
+
+getPipelineProgressLabel() {
+    if (!this.isTransforming && this.getPipelineCompletedCount() === 15) {
+        return 'All 15 Stages Complete (Publish Ready)';
+    }
+    if (!this.isTransforming) {
+        return 'Pipeline Ready';
+    }
+    const runningStage = this.pipelinePopupData.stages.find(s => s.status === 'running');
+    if (runningStage) {
+        return 'Stage ' + runningStage.id + ' Active: ' + runningStage.name;
+    }
+    return this.swarmStatusMessage || 'Executing Swarm Pipeline...';
+},
+
+resetPipelinePopupData(topic) {
+    this.pipelinePopupData.topic = topic || '';
+    this.pipelinePopupData.title = '';
+    this.pipelinePopupData.lsiKeywords = '';
+    this.pipelinePopupData.outline = [];
+    this.pipelinePopupData.schemaJsonLd = '';
+    this.pipelinePopupData.rawStageData = '';
+    if (Array.isArray(this.pipelinePopupData.stages)) {
+        this.pipelinePopupData.stages.forEach(s => {
+            s.status = 'pending';
+        });
+    }
+},
+
+updatePipelineStage(payload) {
+    if (!payload || !this.pipelinePopupData || !Array.isArray(this.pipelinePopupData.stages)) return;
+    const key = payload.key || '';
+    const id = payload.id;
+    const stage = this.pipelinePopupData.stages.find(s => s.key === key || s.id === id);
+    if (stage) {
+        if (payload.status) stage.status = payload.status;
+        if (payload.detail) stage.detail = payload.detail;
+    }
+    if (id && id > 1) {
+        this.pipelinePopupData.stages.forEach(s => {
+            if (s.id < id && s.status === 'pending') {
+                s.status = 'completed';
+            }
+        });
+    }
+},
+
+copyPipelineData() {
+    const d = this.pipelinePopupData;
+    let report = "=== 15-STAGE PRODUCTION PIPELINE REPORT ===\n";
+    report += "Topic: " + (d.topic || 'N/A') + "\n";
+    report += "Title: " + (d.title || 'N/A') + "\n";
+    report += "Completed Stages: " + this.getPipelineCompletedCount() + " / 15\n\n";
+    
+    if (d.lsiKeywords) {
+        report += "--- Extracted LSI Entities ---\n" + d.lsiKeywords + "\n\n";
+    }
+    if (d.outline && d.outline.length > 0) {
+        report += "--- Section Outline Architecture ---\n";
+        d.outline.forEach((o, i) => {
+            report += (i + 1) + ". " + o.title + " (" + o.focus + ")\n";
+        });
+        report += "\n";
+    }
+    if (d.schemaJsonLd) {
+        report += "--- Schema.org JSON-LD ---\n" + d.schemaJsonLd + "\n\n";
+    }
+    
+    navigator.clipboard.writeText(report).then(() => {
+        alert("Pipeline Intelligence Report copied to clipboard!");
+    }).catch(() => {});
+},
+
+extractCleanFinalArticle(rawText) {
+    if (!rawText || typeof rawText !== 'string') return '';
+    let text = rawText;
+
+    // 1. If output contains raw pipeline directives or stage dumps, extract to popup and strip from article
+    const pipelineMarkerRegex = /(?:===+\s*⚡?\s*ACTIVE ENTERPRISE PRODUCTION PIPELINE[\s\S]*?===+\s*END OF PIPELINE DIRECTIVES\s*===+|#+\s*15-Stage Production Pipeline[\s\S]*?(?=(?:^#\s+|<h1|\Z))|Stage\s+\d+:\s*[^\n]+(?:\n+(?:Target Intent|LSI Entities|Focus|Drafting)[^\n]+)*)/gi;
+    
+    if (pipelineMarkerRegex.test(text)) {
+        const matches = text.match(pipelineMarkerRegex);
+        if (matches && matches.length > 0) {
+            this.showPipelinePopup = true;
+            this.pipelinePopupData.rawStageData = matches.join('\n\n');
+        }
+        text = text.replace(pipelineMarkerRegex, '').trim();
+    }
+
+    // 2. Extract and strip raw <script type="application/ld+json"> from editor canvas
+    const schemaScriptRegex = /<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+    let schemaMatch;
+    while ((schemaMatch = schemaScriptRegex.exec(text)) !== null) {
+        if (schemaMatch[0]) {
+            this.pipelinePopupData.schemaJsonLd = schemaMatch[0];
+        }
+    }
+    text = text.replace(schemaScriptRegex, '').trim();
+
+    // 3. Clean duplicate consecutive H2 titles (e.g. <h2>Title</h2>\nTitle)
+    text = text.replace(/(<h2[^>]*>(.*?)<\/h2>)\s*(?:\2|\*\*?\2\*\*?)/gi, '$1');
+
+    return text.trim();
 },
 
 isTransforming: false,
@@ -395,71 +535,71 @@ async applyTargetedIntelligenceFix(checkId, title, aiPrompt, targetType = 'inser
     }
 },
 
-toggleSeoHeatmap(forceState = null) {
+async toggleSeoHeatmap(forceState = null) {
     const targetState = forceState !== null ? Boolean(forceState) : !this.showSeoHeatmap;
     if (this.showSeoHeatmap === targetState) return;
-
-    const ed = this.getEditor ? this.getEditor() : (typeof getEditor === 'function' ? getEditor() : (window.hoaEditorInstance || null));
-    if (!ed) return;
 
     this.showSeoHeatmap = targetState;
 
     if (this.showSeoHeatmap) {
-        // Save current draft before displaying color-coded heatmap
-        const liveHtml = typeof ed.getHTML === 'function' ? ed.getHTML() : (ed.editor?.getHTML ? ed.editor.getHTML() : '');
-        window._originalSeoDraft = liveHtml;
-
-        const marked = (this.$wire && this.$wire.seoData) ? this.$wire.seoData.marked_html : null;
-        if (marked) {
-            if (typeof ed.setContent === 'function') {
-                ed.setContent(marked, false);
-            } else if (ed.editor?.commands?.setContent) {
-                ed.editor.commands.setContent(marked, false);
-            }
+        // 1. Immediately display cached marked_html if available for instant visual feedback
+        if (this.$wire && this.$wire.seoData && this.$wire.seoData.marked_html) {
+            this.seoHeatmapHtml = this.$wire.seoData.marked_html;
         }
 
-        if (typeof ed.setEditable === 'function') {
-            ed.setEditable(false);
-        } else if (ed.editor && typeof ed.editor.setEditable === 'function') {
-            ed.editor.setEditable(false);
-        }
+        // 2. Fetch fresh audit with live editor canvas content
+        await this.refreshSeoHeatmap();
 
-        const pmEl = document.querySelector('.ProseMirror');
-        if (pmEl) pmEl.setAttribute('contenteditable', 'false');
-
-        this.addLog('SEO', '👁️ Color-coded SEO & GEO Heatmap inspection mode activated (canvas read-only).');
+        this.addLog('SEO', '👁️ Visual SEO & GEO Heatmap inspection mode activated.');
     } else {
-        const restored = (window._originalSeoDraft !== undefined && window._originalSeoDraft !== null)
-            ? window._originalSeoDraft
-            : (typeof ed.getHTML === 'function' ? ed.getHTML() : '');
-
-        if (restored) {
-            if (typeof ed.setContent === 'function') {
-                ed.setContent(restored, false);
-            } else if (ed.editor?.commands?.setContent) {
-                ed.editor.commands.setContent(restored, false);
+        this.$nextTick(() => {
+            const ed = this.getEditor ? this.getEditor() : (typeof getEditor === 'function' ? getEditor() : (window.hoaEditorInstance || null));
+            if (ed && typeof ed.commands?.focus === 'function') {
+                ed.commands.focus();
             }
-        }
-
-        if (typeof ed.setEditable === 'function') {
-            ed.setEditable(true);
-        } else if (ed.editor && typeof ed.editor.setEditable === 'function') {
-            ed.editor.setEditable(true);
-        }
-
-        const pmEl = document.querySelector('.ProseMirror');
-        if (pmEl) pmEl.setAttribute('contenteditable', 'true');
+        });
 
         this.addLog('SEO', 'Editable content canvas restored.');
+    }
+},
+
+async refreshSeoHeatmap() {
+    const ed = this.getEditor ? this.getEditor() : (typeof getEditor === 'function' ? getEditor() : (window.hoaEditorInstance || null));
+    const liveHtml = ed ? (typeof ed.getHTML === 'function' ? ed.getHTML() : (ed.editor?.getHTML ? ed.editor.getHTML() : '')) : '';
+
+    if (this.$wire && typeof this.$wire.call === 'function') {
+        this.isAnalyzingHeatmap = true;
+        try {
+            const marked = await this.$wire.call('runSeoAudit', liveHtml);
+            if (marked && typeof marked === 'string' && marked.trim() !== '') {
+                this.seoHeatmapHtml = marked;
+            } else if (this.$wire.seoData && this.$wire.seoData.marked_html) {
+                this.seoHeatmapHtml = this.$wire.seoData.marked_html;
+            }
+        } catch (err) {
+            console.error('Failed to run SEO audit for heatmap:', err);
+        } finally {
+            this.isAnalyzingHeatmap = false;
+        }
+    }
+},
+
+handleHeatmapClick(event) {
+    const callout = event.target.closest('.seo-canvas-callout');
+    if (callout && callout.id) {
+        this.locateSeoTarget(callout.id);
     }
 },
 
 locateSeoTarget(targetId, checkId = null) {
     if (!targetId && !checkId) return;
 
-    // 1. If targeting title, focus title input directly
+    // 1. If targeting title, focus title input directly in the toolbar
     if (targetId === 'seo-loc-title' || (checkId && checkId.startsWith('title_')) || checkId === 'kw_in_title' || checkId === 'kw_at_beginning_of_title') {
-        const titleInput = document.querySelector('input[x-model="title"]') || document.querySelector('input[placeholder*="Title"]');
+        const titleInput = document.querySelector('input[wire\\:model\\.lazy="title"]') 
+            || document.querySelector('input[placeholder*="Untitled Document"]') 
+            || document.querySelector('input[x-model="title"]') 
+            || document.querySelector('input[placeholder*="Title"]');
         if (titleInput) {
             titleInput.focus();
             titleInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -471,7 +611,7 @@ locateSeoTarget(targetId, checkId = null) {
     }
 
     // 2. If targeting meta or URL slug, switch to Titles & Meta tab and focus meta input
-    if (targetId === 'seo-loc-meta' || checkId === 'kw_in_meta' || checkId === 'kw_in_url') {
+    if (targetId === 'seo-loc-meta' || checkId === 'kw_in_meta' || checkId === 'kw_in_url' || checkId === 'url_length' || checkId === 'schema_markup') {
         this.rightTab = 'titles_meta';
         this.$nextTick(() => {
             const metaInput = document.querySelector('textarea[wire\\:model\\.lazy="metaDescription"]') || document.querySelector('textarea[placeholder*="meta"]');
@@ -486,21 +626,48 @@ locateSeoTarget(targetId, checkId = null) {
         return;
     }
 
-    // 3. If Heatmap is not active, automatically activate it to show in-canvas visual callouts and annotations!
-    if (!this.showSeoHeatmap) {
-        this.toggleSeoHeatmap(true);
+    // 3. Ensure we are in LIVE EDITABLE canvas mode (disable heatmap if currently open so user can edit)
+    if (this.showSeoHeatmap) {
+        this.toggleSeoHeatmap(false);
     }
 
-    // 4. Scroll smoothly to the target section in the editor canvas with surgical precision
+    // 4. Scroll smoothly to the target section in the live editor canvas with surgical precision
     this.$nextTick(() => {
-        let el = document.getElementById(targetId);
+        setTimeout(() => {
+            const container = document.getElementById('tiptap-content-target');
+            if (!container) return;
 
-        // Surgical Check-Specific Element Resolution (Prevents multiple checks from indicating the same line)
-        if (!el || el.id === 'seo-loc-kw_in_intro' || el.id === 'seo-loc-kw_in_subheadings' || el.id === 'seo-loc-external_links') {
-            const paragraphs = Array.from(document.querySelectorAll('.editor-canvas p, .tiptap p, .ProseMirror p'));
-            const headings = Array.from(document.querySelectorAll('.editor-canvas h2, .tiptap h2, .ProseMirror h2, .editor-canvas h3, .tiptap h3'));
+            const editorRoot = container.querySelector('.ProseMirror') || container.querySelector('.tiptap') || container;
+            
+            // Scope queries strictly to real content elements
+            const allHeadings = Array.from(editorRoot.querySelectorAll('h1, h2, h3, h4, h5, h6'))
+                .filter(h => !h.closest('.seo-heatmap-legend-bar') && !h.closest('.seo-canvas-callout'));
+            
+            const h1Element = allHeadings.find(h => h.tagName.toLowerCase() === 'h1');
+            // Subheadings are strictly H2, H3, H4 - NEVER H1 (which is the document title)
+            const subheadings = allHeadings.filter(h => ['h2', 'h3', 'h4', 'h5', 'h6'].includes(h.tagName.toLowerCase()));
+            const h2List = subheadings.filter(h => h.tagName.toLowerCase() === 'h2');
+            
+            const paragraphs = Array.from(editorRoot.querySelectorAll('p'))
+                .filter(p => !p.closest('.seo-heatmap-legend-bar') && !p.closest('.seo-canvas-callout') && p.textContent.trim().length > 0);
+            
+            const tables = Array.from(editorRoot.querySelectorAll('table'));
+            const images = Array.from(editorRoot.querySelectorAll('img'));
+            const links = Array.from(editorRoot.querySelectorAll('a'));
+            const blockquotes = Array.from(editorRoot.querySelectorAll('blockquote'));
+            const kw = ((this.$wire && this.$wire.targetKeyword) ? this.$wire.targetKeyword : '').trim().toLowerCase();
 
-            if (checkId === 'short_paragraphs') {
+            let el = null;
+
+            // Surgical Check-Specific Element Resolution
+            if (checkId === 'kw_in_intro') {
+                // Opening introduction hook: strictly the first paragraph (never H1)
+                el = paragraphs[0] || (h1Element && h1Element.nextElementSibling ? h1Element.nextElementSibling : null);
+            } else if (checkId === 'kw_in_subheadings') {
+                // Strictly subheadings (H2, H3) - check for keyword match or first H2
+                const matchingSub = subheadings.find(h => kw && h.textContent.toLowerCase().includes(kw));
+                el = matchingSub || h2List[0] || subheadings[0] || paragraphs[1] || paragraphs[0];
+            } else if (checkId === 'short_paragraphs') {
                 // Find the ACTUAL bulky paragraph (>100 words)
                 let maxWords = 0;
                 let bulkiestP = null;
@@ -515,87 +682,136 @@ locateSeoTarget(targetId, checkId = null) {
             } else if (checkId === 'sentence_length') {
                 // Find the ACTUAL paragraph containing a run-on sentence (>20 words)
                 let runOnP = null;
+                let maxSentenceWords = 0;
                 for (const p of paragraphs) {
                     const sentences = p.textContent.match(/[^.!?]+[.!?]+(\s|$)/g) || [];
                     for (const s of sentences) {
-                        if (s.trim().split(/\s+/).filter(Boolean).length > 20) {
+                        const wCount = s.trim().split(/\s+/).filter(Boolean).length;
+                        if (wCount > 20 && wCount > maxSentenceWords) {
+                            maxSentenceWords = wCount;
                             runOnP = p;
                             break;
                         }
                     }
                     if (runOnP) break;
                 }
-                el = runOnP || (paragraphs.length > 2 ? paragraphs[2] : paragraphs[0]);
-            } else if (checkId === 'kw_in_body') {
+                el = runOnP || (paragraphs.length > 2 ? paragraphs[2] : (paragraphs[1] || paragraphs[0]));
+            } else if (checkId === 'kw_in_body' || checkId === 'keyword_density') {
                 // Find body paragraphs with or needing the keyword (not the intro paragraph)
-                const kw = (this.$wire ? this.$wire.targetKeyword : '') || '';
                 let bodyP = null;
                 if (kw && paragraphs.length > 1) {
-                    bodyP = paragraphs.slice(1).find(p => p.textContent.toLowerCase().includes(kw.toLowerCase()));
+                    bodyP = paragraphs.slice(1).find(p => p.textContent.toLowerCase().includes(kw));
                 }
                 el = bodyP || (paragraphs.length > 1 ? paragraphs[1] : paragraphs[0]);
-            } else if (checkId === 'kw_in_intro') {
-                // Specifically the first paragraph (intro hook)
-                el = paragraphs[0] || null;
-            } else if (checkId === 'content_length_min') {
-                // Bottom of the document where word count expands
-                el = paragraphs.length > 0 ? paragraphs[paragraphs.length - 1] : null;
-            } else if (checkId === 'kw_in_subheadings') {
-                // Find H2 with or needing the keyword
-                const kw = (this.$wire ? this.$wire.targetKeyword : '') || '';
-                let matchingH2 = null;
-                if (kw) {
-                    matchingH2 = headings.find(h => h.textContent.toLowerCase().includes(kw.toLowerCase()));
-                }
-                el = matchingH2 || headings[0] || null;
+            } else if (checkId === 'content_length' || checkId === 'content_length_min') {
+                // Bottom of document where word count expands
+                el = paragraphs[paragraphs.length - 1] || editorRoot.lastElementChild;
             } else if (checkId === 'headings_toc') {
-                // Second H2/H3 for structural balance
-                el = headings.length > 1 ? headings[1] : headings[0];
-            } else if (checkId === 'kw_in_image_alt') {
-                el = document.querySelector('.editor-canvas img, .tiptap img, .ProseMirror img');
+                // Second H2/H3 for structural balance (never H1)
+                el = h2List.length > 1 ? h2List[1] : (h2List[0] || subheadings[0] || paragraphs[0]);
+            } else if (checkId === 'kw_in_img_alt') {
+                el = images[0] || (h2List[0] ? h2List[0].nextElementSibling : null) || paragraphs[1] || paragraphs[0];
             } else if (checkId === 'rich_media') {
-                el = document.querySelector('.editor-canvas table, .tiptap table, .ProseMirror table, .editor-canvas img, .tiptap img, .ProseMirror img');
+                el = tables[0] || images[0] || (h2List.length > 1 ? h2List[1] : (h2List[0] || paragraphs[1]));
             } else if (checkId === 'external_links' || checkId === 'outbound_citations') {
-                const extLink = Array.from(document.querySelectorAll('.editor-canvas a, .tiptap a, .ProseMirror a')).find(a => (a.getAttribute('href') || '').startsWith('http'));
-                el = extLink ? (extLink.closest('p') || extLink) : (paragraphs.length > 1 ? paragraphs[paragraphs.length - 2] : paragraphs[0]);
+                const extLink = links.find(a => (a.getAttribute('href') || '').startsWith('http'));
+                el = extLink ? (extLink.closest('p') || extLink) : (paragraphs.length > 2 ? paragraphs[paragraphs.length - 2] : (paragraphs[1] || paragraphs[0]));
             } else if (checkId === 'internal_links') {
-                const intLink = Array.from(document.querySelectorAll('.editor-canvas a, .tiptap a, .ProseMirror a')).find(a => (a.getAttribute('href') || '').startsWith('/'));
-                el = intLink ? (intLink.closest('p') || intLink) : (paragraphs.length > 2 ? paragraphs[2] : paragraphs[0]);
+                const intLink = links.find(a => {
+                    const href = a.getAttribute('href') || '';
+                    return href.startsWith('/') || href.startsWith('#');
+                });
+                el = intLink ? (intLink.closest('p') || intLink) : (paragraphs.length > 2 ? paragraphs[2] : (paragraphs[1] || paragraphs[0]));
             } else if (checkId === 'geo_direct_answer') {
-                el = document.getElementById('seo-loc-geo_direct_answer') || document.querySelector('.geo-direct-answer') || (headings[0] ? headings[0].nextElementSibling : null);
+                // Direct answer snippet: 40-60 word answer immediately beneath first H2
+                el = (h2List[0] && h2List[0].nextElementSibling) || paragraphs[0];
             } else if (checkId === 'geo_structured_synthesis') {
-                el = document.getElementById('seo-loc-geo_structured_synthesis') || document.querySelector('.editor-canvas table, .tiptap table, .ProseMirror table');
+                el = tables[0] || (h2List.length > 1 ? (h2List[1].nextElementSibling || h2List[1]) : (paragraphs.length > 2 ? paragraphs[2] : paragraphs[0]));
+            } else if (checkId === 'geo_paa_questions') {
+                const paaH = subheadings.find(h => /^(what|how|why|when|where|is|can|do|does)\b/i.test(h.textContent.trim()) || h.textContent.includes('?'));
+                el = paaH || (subheadings.length > 1 ? subheadings[1] : (subheadings[0] || paragraphs[0]));
+            } else if (checkId === 'geo_authoritative_quotes') {
+                el = blockquotes[0] || (paragraphs.length > 1 ? paragraphs[1] : paragraphs[0]);
+            } else if (checkId === 'geo_data_points') {
+                const numP = paragraphs.find(p => /\d+(%|\.\d+)?/.test(p.textContent));
+                el = numP || (paragraphs.length > 1 ? paragraphs[1] : paragraphs[0]);
+            } else if (checkId === 'eeat_score') {
+                el = editorRoot.querySelector('.eeat-trust-card') || (paragraphs.length > 2 ? paragraphs[2] : paragraphs[0]);
+            } else if (checkId === 'voice_search_optimized') {
+                const qHeading = subheadings.find(h => h.textContent.includes('?'));
+                el = qHeading || (paragraphs.length > 1 ? paragraphs[paragraphs.length - 1] : paragraphs[0]);
+            } else if (checkId === 'featured_snippet_potential') {
+                el = (h2List[0] && h2List[0].nextElementSibling) || paragraphs[0];
+            } else if (checkId === 'content_freshness') {
+                el = paragraphs[0] || subheadings[0] || editorRoot.firstElementChild;
+            } else if (checkId === 'competitive_gap_analysis') {
+                el = (h2List.length > 0 ? h2List[h2List.length - 1] : null) || paragraphs[paragraphs.length - 1] || paragraphs[0];
+            } else if (checkId === 'semantic_depth') {
+                el = paragraphs.length > 1 ? paragraphs[1] : paragraphs[0];
             }
-        }
 
-        // Final generic fallbacks if still not found
-        if (!el) {
-            if (targetId === 'seo-loc-kw_in_intro') {
-                el = document.querySelector('.editor-canvas p, .tiptap p, .ProseMirror p');
-            } else if (targetId === 'seo-loc-kw_in_subheadings') {
-                el = document.querySelector('.editor-canvas h2, .tiptap h2, .ProseMirror h2');
-            } else if (targetId === 'seo-loc-external_links') {
-                const paragraphs = document.querySelectorAll('.editor-canvas p, .tiptap p, .ProseMirror p');
-                el = paragraphs.length > 1 ? paragraphs[paragraphs.length - 2] : paragraphs[0];
-            } else if (targetId === 'seo-loc-geo_direct_answer') {
-                el = document.getElementById('seo-loc-geo_direct_answer') || document.querySelector('.editor-canvas h2, .tiptap h2, .ProseMirror h2');
-            } else if (targetId === 'seo-loc-geo_structured_synthesis') {
-                el = document.getElementById('seo-loc-geo_structured_synthesis') || document.querySelector('.editor-canvas table, .tiptap table, .ProseMirror table');
+            // Generic targetId fallbacks if still not resolved
+            if (!el) {
+                if (targetId === 'seo-loc-kw_in_intro') {
+                    el = paragraphs[0] || (h1Element && h1Element.nextElementSibling ? h1Element.nextElementSibling : null) || editorRoot.firstElementChild;
+                } else if (targetId === 'seo-loc-kw_in_subheadings') {
+                    el = h2List[0] || subheadings[0] || paragraphs[1] || paragraphs[0];
+                } else if (targetId === 'seo-loc-external_links') {
+                    el = paragraphs.length > 1 ? paragraphs[paragraphs.length - 2] : paragraphs[0];
+                } else if (targetId === 'seo-loc-geo_direct_answer') {
+                    el = (h2List[0] && h2List[0].nextElementSibling) || h2List[0] || paragraphs[0];
+                } else if (targetId === 'seo-loc-geo_structured_synthesis') {
+                    el = tables[0] || (h2List.length > 1 ? h2List[1] : paragraphs[0]);
+                } else {
+                    el = paragraphs[0] || editorRoot.firstElementChild;
+                }
             }
-        }
 
-        if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            el.style.transition = 'box-shadow 0.4s ease, border-color 0.4s ease, transform 0.2s ease';
-            el.style.boxShadow = '0 0 0 3px #6366f1, 0 10px 25px -5px rgba(99, 102, 241, 0.5)';
-            el.style.borderRadius = '8px';
-            setTimeout(() => {
-                el.style.boxShadow = '';
-            }, 3000);
-            this.addLog('SEO', 'Located [' + (checkId || targetId) + '] surgically in content canvas.');
-        } else {
-            this.addLog('SEO', 'Target position highlighted in editor.');
-        }
+            if (el) {
+                // 1. Resolve exact ProseMirror document position inside TipTap
+                const ed = this.getEditor ? this.getEditor() : (typeof getEditor === 'function' ? getEditor() : (window.hoaEditorInstance || null));
+                const tiptap = (ed && ed.editor) ? ed.editor : (ed && ed.commands ? ed : null);
+
+                if (tiptap && tiptap.view) {
+                    try {
+                        const pos = tiptap.view.posAtDOM(el, 0);
+                        if (typeof pos === 'number' && pos >= 0) {
+                            if (typeof tiptap.commands?.setTextSelection === 'function') {
+                                tiptap.commands.setTextSelection(pos);
+                            }
+                        }
+                    } catch (posErr) {
+                        console.warn('posAtDOM resolution error:', posErr);
+                    }
+                }
+
+                // 2. Smoothly scroll target into vertical center of editor container
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // 3. Apply glowing neon indigo highlight ring
+                el.style.transition = 'box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s ease';
+                el.style.boxShadow = '0 0 0 3px #6366f1, 0 10px 25px -5px rgba(99, 102, 241, 0.5)';
+                el.style.borderRadius = '8px';
+                setTimeout(() => {
+                    if (el) {
+                        el.style.boxShadow = '';
+                        el.style.transition = '';
+                        el.style.borderRadius = '';
+                    }
+                }, 3000);
+
+                // 4. Focus TipTap view at the new selection position
+                if (tiptap && tiptap.view && typeof tiptap.view.focus === 'function') {
+                    try {
+                        tiptap.view.focus();
+                    } catch (e) {}
+                }
+
+                this.addLog('SEO', 'Located [' + (checkId || targetId) + '] surgically in content canvas.');
+            } else {
+                this.addLog('SEO', 'Target position highlighted in editor.');
+            }
+        }, 80);
     });
 },
 
@@ -763,8 +979,18 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto', c
         let isBrowserDirect = false;
         let preparedData = null;
 
+        const effectiveTopic = (hadSelection && this.selectedText)
+            ? this.selectedText
+            : ((promptToSend && promptToSend.trim()) ? promptToSend.trim() : (this.title || (targetText || 'Article Draft')));
+
+        const isPipelineMode = type === 'multi_agent_pipeline' || (!hadSelection && (selectedPipelineStages.length > 0 || type === 'custom'));
+        if (isPipelineMode) {
+            this.resetPipelinePopupData(effectiveTopic);
+            this.showPipelinePopup = true;
+        }
+
         const requestPayload = {
-            text: targetText || 'Document Context',
+            text: effectiveTopic,
             type: type,
             custom_instruction: promptToSend,
             model: this.aiModel,
@@ -904,13 +1130,34 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto', c
                             this.aiErrorMessage = parsed.message;
                         }
                         if (parsed.generated_title) {
-                            const newTitle = parsed.generated_title;
+                            let newTitle = String(parsed.generated_title).trim();
+                            if (newTitle.length > 180) newTitle = newTitle.substring(0, 180).trim();
                             const titleInput = document.querySelector('input[wire\\:model\\.lazy="title"]');
                             if (titleInput) titleInput.value = newTitle;
                             if (window.Livewire) {
                                 Livewire.dispatch('updateTitle', { newTitle: newTitle });
                             }
+                            this.pipelinePopupData.title = newTitle;
                             this.addLog('SEO', 'Auto-generated Title: ' + newTitle);
+                        }
+                        if (parsed.pipeline_stage) {
+                            this.updatePipelineStage(parsed.pipeline_stage);
+                        }
+                        if (parsed.pipeline_outline) {
+                            this.pipelinePopupData.outline = parsed.pipeline_outline;
+                        }
+                        if (parsed.pipeline_keywords) {
+                            this.pipelinePopupData.lsiKeywords = parsed.pipeline_keywords;
+                        }
+                        if (parsed.pipeline_schema) {
+                            this.pipelinePopupData.schemaJsonLd = parsed.pipeline_schema;
+                        }
+                        if (parsed.pipeline_data) {
+                            if (parsed.pipeline_data.topic) this.pipelinePopupData.topic = parsed.pipeline_data.topic;
+                            if (parsed.pipeline_data.title) this.pipelinePopupData.title = parsed.pipeline_data.title;
+                            if (parsed.pipeline_data.keywords) this.pipelinePopupData.lsiKeywords = parsed.pipeline_data.keywords;
+                            if (parsed.pipeline_data.outline) this.pipelinePopupData.outline = parsed.pipeline_data.outline;
+                            if (parsed.pipeline_data.schema) this.pipelinePopupData.schemaJsonLd = parsed.pipeline_data.schema;
                         }
                         if (parsed.status_message) {
                             this.swarmStatusMessage = parsed.status_message;
@@ -951,14 +1198,17 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto', c
                 const now = performance.now();
                 if (now - lastCanvasUpdate > 60 && fullResult.length > 0 && effectivePlacement === 'document' && ed) {
                     lastCanvasUpdate = now;
-                    if (isDocEmpty) {
-                        ed.setContent(fullResult, false);
-                    } else {
-                        ed.setContent(existingDocContent + '<p></p>' + fullResult, false);
-                    }
-                    const targetEl = document.getElementById('tiptap-content-target');
-                    if (targetEl && targetEl.scrollHeight - targetEl.scrollTop < 1200) {
-                        targetEl.scrollTop = targetEl.scrollHeight;
+                    const cleanFinalStream = this.extractCleanFinalArticle(fullResult);
+                    if (cleanFinalStream.length > 0) {
+                        if (isDocEmpty) {
+                            ed.setContent(cleanFinalStream, false);
+                        } else {
+                            ed.setContent(existingDocContent + '<p></p>' + cleanFinalStream, false);
+                        }
+                        const targetEl = document.getElementById('tiptap-content-target');
+                        if (targetEl && targetEl.scrollHeight - targetEl.scrollTop < 1200) {
+                            targetEl.scrollTop = targetEl.scrollHeight;
+                        }
                     }
                 }
             }
@@ -966,7 +1216,9 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto', c
 
         this.isTransforming = false;
         this.liveAiStreamText = '';
-    this.pipelineStageLog = [];
+        if (this.pipelinePopupData && Array.isArray(this.pipelinePopupData.stages)) {
+            this.pipelinePopupData.stages.forEach(s => s.status = 'completed');
+        }
 
         // Record telemetry & deduct quota if streamed directly from browser
         if (isBrowserDirect && config.recordUsageRoute && fullResult.trim().length > 0) {
@@ -1062,19 +1314,21 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto', c
                 this.selectedText = '';
             } else {
                 // 3. FULL CANVAS / DOCUMENT LEVEL GENERATION (Direct Insert)
+                const cleanFinalArticle = this.extractCleanFinalArticle(fullResult);
                 const docFinalHtml = isDocEmpty 
-                    ? fullResult
-                    : existingDocContent + '<p></p>' + fullResult;
+                    ? cleanFinalArticle
+                    : existingDocContent + '<p></p>' + cleanFinalArticle;
 
                 ed.setContent(docFinalHtml, true);
-                this.addLog('GENERATE', 'Completed generation in canvas (' + fullResult.length + ' chars)');
+                this.addLog('GENERATE', 'Completed generation in canvas (' + cleanFinalArticle.length + ' chars)');
                 this.hasSelection = false;
                 this.selectedText = '';
                 // Inferred Document Title Auto-Update only if document was initially empty
                 if (isDocEmpty) {
-                    const h1Match = fullResult.match(/<h1>(.*?)<\/h1>/i) || fullResult.match(/^#\s+(.*?)$/m);
+                    const h1Match = cleanFinalArticle.match(/<h1>(.*?)<\/h1>/i) || cleanFinalArticle.match(/^#\s+(.*?)$/m);
                     if (h1Match && h1Match[1]) {
-                        const extractedTitle = h1Match[1].replace(/<[^>]*>/g, '').trim();
+                        let extractedTitle = h1Match[1].replace(/<[^>]*>/g, '').trim();
+                        if (extractedTitle.length > 180) extractedTitle = extractedTitle.substring(0, 180).trim();
                         if (extractedTitle) {
                             Livewire.dispatch('applyTitle', { title: extractedTitle });
                             this.addLog('SEO', 'Auto-applied document title: "' + extractedTitle.substring(0, 30) + '..."');

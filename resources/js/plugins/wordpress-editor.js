@@ -43,6 +43,144 @@ import Superscript from '@tiptap/extension-superscript';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { Color } from '@tiptap/extension-color';
 import Link from '@tiptap/extension-link';
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import { common, createLowlight } from 'lowlight';
+
+const lowlight = createLowlight(common);
+
+/**
+ * Enterprise Custom Code Block with Dark Terminal Chrome, Language Selection, and 1-Click Copy
+ */
+export const CustomCodeBlockLowlight = CodeBlockLowlight.extend({
+    addNodeView() {
+        return ({ node, HTMLAttributes, getPos, editor }) => {
+            const dom = document.createElement('div');
+            dom.className = 'hoa-code-block-wrapper relative my-5 rounded-2xl border border-white/10 bg-slate-950/95 overflow-hidden shadow-2xl';
+
+            const header = document.createElement('div');
+            header.className = 'hoa-code-header flex items-center justify-between px-3.5 py-2 bg-slate-900/90 border-b border-white/10 select-none';
+            header.contentEditable = 'false';
+
+            // Left: macOS terminal dots + language select
+            const leftSide = document.createElement('div');
+            leftSide.className = 'flex items-center gap-2.5';
+            leftSide.innerHTML = `
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block"></span>
+                </div>
+            `;
+
+            const select = document.createElement('select');
+            select.className = 'bg-transparent text-[11px] font-mono font-bold text-indigo-400 hover:text-indigo-300 focus:outline-none cursor-pointer uppercase py-0.5 px-1.5 rounded hover:bg-white/5 border border-transparent hover:border-white/10 transition-colors';
+            
+            const languages = [
+                { value: 'javascript', label: 'JavaScript' },
+                { value: 'typescript', label: 'TypeScript' },
+                { value: 'python', label: 'Python' },
+                { value: 'php', label: 'PHP' },
+                { value: 'html', label: 'HTML' },
+                { value: 'css', label: 'CSS' },
+                { value: 'sql', label: 'SQL' },
+                { value: 'json', label: 'JSON' },
+                { value: 'bash', label: 'Bash' },
+                { value: 'markdown', label: 'Markdown' },
+                { value: 'yaml', label: 'YAML' },
+                { value: 'go', label: 'Go' },
+                { value: 'rust', label: 'Rust' },
+                { value: 'java', label: 'Java' },
+                { value: 'csharp', label: 'C#' },
+                { value: 'cpp', label: 'C++' },
+                { value: 'c', label: 'C' },
+                { value: 'diff', label: 'Diff' },
+                { value: 'text', label: 'Plain Text' },
+            ];
+
+            const currentLang = (node.attrs.language || 'javascript').toLowerCase();
+            let matched = false;
+
+            languages.forEach(l => {
+                const opt = document.createElement('option');
+                opt.value = l.value;
+                opt.textContent = l.label;
+                opt.className = 'bg-slate-900 text-slate-200';
+                if (l.value === currentLang) {
+                    opt.selected = true;
+                    matched = true;
+                }
+                select.appendChild(opt);
+            });
+
+            if (!matched && currentLang) {
+                const customOpt = document.createElement('option');
+                customOpt.value = currentLang;
+                customOpt.textContent = currentLang.toUpperCase();
+                customOpt.selected = true;
+                customOpt.className = 'bg-slate-900 text-slate-200';
+                select.appendChild(customOpt);
+            }
+
+            select.addEventListener('change', (e) => {
+                if (typeof getPos === 'function') {
+                    const pos = getPos();
+                    editor.chain().focus().command(({ tr }) => {
+                        tr.setNodeMarkup(pos, undefined, {
+                            ...node.attrs,
+                            language: e.target.value
+                        });
+                        return true;
+                    }).run();
+                }
+            });
+            leftSide.appendChild(select);
+
+            // Right: 1-Click Copy button
+            const copyBtn = document.createElement('button');
+            copyBtn.type = 'button';
+            copyBtn.className = 'hoa-copy-code-btn flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] font-medium text-slate-300 hover:text-white transition-all cursor-pointer border border-white/5';
+            copyBtn.innerHTML = '<span>📋</span> <span>Copy</span>';
+
+            copyBtn.addEventListener('click', () => {
+                const codeText = node.textContent;
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(codeText).then(() => {
+                        copyBtn.innerHTML = '<span class="text-emerald-400 font-bold">✓</span> <span class="text-emerald-300 font-bold">Copied!</span>';
+                        copyBtn.classList.add('bg-emerald-500/10', 'border-emerald-500/30');
+                        setTimeout(() => {
+                            copyBtn.innerHTML = '<span>📋</span> <span>Copy</span>';
+                            copyBtn.classList.remove('bg-emerald-500/10', 'border-emerald-500/30');
+                        }, 2000);
+                    }).catch(() => {});
+                }
+            });
+
+            header.appendChild(leftSide);
+            header.appendChild(copyBtn);
+
+            const pre = document.createElement('pre');
+            pre.className = 'p-4 overflow-x-auto font-mono text-sm leading-relaxed text-slate-200';
+            const code = document.createElement('code');
+            pre.appendChild(code);
+
+            dom.appendChild(header);
+            dom.appendChild(pre);
+
+            return {
+                dom,
+                contentDOM: code,
+                update(updatedNode) {
+                    if (updatedNode.type !== node.type) return false;
+                    const newLang = (updatedNode.attrs.language || 'javascript').toLowerCase();
+                    if (select.value !== newLang) {
+                        select.value = newLang;
+                    }
+                    return true;
+                }
+            };
+        };
+    }
+});
 
 /**
  * High-Fidelity Markdown & HTML Parser and Normalizer
@@ -197,6 +335,12 @@ export function normalizeContentToHtml(content) {
         let activeStreamReader = null;
         let lastSlashPosition = null;
 
+        // Hoisted intelligence & outline callbacks to prevent ReferenceError across scopes
+        let updateDynamicOutline = function() {};
+        let updateSeoScore = function() {};
+        let updateEeatQualityScore = function() {};
+        let updateKeywordDensityMatrix = function() {};
+
         // Initialize Native TipTap Editor
         const rawInitialContent = $hiddenInput.val() || $canvas.html() || '';
         const initialContent = normalizeContentToHtml(rawInitialContent);
@@ -207,9 +351,10 @@ export function normalizeContentToHtml(content) {
             extensions: [
                 StarterKit.configure({
                     heading: { levels: [1, 2, 3, 4] },
-                    codeBlock: true,
+                    codeBlock: false,
                     link: { openOnClick: false, HTMLAttributes: { class: 'hoa-editor-link' } },
                 }),
+                CustomCodeBlockLowlight.configure({ lowlight }),
                 Placeholder.configure({
                     placeholder: 'Type / for AI commands or begin writing with HOA Studio...',
                     emptyEditorClass: 'is-editor-empty',
@@ -467,9 +612,17 @@ export function normalizeContentToHtml(content) {
             closeSlashMenu();
             closeLinkModal();
 
+            // Detect if right-click occurred inside a table or table cell
+            const isTable = editor.isActive('table') || $(e.target).closest('table, td, th').length > 0;
+            if (isTable) {
+                $('#hoa-wp-context-table-section').show();
+            } else {
+                $('#hoa-wp-context-table-section').hide();
+            }
+
             $contextMenu.show();
-            const menuWidth = $contextMenu.outerWidth() || 250;
-            const menuHeight = $contextMenu.outerHeight() || 380;
+            const menuWidth = $contextMenu.outerWidth() || 260;
+            const menuHeight = $contextMenu.outerHeight() || 440;
             let left = Math.min(window.innerWidth - menuWidth - 14, Math.max(14, e.clientX));
             let top = Math.min(window.innerHeight - menuHeight - 14, Math.max(14, e.clientY));
 
@@ -485,7 +638,7 @@ export function normalizeContentToHtml(content) {
             $contextMenu.hide();
         }
 
-        $('.hoa-context-item').on('click', function(e) {
+        $(document).on('click', '.hoa-context-item', function(e) {
             e.preventDefault();
             const cmd = $(this).data('context-cmd');
             closeContextMenu();
@@ -495,6 +648,20 @@ export function normalizeContentToHtml(content) {
             const selectedText = from !== to ? state.doc.textBetween(from, to, ' ') : '';
 
             switch (cmd) {
+                // Table Operations
+                case 'addRowBefore':
+                case 'addRowAfter':
+                case 'deleteRow':
+                case 'addColumnBefore':
+                case 'addColumnAfter':
+                case 'deleteColumn':
+                case 'toggleHeaderRow':
+                case 'mergeOrSplit':
+                case 'deleteTable':
+                    executeAction(cmd);
+                    break;
+
+                // Clipboard & Selection
                 case 'cut':
                     if (selectedText) {
                         navigator.clipboard.writeText(selectedText).catch(() => {});
@@ -650,21 +817,35 @@ export function normalizeContentToHtml(content) {
         // FLOATING TABLE CONTEXTUAL CONTROLS
         // ==========================================
         function updateTableControls() {
-            if (!editor || editor.isDestroyed) return;
-            if (editor.isActive('table')) {
+            if (!editor || editor.isDestroyed || !editor.isActive('table')) {
+                $tableControls.hide();
+                return;
+            }
+            try {
                 const domSelection = window.getSelection();
-                if (domSelection && domSelection.rangeCount > 0) {
-                    const rect = domSelection.getRangeAt(0).getBoundingClientRect();
-                    let left = Math.max(14, Math.min(window.innerWidth - 320, rect.left));
-                    let top = Math.max(45, rect.top - 44);
-                    $tableControls.css({
-                        position: 'fixed',
-                        left: `${Math.round(left)}px`,
-                        top: `${Math.round(top)}px`,
-                        zIndex: 999999
-                    }).show();
+                if (!domSelection || domSelection.rangeCount === 0) {
+                    $tableControls.hide();
+                    return;
                 }
-            } else {
+                const anchorNode = domSelection.anchorNode;
+                const cell = (anchorNode?.nodeType === 1 ? anchorNode : anchorNode?.parentElement)?.closest('td, th');
+                const table = cell?.closest('table') || (anchorNode?.nodeType === 1 ? anchorNode : anchorNode?.parentElement)?.closest('table');
+                if (!table) {
+                    $tableControls.hide();
+                    return;
+                }
+                const tableRect = table.getBoundingClientRect();
+                $tableControls.css({ display: 'flex', position: 'fixed', zIndex: 999999 });
+                const toolbarWidth = $tableControls.outerWidth() || 460;
+                const toolbarHeight = $tableControls.outerHeight() || 38;
+                let fixedLeft = tableRect.left + (tableRect.width / 2) - (toolbarWidth / 2);
+                fixedLeft = Math.max(14, Math.min(fixedLeft, window.innerWidth - toolbarWidth - 14));
+                let fixedTop = tableRect.top - toolbarHeight - 8;
+                if (fixedTop < 60) {
+                    fixedTop = tableRect.bottom + 8;
+                }
+                $tableControls.css({ left: `${Math.round(fixedLeft)}px`, top: `${Math.round(fixedTop)}px` });
+            } catch (e) {
                 $tableControls.hide();
             }
         }
@@ -814,6 +995,8 @@ export function normalizeContentToHtml(content) {
                 case 'addColumnBefore': editor.chain().focus().addColumnBefore().run(); break;
                 case 'addColumnAfter': editor.chain().focus().addColumnAfter().run(); break;
                 case 'deleteColumn': editor.chain().focus().deleteColumn().run(); break;
+                case 'toggleHeaderRow': editor.chain().focus().toggleHeaderRow().run(); break;
+                case 'mergeOrSplit': editor.chain().focus().mergeOrSplit().run(); break;
                 case 'deleteTable': editor.chain().focus().deleteTable().run(); break;
 
                 // Custom Rich Editorial Blocks
@@ -1170,6 +1353,9 @@ export function normalizeContentToHtml(content) {
             let lastCanvasUpdate = 0;
             const existingTextAtStart = editor.getText().trim();
             const isDocInitiallyEmpty = !existingTextAtStart;
+            let streamRemainder = '';
+            let rawServerOutput = '';
+            let isEventError = false;
 
             try {
                 const response = await fetch(ajaxUrl, {
@@ -1196,9 +1382,89 @@ export function normalizeContentToHtml(content) {
                 activeStreamReader = reader;
                 const decoder = new TextDecoder();
 
+                const processSseLine = (line) => {
+                    const trimmed = line.trim();
+                    if (!trimmed) return;
+                    rawServerOutput += trimmed + ' ';
+
+                    if (trimmed.startsWith('event: error')) {
+                        isEventError = true;
+                        return;
+                    }
+
+                    if (trimmed.startsWith('data: ')) {
+                        const data = trimmed.slice(6).trim();
+                        if (!data || data === '[DONE]') return;
+                        
+                        try {
+                            const parsed = JSON.parse(data);
+
+                            if (isEventError || parsed.error || (parsed.message && !parsed.delta && !parsed.chunk && !parsed.token && !parsed.words)) {
+                                const errMsg = parsed.error || parsed.message || 'AI Gateway execution failed';
+                                alert('AI Gateway Error: ' + errMsg);
+                                streamHadError = true;
+                                return;
+                            }
+
+                            const tokenDelta = parsed.delta || parsed.chunk || parsed.token || '';
+                            
+                            if (tokenDelta) {
+                                totalChars += tokenDelta.length;
+                                totalTokens += Math.max(1, Math.ceil(tokenDelta.length / 4));
+                                accumulatedBuffer += tokenDelta;
+
+                                if (placement === 'proposal') {
+                                    lastProposalText = accumulatedBuffer;
+                                    $('#hoa-proposal-body').html(accumulatedBuffer.replace(/\n/g, '<br>') + '<span class="hoa-streaming-cursor">|</span>');
+                                } else if (isDocInitiallyEmpty && placement !== 'replace') {
+                                    // Throttled real-time streaming preview directly in canvas
+                                    const now = performance.now();
+                                    if (now - lastCanvasUpdate > 100) {
+                                        lastCanvasUpdate = now;
+                                        editor.commands.setContent(normalizeContentToHtml(accumulatedBuffer), false);
+                                    }
+                                }
+
+                                // Real-time telemetry counters
+                                $('#hoa-tok-received').text(totalTokens.toLocaleString());
+
+                                const elapsedSec = (performance.now() - startTime) / 1000;
+                                if (elapsedSec > 0.3) {
+                                    const tokSec = Math.round(totalTokens / elapsedSec);
+                                    $('#hoa-wp-ai-speed-badge').text(`${tokSec} tok/s`);
+                                    $('#hoa-dedicated-speed-badge').text(`${tokSec} tok/s`);
+                                    $('#hoa-proposal-speed').text(`${tokSec} tok/s`);
+                                }
+
+                                const progressEst = Math.min(0.95, totalTokens / 500);
+                                updateSwarmSteps(progressEst);
+                            }
+
+                            if (parsed.done) {
+                                return;
+                            }
+                        } catch (e) {
+                            // Incomplete chunk, skip
+                        }
+                    } else if (trimmed.startsWith('{')) {
+                        try {
+                            const parsed = JSON.parse(trimmed);
+                            if (parsed.error || parsed.message) {
+                                alert('AI Gateway Error: ' + (parsed.error || parsed.message));
+                                streamHadError = true;
+                            }
+                        } catch (e) {}
+                    }
+                };
+
                 while (true) {
                     const { done, value } = await reader.read();
-                    if (done) break;
+                    if (done) {
+                        if (streamRemainder.trim()) {
+                            processSseLine(streamRemainder.trim());
+                        }
+                        break;
+                    }
 
                     if (!firstTokenTime) {
                         firstTokenTime = performance.now();
@@ -1207,75 +1473,13 @@ export function normalizeContentToHtml(content) {
                     }
                     
                     const chunk = decoder.decode(value, { stream: true });
-                    const lines = chunk.split('\n');
+                    const fullChunk = streamRemainder + chunk;
+                    const lines = fullChunk.split('\n');
+                    streamRemainder = lines.pop() || '';
                     
                     for (const line of lines) {
-                        const trimmed = line.trim();
-                        if (!trimmed) continue;
-
-                        if (trimmed.startsWith('data: ')) {
-                            const data = trimmed.slice(6).trim();
-                            if (!data || data === '[DONE]') continue;
-                            
-                            try {
-                                const parsed = JSON.parse(data);
-
-                                if (parsed.error) {
-                                    alert('AI Gateway Error: ' + parsed.error);
-                                    streamHadError = true;
-                                    break;
-                                }
-
-                                const tokenDelta = parsed.delta || parsed.chunk || parsed.token || '';
-                                
-                                if (tokenDelta) {
-                                    totalChars += tokenDelta.length;
-                                    totalTokens += Math.max(1, Math.ceil(tokenDelta.length / 4));
-                                    accumulatedBuffer += tokenDelta;
-
-                                    if (placement === 'proposal') {
-                                        lastProposalText = accumulatedBuffer;
-                                        $('#hoa-proposal-body').html(accumulatedBuffer.replace(/\n/g, '<br>') + '<span class="hoa-streaming-cursor">|</span>');
-                                    } else if (isDocInitiallyEmpty && placement !== 'replace') {
-                                        // Throttled real-time streaming preview directly in canvas
-                                        const now = performance.now();
-                                        if (now - lastCanvasUpdate > 100) {
-                                            lastCanvasUpdate = now;
-                                            editor.commands.setContent(normalizeContentToHtml(accumulatedBuffer), false);
-                                        }
-                                    }
-
-                                    // Real-time telemetry counters
-                                    $('#hoa-tok-received').text(totalTokens.toLocaleString());
-
-                                    const elapsedSec = (performance.now() - startTime) / 1000;
-                                    if (elapsedSec > 0.3) {
-                                        const tokSec = Math.round(totalTokens / elapsedSec);
-                                        $('#hoa-wp-ai-speed-badge').text(`${tokSec} tok/s`);
-                                        $('#hoa-dedicated-speed-badge').text(`${tokSec} tok/s`);
-                                        $('#hoa-proposal-speed').text(`${tokSec} tok/s`);
-                                    }
-
-                                    const progressEst = Math.min(0.95, totalTokens / 500);
-                                    updateSwarmSteps(progressEst);
-                                }
-
-                                if (parsed.done) {
-                                    break;
-                                }
-                            } catch (e) {
-                                // Incomplete chunk, skip
-                            }
-                        } else if (trimmed.startsWith('{')) {
-                            try {
-                                const parsed = JSON.parse(trimmed);
-                                if (parsed.error || parsed.message) {
-                                    alert('AI Gateway Error: ' + (parsed.error || parsed.message));
-                                    streamHadError = true;
-                                    break;
-                                }
-                            } catch (e) {}
-                        }
+                        processSseLine(line);
+                        if (streamHadError) break;
                     }
 
                     if (streamHadError) break;
@@ -1307,7 +1511,13 @@ export function normalizeContentToHtml(content) {
                     $('#hoa_tiptap_html_content').val(editor.getHTML());
                     updateStats(editor.getText());
                 } else if (!streamHadError) {
-                    alert('No content was generated by the AI model. Please check your HOA Studio Connection settings or verify your prompt.');
+                    const snippet = rawServerOutput.trim().slice(0, 300);
+                    let alertMsg = 'No content was generated by the AI model.\n\n';
+                    if (snippet) {
+                        alertMsg += 'Diagnostic Telemetry received from server:\n' + snippet + '\n\n';
+                    }
+                    alertMsg += 'Please verify that:\n1. Your HOA Studio Node is running and reachable from this WordPress site.\n2. Your Connect Key is active in HOA Studio Settings.\n3. Your AI model has remaining word quota or a valid API key configured.';
+                    alert(alertMsg);
                 }
 
             } catch (err) {
@@ -1321,8 +1531,10 @@ export function normalizeContentToHtml(content) {
                 $runBtn.prop('disabled', false).html(origBtnText);
                 $('.hoa-swarm-step').addClass('active').removeClass('current');
 
-                updateDynamicOutline();
-                updateSeoScore();
+                try { updateDynamicOutline(); } catch(e) {}
+                try { updateSeoScore(); } catch(e) {}
+                try { updateEeatQualityScore(); } catch(e) {}
+                try { updateKeywordDensityMatrix(); } catch(e) {}
             }
         }
 
@@ -1500,7 +1712,7 @@ export function normalizeContentToHtml(content) {
             });
 
             // 6. Dynamic Outline TOC
-            function updateDynamicOutline() {
+            updateDynamicOutline = function() {
                 const $outline = $('#hoa-dynamic-outline-list');
                 if (!$outline.length) return;
 
@@ -1542,15 +1754,86 @@ export function normalizeContentToHtml(content) {
                 }
             });
 
-            // 7. Live SEO Score Audit Calculation
-            function updateSeoScore() {
+            // 7. Reusable AI Prompt Runner (Stream-to-Text)
+            async function callAiSimplePrompt(prompt, type = 'custom') {
+                const cfg = window.hoaStudioConfig || {};
+                const ajaxUrl = cfg.ajaxUrl || '/wp-admin/admin-ajax.php';
+                const nonce = cfg.nonce || '';
+                const chosenModel = $('#hoa-ai-model-select').val() || 'auto';
+
+                const formData = new URLSearchParams();
+                formData.append('action', 'hoa_studio_stream_proxy');
+                formData.append('nonce', nonce);
+                formData.append('text', prompt);
+                formData.append('type', type);
+                formData.append('model', chosenModel);
+                formData.append('custom_instruction', prompt);
+
+                const response = await fetch(ajaxUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData.toString()
+                });
+
+                if (!response.ok) {
+                    throw new Error('HTTP server error ' + response.status);
+                }
+
+                if (!response.body) {
+                    throw new Error('ReadableStream is not supported by your browser.');
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let accumulated = '';
+                let streamRemainder = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) {
+                        if (streamRemainder.trim() && streamRemainder.trim().startsWith('data: ')) {
+                            try {
+                                const parsed = JSON.parse(streamRemainder.trim().slice(6).trim());
+                                const tokenDelta = parsed.delta || parsed.chunk || parsed.token || '';
+                                if (tokenDelta) accumulated += tokenDelta;
+                            } catch (e) {}
+                        }
+                        break;
+                    }
+                    const chunk = decoder.decode(value, { stream: true });
+                    const fullChunk = streamRemainder + chunk;
+                    const lines = fullChunk.split('\n');
+                    streamRemainder = lines.pop() || '';
+
+                    for (const line of lines) {
+                        const trimmed = line.trim();
+                        if (!trimmed || !trimmed.startsWith('data: ')) continue;
+                        const data = trimmed.slice(6).trim();
+                        if (!data || data === '[DONE]') continue;
+                        try {
+                            const parsed = JSON.parse(data);
+                            if (parsed.error || (parsed.message && !parsed.delta && !parsed.token && !parsed.chunk)) {
+                                throw new Error(parsed.error || parsed.message);
+                            }
+                            const tokenDelta = parsed.delta || parsed.chunk || parsed.token || '';
+                            if (tokenDelta) accumulated += tokenDelta;
+                            if (parsed.done) break;
+                        } catch (e) {
+                            if (e.message && !e.message.includes('JSON')) throw e;
+                        }
+                    }
+                }
+                return accumulated.trim();
+            }
+
+            // 8. Live SEO Score Audit Calculation & Density
+            updateSeoScore = function() {
                 const keyword = ($('#hoa-target-keyword').val() || '').trim().toLowerCase();
                 const title = ($('#hoa-post-title-input').val() || '').trim().toLowerCase();
                 const plainText = editor.getText().toLowerCase();
                 const wordCount = editor.storage.characterCount.words();
 
                 let score = 0;
-                let maxScore = 100;
 
                 // Check 1: Focus keyword in title (25 pts)
                 const inTitle = keyword && title.includes(keyword);
@@ -1583,6 +1866,26 @@ export function normalizeContentToHtml(content) {
                 $('#hoa-check-table').toggleClass('passed', hasRich);
                 if (hasRich) score += 20;
 
+                // Focus keyword density calculation
+                if (keyword && wordCount > 0) {
+                    const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const matches = plainText.match(new RegExp('\\b' + escaped + '\\b', 'gi')) || [];
+                    const kwCount = matches.length;
+                    const kwWords = keyword.split(/\s+/).length;
+                    const density = ((kwCount * kwWords) / wordCount * 100).toFixed(1);
+                    const $densityTag = $('#hoa-seo-density-tag');
+                    $densityTag.text(`Density: ${density}% (${kwCount}x)`);
+                    if (density >= 0.5 && density <= 2.5) {
+                        $densityTag.css({ background: 'rgba(16, 185, 129, 0.2)', color: '#34d399', borderColor: '#10b981' });
+                    } else if (density > 2.5) {
+                        $densityTag.css({ background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24', borderColor: '#f59e0b' });
+                    } else {
+                        $densityTag.css({ background: 'rgba(255, 255, 255, 0.05)', color: '#94a3b8', borderColor: 'rgba(255, 255, 255, 0.1)' });
+                    }
+                } else {
+                    $('#hoa-seo-density-tag').text('Density: 0%').css({ background: 'rgba(255, 255, 255, 0.05)', color: '#94a3b8', borderColor: 'rgba(255, 255, 255, 0.1)' });
+                }
+
                 // Update badge
                 const $badge = $('#hoa-seo-score-badge');
                 $badge.text(`${score}/100`);
@@ -1597,10 +1900,456 @@ export function normalizeContentToHtml(content) {
 
             $('#hoa-target-keyword').on('input', updateSeoScore);
 
-            // 8. Hook into editor transactions to update Outline and SEO
+            // 9. TAB 3: Viral Titles & Meta Description Generators
+            $('#hoa-btn-gen-titles').on('click', async function() {
+                const $btn = $(this);
+                const origText = $btn.html();
+                const title = $('#hoa-post-title-input').val().trim();
+                const kw = $('#hoa-target-keyword').val().trim();
+                const $list = $('#hoa-viral-titles-list');
+
+                $btn.prop('disabled', true).html('⚡ Generating...');
+                $list.html('<div class="hoa-loading-pulse">✦ AI is crafting 5 click-worthy SEO headlines...</div>');
+
+                try {
+                    const prompt = `Generate 5 click-worthy, viral, SEO-optimized headlines for an article with focus keyword "${kw || title}" and current working title "${title || kw}". Return ONLY the 5 numbered titles, one per line. No conversational introduction.`;
+                    const res = await callAiSimplePrompt(prompt, 'seo_fix_title');
+                    const lines = res.split('\n').map(l => l.replace(/^\d+[\.\)]\s*/, '').replace(/^["']|["']$/g, '').trim()).filter(Boolean);
+                    if (lines.length) {
+                        let html = '';
+                        lines.slice(0, 5).forEach(t => {
+                            const cleanTitle = $('<div>').text(t).html();
+                            html += `
+                                <div class="hoa-suggestion-card hoa-title-suggestion">
+                                    <div class="hoa-suggestion-text">${cleanTitle}</div>
+                                    <button type="button" class="hoa-btn-apply-title button button-small">Apply</button>
+                                </div>
+                            `;
+                        });
+                        $list.html(html);
+                    } else {
+                        $list.html('<span class="hoa-empty-note">Could not generate titles. Please verify connection.</span>');
+                    }
+                } catch (e) {
+                    $list.html(`<span class="hoa-empty-note text-danger">Error: ${e.message}</span>`);
+                } finally {
+                    $btn.prop('disabled', false).html(origText);
+                }
+            });
+
+            $(document).on('click', '.hoa-btn-apply-title, .hoa-title-suggestion', function(e) {
+                const titleText = $(this).hasClass('hoa-btn-apply-title') 
+                    ? $(this).siblings('.hoa-suggestion-text').text()
+                    : $(this).find('.hoa-suggestion-text').text();
+
+                if (titleText) {
+                    $('#hoa-post-title-input').val(titleText);
+                    updateSeoScore();
+                    const $btn = $(this).hasClass('hoa-btn-apply-title') ? $(this) : $(this).find('.hoa-btn-apply-title');
+                    $btn.text('✓ Applied!').css({ background: 'rgba(16, 185, 129, 0.3)', color: '#34d399' });
+                    setTimeout(() => $btn.text('Apply').css({ background: '', color: '' }), 2500);
+                }
+            });
+
+            $('#hoa-btn-gen-desc').on('click', async function() {
+                const $btn = $(this);
+                const origText = $btn.html();
+                const title = $('#hoa-post-title-input').val().trim();
+                const kw = $('#hoa-target-keyword').val().trim();
+                const text = editor.getText().slice(0, 800);
+
+                $btn.prop('disabled', true).html('⚡ Generating...');
+                $('#hoa-generated-desc-box').hide();
+
+                try {
+                    const prompt = `Write a compelling, click-optimized 150-160 character SEO meta description for this article. Focus keyword: "${kw}". Title: "${title}". Content snippet: "${text}". Output ONLY the single meta description text with no quotes or preamble.`;
+                    const desc = await callAiSimplePrompt(prompt, 'seo_fix_meta');
+                    if (desc) {
+                        $('#hoa-generated-desc-text').text(desc.replace(/^["']|["']$/g, '').trim());
+                        $('#hoa-generated-desc-box').fadeIn(150);
+                    }
+                } catch (e) {
+                    alert('Error generating meta description: ' + e.message);
+                } finally {
+                    $btn.prop('disabled', false).html(origText);
+                }
+            });
+
+            $('#hoa-btn-apply-desc').on('click', function() {
+                const text = $('#hoa-generated-desc-text').text().trim();
+                if (text) {
+                    $('#hoa-meta-description').val(text);
+                    updateSeoScore();
+                    $(this).text('✓ Applied!').css({ background: 'rgba(16, 185, 129, 0.3)', color: '#34d399' });
+                    setTimeout(() => $(this).text('Apply to SEO Meta').css({ background: '', color: '' }), 2500);
+                }
+            });
+
+            // 10. TAB 4: Semantic Content Gaps & FAQs
+            $('#hoa-btn-find-gaps').on('click', async function() {
+                const $btn = $(this);
+                const origText = $btn.html();
+                const title = $('#hoa-post-title-input').val().trim();
+                const kw = $('#hoa-target-keyword').val().trim();
+                const $list = $('#hoa-content-gaps-list');
+
+                $btn.prop('disabled', true).html('⚡ Analyzing Gaps...');
+                $list.html('<div class="hoa-loading-pulse">✦ Evaluating search intent and competitive gaps...</div>');
+
+                try {
+                    const prompt = `Analyze this article (Title: "${title}", Focus Keyword: "${kw}"). Identify 2 missing competitive subtopics (gaps) and 2 schema FAQ questions that would satisfy search intent. Format each line starting with "[GAP] Subtopic Name: Explanation" or "[FAQ] Question?: Concise answer". No extra conversational text.`;
+                    const res = await callAiSimplePrompt(prompt, 'content_gaps');
+                    const lines = res.split('\n').map(l => l.trim()).filter(Boolean);
+                    if (lines.length) {
+                        let html = '';
+                        lines.forEach(line => {
+                            if (line.startsWith('[GAP]')) {
+                                const content = line.replace(/^\[GAP\]\s*/, '');
+                                const parts = content.split(':');
+                                const gapTitle = parts[0].trim();
+                                const gapDesc = parts.slice(1).join(':').trim();
+                                html += `
+                                    <div class="hoa-suggestion-card">
+                                        <div class="hoa-suggestion-title">💡 ${$('<div>').text(gapTitle).html()}</div>
+                                        <p class="hoa-suggestion-desc">${$('<div>').text(gapDesc).html()}</p>
+                                        <button type="button" class="hoa-btn-insert-gap button button-small" data-type="heading" data-title="${$('<div>').text(gapTitle).html()}" data-desc="${$('<div>').text(gapDesc).html()}">+ Insert Heading & Section</button>
+                                    </div>
+                                `;
+                            } else if (line.startsWith('[FAQ]')) {
+                                const content = line.replace(/^\[FAQ\]\s*/, '');
+                                const parts = content.split('?');
+                                const q = (parts[0] + '?').trim();
+                                const a = parts.slice(1).join('?').replace(/^:\s*/, '').trim();
+                                html += `
+                                    <div class="hoa-suggestion-card">
+                                        <div class="hoa-suggestion-title">❓ ${$('<div>').text(q).html()}</div>
+                                        <p class="hoa-suggestion-desc">${$('<div>').text(a).html()}</p>
+                                        <button type="button" class="hoa-btn-insert-gap button button-small" data-type="faq" data-question="${$('<div>').text(q).html()}" data-answer="${$('<div>').text(a).html()}">+ Insert FAQ Accordion</button>
+                                    </div>
+                                `;
+                            }
+                        });
+                        $list.html(html || '<span class="hoa-empty-note">No clear gaps identified. Content is comprehensive!</span>');
+                    } else {
+                        $list.html('<span class="hoa-empty-note">Could not identify gaps.</span>');
+                    }
+                } catch (e) {
+                    $list.html(`<span class="hoa-empty-note text-danger">Error: ${e.message}</span>`);
+                } finally {
+                    $btn.prop('disabled', false).html(origText);
+                }
+            });
+
+            $(document).on('click', '.hoa-btn-insert-gap', function() {
+                const type = $(this).data('type');
+                if (type === 'faq') {
+                    const q = $(this).data('question');
+                    const a = $(this).data('answer');
+                    insertFaqAccordion(q, a);
+                } else {
+                    const title = $(this).data('title');
+                    const desc = $(this).data('desc');
+                    editor.chain().focus('end').insertContent(`<h2>${title}</h2><p>${desc}</p>`).run();
+                }
+                $(this).text('✓ Inserted').prop('disabled', true);
+            });
+
+            // 11. TAB 5: Secondary & LSI Keywords Density Matrix
+            updateKeywordDensityMatrix = function() {
+                const raw = $('#hoa-secondary-keywords').val() || '';
+                const keywords = raw.split(',').map(k => k.trim()).filter(Boolean);
+                const $matrix = $('#hoa-kw-density-matrix');
+
+                if (!keywords.length) {
+                    $matrix.html('<span class="hoa-empty-note">Enter keywords above to monitor their exact density and distribution in the canvas.</span>');
+                    return;
+                }
+
+                const plainText = editor.getText().toLowerCase();
+                const totalWords = editor.storage.characterCount.words() || 1;
+
+                let html = '';
+                keywords.forEach(kw => {
+                    const escaped = kw.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const matches = plainText.match(new RegExp('\\b' + escaped + '\\b', 'gi')) || [];
+                    const count = matches.length;
+                    const kwWords = kw.split(/\s+/).length;
+                    const density = ((count * kwWords) / totalWords * 100).toFixed(1);
+
+                    let statusClass = 'neutral';
+                    if (count > 0) {
+                        if (density >= 0.5 && density <= 2.5) statusClass = 'optimal';
+                        else if (density > 2.5) statusClass = 'high';
+                        else statusClass = 'low';
+                    }
+
+                    html += `
+                        <div class="hoa-density-chip ${statusClass}">
+                            <span class="hoa-kw-name">${$('<div>').text(kw).html()}</span>
+                            <span class="hoa-kw-count">${count}x (${density}%)</span>
+                        </div>
+                    `;
+                });
+
+                $matrix.html(html);
+            }
+
+            $('#hoa-secondary-keywords').on('input', updateKeywordDensityMatrix);
+
+            // 12. TAB 6: 10-Point E-E-A-T Quality Audit Live Scorecard
+            updateEeatQualityScore = function() {
+                const html = editor.getHTML();
+                const text = editor.getText().toLowerCase();
+                const wordCount = editor.storage.characterCount.words();
+
+                let passed = 0;
+
+                // 1. First-hand Experience & Author Voice
+                const expRegex = /\b(i tested|in our testing|we found|in my experience|our team|hands-on|we evaluated|we measured|in benchmark testing)\b/i;
+                const hasExp = expRegex.test(text);
+                $('#hoa-eeat-exp').toggleClass('passed', hasExp);
+                if (hasExp) passed++;
+
+                // 2. Structured Comparison Table
+                const hasTable = html.includes('<table');
+                $('#hoa-eeat-table').toggleClass('passed', hasTable);
+                if (hasTable) passed++;
+
+                // 3. Executive Summary / TL;DR Box
+                const hasTldr = html.includes('callout-tldr') || html.includes('callout-box') || text.includes('quick answer:') || text.includes('summary:');
+                $('#hoa-eeat-tldr').toggleClass('passed', hasTldr);
+                if (hasTldr) passed++;
+
+                // 4. Verified External Reference Links
+                const hasLinks = /<a\s[^>]*href=/i.test(html);
+                $('#hoa-eeat-links').toggleClass('passed', hasLinks);
+                if (hasLinks) passed++;
+
+                // 5. Actionable Pro-Tips & Warning Boxes
+                const hasTips = html.includes('callout-tip') || html.includes('callout-warning') || html.includes('callout-caution');
+                $('#hoa-eeat-tips').toggleClass('passed', hasTips);
+                if (hasTips) passed++;
+
+                // 6. Step-by-Step Implementation Timeline
+                const hasTimeline = html.includes('step-walkthrough') || html.includes('step-item') || html.includes('<ol');
+                $('#hoa-eeat-timeline').toggleClass('passed', hasTimeline);
+                if (hasTimeline) passed++;
+
+                // 7. Schema-Ready FAQ Accordion
+                const hasFaq = html.includes('hoa-faq') || html.includes('<details');
+                $('#hoa-eeat-faq').toggleClass('passed', hasFaq);
+                if (hasFaq) passed++;
+
+                // 8. Balanced Pros & Cons Comparison Grid
+                const hasProsCons = html.includes('pros-cons-grid') || html.includes('pros-box');
+                $('#hoa-eeat-proscons').toggleClass('passed', hasProsCons);
+                if (hasProsCons) passed++;
+
+                // 9. Skimmable Headings Hierarchy (H2, H3)
+                const hasH2 = html.includes('<h2');
+                const hasH3 = html.includes('<h3');
+                const hasHeadings = hasH2 && hasH3;
+                $('#hoa-eeat-headings').toggleClass('passed', hasHeadings);
+                if (hasHeadings) passed++;
+
+                // 10. Authoritative Depth (> 600 words)
+                const hasLength = wordCount >= 600;
+                $('#hoa-eeat-length').toggleClass('passed', hasLength);
+                if (hasLength) passed++;
+
+                // Update Score Badge
+                const $badge = $('#hoa-eeat-score-badge');
+                $badge.text(`${passed}/10 Passed`);
+                if (passed >= 8) {
+                    $badge.css({ background: 'rgba(16, 185, 129, 0.2)', color: '#34d399', borderColor: '#10b981' });
+                } else if (passed >= 5) {
+                    $badge.css({ background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24', borderColor: '#f59e0b' });
+                } else {
+                    $badge.css({ background: 'rgba(244, 63, 94, 0.2)', color: '#fb7185', borderColor: '#f43f5e' });
+                }
+            }
+
+            // 13. TAB 8: Local Version Snapshots Timeline
+            const currentPostId = (new URLSearchParams(window.location.search)).get('post_id') || '0';
+            const snapshotsKey = 'hoa_studio_snapshots_' + currentPostId;
+            let lastSavedSnapshotContent = '';
+
+            function getLocalSnapshots() {
+                try {
+                    return JSON.parse(localStorage.getItem(snapshotsKey)) || [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function saveSnapshot(isAuto = false) {
+                const content = editor.getHTML();
+                if (!content || content === '<p></p>' || content === lastSavedSnapshotContent) {
+                    return;
+                }
+                lastSavedSnapshotContent = content;
+                const snapshots = getLocalSnapshots();
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                const dateStr = now.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                const words = editor.storage.characterCount.words();
+
+                snapshots.unshift({
+                    id: Date.now(),
+                    timeStr: `${dateStr} ${timeStr}`,
+                    words: words,
+                    content: content,
+                    isAuto: isAuto
+                });
+
+                if (snapshots.length > 20) snapshots.length = 20;
+
+                try {
+                    localStorage.setItem(snapshotsKey, JSON.stringify(snapshots));
+                } catch (e) {}
+
+                renderSnapshots();
+            }
+
+            function renderSnapshots() {
+                const $list = $('#hoa-snapshots-list');
+                if (!$list.length) return;
+
+                const snapshots = getLocalSnapshots();
+                if (!snapshots.length) {
+                    $list.html('<span class="hoa-empty-note">Snapshots are automatically recorded every 60 seconds while you write.</span>');
+                    return;
+                }
+
+                let html = '';
+                snapshots.forEach((snap, idx) => {
+                    html += `
+                        <div class="hoa-snapshot-item">
+                            <div class="hoa-snapshot-meta">
+                                <strong>${snap.timeStr} ${snap.isAuto ? '<small class="text-slate-500">(auto)</small>' : '<small class="text-indigo-400">(manual)</small>'}</strong>
+                                <span>${snap.words.toLocaleString()} words</span>
+                            </div>
+                            <button type="button" class="hoa-btn-restore-snapshot button button-small" data-idx="${idx}">Restore</button>
+                        </div>
+                    `;
+                });
+                $list.html(html);
+            }
+
+            $('#hoa-btn-take-snapshot').on('click', function(e) {
+                e.preventDefault();
+                saveSnapshot(false);
+                const $btn = $(this);
+                $btn.text('✓ Saved!').css({ background: 'rgba(16, 185, 129, 0.3)', color: '#34d399' });
+                setTimeout(() => $btn.text('📸 Save Snapshot').css({ background: '', color: '' }), 2000);
+            });
+
+            $(document).on('click', '.hoa-btn-restore-snapshot', function() {
+                const idx = parseInt($(this).data('idx'), 10);
+                const snapshots = getLocalSnapshots();
+                const snap = snapshots[idx];
+                if (snap && snap.content) {
+                    if (confirm(`Restore snapshot from ${snap.timeStr} (${snap.words} words)? Your current unsaved changes will be replaced.`)) {
+                        editor.commands.setContent(snap.content, false);
+                        $('#hoa_tiptap_html_content').val(snap.content);
+                        updateStats(editor.getText());
+                        updateDynamicOutline();
+                        updateSeoScore();
+                        updateEeatQualityScore();
+                        updateKeywordDensityMatrix();
+                    }
+                }
+            });
+
+            // Auto-snapshot every 60 seconds
+            setInterval(() => {
+                saveSnapshot(true);
+            }, 60000);
+            renderSnapshots();
+
+            // 14. Local Draft Auto-Recovery Banner
+            const autosaveKey = 'hoa_studio_autosave_' + currentPostId;
+
+            function checkDraftAutoRecovery() {
+                try {
+                    const savedData = JSON.parse(localStorage.getItem(autosaveKey));
+                    if (savedData && savedData.content && savedData.content !== '<p></p>') {
+                        const serverContent = ($('#hoa_tiptap_html_content').val() || '').trim();
+                        if (savedData.content.trim() !== serverContent && savedData.words > 0) {
+                            const saveDate = new Date(savedData.timestamp);
+                            const timeStr = saveDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            $('#hoa-recovery-text').text(`Recovered ${savedData.words.toLocaleString()} words auto-saved locally at ${timeStr}`);
+                            $('#hoa-wp-draft-recovery-banner').slideDown(200);
+
+                            $('#hoa-btn-keep-restored').off('click').on('click', function() {
+                                editor.commands.setContent(savedData.content, false);
+                                if (savedData.title && !$('#hoa-post-title-input').val()) {
+                                    $('#hoa-post-title-input').val(savedData.title);
+                                }
+                                $('#hoa_tiptap_html_content').val(savedData.content);
+                                $('#hoa-wp-draft-recovery-banner').slideUp(150);
+                                updateStats(editor.getText());
+                                updateDynamicOutline();
+                                updateSeoScore();
+                                updateEeatQualityScore();
+                                saveDedicatedPost();
+                            });
+
+                            $('#hoa-btn-discard-restored').off('click').on('click', function() {
+                                localStorage.removeItem(autosaveKey);
+                                $('#hoa-wp-draft-recovery-banner').slideUp(150);
+                            });
+                        }
+                    }
+                } catch (e) {}
+            }
+
+            // Autosave to localStorage every 10 seconds
+            setInterval(() => {
+                if (!editor || editor.isDestroyed) return;
+                const content = editor.getHTML();
+                const title = $('#hoa-post-title-input').val() || '';
+                const words = editor.storage.characterCount.words();
+                if (content && content !== '<p></p>') {
+                    try {
+                        localStorage.setItem(autosaveKey, JSON.stringify({
+                            content: content,
+                            title: title,
+                            words: words,
+                            timestamp: Date.now()
+                        }));
+                    } catch (e) {}
+                }
+            }, 10000);
+
+            checkDraftAutoRecovery();
+
+            // 15. Zen Fullscreen Mode Shortcut (Ctrl+Shift+F)
+            $(window).on('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'F' || e.key === 'f')) {
+                    e.preventDefault();
+                    $('#hoa-toggle-zen-mode').trigger('click');
+                }
+            });
+
+            // 16. Code Block 1-Click Copy Interaction
+            $(document).on('click', '.hoa-copy-code-btn', function() {
+                const $btn = $(this);
+                const codeText = $btn.closest('.hoa-code-block-wrapper').find('code').text() || $btn.siblings('pre').text();
+                if (navigator.clipboard && codeText) {
+                    navigator.clipboard.writeText(codeText).then(() => {
+                        $btn.html('<span>✓</span> <span>Copied!</span>');
+                        setTimeout(() => $btn.html('<span>📋</span> <span>Copy</span>'), 2000);
+                    });
+                }
+            });
+
+            // 17. Hook into editor transactions to update Outline, SEO, E-E-A-T, and Density
             editor.on('transaction', () => {
                 updateDynamicOutline();
                 updateSeoScore();
+                updateEeatQualityScore();
+                updateKeywordDensityMatrix();
 
                 // Also update speaking time
                 const words = editor.storage.characterCount.words();
@@ -1656,7 +2405,11 @@ export function normalizeContentToHtml(content) {
             $('#hoa-dedicated-ai-run-btn').on('click', function(e) {
                 e.preventDefault();
                 const prompt = $('#hoa-dedicated-ai-prompt').val().trim();
-                if (!prompt) return;
+                if (!prompt) {
+                    alert('Please enter a prompt instruction or click one of the Preset chips above first.');
+                    $('#hoa-dedicated-ai-prompt').focus();
+                    return;
+                }
 
                 const model = $('#hoa-ai-model-select').val();
                 triggerAiGeneration(prompt, 'generate', 'insert_below', model);
@@ -1666,6 +2419,8 @@ export function normalizeContentToHtml(content) {
             setTimeout(() => {
                 updateDynamicOutline();
                 updateSeoScore();
+                updateEeatQualityScore();
+                updateKeywordDensityMatrix();
             }, 500);
         }
     });
