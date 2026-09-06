@@ -13,7 +13,7 @@
 [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-v4.0-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![Vite](https://img.shields.io/badge/Vite-8.x-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev)
 [![OmniRoute](https://img.shields.io/badge/OmniRoute-v3.8.50_Ready-8B5CF6?style=for-the-badge&logo=openai&logoColor=white)](http://127.0.0.1:20128)
-[![Tests](https://img.shields.io/badge/Tests-173%20Passed%20(100%25)-10B981?style=for-the-badge&logo=githubactions&logoColor=white)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-260%20Passed%20(100%25)-10B981?style=for-the-badge&logo=githubactions&logoColor=white)](tests/)
 [![License](https://img.shields.io/badge/License-Proprietary-blue?style=for-the-badge)](LICENSE)
 
 <p align="center">
@@ -117,6 +117,27 @@
   - Mobile collapsible TOC drawer with active heading spy.
   - Dual publication and revision dates (`Published on {date}` and `Updated on {date}`).
 
+### 🔬 11. Multi-Stage Content Intelligence & Autonomous Writing Pipeline
+- **10-Node Dynamic Workflow Graph Engine (`WorkflowGraph`, `WorkflowNode`, `WorkflowRun`)**:
+  - Replaces fragile, monolithic single-prompt generation with a deterministic, structured state machine where every stage generates structured artifacts consumed by downstream stages.
+  - **10 Specialized Intelligence & Writing Nodes**:
+    - *Audience & Intent*: Evaluates search intent, target audience personas, reader pain points, and voice directives.
+    - *SERP & Competitive Research*: Gathers keyword intelligence, search volume parameters, and content gap opportunities.
+    - *Information Gain*: Unearths non-obvious perspectives, unique statistical findings, and proprietary angles to outperform SERP competitors.
+    - *Fact & Evidence Validation*: Synthesizes statistical claims and verifies verifiable citations prior to narrative drafting.
+    - *Angle & Hierarchical Outline*: Architectures heading hierarchies (H2/H3), reading flow, and section-by-section objectives.
+    - *Multi-Section Draft Composition*: Deep-dive drafting strictly conforming to validated facts and narrative directives.
+    - *Editorial Style & Tone Matching*: Refines cadence, sentence rhythm, readability, and brand voice consistency.
+    - *Fact Audit & Cross-Checking*: Cross-audits drafted claims against established evidence tables to prevent AI hallucinations.
+    - *SEO Optimization & Entity Density*: Fine-tunes primary/secondary keywords, entity density, and search ranking signals.
+    - *Quality Evaluation & Scoring*: Comprehensively scores content across 6 weighted rubrics (*Depth, Accuracy, Angle, Readability, SEO, Conversion*).
+- **Automated Self-Correction Feedback Loops**:
+  - Configurable quality thresholds (default 80/100) trigger dynamic backward feedback loops to composition and outline nodes with diagnostic guidance when standards are not met.
+- **TipTap Document Auto-Assembly (`AssembleDocumentAction`)**:
+  - Direct pipeline bridge compiling structured workflow data into formatted TipTap JSON and HTML documents, automatically tagged and linked to user workspaces.
+- **Interactive Content Intelligence Hub (`/dashboard/content-intelligence`)**:
+  - Visual Livewire 3 workspace dashboard with live pipeline metrics, node status badges, latency tracking, single-node step execution (`stepWorkflow`), full autonomous pipeline runs (`runFullWorkflow`), and 1-click TipTap editor launch.
+
 ---
 
 ## 🏗 System Architecture
@@ -149,9 +170,14 @@ erDiagram
     USERS ||--o{ BRAND_PROFILES : "defines"
     USERS ||--o{ KNOWLEDGE_SOURCES : "uploads"
     USERS ||--o{ GENERATIONS : "executes"
+    USERS ||--o{ CONTENT_MISSIONS : "initiates"
     USERS ||--o{ USER_API_KEYS : "stores BYOK"
     USERS ||--o{ USAGE_LOGS : "records"
     USERS ||--o{ AUDIT_LOGS : "triggers"
+
+    CONTENT_MISSIONS ||--o{ WORKFLOW_RUNS : "executes"
+    WORKFLOW_RUNS ||--o{ WORKFLOW_NODES : "processes"
+    WORKFLOW_RUNS ||--o| DOCUMENTS : "assembles"
 
     PROJECTS ||--o{ DOCUMENTS : "categorizes"
     
@@ -633,6 +659,7 @@ php artisan test
  PASS  Tests\Feature\AdminControlPanelAndModelGovernanceTest
  PASS  Tests\Feature\AuthTest
  PASS  Tests\Feature\BrandVoiceTest
+ PASS  Tests\Feature\ContentIntelligenceTest
  PASS  Tests\Feature\DocumentImportExportSharingTest
  PASS  Tests\Feature\DocumentManagementTest
  PASS  Tests\Feature\EndToEndIntegrationAndFailureRecoveryTest
@@ -644,7 +671,7 @@ php artisan test
  PASS  Tests\Feature\TemplateEngineTest
  PASS  Tests\Feature\UsageTrackingAndQuotasTest
 
-Tests:    164 passed (669 assertions)
+Tests:    260 passed (1,530 assertions)
 Duration: 31.54s
 Result:   100% Green
 ```
