@@ -51,6 +51,22 @@ class DocumentVersion extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::saving(function (DocumentVersion $version) {
+            if (isset($version->attributes['title'])) {
+                $clean = trim(preg_replace('/\s+/u', ' ', strip_tags((string) $version->attributes['title'])));
+                $version->attributes['title'] = mb_substr($clean ?: 'Untitled Document', 0, 190);
+            }
+        });
+    }
+
+    public function setTitleAttribute($value): void
+    {
+        $clean = trim(preg_replace('/\s+/u', ' ', strip_tags((string) $value)));
+        $this->attributes['title'] = mb_substr($clean ?: 'Untitled Document', 0, 190);
+    }
+
     public function document(): BelongsTo
     {
         return $this->belongsTo(Document::class);

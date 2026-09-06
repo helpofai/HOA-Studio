@@ -56,8 +56,10 @@
         </div>
     </div>
 
-    <!-- Collapsible In-Canvas Master Formatting Ribbon -->
-    @include('editor.partial.formatting-ribbon')
+    <!-- Collapsible In-Canvas Master Formatting Ribbon (Hidden during Heatmap Inspection) -->
+    <div x-show="!showSeoHeatmap">
+        @include('editor.partial.formatting-ribbon')
+    </div>
 
     <!-- In-Canvas Floating AI Prompt Bar (Cmd+K / / / Slash command) -->
     <div 
@@ -924,7 +926,72 @@ style="display: none;"
     <!-- Active Editor Engine Canvas Mount Target (wire:ignore for zero-latency, error-free typing & high-capacity 10,000+ words scrollbar) -->
     <div 
         id="tiptap-content-target" 
+        x-show="!showSeoHeatmap"
         class="flex-1 min-h-0 overflow-y-auto hoa-custom-scrollbar px-3 sm:px-6 py-4 scroll-smooth focus:outline-none" 
         wire:ignore
     ></div>
+
+    <!-- Dedicated Visual SEO & GEO Heatmap Inspection Mode Overlay -->
+    <div 
+        x-show="showSeoHeatmap"
+        x-cloak
+        class="flex-1 min-h-0 overflow-y-auto hoa-custom-scrollbar px-3 sm:px-6 py-4 scroll-smooth focus:outline-none flex flex-col"
+        style="display: none;"
+    >
+        <!-- Heatmap Floating Control Header Bar -->
+        <div class="mb-4 p-3 rounded-2xl bg-slate-900/95 border border-indigo-500/40 shadow-xl backdrop-blur-xl flex flex-wrap items-center justify-between gap-3 sticky top-0 z-20">
+            <div class="flex items-center gap-2.5">
+                <span class="relative flex h-3 w-3">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                </span>
+                <div>
+                    <div class="text-xs font-bold text-white flex items-center gap-1.5">
+                        <span>👁️ Visual SEO & GEO Heatmap Inspection</span>
+                        <span class="text-[9.5px] font-mono text-indigo-300 px-1.5 py-0.5 rounded-md bg-indigo-950/80 border border-indigo-500/30">Overlay Mode</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400">
+                        Click any callout banner or use "Locate in Content" in the SEO sidebar to jump directly into the live canvas.
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button 
+                    type="button" 
+                    x-on:click="refreshSeoHeatmap()" 
+                    :disabled="isAnalyzingHeatmap"
+                    class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-medium border border-white/10 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    title="Re-run SEO audit on current content and refresh heatmap"
+                >
+                    <svg class="w-3.5 h-3.5 text-indigo-400" :class="isAnalyzingHeatmap ? 'animate-spin' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                    <span x-text="isAnalyzingHeatmap ? 'Auditing...' : 'Refresh'"></span>
+                </button>
+                <button 
+                    type="button" 
+                    x-on:click="toggleSeoHeatmap(false)" 
+                    class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer active:scale-95"
+                >
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                    <span>Exit Heatmap</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Rendered Heatmap Markup -->
+        <div 
+            class="prose prose-invert max-w-none text-slate-200 leading-relaxed text-base font-normal tracking-wide break-words select-text"
+            x-html="seoHeatmapHtml"
+            x-on:click="handleHeatmapClick($event)"
+        ></div>
+
+        <!-- Empty State Fallback -->
+        <template x-if="!seoHeatmapHtml || !seoHeatmapHtml.trim()">
+            <div class="text-center py-16 text-slate-400">
+                <div class="text-3xl mb-2">👁️</div>
+                <div class="font-bold text-slate-200 text-sm mb-1">No Content Heatmap Available</div>
+                <div class="text-xs text-slate-400">Write or generate article content to see real-time color coding and in-canvas SEO callouts.</div>
+            </div>
+        </template>
+    </div>
 </div>

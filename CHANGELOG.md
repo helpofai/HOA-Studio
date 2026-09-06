@@ -10,6 +10,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.7.6] - 2026-09-05
 
 ### Added
+- **Interactive Self-Hosted Mermaid Vector Schemas & ER Diagram Pan/Zoom Suite:**
+  - 100% self-hosted local Mermaid library bundled via Vite (0 external CDN dependencies).
+  - Auto-detects `erDiagram`, `flowchart`, `sequenceDiagram`, `classDiagram`, `stateDiagram`, `gitGraph`, `pie`, `mindmap`, and vector diagrams in publication views.
+  - **Drag-to-Move Pan**: Smooth mouse dragging (`cursor: grab` / `cursor: grabbing`) and mobile single-finger touch dragging across large schemas with zero latency.
+  - **Precision Zoom Controls**: `➕` Zoom In (+25%), `➖` Zoom Out (-25%), live percentage indicator (`100%`, `125%`, etc.), double-click detail toggle, and 1-click `⟲ Fit` canvas reset.
+  - **Focal-Point Mouse Wheel & Pinch Zoom**: Mouse wheel zooming tracking cursor focal point, and two-finger pinch-to-zoom on touch screens.
+  - **Embedded Markdown Auto-Unpacker**: Automatically detects and unpacks giant raw Markdown code blocks containing embedded headings (`##`), dividers (`---`), ASCII architecture diagrams, and Mermaid diagrams into separate semantic DOM elements (`<h2>`, `<pre>`, `<hr>`), allowing dynamic TOC indexing.
+  - **Floating Quick Dock & Source Drawers**: In-canvas floating quick action buttons, toggleable Mermaid source-code drawers, and 1-click schema clipboard copying.
+- **Cyberpunk ASCII Architecture Flow Terminals:**
+  - Box-drawing flowcharts (e.g. `┌─┐│└┘▼▲`) are automatically wrapped in a macOS terminal frame (`🔴 🟡 🟢`) with locked monospace font alignment and 1-click diagram copy.
+- **Permission & Feature Matrix Table Enhancer:**
+  - Tables comparing features/plans auto-highlight checkmarks (`✓` in glowing emerald), crossmarks (`✕` in muted slate), and status pills (`⚡ ...`) with responsive horizontal scrollers.
+- **Publisher-Grade Blog Layout & Tabbed Discovery Rail:**
+  - Sticky aside rail with Alpine.js 3-tab widget displaying Similar Articles, Articles by Author, and Trending Posts.
+  - Dynamic Table of Contents (TOC) with mobile drawer and reading progress tracking.
 - **Public Blog Post Publishing System & Reader Platform (`/blog`):**
   - Integrated public blog directory (`/blog`) with ambient lighting, search, category filter badges, pagination, and sticky spotlight hero cards.
   - Built article reader page (`/blog/{slug}`) with reading time estimates, table of contents, author profile cards, and related posts.

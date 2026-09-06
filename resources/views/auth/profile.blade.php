@@ -681,6 +681,8 @@
     <!-- ─── TAB 5: WORDPRESS & STUDIO CONNECT KEYS ─────────────────── -->
     @if ($activeTab === 'connect')
         <div class="space-y-6">
+            @include('wordpress.components.plugin-card')
+
             <x-glass.card variant="elevated" class="p-6 sm:p-8 space-y-6">
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
                     <div>

@@ -152,10 +152,21 @@ window.hoaStudioConfig = window.hoaStudioConfig || {
                     </select>
                 </div>
 
+                <!-- 2. User Brain & Vector Memory RAG Indicator -->
+                <div class="hoa-card-box hoa-brain-card">
+                    <div class="hoa-box-header">
+                        <label class="hoa-box-label" style="color: #c084fc;">🧠 User Brain & Vector Memory</label>
+                        <span class="hoa-tag-pill hoa-tag-purple">HYBRID RAG</span>
+                    </div>
+                    <div class="hoa-card-meta-text">
+                        <span style="font-size: 11px; color: #94a3b8;">Multi-tier vector memory grounding content to HOA Studio brand profile.</span>
+                    </div>
+                </div>
+
                 <!-- Multi-Agent Swarm Progress -->
                 <div class="hoa-card-box">
                     <div class="hoa-box-header">
-                        <label class="hoa-box-label">2. Multi-Agent Swarm</label>
+                        <label class="hoa-box-label">3. Multi-Agent Swarm</label>
                         <span class="hoa-tag-pill">full-content-main-agent</span>
                     </div>
                     <div class="hoa-swarm-grid">
@@ -180,7 +191,7 @@ window.hoaStudioConfig = window.hoaStudioConfig || {
                 <!-- AI Tokens & Speed Telemetry -->
                 <div class="hoa-card-box">
                     <div class="hoa-box-header">
-                        <label class="hoa-box-label">3. Live Telemetry</label>
+                        <label class="hoa-box-label">4. Live Telemetry</label>
                         <span id="hoa-dedicated-speed-badge" class="hoa-speed-tag">0 tok/s</span>
                     </div>
                     <div class="hoa-telemetry-two-col">
@@ -292,6 +303,9 @@ window.hoaStudioConfig = window.hoaStudioConfig || {
                                 <button type="button" data-cmd="addColumnAfter" class="hoa-dropdown-item">➡ Add Column Right</button>
                                 <button type="button" data-cmd="deleteColumn" class="hoa-dropdown-item text-danger">✖ Delete Current Column</button>
                                 <div class="hoa-dropdown-divider"></div>
+                                <button type="button" data-cmd="toggleHeaderRow" class="hoa-dropdown-item">🔲 Toggle Header Row</button>
+                                <button type="button" data-cmd="mergeOrSplit" class="hoa-dropdown-item">🔗 Merge or Split Cells</button>
+                                <div class="hoa-dropdown-divider"></div>
                                 <button type="button" data-cmd="deleteTable" class="hoa-dropdown-item text-danger">🗑️ Delete Entire Table</button>
                             </div>
                         </div>
@@ -331,6 +345,18 @@ window.hoaStudioConfig = window.hoaStudioConfig || {
                             <button type="button" data-cmd="undo" title="Undo (Ctrl+Z)" class="hoa-tool-btn">↺</button>
                             <button type="button" data-cmd="redo" title="Redo (Ctrl+Y)" class="hoa-tool-btn">↻</button>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Local Draft Auto-Recovery Ambient Banner -->
+                <div id="hoa-wp-draft-recovery-banner" class="hoa-draft-recovery-banner" style="display: none;">
+                    <div class="hoa-recovery-info">
+                        <span class="hoa-dot-pulse-emerald"></span>
+                        <span><strong style="color: #34d399;">✦ Unsaved Draft Auto-Restored:</strong> <span id="hoa-recovery-text" style="color: #cbd5e1;">Recovered content from local backup</span></span>
+                    </div>
+                    <div class="hoa-recovery-actions">
+                        <button type="button" id="hoa-btn-keep-restored" class="button button-small button-primary hoa-btn-keep">✓ Keep & Sync</button>
+                        <button type="button" id="hoa-btn-discard-restored" class="button button-small hoa-btn-discard-banner">Revert to Saved</button>
                     </div>
                 </div>
 
@@ -399,9 +425,14 @@ window.hoaStudioConfig = window.hoaStudioConfig || {
 
             <!-- Tab Headers -->
             <div class="hoa-intel-tabs">
-                <button type="button" class="hoa-intel-tab active" data-tab="meta">⚙️ Post</button>
-                <button type="button" class="hoa-intel-tab" data-tab="seo">🎯 SEO</button>
-                <button type="button" class="hoa-intel-tab" data-tab="outline">📑 Outline</button>
+                <button type="button" class="hoa-intel-tab active" data-tab="meta" title="Post Settings (Featured Image, Categories, Tags)">⚙️ Post</button>
+                <button type="button" class="hoa-intel-tab" data-tab="seo" title="Rank Math 100/100 SEO Audit">🎯 SEO</button>
+                <button type="button" class="hoa-intel-tab" data-tab="titles" title="Viral Titles & Meta Descriptions">✨ Titles</button>
+                <button type="button" class="hoa-intel-tab" data-tab="gaps" title="Content Gaps & FAQ Schema">💡 Gaps</button>
+                <button type="button" class="hoa-intel-tab" data-tab="keywords" title="Secondary & LSI Keywords">🏷️ Keywords</button>
+                <button type="button" class="hoa-intel-tab" data-tab="quality" title="E-E-A-T Quality Audit">🏆 Audit</button>
+                <button type="button" class="hoa-intel-tab" data-tab="outline" title="Interactive Document Outline">📑 Outline</button>
+                <button type="button" class="hoa-intel-tab" data-tab="history" title="Version Snapshots Timeline">🕒 History</button>
             </div>
 
             <div class="hoa-panel-scrollable">
@@ -477,38 +508,159 @@ window.hoaStudioConfig = window.hoaStudioConfig || {
 
                     <!-- SEO Metrics Scorecard -->
                     <div class="hoa-card-box">
-                        <label class="hoa-box-label">Audit Checklist</label>
+                        <div class="hoa-box-header">
+                            <label class="hoa-box-label">Rank Math Audit Checklist</label>
+                            <span class="hoa-tag-pill" id="hoa-seo-density-tag">Density: 0%</span>
+                        </div>
                         <div class="hoa-audit-list">
                             <div class="hoa-audit-item" id="hoa-check-kw-title">
                                 <span class="hoa-audit-icon">✓</span>
-                                <span>Focus Keyword in Post Title</span>
+                                <span>Focus Keyword in Post Title (25 pts)</span>
                             </div>
                             <div class="hoa-audit-item" id="hoa-check-kw-first">
                                 <span class="hoa-audit-icon">✓</span>
-                                <span>Focus Keyword in First 10% of Content</span>
+                                <span>Focus Keyword in First 10% (20 pts)</span>
                             </div>
                             <div class="hoa-audit-item" id="hoa-check-words">
                                 <span class="hoa-audit-icon">✓</span>
-                                <span>Content Length &gt; 600 words</span>
+                                <span>Content Length &gt; 600 words (20 pts)</span>
                             </div>
                             <div class="hoa-audit-item" id="hoa-check-headings">
                                 <span class="hoa-audit-icon">✓</span>
-                                <span>Subheadings (H2, H3) Included</span>
+                                <span>Subheadings (H2, H3) Included (15 pts)</span>
                             </div>
                             <div class="hoa-audit-item" id="hoa-check-table">
                                 <span class="hoa-audit-icon">✓</span>
-                                <span>Data Table or Rich Callout Included</span>
+                                <span>Data Table or Rich Callout (20 pts)</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- TAB 3: DYNAMIC HEADING OUTLINE (TOC) -->
+                <!-- TAB 3: VIRAL TITLES & META DESCRIPTIONS -->
+                <div class="hoa-tab-content" id="hoa-tab-titles" style="display: none;">
+                    <div class="hoa-card-box">
+                        <div class="hoa-box-header">
+                            <label class="hoa-box-label">Viral Post Titles (AI)</label>
+                            <button type="button" id="hoa-btn-gen-titles" class="hoa-preset-chip">✦ Generate 5 Titles</button>
+                        </div>
+                        <div id="hoa-viral-titles-list" class="hoa-suggestions-list">
+                            <span class="hoa-empty-note">Click generate to produce 5 click-worthy, SEO-optimized headlines based on your topic.</span>
+                        </div>
+                    </div>
+
+                    <div class="hoa-card-box">
+                        <div class="hoa-box-header">
+                            <label class="hoa-box-label">Meta Description (AI)</label>
+                            <button type="button" id="hoa-btn-gen-desc" class="hoa-preset-chip">✦ Generate Description</button>
+                        </div>
+                        <div id="hoa-generated-desc-box" class="hoa-generated-box" style="display:none;">
+                            <p id="hoa-generated-desc-text" class="hoa-generated-text"></p>
+                            <button type="button" id="hoa-btn-apply-desc" class="button button-small button-primary">Apply to SEO Meta</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: CONTENT GAPS & FAQ SCHEMA -->
+                <div class="hoa-tab-content" id="hoa-tab-gaps" style="display: none;">
+                    <div class="hoa-card-box">
+                        <div class="hoa-box-header">
+                            <label class="hoa-box-label">Semantic Gaps & FAQs</label>
+                            <button type="button" id="hoa-btn-find-gaps" class="hoa-preset-chip">✦ Discover Gaps</button>
+                        </div>
+                        <div id="hoa-content-gaps-list" class="hoa-suggestions-list">
+                            <span class="hoa-empty-note">Analyze your current article against search-intent benchmarks to uncover missing subtopics and high-value FAQs.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 5: SECONDARY & LSI KEYWORDS -->
+                <div class="hoa-tab-content" id="hoa-tab-keywords" style="display: none;">
+                    <div class="hoa-card-box">
+                        <label class="hoa-box-label">Secondary / LSI Keywords</label>
+                        <input type="text" id="hoa-secondary-keywords" placeholder="keyword1, keyword2, keyword3..." class="hoa-text-input" />
+                        <span style="font-size: 10px; color: #94a3b8;">Comma-separated keywords to monitor in real-time.</span>
+                    </div>
+
+                    <div class="hoa-card-box">
+                        <label class="hoa-box-label">Live Keyword Density Matrix</label>
+                        <div id="hoa-kw-density-matrix" class="hoa-density-matrix">
+                            <span class="hoa-empty-note">Enter keywords above to monitor their exact density and distribution in the canvas.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 6: 10-POINT E-E-A-T QUALITY AUDIT -->
+                <div class="hoa-tab-content" id="hoa-tab-quality" style="display: none;">
+                    <div class="hoa-card-box">
+                        <div class="hoa-box-header">
+                            <label class="hoa-box-label">10-Point E-E-A-T Scorecard</label>
+                            <span id="hoa-eeat-score-badge" class="hoa-speed-tag">0/10 Passed</span>
+                        </div>
+                        <div class="hoa-audit-list" id="hoa-eeat-audit-checklist">
+                            <div class="hoa-audit-item" id="hoa-eeat-exp">
+                                <span class="hoa-audit-icon">✓</span>
+                                <span>First-hand Experience & Author Voice</span>
+                            </div>
+                            <div class="hoa-audit-item" id="hoa-eeat-table">
+                                <span class="hoa-audit-icon">✓</span>
+                                <span>Structured Comparison Table</span>
+                            </div>
+                            <div class="hoa-audit-item" id="hoa-eeat-tldr">
+                                <span class="hoa-audit-icon">✓</span>
+                                <span>Executive Summary / TL;DR Box</span>
+                            </div>
+                            <div class="hoa-audit-item" id="hoa-eeat-links">
+                                <span class="hoa-audit-icon">✓</span>
+                                <span>Verified External Reference Links</span>
+                            </div>
+                            <div class="hoa-audit-item" id="hoa-eeat-tips">
+                                <span class="hoa-audit-icon">✓</span>
+                                <span>Actionable Pro-Tips & Warning Boxes</span>
+                            </div>
+                            <div class="hoa-audit-item" id="hoa-eeat-timeline">
+                                <span class="hoa-audit-icon">✓</span>
+                                <span>Step-by-Step Implementation Timeline</span>
+                            </div>
+                            <div class="hoa-audit-item" id="hoa-eeat-faq">
+                                <span class="hoa-audit-icon">✓</span>
+                                <span>Schema-Ready FAQ Accordion</span>
+                            </div>
+                            <div class="hoa-audit-item" id="hoa-eeat-proscons">
+                                <span class="hoa-audit-icon">✓</span>
+                                <span>Balanced Pros & Cons Comparison Grid</span>
+                            </div>
+                            <div class="hoa-audit-item" id="hoa-eeat-headings">
+                                <span class="hoa-audit-icon">✓</span>
+                                <span>Skimmable Headings Hierarchy (H2, H3)</span>
+                            </div>
+                            <div class="hoa-audit-item" id="hoa-eeat-length">
+                                <span class="hoa-audit-icon">✓</span>
+                                <span>Authoritative Depth (&gt; 600 words)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 7: DYNAMIC HEADING OUTLINE (TOC) -->
                 <div class="hoa-tab-content" id="hoa-tab-outline" style="display: none;">
                     <div class="hoa-card-box">
                         <label class="hoa-box-label">Dynamic Headings Tree (H1-H4)</label>
                         <div id="hoa-dynamic-outline-list" class="hoa-outline-tree">
                             <span class="hoa-empty-note">Headings added to the canvas will automatically populate here as a clickable TOC.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 8: LOCAL VERSION SNAPSHOTS HISTORY -->
+                <div class="hoa-tab-content" id="hoa-tab-history" style="display: none;">
+                    <div class="hoa-card-box">
+                        <div class="hoa-box-header">
+                            <label class="hoa-box-label">Local Snapshot Timeline</label>
+                            <button type="button" id="hoa-btn-take-snapshot" class="hoa-preset-chip">📸 Save Snapshot</button>
+                        </div>
+                        <div id="hoa-snapshots-list" class="hoa-snapshots-timeline">
+                            <span class="hoa-empty-note">Snapshots are automatically recorded every 60 seconds while you write.</span>
                         </div>
                     </div>
                 </div>
@@ -616,6 +768,45 @@ window.hoaStudioConfig = window.hoaStudioConfig || {
             <small>Menu</small>
         </div>
 
+        <!-- Section 0: Table Controls (Only visible when right-clicking inside a table cell) -->
+        <div id="hoa-wp-context-table-section" class="hoa-context-group" style="display: none;">
+            <div class="hoa-context-sub-label text-cyan">▦ Table Controls</div>
+            <div class="hoa-context-grid-2">
+                <button type="button" class="hoa-context-item" data-context-cmd="addRowBefore">
+                    <span>↑ Row Above</span>
+                </button>
+                <button type="button" class="hoa-context-item" data-context-cmd="addRowAfter">
+                    <span>↓ Row Below</span>
+                </button>
+                <button type="button" class="hoa-context-item" data-context-cmd="addColumnBefore">
+                    <span>← Col Left</span>
+                </button>
+                <button type="button" class="hoa-context-item" data-context-cmd="addColumnAfter">
+                    <span>→ Col Right</span>
+                </button>
+            </div>
+            <div class="hoa-context-grid-2">
+                <button type="button" class="hoa-context-item text-danger" data-context-cmd="deleteRow">
+                    <span>✖ Delete Row</span>
+                </button>
+                <button type="button" class="hoa-context-item text-danger" data-context-cmd="deleteColumn">
+                    <span>✖ Delete Col</span>
+                </button>
+            </div>
+            <div class="hoa-context-grid-2">
+                <button type="button" class="hoa-context-item" data-context-cmd="toggleHeaderRow">
+                    <span>🔲 Toggle Header</span>
+                </button>
+                <button type="button" class="hoa-context-item" data-context-cmd="mergeOrSplit">
+                    <span>🔗 Merge/Split</span>
+                </button>
+            </div>
+            <button type="button" class="hoa-context-item text-danger" data-context-cmd="deleteTable">
+                <span>🗑️ Delete Entire Table</span>
+            </button>
+            <div class="hoa-context-divider"></div>
+        </div>
+
         <!-- Section 1: Clipboard & Selection -->
         <div class="hoa-context-group">
             <button type="button" class="hoa-context-item" data-context-cmd="cut">
@@ -718,6 +909,9 @@ window.hoaStudioConfig = window.hoaStudioConfig || {
         <button type="button" class="hoa-table-btn" data-table-cmd="addColumnBefore" title="Add Column Left">⬅ +Col</button>
         <button type="button" class="hoa-table-btn" data-table-cmd="addColumnAfter" title="Add Column Right">➡ +Col</button>
         <button type="button" class="hoa-table-btn text-danger" data-table-cmd="deleteColumn" title="Delete Column">✖ Col</button>
+        <span class="hoa-toolbar-divider"></span>
+        <button type="button" class="hoa-table-btn" data-table-cmd="toggleHeaderRow" title="Toggle Header Row">🔲 Header</button>
+        <button type="button" class="hoa-table-btn" data-table-cmd="mergeOrSplit" title="Merge or Split Cells">🔗 Merge/Split</button>
         <span class="hoa-toolbar-divider"></span>
         <button type="button" class="hoa-table-btn text-danger" data-table-cmd="deleteTable" title="Delete Table">🗑️ Delete</button>
     </div>

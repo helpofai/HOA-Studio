@@ -315,14 +315,20 @@ insertCurrentDate() {
 },
 
 updateOutline() {
-    const ed = this.getEditor();
-    if (!ed) return;
-    const html = ed.getHTML ? ed.getHTML() : '';
+    let html = '';
+    const ed = this.getEditor ? this.getEditor() : (this.editorInstance || window.hoaEditorInstance);
+    if (ed && typeof ed.getHTML === 'function') {
+        html = ed.getHTML();
+    } else {
+        const target = document.getElementById('tiptap-content-target');
+        if (target) html = target.innerHTML;
+    }
+    if (!html) return;
     const temp = document.createElement('div');
     temp.innerHTML = html;
-    const headings = temp.querySelectorAll('h1, h2, h3');
+    const headings = temp.querySelectorAll('h1, h2, h3, h4');
     this.docOutline = Array.from(headings).map(h => ({
-        level: parseInt(h.tagName[1]),
+        level: parseInt(h.tagName[1]) || 2,
         text: h.textContent.trim()
     })).filter(h => h.text.length > 0);
 },

@@ -109,11 +109,28 @@ class HoaAjaxHandler {
             exit;
         }
 
+        $text = wp_unslash($_POST['text'] ?? '');
+        $customInstruction = wp_unslash($_POST['custom_instruction'] ?? '');
+        if (empty($text) && !empty($customInstruction)) {
+            $text = $customInstruction;
+        }
+
+        if (empty($text) && empty($customInstruction)) {
+            header('Content-Type: text/event-stream');
+            echo "data: " . json_encode(['error' => 'Please enter a prompt or select text in the editor.', 'done' => true]) . "\n\n";
+            exit;
+        }
+
+        $type = sanitize_text_field($_POST['type'] ?? 'generate');
+        if (empty($type) || $type === 'undefined') {
+            $type = 'generate';
+        }
+
         $payload = [
-            'text' => wp_unslash($_POST['text'] ?? ''),
-            'type' => sanitize_text_field($_POST['type'] ?? 'generate'),
+            'text' => $text,
+            'type' => $type,
             'model' => sanitize_text_field($_POST['model'] ?? ''),
-            'custom_instruction' => wp_unslash($_POST['custom_instruction'] ?? ''),
+            'custom_instruction' => $customInstruction,
             'context' => isset($_POST['context']) ? (array) $_POST['context'] : [],
         ];
 
@@ -128,6 +145,9 @@ class HoaAjaxHandler {
         while (ob_get_level() > 0) { ob_end_flush(); }
 
         $httpCode = 0;
+        $errorBuffer = '';
+        $streamStarted = false;
+
         $ch = curl_init($endpoint . '/api/v1/wordpress/stream');
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
@@ -140,27 +160,37 @@ class HoaAjaxHandler {
         ]);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
+        if (defined('CURLOPT_POSTREDIR')) {
+            curl_setopt($ch, CURLOPT_POSTREDIR, 3);
+        }
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 120);
+
         curl_setopt($ch, CURLOPT_HEADERFUNCTION, function($ch, $header) use (&$httpCode) {
             if (preg_match('#^HTTP/[\d\.]+\s+(\d+)#i', $header, $matches)) {
                 $httpCode = (int) $matches[1];
             }
             return strlen($header);
         });
-        curl_setopt($ch, CURLOPT_WRITEFUNCTION, function($ch, $data) use (&$httpCode) {
+
+        curl_setopt($ch, CURLOPT_WRITEFUNCTION, function($ch, $data) use (&$httpCode, &$errorBuffer, &$streamStarted) {
             if ($httpCode >= 400) {
-                $msg = $data;
-                $decoded = json_decode($data, true);
-                if ($decoded && !empty($decoded['error'])) {
-                    $msg = $decoded['error'];
-                } elseif ($decoded && !empty($decoded['message'])) {
-                    $msg = $decoded['message'];
-                }
-                echo "data: " . json_encode(['error' => 'HOA Studio (HTTP ' . $httpCode . '): ' . strip_tags($msg), 'done' => true]) . "\n\n";
-                flush();
+                $errorBuffer .= $data;
                 return strlen($data);
             }
 
-            // Ensure JSON responses are translated into data: format
+            // Detect HTML web page response (e.g. login redirect, 404/502 HTML, or wrong endpoint URL)
+            if (!$streamStarted && (stripos($data, '<!DOCTYPE') !== false || stripos($data, '<html') !== false)) {
+                $errorBuffer .= $data;
+                return strlen($data);
+            }
+
+            // Normal streaming output
+            $streamStarted = true;
+
+            // Ensure non-SSE JSON responses are translated into SSE data: format
             if (!str_starts_with($data, 'data:') && !str_starts_with($data, 'event:')) {
                 $trimmed = trim($data);
                 if ($trimmed !== '') {
@@ -178,13 +208,31 @@ class HoaAjaxHandler {
             flush();
             return strlen($data);
         });
-        curl_setopt($ch, CURLOPT_TIMEOUT, 120);
+
         $res = curl_exec($ch);
+
+        if ($httpCode === 0) {
+            $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        }
+
         if ($res === false) {
             $err = curl_error($ch);
-            echo "data: " . json_encode(['error' => 'cURL Connection Error: ' . $err, 'done' => true]) . "\n\n";
+            echo "data: " . json_encode(['error' => 'cURL Connection to HOA Studio Failed: ' . $err, 'done' => true]) . "\n\n";
+            flush();
+        } elseif ($httpCode >= 400 || !empty($errorBuffer)) {
+            $msg = $errorBuffer;
+            $decoded = json_decode($errorBuffer, true);
+            if ($decoded && !empty($decoded['error'])) {
+                $msg = $decoded['error'];
+            } elseif ($decoded && !empty($decoded['message'])) {
+                $msg = $decoded['message'];
+            } elseif (stripos($errorBuffer, '<html') !== false || stripos($errorBuffer, '<!DOCTYPE') !== false) {
+                $msg = 'HOA Studio returned a web page instead of an AI stream (HTTP ' . $httpCode . '). Please check that your Endpoint URL is correct in Connection Settings.';
+            }
+            echo "data: " . json_encode(['error' => 'HOA Studio (HTTP ' . $httpCode . '): ' . strip_tags($msg), 'done' => true]) . "\n\n";
             flush();
         }
+
         curl_close($ch);
         exit;
     }

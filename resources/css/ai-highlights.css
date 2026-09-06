@@ -128,3 +128,21 @@ mark.ai-replaced-green-highlight.fading {
     color: #a7f3d0 !important;
     transition: background-color 1s ease;
 }
+
+/* SEO Heatmap In-Canvas Callouts & Legend */
+.seo-canvas-callout {
+    cursor: pointer !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease !important;
+}
+
+.seo-canvas-callout:hover {
+    transform: translateY(-1.5px) !important;
+    filter: brightness(1.12) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
+}
+
+.seo-heatmap-legend-bar {
+    position: sticky !important;
+    top: 4rem !important;
+    z-index: 15 !important;
+}

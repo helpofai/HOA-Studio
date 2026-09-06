@@ -55,11 +55,25 @@ class BlogPostPage extends Component
             ->where('slug', $this->slug)
             ->firstOrFail();
 
-        $relatedPosts = BlogPost::published()
+        $similarPosts = BlogPost::published()
             ->where('id', '!=', $post->id)
             ->where('category', $post->category)
             ->latest('published_at')
-            ->take(3)
+            ->take(4)
+            ->get();
+
+        $authorPosts = BlogPost::published()
+            ->where('id', '!=', $post->id)
+            ->where('user_id', $post->user_id)
+            ->latest('published_at')
+            ->take(4)
+            ->get();
+
+        $trendingPosts = BlogPost::published()
+            ->where('id', '!=', $post->id)
+            ->orderByDesc('views_count')
+            ->latest('published_at')
+            ->take(4)
             ->get();
 
         $canEdit = false;
@@ -68,9 +82,28 @@ class BlogPostPage extends Component
             $canEdit = ($currentUser->id === $post->user_id || $currentUser->isAdmin());
         }
 
+        $publishedAt = $post->published_at ?? now();
+
+        $previousPost = BlogPost::published()
+            ->where('id', '!=', $post->id)
+            ->where('published_at', '<=', $publishedAt)
+            ->latest('published_at')
+            ->first();
+
+        $nextPost = BlogPost::published()
+            ->where('id', '!=', $post->id)
+            ->where('published_at', '>=', $publishedAt)
+            ->oldest('published_at')
+            ->first();
+
         return view('blog.show', [
             'post' => $post,
-            'relatedPosts' => $relatedPosts,
+            'relatedPosts' => $similarPosts,
+            'similarPosts' => $similarPosts,
+            'authorPosts' => $authorPosts,
+            'trendingPosts' => $trendingPosts,
+            'previousPost' => $previousPost,
+            'nextPost' => $nextPost,
             'canEdit' => $canEdit,
         ])->title($post->seo_title ?: $post->title.' — HelpOfAi Blog');
     }

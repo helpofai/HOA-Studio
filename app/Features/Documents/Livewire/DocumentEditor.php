@@ -25,6 +25,7 @@
 
 namespace App\Features\Documents\Livewire;
 
+use App\Features\AI\Models\AiModel;
 use App\Features\AI\Models\AiProvider;
 use App\Features\Blog\Actions\PublishDocumentToBlog;
 use App\Features\Blog\Actions\UnpublishDocumentFromBlog;
@@ -38,82 +39,125 @@ use App\Features\Documents\Models\Document;
 use App\Features\Documents\Models\DocumentShare;
 use App\Features\Documents\Models\DocumentVersion;
 use App\Features\Projects\Models\Project;
-use App\Features\SEO\Actions\AnalyzeDocumentSeo;
 use App\Features\SEO\Actions\GenerateSeoMetadata;
 use App\Features\SEO\Models\SeoAnalysis;
 use App\Features\SEO\Services\SeoAnalyzer;
 use Exception;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
-use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('layouts.workspace')]
 class DocumentEditor extends Component
 {
     public int $documentId;
+
     public string $title = '';
+
     public string $contentHtml = '';
+
     public ?int $projectId = null;
+
     public string $status = 'draft';
+
     public string $editorType = 'tiptap';
 
     public int $wordCount = 0;
+
     public int $characterCount = 0;
+
     public int $readingTimeMinutes = 1;
 
     public bool $isSaving = false;
+
     public string $saveStatusText = 'All changes saved';
+
     public ?string $lastSavedAt = null;
 
     public bool $showVersionHistory = false;
 
     // Document Sharing State
     public bool $showShareModal = false;
+
     public ?string $shareToken = null;
+
     public string $sharePassword = '';
+
     public bool $shareAllowCopy = true;
+
     public bool $shareAllowDownload = true;
+
     public ?int $shareExpiryDays = null;
+
     public int $shareViewCount = 0;
+
     public bool $isShareActive = false;
+
     public string $shareUrl = '';
 
     // Real-Time SEO Intelligence State
     public bool $showSeoDrawer = false;
+
     public string $targetKeyword = '';
+
     public array $secondaryKeywords = [];
+
     public string $newSecondaryKeyword = '';
+
     public ?array $seoData = null;
+
     public bool $isAnalyzingSeo = false;
 
     // AI SEO Generator State
     public bool $isGeneratingSeo = false;
+
     public string $aiSeoType = '';
+
     public array $aiSeoResults = [];
+
     public string $seoErrorMessage = '';
+
     public string $metaDescription = '';
+
     public array $aiTitles = [];
+
     public array $aiMetaDescriptions = [];
+
     public array $aiFaqs = [];
+
     public string $aiQuickAnswer = '';
+
     public array $aiContentGaps = [];
+
     public ?array $aiQualityAudit = null;
 
     // Blog Publishing State
     public bool $showBlogModal = false;
+
     public bool $isPublishedToBlog = false;
+
     public ?int $blogPostId = null;
+
     public string $blogTitle = '';
+
     public string $blogSlug = '';
+
     public string $blogCategory = 'Artificial Intelligence';
+
     public string $blogTags = '';
+
     public string $blogFeaturedImage = '';
+
     public string $blogExcerpt = '';
+
     public string $blogStatus = 'published';
+
     public bool $blogIsFeatured = false;
+
     public ?string $blogPublishedUrl = null;
+
     public int $blogViewsCount = 0;
 
     public function mount(int $id, SeoAnalyzer $analyzer)
@@ -143,9 +187,9 @@ class DocumentEditor extends Component
 
         // Always run comprehensive analysis to guarantee rank_math pillars, recommendations, and marked_html exist
         $this->seoData = $analyzer->analyze(
-            $this->contentHtml, 
-            $this->title, 
-            $this->targetKeyword ?: null, 
+            $this->contentHtml,
+            $this->title,
+            $this->targetKeyword ?: null,
             $this->secondaryKeywords ?? [],
             $this->metaDescription
         );
@@ -177,8 +221,11 @@ class DocumentEditor extends Component
             ]);
         }
 
+        $safeTitle = mb_substr(trim(preg_replace('/\s+/u', ' ', strip_tags($this->title ?: 'Untitled Document'))), 0, 190);
+        $this->title = $safeTitle;
+
         $document->update([
-            'title' => $this->title,
+            'title' => $safeTitle,
             'project_id' => $this->projectId,
             'status' => $this->status,
             'word_count' => $this->wordCount,
@@ -188,15 +235,19 @@ class DocumentEditor extends Component
 
         $this->isSaving = false;
         $this->lastSavedAt = now()->format('H:i:s');
-        $this->saveStatusText = 'Saved at ' . $this->lastSavedAt;
+        $this->saveStatusText = 'Saved at '.$this->lastSavedAt;
     }
 
-    public function runSeoAudit(?SeoAnalyzer $analyzer = null)
+    public function runSeoAudit(?string $liveHtml = null, ?SeoAnalyzer $analyzer = null): string
     {
         $analyzer = $analyzer ?? app(SeoAnalyzer::class);
         $this->isAnalyzingSeo = true;
-        
+
         try {
+            if ($liveHtml !== null && trim($liveHtml) !== '') {
+                $this->contentHtml = $liveHtml;
+            }
+
             $this->seoData = $analyzer->analyze(
                 $this->contentHtml,
                 $this->title,
@@ -204,9 +255,9 @@ class DocumentEditor extends Component
                 $this->secondaryKeywords,
                 $this->metaDescription ?? ''
             );
-            
+
             $savedMetrics = $this->seoData['metrics'] ?? [];
-            if (!empty($this->metaDescription)) {
+            if (! empty($this->metaDescription)) {
                 $savedMetrics['meta_description'] = $this->metaDescription;
             }
 
@@ -223,8 +274,12 @@ class DocumentEditor extends Component
             );
 
             $this->generateQualityAudit();
+
+            return $this->seoData['marked_html'] ?? '';
         } catch (Exception $e) {
             $this->seoErrorMessage = $e->getMessage();
+
+            return '';
         } finally {
             $this->isAnalyzingSeo = false;
         }
@@ -235,10 +290,15 @@ class DocumentEditor extends Component
         $this->runSeoAudit();
     }
 
+    public function toggleSeoDrawer(): void
+    {
+        $this->showSeoDrawer = ! $this->showSeoDrawer;
+    }
+
     public function addSecondaryKeyword()
     {
         $kw = trim($this->newSecondaryKeyword);
-        if (!empty($kw) && !in_array($kw, $this->secondaryKeywords)) {
+        if (! empty($kw) && ! in_array($kw, $this->secondaryKeywords)) {
             $this->secondaryKeywords[] = $kw;
             $this->newSecondaryKeyword = '';
             $this->queueSeoAudit();
@@ -362,22 +422,30 @@ class DocumentEditor extends Component
         // 1. Search Intent Satisfaction (0-100)
         $searchIntentScore = 50;
         $searchIntentStatus = 'General search intent';
-        if (!empty($kw)) {
+        if (! empty($kw)) {
             $inTitle = mb_strpos($lowerTitle, $kw) !== false;
             $tenPctWords = mb_strtolower(implode(' ', array_slice(preg_split('/\s+/u', $plain, -1, PREG_SPLIT_NO_EMPTY), 0, max(15, (int) round($words * 0.1)))));
             $inIntro = mb_strpos($tenPctWords, $kw) !== false;
             $inH2 = false;
-            if (!empty($metrics['headings']['h2'])) {
+            if (! empty($metrics['headings']['h2'])) {
                 preg_match_all('/<h2[^>]*>(.*?)<\/h2>/si', $this->contentHtml, $h2m);
                 $inH2 = mb_strpos(mb_strtolower(implode(' ', $h2m[1] ?? [])), $kw) !== false;
             }
-            $inMeta = !empty($this->metaDescription) && mb_strpos(mb_strtolower($this->metaDescription), $kw) !== false;
+            $inMeta = ! empty($this->metaDescription) && mb_strpos(mb_strtolower($this->metaDescription), $kw) !== false;
 
             $points = 20;
-            if ($inTitle) $points += 30;
-            if ($inIntro) $points += 25;
-            if ($inH2) $points += 15;
-            if ($inMeta) $points += 10;
+            if ($inTitle) {
+                $points += 30;
+            }
+            if ($inIntro) {
+                $points += 25;
+            }
+            if ($inH2) {
+                $points += 15;
+            }
+            if ($inMeta) {
+                $points += 10;
+            }
             $searchIntentScore = min(100, $points);
 
             if ($inTitle && $inIntro && ($inH2 || $inMeta)) {
@@ -387,7 +455,7 @@ class DocumentEditor extends Component
             } else {
                 $searchIntentStatus = 'Keyword missing from intro & headings';
             }
-        } elseif ($words > 300 && !empty($this->title)) {
+        } elseif ($words > 300 && ! empty($this->title)) {
             $searchIntentScore = 78;
             $searchIntentStatus = 'Informational guide structure';
         }
@@ -424,10 +492,10 @@ class DocumentEditor extends Component
             $originalValueStatus = "{$dataPoints} statistics & metrics found";
         } elseif ($dataPoints === 1) {
             $originalValueScore = 65;
-            $originalValueStatus = "1 single data point found";
+            $originalValueStatus = '1 single data point found';
         } else {
             $originalValueScore = 38;
-            $originalValueStatus = "No verifiable data points detected";
+            $originalValueStatus = 'No verifiable data points detected';
         }
 
         // 4. Readability & Sentence Cadence (0-100)
@@ -456,10 +524,10 @@ class DocumentEditor extends Component
             $seoStructureStatus = "{$h2Count} H2 sections present";
         } elseif ($h2Count === 1) {
             $seoStructureScore = 68;
-            $seoStructureStatus = "Only 1 H2 subheading found";
+            $seoStructureStatus = 'Only 1 H2 subheading found';
         } else {
             $seoStructureScore = 38;
-            $seoStructureStatus = "No H2 subheadings detected";
+            $seoStructureStatus = 'No H2 subheadings detected';
         }
 
         // 6. Internal Topic Cluster Links (0-100)
@@ -472,7 +540,7 @@ class DocumentEditor extends Component
             $internalLinkingStatus = "{$internalLinks} internal link(s) found";
         } else {
             $internalLinkingScore = 35;
-            $internalLinkingStatus = "0 internal cluster links";
+            $internalLinkingStatus = '0 internal cluster links';
         }
 
         // 7. Authoritative Outbound Citations (0-100)
@@ -480,13 +548,13 @@ class DocumentEditor extends Component
         $hasQuotes = $geo['has_quotes'] ?? false;
         if ($externalLinks >= 2) {
             $outboundCitationsScore = $hasQuotes ? 98 : 92;
-            $outboundCitationsStatus = "{$externalLinks} external citations" . ($hasQuotes ? " + quotes" : "");
+            $outboundCitationsStatus = "{$externalLinks} external citations".($hasQuotes ? ' + quotes' : '');
         } elseif ($externalLinks === 1) {
             $outboundCitationsScore = $hasQuotes ? 86 : 76;
-            $outboundCitationsStatus = "1 citation" . ($hasQuotes ? " + expert quote" : "");
+            $outboundCitationsStatus = '1 citation'.($hasQuotes ? ' + expert quote' : '');
         } else {
             $outboundCitationsScore = $hasQuotes ? 62 : 36;
-            $outboundCitationsStatus = $hasQuotes ? "Quote found, no outbound links" : "0 external citations";
+            $outboundCitationsStatus = $hasQuotes ? 'Quote found, no outbound links' : '0 external citations';
         }
 
         // 8. E-E-A-T First-Hand Experience & Trust (0-100)
@@ -494,13 +562,13 @@ class DocumentEditor extends Component
         $hasTable = $geo['has_table'] ?? false;
         if ($hasExpPhrases) {
             $eeatScore = 95;
-            $eeatStatus = "First-hand testing & empirical signals present";
+            $eeatStatus = 'First-hand testing & empirical signals present';
         } elseif ($hasTable || $hasQuotes) {
             $eeatScore = 78;
-            $eeatStatus = "Structured data/quotes present";
+            $eeatStatus = 'Structured data/quotes present';
         } else {
             $eeatScore = 46;
-            $eeatStatus = "Missing first-hand experience markers";
+            $eeatStatus = 'Missing first-hand experience markers';
         }
 
         // 9. Google AI Overviews & GEO Readiness (0-100)
@@ -508,11 +576,17 @@ class DocumentEditor extends Component
         $hasStructuredTable = $geo['has_table'] ?? false;
         $paaCount = $geo['paa_count'] ?? 0;
         $geoPoints = 20;
-        if ($hasDirectAnswer) $geoPoints += 40;
-        if ($hasStructuredTable) $geoPoints += 25;
-        if ($paaCount >= 2) $geoPoints += 15;
+        if ($hasDirectAnswer) {
+            $geoPoints += 40;
+        }
+        if ($hasStructuredTable) {
+            $geoPoints += 25;
+        }
+        if ($paaCount >= 2) {
+            $geoPoints += 15;
+        }
         $geoScore = min(100, $geoPoints);
-        $geoStatus = ($hasDirectAnswer ? "✓ Direct snippet" : "✕ No snippet") . ' • ' . ($hasStructuredTable ? "✓ Table" : "✕ No table") . ' • ' . "{$paaCount} PAA";
+        $geoStatus = ($hasDirectAnswer ? '✓ Direct snippet' : '✕ No snippet').' • '.($hasStructuredTable ? '✓ Table' : '✕ No table').' • '."{$paaCount} PAA";
 
         // 10. Technical Schema & Semantic Markup (0-100)
         $isValidSchema = $schema['validation']['is_valid'] ?? false;
@@ -520,11 +594,17 @@ class DocumentEditor extends Component
         $titleLen = mb_strlen($this->title ?? '');
         $metaLen = mb_strlen($this->metaDescription ?? '');
         $techPoints = 30;
-        if ($isValidSchema) $techPoints += 40;
-        if ($titleLen >= 40 && $titleLen <= 65) $techPoints += 15;
-        if ($metaLen >= 120 && $metaLen <= 160) $techPoints += 15;
+        if ($isValidSchema) {
+            $techPoints += 40;
+        }
+        if ($titleLen >= 40 && $titleLen <= 65) {
+            $techPoints += 15;
+        }
+        if ($metaLen >= 120 && $metaLen <= 160) {
+            $techPoints += 15;
+        }
         $technicalScore = min(100, $techPoints);
-        $technicalStatus = $isValidSchema ? "Valid {$schemaType} Schema.org JSON-LD" : "Schema not validated";
+        $technicalStatus = $isValidSchema ? "Valid {$schemaType} Schema.org JSON-LD" : 'Schema not validated';
 
         // Assemble 10 Factors
         $factors = [
@@ -653,7 +733,7 @@ class DocumentEditor extends Component
 
         $scores = array_column($factors, 'score');
         $overall = (int) round(array_sum($scores) / count($scores));
-        $passedCount = count(array_filter($scores, fn($s) => $s >= 75));
+        $passedCount = count(array_filter($scores, fn ($s) => $s >= 75));
 
         $gradeLabel = match (true) {
             $overall >= 90 => '🏆 Enterprise Grade (A+)',
@@ -684,14 +764,27 @@ class DocumentEditor extends Component
     }
 
     #[On('updateTitle')]
-    public function applyTitle(?string $newTitle = null)
+    #[On('applyTitle')]
+    public function applyTitle(?string $newTitle = null, ?string $title = null)
     {
-        if ($newTitle !== null && trim($newTitle) !== '') {
-            $this->title = trim($newTitle);
+        $resolvedTitle = $newTitle ?? $title;
+        if ($resolvedTitle !== null && trim($resolvedTitle) !== '') {
+            $clean = trim(preg_replace('/\s+/u', ' ', strip_tags($resolvedTitle)));
+            $this->title = mb_substr($clean, 0, 190);
         }
-        Document::where('id', $this->documentId)->update(['title' => $this->title]);
+        $safeTitle = mb_substr(trim($this->title ?: 'Untitled Document'), 0, 190);
+        $this->title = $safeTitle;
+        Document::where('id', $this->documentId)->update(['title' => $safeTitle]);
         $this->queueSeoAudit();
         session()->flash('status', 'Document title updated!');
+    }
+
+    public function updatedTitle($value): void
+    {
+        $safeTitle = mb_substr(trim(preg_replace('/\s+/u', ' ', strip_tags((string) $value))), 0, 190);
+        $this->title = $safeTitle;
+        Document::where('id', $this->documentId)->update(['title' => $safeTitle]);
+        $this->queueSeoAudit();
     }
 
     public function saveActiveTitle()
@@ -699,26 +792,28 @@ class DocumentEditor extends Component
         $this->applyTitle($this->title);
     }
 
-    public function applyMetaDescription(?string $meta = null)
+    #[On('applyMetaDescription')]
+    public function applyMetaDescription(?string $meta = null, ?string $metaDescription = null)
     {
-        if ($meta !== null) {
-            $this->metaDescription = trim($meta);
+        $resolvedMeta = $meta ?? $metaDescription;
+        if ($resolvedMeta !== null) {
+            $this->metaDescription = trim($resolvedMeta);
         }
-        
+
         $seo = SeoAnalysis::where('document_id', $this->documentId)->first();
         if ($seo) {
             $metrics = $seo->metrics ?? [];
             $metrics['meta_description'] = $this->metaDescription;
             $seo->update(['metrics' => $metrics]);
         }
-        
+
         $this->queueSeoAudit();
         session()->flash('status', 'Meta description saved & audited!');
     }
 
     public function addSuggestedKeyword(string $kw)
     {
-        if (!in_array($kw, $this->secondaryKeywords)) {
+        if (! in_array($kw, $this->secondaryKeywords)) {
             $this->secondaryKeywords[] = $kw;
             $this->queueSeoAudit();
         }
@@ -755,13 +850,13 @@ class DocumentEditor extends Component
         $this->showVersionHistory = false;
 
         $this->dispatch('editor:setContent', content: $this->contentHtml);
-        session()->flash('status', 'Restored to Version #' . $version->version_number);
+        session()->flash('status', 'Restored to Version #'.$version->version_number);
     }
 
     #[On('switchEditorType')]
     public function switchEditorType(string $type = '', string $newType = '')
     {
-        $target = !empty($type) ? $type : $newType;
+        $target = ! empty($type) ? $type : $newType;
         if (EditorRegistry::isValidEditor($target)) {
             $this->editorType = $target;
             Document::where('id', $this->documentId)->update(['editor_type' => $target]);
@@ -800,7 +895,7 @@ class DocumentEditor extends Component
         $document = Document::where('user_id', Auth::id())->findOrFail($this->documentId);
 
         $share = $action->execute($document, [
-            'password' => !empty($this->sharePassword) ? $this->sharePassword : null,
+            'password' => ! empty($this->sharePassword) ? $this->sharePassword : null,
             'allow_copy' => $this->shareAllowCopy,
             'allow_download' => $this->shareAllowDownload,
             'expires_in_days' => $this->shareExpiryDays,
@@ -860,7 +955,7 @@ class DocumentEditor extends Component
             $this->blogTags = '';
             $this->blogFeaturedImage = '';
             $plain = trim(strip_tags($this->contentHtml));
-            $this->blogExcerpt = \Illuminate\Support\Str::limit(preg_replace('/\s+/', ' ', $plain), 220);
+            $this->blogExcerpt = Str::limit(preg_replace('/\s+/', ' ', $plain), 220);
             $this->blogStatus = 'published';
             $this->blogIsFeatured = false;
             $this->blogViewsCount = 0;
@@ -871,7 +966,7 @@ class DocumentEditor extends Component
     public function generateBlogExcerpt(): void
     {
         $plain = trim(strip_tags($this->contentHtml));
-        $this->blogExcerpt = \Illuminate\Support\Str::limit(preg_replace('/\s+/', ' ', $plain), 240);
+        $this->blogExcerpt = Str::limit(preg_replace('/\s+/', ' ', $plain), 240);
         session()->flash('blog_status', 'Excerpt auto-generated from current document content.');
     }
 
@@ -933,7 +1028,7 @@ class DocumentEditor extends Component
         }
 
         $existingTags = array_filter(array_map('trim', explode(',', $this->blogTags)));
-        if (!in_array($tag, $existingTags)) {
+        if (! in_array($tag, $existingTags)) {
             $existingTags[] = $tag;
             $this->blogTags = implode(', ', $existingTags);
         }
@@ -942,7 +1037,7 @@ class DocumentEditor extends Component
     public function removeBlogTag(string $tagToRemove): void
     {
         $existingTags = array_filter(array_map('trim', explode(',', $this->blogTags)));
-        $filtered = array_values(array_filter($existingTags, fn($t) => strcasecmp($t, trim($tagToRemove)) !== 0));
+        $filtered = array_values(array_filter($existingTags, fn ($t) => strcasecmp($t, trim($tagToRemove)) !== 0));
         $this->blogTags = implode(', ', $filtered);
     }
 
@@ -952,7 +1047,7 @@ class DocumentEditor extends Component
         $projects = Project::where('user_id', Auth::id())->get();
         $availableEditors = EditorRegistry::getAvailableEditors();
 
-        $availableAiModels = \App\Features\AI\Models\AiModel::where('is_active', true)
+        $availableAiModels = AiModel::where('is_active', true)
             ->orderBy('is_combo', 'desc')
             ->orderBy('id', 'asc')
             ->get();
@@ -964,12 +1059,12 @@ class DocumentEditor extends Component
         $blogCategories = BlogPost::defaultCategories();
 
         return view('documents.editor', [
-            'document'           => $document,
-            'projects'           => $projects,
-            'availableEditors'   => $availableEditors,
-            'availableAiModels'  => $availableAiModels,
+            'document' => $document,
+            'projects' => $projects,
+            'availableEditors' => $availableEditors,
+            'availableAiModels' => $availableAiModels,
             'availableProviders' => $availableProviders,
-            'blogCategories'     => $blogCategories,
+            'blogCategories' => $blogCategories,
         ]);
     }
 }

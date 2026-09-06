@@ -94,6 +94,7 @@
     <!-- MODALS -->
     @include('editor.partial.modals')
     @include('editor.partial.floating-telemetry')
+    @include('editor.partial.pipeline-popup')
 
     <!-- CLIENT SCRIPT LOGIC -->
     <div wire:ignore>

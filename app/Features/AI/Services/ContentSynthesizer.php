@@ -58,6 +58,36 @@ class ContentSynthesizer
             return $this->rewriteParagraph(trim($paragraphText));
         }
 
+        // 2. Check for Article Section Generation (from 15-Stage Pipeline or Section Writer)
+        if (preg_match('/Section Focus:\s*(.+?)(?:\n|$)/i', $userPrompt, $focusMatch) || str_contains($systemPrompt, 'Write the body content for the section')) {
+            $sectionFocus = '';
+            if (preg_match('/Section Focus:\s*(.+?)(?:\n|$)/i', $userPrompt, $fm)) {
+                $sectionFocus = trim($fm[1]);
+            } elseif (preg_match('/focus:\s*(.+?)(?:\n|$)/i', $userPrompt, $fm2)) {
+                $sectionFocus = trim($fm2[1]);
+            }
+
+            // Extract Subject/Topic
+            $subject = 'The Topic';
+            if (preg_match('/Topic:\s*(.+?)(?:\n|$)/i', $userPrompt, $tm)) {
+                $subject = trim(preg_replace('/\b(Domain|Relevant Entities|Context Memory):.*$/i', '', $tm[1]));
+            }
+
+            // Extract Domain
+            $domain = 'tech';
+            if (preg_match('/Domain:\s*(.+?)(?:\n|$)/i', $userPrompt, $dm)) {
+                $domain = trim(preg_replace('/\b(Relevant Entities|Context Memory):.*$/i', '', $dm[1]));
+            }
+
+            // Extract Entities
+            $entities = '';
+            if (preg_match('/Relevant Entities:\s*(.+?)(?:\n|$)/i', $userPrompt, $em)) {
+                $entities = trim(preg_replace('/\bContext Memory:.*$/i', '', $em[1]));
+            }
+
+            return $this->synthesizeSectionBody($subject, $sectionFocus, $domain, $entities);
+        }
+
         if (empty($userPrompt)) {
             foreach ($messages as $msg) {
                 $userPrompt .= ' ' . ($msg['content'] ?? '');
@@ -145,13 +175,23 @@ class ContentSynthesizer
                 'model' => $model,
                 'done' => false,
             ];
-            // 2.5ms micro-cadence for smooth 60fps streaming
-            usleep(2500);
+            // 2.5ms micro-cadence for smooth 60fps streaming (skipped in unit tests)
+            if (!app()->runningUnitTests()) {
+                usleep(2500);
+            }
         }
     }
 
     protected function extractTopic(string $prompt): string
     {
+        // 0. Extract from structured Topic tag
+        if (preg_match('/\bTopic:\s*([^\n\r]+)/i', $prompt, $matches)) {
+            $candidate = trim(preg_replace('/\b(Domain|Relevant Entities|Context Memory):.*$/i', '', $matches[1]));
+            if (strlen($candidate) >= 2) {
+                return ucwords($candidate);
+            }
+        }
+
         // 1. If prompt has quoted target like 'topic' or "topic", extract that first
         if (preg_match('/[\'"]([^\'"]{3,60})[\'"]/i', $prompt, $matches)) {
             $candidate = $matches[1];
@@ -163,9 +203,10 @@ class ContentSynthesizer
         }
 
         // 2. Strip system prompts, role headers, and meta-instructions
-        $clean = preg_replace('/(you are an ai assistant|modify the provided text|strictly according to|without conversational intro|output only|specific instruction:|task:|user instruction:)/i', ' ', $prompt);
+        $clean = preg_replace('/(you are an ai assistant|modify the provided text|strictly according to|without conversational intro|output only|specific instruction:|task:|user instruction:|section focus:.*?(?=topic:|$))/is', ' ', $prompt);
         // 3. Strip common command verbs and word count requests
         $clean = preg_replace('/\b(create|write|generate|make|full|blog|post|articale|article|guide|masterclass|deep dive|review|more than|more then|\d+\s*words?|words?|about|please|can you|in depth|comprehensive|instruction:|document context|on:?|for:?)\b/i', ' ', $clean);
+        $clean = preg_replace('/\b(domain|relevant entities|context memory):.*$/is', ' ', $clean);
         // 4. Strip punctuation and excess whitespace
         $clean = preg_replace('/[#*`\'"<>]+/u', ' ', $clean);
         $clean = trim(preg_replace('/\s+/', ' ', $clean));
@@ -492,6 +533,99 @@ HTML;
 
 <h3>2. Recommended Next Steps</h3>
 <p>Deploy these recommendations into your active workflow, track key performance indicators, and refine based on real-world results.</p>
+HTML;
+    }
+
+    /**
+     * Synthesize rich, authoritative section body content (250-400 words) without prompt leaks.
+     */
+    public function synthesizeSectionBody(string $subject, string $focus, string $domain = 'tech', string $entities = ''): string
+    {
+        $cleanSubject = trim($subject);
+        $cleanFocus = trim($focus);
+        if (empty($cleanSubject) || strcasecmp($cleanSubject, 'The Topic') === 0) {
+            $cleanSubject = 'Core Architecture';
+        }
+
+        // Clean any accidental prefix labels from focus
+        $cleanFocus = preg_replace('/^(Overview of|Analysis of|Techniques for|Strategies for|Best practices for|Step-by-step to)\s+/i', '', $cleanFocus);
+
+        $entityList = array_values(array_filter(array_map('trim', explode(',', $entities))));
+        $entity1 = !empty($entityList[1]) ? $entityList[1] : 'high-throughput execution';
+        $entity2 = !empty($entityList[2]) ? $entityList[2] : 'operational efficiency';
+        $entity3 = !empty($entityList[3]) ? $entityList[3] : 'scalable performance';
+
+        return match (strtolower(trim($domain))) {
+            'tech' => $this->buildTechSectionProse($cleanSubject, $cleanFocus, $entity1, $entity2, $entity3),
+            'gaming' => $this->buildGamingSectionProse($cleanSubject, $cleanFocus, $entity1, $entity2, $entity3),
+            'business' => $this->buildBusinessSectionProse($cleanSubject, $cleanFocus, $entity1, $entity2, $entity3),
+            'health' => $this->buildHealthSectionProse($cleanSubject, $cleanFocus, $entity1, $entity2, $entity3),
+            'lifestyle' => $this->buildLifestyleSectionProse($cleanSubject, $cleanFocus, $entity1, $entity2, $entity3),
+            default => $this->buildGeneralSectionProse($cleanSubject, $cleanFocus, $entity1, $entity2, $entity3),
+        };
+    }
+
+    protected function buildTechSectionProse(string $subject, string $focus, string $e1, string $e2, string $e3): string
+    {
+        return <<<HTML
+<p>The operational foundation of <strong>{$subject}</strong> relies heavily on {$focus}. In modern enterprise architectures and high-scale production systems, achieving consistent computational efficiency requires moving beyond monolithic execution patterns. By employing optimized algorithmic scheduling, decoupled components, and granular memory management, teams establish an infrastructure capable of sustaining high-throughput workloads with predictable latency characteristics and minimized compute overhead.</p>
+
+<p>From an architectural standpoint, incorporating <strong>{$e1}</strong> and <strong>{$e2}</strong> introduces decisive operational advantages. Rather than relying on brute-force hardware scaling, the system balances memory bandwidth utilization, dynamic task routing, and low-level kernel execution. This refined design prevents resource contention during peak concurrency, ensuring deterministic response cycles across distributed endpoints while eliminating the performance penalties typically associated with legacy computational pipelines.</p>
+
+<p>To ensure long-term deployment resilience, engineering teams implementing {$subject} should prioritize automated telemetry, continuous regression benchmarking, and rigorous boundary validation. Establishing automated health probes alongside real-time anomaly detection allows operators to identify and mitigate operational drift before service quality degrades. Ultimately, a disciplined approach to {$focus} empowers organizations to translate core technical capabilities into sustainable, scalable business impact.</p>
+HTML;
+    }
+
+    protected function buildGamingSectionProse(string $subject, string $focus, string $e1, string $e2, string $e3): string
+    {
+        return <<<HTML
+<p>A central pillar of mastering <strong>{$subject}</strong> involves {$focus}. Whether competing in high-stakes ranked ladders or progressing through immersive narrative campaigns, modern gameplay demands an intimate understanding of core mechanics, physics responsiveness, and engine capabilities. By dissecting input latency, spatial positioning, and environment dynamics, players can transform fundamental interactions into consistent competitive advantages.</p>
+
+<p>Beyond basic controls, leveraging <strong>{$e1}</strong> alongside <strong>{$e2}</strong> directly dictates in-game progression and tactical consistency. Players who intentionally optimize their character builds, hardware settings, and resource management achieve markedly higher win rates than those relying purely on mechanical reaction times. Furthermore, maintaining stable frame pacing during intense multi-entity encounters ensures fluid execution when split-second decisions determine match outcomes.</p>
+
+<p>To sustain progressive skill growth in {$subject}, players should establish disciplined review habits, study high-level competitive footage, and adapt to balance patch updates. Eliminating repetitive tactical errors and synchronizing effectively with squad members maximizes the enjoyment and competitive ceiling of every play session.</p>
+HTML;
+    }
+
+    protected function buildBusinessSectionProse(string $subject, string $focus, string $e1, string $e2, string $e3): string
+    {
+        return <<<HTML
+<p>In competitive commercial environments, the strategic value of <strong>{$subject}</strong> is fundamentally anchored in {$focus}. Modern leadership teams must navigate accelerating market cycles by establishing agile, data-driven operational frameworks. By replacing static quarterly planning with dynamic feedback loops and clear accountability structures, organizations build the organizational elasticity needed to capitalize on emerging market opportunities while maintaining rigorous fiscal discipline.</p>
+
+<p>A rigorous focus on <strong>{$e1}</strong> and <strong>{$e2}</strong> yields immediate, compounding improvements across unit economics and customer lifetime value. Streamlining fragmented departmental handoffs and automating routine operational bottlenecks directly reduces customer acquisition costs and accelerates time-to-value. Furthermore, cross-functional visibility ensures capital is deployed efficiently into initiatives that deliver demonstrable top-line expansion and resilient margin defense.</p>
+
+<p>To ensure durable execution of {$subject}, enterprises must implement standardized change management frameworks, proactive stakeholder enablement, and continuous KPI telemetry. Measuring progress against objective milestones rather than vanity metrics empowers decision-makers to scale successful initiatives confidently and foster sustainable long-term enterprise valuation.</p>
+HTML;
+    }
+
+    protected function buildHealthSectionProse(string $subject, string $focus, string $e1, string $e2, string $e3): string
+    {
+        return <<<HTML
+<p>The physiological efficacy of <strong>{$subject}</strong> is grounded in {$focus}. In contemporary health and human performance science, achieving lasting physical vitality requires understanding the metabolic and neurological mechanisms that govern adaptation. Rather than adopting unverified quick-fix routines, following structured, evidence-based principles allows individuals to stimulate positive cellular adaptation while safeguarding systemic homeostasis.</p>
+
+<p>Optimizing daily protocols around <strong>{$e1}</strong> and <strong>{$e2}</strong> plays a decisive role in sustaining energy levels, hormonal balance, and functional recovery. Aligning nutrient timing, mechanical load management, and restorative sleep hygiene prevents chronic central nervous system fatigue and suppresses inflammatory markers. This balanced methodology supports progressive physical readiness and resilient day-to-day stamina.</p>
+
+<p>To maintain long-term compliance with {$subject}, practitioners should establish objective tracking metrics, monitor biofeedback signals, and prioritize progressive overload over unsustainable extremes. Consistency and proactive injury prevention remain the core foundation for achieving lifelong health, physical longevity, and vitality.</p>
+HTML;
+    }
+
+    protected function buildLifestyleSectionProse(string $subject, string $focus, string $e1, string $e2, string $e3): string
+    {
+        return <<<HTML
+<p>Integrating <strong>{$subject}</strong> into daily living begins with an intentional focus on {$focus}. Creating an elevated, fulfilling lifestyle requires moving beyond surface-level trends toward curated habits that bring genuine balance and clarity. By designing intentional environments and establishing friction-free daily routines, enthusiasts can cultivate meaningful personal spaces that reflect their values and aspirations.</p>
+
+<p>Harnessing <strong>{$e1}</strong> alongside <strong>{$e2}</strong> introduces immediate practical benefits across day-to-day activities. Simplifying complex decisions, investing in durable quality tools, and curating daily workflows frees up cognitive energy for creative and meaningful pursuits. This intentional pacing transforms mundane tasks into enjoyable rituals that enrich daily life.</p>
+
+<p>Sustaining the benefits of {$subject} over time requires regular reflection, continuous refinement, and a commitment to quality over quantity. Embracing gradual personal evolution ensures that your lifestyle habits remain inspiring, resilient, and uniquely fulfilling.</p>
+HTML;
+    }
+
+    protected function buildGeneralSectionProse(string $subject, string $focus, string $e1, string $e2, string $e3): string
+    {
+        return <<<HTML
+<p>Developing a comprehensive understanding of <strong>{$subject}</strong> necessitates examining {$focus}. In any complex field, genuine mastery requires unpacking foundational principles before attempting advanced practical execution. By establishing clear definitions, structural frameworks, and contextual relationships, practitioners build the analytical clarity required to navigate nuanced challenges effectively.</p>
+
+<p>The practical application of <strong>{$e1}</strong> and <strong>{$e2}</strong> provides tangible advantages across diverse real-world scenarios. By adopting proven methodologies and iterative refinement cycles, individuals and teams can minimize execution errors, optimize time allocation, and achieve consistent, high-quality outcomes that reliably meet or exceed established benchmarks.</p>
 HTML;
     }
 }

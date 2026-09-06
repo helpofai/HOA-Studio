@@ -311,12 +311,38 @@ RULES:
 Output ONLY the citation block in clean markdown/HTML.
 EOT,
 
-            'seo_fix_density' => <<<EOT
+            'fix_kw_density', 'seo_fix_density' => <<<EOT
 ACTION TOOL: KEYWORD DENSITY SURGEON
 OBJECTIVE:
 Surgically integrate the target keyword{$kwSnippet} naturally into the provided text without keyword stuffing.
 RULES:
 Preserve existing structure and output ONLY the updated text.
+EOT,
+
+            'search_intent' => <<<EOT
+ACTION TOOL: SEARCH INTENT ALIGNMENT
+OBJECTIVE:
+Refine the marked text to aggressively align with user search intent, addressing the core query directly in the opening hook{$kwSnippet}.
+RULES:
+Front-load direct value and output ONLY the refined text.
+EOT,
+
+            'geo_data_points' => <<<EOT
+ACTION TOOL: EMPIRICAL DATA POINTS & BENCHMARKS
+OBJECTIVE:
+Inject verifiable benchmark statistics, empirical metrics, and concrete data percentages into the marked text{$kwSnippet}.
+RULES:
+Integrate 2-3 data points seamlessly and output ONLY the enhanced text.
+EOT,
+
+            'geo_direct_answer' => <<<EOT
+ACTION TOOL: GOOGLE AI OVERVIEW DIRECT ANSWER
+OBJECTIVE:
+Craft a concise 40-60 word direct definition/answer box designed for Google Position 0 and AI Overview citation{$kwSnippet}.
+FORMAT:
+> **Direct Answer:** [Authoritative 40-60 word definition with **bold key terms**.]
+RULES:
+Output ONLY the blockquote direct answer box.
 EOT,
 
             'fix_grammar' => <<<EOT
@@ -514,6 +540,7 @@ FORMATTING & TIPTAP PUBLICATION PERMISSIONS:
 - ▦ Tables (| Col 1 | Col 2 |): Include structured comparison and feature tables.
 - ● Bullet / Numbered Lists: For scannable tips, checklists, and procedures.
 - Output pure markdown immediately with zero conversational preambles (never say "Here is your article:").
+- STRICT CANVAS ISOLATION: Never output raw pipeline stage logs, execution notes, or stage names like "Stage 1:", "Stage 2:". Output ONLY the clean, polished publication article starting with the # H1 title.
 EOT;
 
         $systemPrompt = $memoryBank . $pipelineDirectives . $tiptapRules;

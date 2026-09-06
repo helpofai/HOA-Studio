@@ -27,6 +27,7 @@
             <input 
                 type="text" 
                 wire:model.lazy="title" 
+                maxlength="190"
                 placeholder="Untitled Document..." 
                 class="text-sm sm:text-base font-extrabold text-white bg-transparent border-b border-transparent hover:border-white/20 focus:border-indigo-500 focus:outline-none px-1.5 py-0.5 transition-all w-full max-w-sm sm:max-w-md truncate"
             />

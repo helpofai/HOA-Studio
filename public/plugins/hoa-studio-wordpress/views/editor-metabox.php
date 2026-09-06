@@ -112,6 +112,9 @@ if (!defined('ABSPATH')) {
                     <button type="button" data-cmd="addColumnAfter" class="hoa-dropdown-item">➡ Add Column Right</button>
                     <button type="button" data-cmd="deleteColumn" class="hoa-dropdown-item text-danger">✖ Delete Current Column</button>
                     <div class="hoa-dropdown-divider"></div>
+                    <button type="button" data-cmd="toggleHeaderRow" class="hoa-dropdown-item">🔲 Toggle Header Row</button>
+                    <button type="button" data-cmd="mergeOrSplit" class="hoa-dropdown-item">🔗 Merge or Split Cells</button>
+                    <div class="hoa-dropdown-divider"></div>
                     <button type="button" data-cmd="deleteTable" class="hoa-dropdown-item text-danger">🗑️ Delete Entire Table</button>
                 </div>
             </div>
@@ -284,6 +287,45 @@ if (!defined('ABSPATH')) {
             <small>Menu</small>
         </div>
 
+        <!-- Section 0: Table Controls (Only visible when right-clicking inside a table cell) -->
+        <div id="hoa-wp-context-table-section" class="hoa-context-group" style="display: none;">
+            <div class="hoa-context-sub-label text-cyan">▦ Table Controls</div>
+            <div class="hoa-context-grid-2">
+                <button type="button" class="hoa-context-item" data-context-cmd="addRowBefore">
+                    <span>↑ Row Above</span>
+                </button>
+                <button type="button" class="hoa-context-item" data-context-cmd="addRowAfter">
+                    <span>↓ Row Below</span>
+                </button>
+                <button type="button" class="hoa-context-item" data-context-cmd="addColumnBefore">
+                    <span>← Col Left</span>
+                </button>
+                <button type="button" class="hoa-context-item" data-context-cmd="addColumnAfter">
+                    <span>→ Col Right</span>
+                </button>
+            </div>
+            <div class="hoa-context-grid-2">
+                <button type="button" class="hoa-context-item text-danger" data-context-cmd="deleteRow">
+                    <span>✖ Delete Row</span>
+                </button>
+                <button type="button" class="hoa-context-item text-danger" data-context-cmd="deleteColumn">
+                    <span>✖ Delete Col</span>
+                </button>
+            </div>
+            <div class="hoa-context-grid-2">
+                <button type="button" class="hoa-context-item" data-context-cmd="toggleHeaderRow">
+                    <span>🔲 Toggle Header</span>
+                </button>
+                <button type="button" class="hoa-context-item" data-context-cmd="mergeOrSplit">
+                    <span>🔗 Merge/Split</span>
+                </button>
+            </div>
+            <button type="button" class="hoa-context-item text-danger" data-context-cmd="deleteTable">
+                <span>🗑️ Delete Entire Table</span>
+            </button>
+            <div class="hoa-context-divider"></div>
+        </div>
+
         <!-- Section 1: Clipboard & Selection -->
         <div class="hoa-context-group">
             <button type="button" class="hoa-context-item" data-context-cmd="cut">
@@ -386,6 +428,9 @@ if (!defined('ABSPATH')) {
         <button type="button" class="hoa-table-btn" data-table-cmd="addColumnBefore" title="Add Column Left">⬅ +Col</button>
         <button type="button" class="hoa-table-btn" data-table-cmd="addColumnAfter" title="Add Column Right">➡ +Col</button>
         <button type="button" class="hoa-table-btn text-danger" data-table-cmd="deleteColumn" title="Delete Column">✖ Col</button>
+        <span class="hoa-toolbar-divider"></span>
+        <button type="button" class="hoa-table-btn" data-table-cmd="toggleHeaderRow" title="Toggle Header Row">🔲 Header</button>
+        <button type="button" class="hoa-table-btn" data-table-cmd="mergeOrSplit" title="Merge or Split Cells">🔗 Merge/Split</button>
         <span class="hoa-toolbar-divider"></span>
         <button type="button" class="hoa-table-btn text-danger" data-table-cmd="deleteTable" title="Delete Table">🗑️ Delete</button>
     </div>
