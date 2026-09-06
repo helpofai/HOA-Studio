@@ -49,6 +49,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/blog', BlogIndexPage::class)->name('blog.index');
+Route::get('/blog/archive', BlogIndexPage::class)->name('blog.archive');
 Route::get('/blog/{slug}', BlogPostPage::class)->name('blog.show');
 
 // Guest Authentication Routes
@@ -147,4 +148,14 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/updates', AdminUpdatesPage::class)->name('updates');
     Route::get('/api/terminal-logs', \App\Features\Admin\Controllers\AdminTerminalLogsController::class)->name('api.terminal-logs');
 });
+
+// Direct public storage fallback route (Guarantees 200 OK for uploaded assets across all shared hosting/cPanel & Windows environments)
+Route::get('/storage/{path}', function (string $path) {
+    $fullPath = storage_path('app/public/' . $path);
+    if (! file_exists($fullPath) || is_dir($fullPath)) {
+        abort(404);
+    }
+    return response()->file($fullPath);
+})->where('path', '.*')->name('public.storage.fallback');
+
 

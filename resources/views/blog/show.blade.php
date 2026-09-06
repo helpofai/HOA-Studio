@@ -17,7 +17,7 @@
 
 <div 
     class="hoa-blog-post-page min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-indigo-500/30 selection:text-indigo-200" 
-    x-data="hoaBlogPostReader()"
+    x-data="hoaBlogPostReader('{{ $post->slug }}')"
 >
     <!-- Top Reading Progress Indicator (0% to 100%) -->
     <div class="fixed top-0 left-0 right-0 z-50 h-[3px] bg-transparent pointer-events-none">
@@ -158,8 +158,12 @@
                             <span>{{ $post->user->name ?? 'HelpOfAi Staff' }}</span>
                             <span class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[9px] uppercase font-mono font-bold border border-indigo-500/30">Author</span>
                         </div>
-                        <div class="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
+                        <div class="text-xs text-slate-400 flex flex-wrap items-center gap-x-2 gap-y-1 mt-0.5" aria-label="Published on {{ $post->published_at?->format('F d, Y') ?? 'Recently' }} and update on {{ $post->updated_at?->format('F d, Y') }}">
                             <span>Published on {{ $post->published_at?->format('F d, Y') ?? 'Recently' }}</span>
+                            @if($post->updated_at && (!$post->published_at || $post->updated_at->format('Y-m-d') > $post->published_at->format('Y-m-d')))
+                                <span class="text-slate-600">•</span>
+                                <span class="text-slate-300 font-medium">Updated on {{ $post->updated_at->format('F d, Y') }}</span>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -260,8 +264,8 @@
                     <div class="pt-6 border-t border-white/10 flex items-center gap-2 flex-wrap text-xs">
                         <span class="text-slate-400 font-semibold">Filed under:</span>
                         @foreach($post->tags as $tag)
-                            <a href="{{ route('blog.index', ['search' => $tag]) }}">
-                                <x-glass.badge variant="violet" class="hover:border-indigo-400/60 transition-colors">
+                            <a href="{{ route('blog.index', ['tag' => $tag]) }}">
+                                <x-glass.badge variant="violet" class="hover:border-indigo-400/60 transition-colors cursor-pointer">
                                     #{{ $tag }}
                                 </x-glass.badge>
                             </a>
@@ -589,21 +593,80 @@
         </div>
     </main>
 
+    <!-- Floating Resume Reading Toast Banner -->
+    <div 
+        x-show="showResumeBanner" 
+        x-cloak
+        x-transition:enter="transition ease-out duration-300 transform"
+        x-transition:enter-start="translate-y-8 opacity-0"
+        x-transition:enter-end="translate-y-0 opacity-100"
+        x-transition:leave="transition ease-in duration-200 transform"
+        x-transition:leave-start="translate-y-0 opacity-100"
+        x-transition:leave-end="translate-y-8 opacity-0"
+        class="fixed bottom-6 right-6 z-40 max-w-sm glass-standard p-3.5 rounded-2xl border border-indigo-500/40 shadow-2xl flex items-center gap-3 backdrop-blur-xl hoa-welcome-glow-border"
+    >
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-sm font-bold text-white shadow-md shrink-0">
+            <span>🔖</span>
+        </div>
+        <div class="flex-1 min-w-0">
+            <p class="text-xs font-bold text-white">Pick up where you left off</p>
+            <p class="text-[10px] text-slate-400">Jump straight back to your saved reading point</p>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0">
+            <button 
+                type="button" 
+                @click="jumpToSavedPosition()" 
+                class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md shadow-indigo-600/30 transition-all cursor-pointer hover:scale-105"
+            >
+                Jump &rarr;
+            </button>
+            <button 
+                type="button" 
+                @click="dismissResumeBanner()" 
+                class="p-1 text-slate-400 hover:text-white text-xs cursor-pointer transition-colors"
+                title="Dismiss"
+            >
+                ✕
+            </button>
+        </div>
+    </div>
+
     <!-- Public Footer matching welcome.blade.php -->
     <x-public-footer />
 
     <!-- Reader Script for Dynamic Table of Contents, Scroll Tracking & Code Snippet Copy -->
     <script>
-        function hoaBlogPostReader() {
+        function hoaBlogPostReader(slug) {
             return {
+                slug: slug || '',
                 scrollProgress: 0,
                 showFloatingHeader: false,
                 copySuccess: false,
                 activeHeading: '',
                 toc: [],
                 mobileTocOpen: false,
+                saveTimer: null,
+                showResumeBanner: false,
+                savedScrollY: 0,
 
                 init() {
+                    // Check previous reading progress
+                    try {
+                        const saved = localStorage.getItem('hoa_read_progress_' + this.slug);
+                        if (saved) {
+                            const data = JSON.parse(saved);
+                            if (data) {
+                                if (typeof data.progress === 'number') {
+                                    this.scrollProgress = data.progress;
+                                }
+                                if (data.scrollY > 350 && !data.completed && !window.location.hash) {
+                                    this.savedScrollY = data.scrollY;
+                                    this.showResumeBanner = true;
+                                }
+                            }
+                        }
+                    } catch (e) {}
+
                     this.updateScroll();
                     window.addEventListener('scroll', () => this.updateScroll(), { passive: true });
                     window.addEventListener('hoa:blog-content-enhanced', () => {
@@ -617,12 +680,52 @@
                     }
                 },
 
+                jumpToSavedPosition() {
+                    if (this.savedScrollY > 0) {
+                        window.scrollTo({ top: this.savedScrollY, behavior: 'smooth' });
+                    }
+                    this.showResumeBanner = false;
+                },
+
+                dismissResumeBanner() {
+                    this.showResumeBanner = false;
+                },
+
                 updateScroll() {
                     const docHeight = document.documentElement.scrollHeight - window.innerHeight;
                     if (docHeight > 0) {
                         this.scrollProgress = Math.min(100, Math.max(0, Math.round((window.scrollY / docHeight) * 100)));
                     }
                     this.showFloatingHeader = window.scrollY > 420;
+
+                    // If user manually scrolls near saved position, dismiss banner
+                    if (this.showResumeBanner && Math.abs(window.scrollY - this.savedScrollY) < 120) {
+                        this.showResumeBanner = false;
+                    }
+
+                    // Debounced write to localStorage
+                    if (this.slug) {
+                        clearTimeout(this.saveTimer);
+                        this.saveTimer = setTimeout(() => {
+                            try {
+                                const existingRaw = localStorage.getItem('hoa_read_progress_' + this.slug);
+                                let wasCompleted = false;
+                                if (existingRaw) {
+                                    const parsed = JSON.parse(existingRaw);
+                                    wasCompleted = !!parsed.completed;
+                                }
+                                const isCompleted = wasCompleted || this.scrollProgress >= 88;
+                                const finalProgress = isCompleted ? 100 : this.scrollProgress;
+
+                                localStorage.setItem('hoa_read_progress_' + this.slug, JSON.stringify({
+                                    progress: finalProgress,
+                                    completed: isCompleted,
+                                    scrollY: window.scrollY,
+                                    updated_at: Date.now()
+                                }));
+                            } catch (e) {}
+                        }, 100);
+                    }
 
                     if (this.toc.length > 0) {
                         const scrollPos = window.scrollY + 160;

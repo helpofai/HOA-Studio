@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class BlogPost extends Model
@@ -98,6 +99,7 @@ class BlogPost extends Model
             $q->where('title', 'like', "%{$term}%")
                 ->orWhere('excerpt', 'like', "%{$term}%")
                 ->orWhere('category', 'like', "%{$term}%")
+                ->orWhere('tags', 'like', "%{$term}%")
                 ->orWhere('content_html', 'like', "%{$term}%");
         });
     }
@@ -111,9 +113,119 @@ class BlogPost extends Model
         return $query->where('category', $category);
     }
 
+    public function scopeTag(Builder $query, ?string $tag): Builder
+    {
+        if (empty($tag) || $tag === 'all') {
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($tag) {
+            $q->whereJsonContains('tags', $tag)
+                ->orWhere('tags', 'like', '%"'.$tag.'"%');
+        });
+    }
+
+    public function scopeArchive(Builder $query, ?string $archive): Builder
+    {
+        if (empty($archive) || $archive === 'all') {
+            return $query;
+        }
+
+        if (preg_match('/^(\d{4})-(\d{2})$/', $archive, $matches)) {
+            return $query->whereYear('published_at', (int) $matches[1])
+                ->whereMonth('published_at', (int) $matches[2]);
+        }
+
+        return $query;
+    }
+
+    public function scopeReadTime(Builder $query, ?string $readTime): Builder
+    {
+        if ($readTime === 'quick') {
+            return $query->where('reading_time_minutes', '<', 5);
+        }
+
+        if ($readTime === 'deep') {
+            return $query->where('reading_time_minutes', '>=', 5);
+        }
+
+        return $query;
+    }
+
+    public function scopeSortByCriteria(Builder $query, string $sort = 'latest'): Builder
+    {
+        return match ($sort) {
+            'oldest' => $query->oldest('published_at'),
+            'popular' => $query->orderByDesc('views_count')->latest('published_at'),
+            'read_time_asc' => $query->orderBy('reading_time_minutes')->latest('published_at'),
+            'read_time_desc' => $query->orderByDesc('reading_time_minutes')->latest('published_at'),
+            'alpha' => $query->orderBy('title'),
+            default => $query->latest('published_at'),
+        };
+    }
+
+    public static function getPublishedTagsWithCounts(): array
+    {
+        $allTags = static::published()
+            ->whereNotNull('tags')
+            ->pluck('tags');
+
+        $tagCounts = [];
+        foreach ($allTags as $tagsList) {
+            if (! is_array($tagsList)) {
+                $tagsList = json_decode($tagsList, true) ?: [];
+            }
+            foreach ((array) $tagsList as $tag) {
+                $cleanTag = trim($tag);
+                if (! empty($cleanTag)) {
+                    $tagCounts[$cleanTag] = ($tagCounts[$cleanTag] ?? 0) + 1;
+                }
+            }
+        }
+
+        arsort($tagCounts);
+
+        return $tagCounts;
+    }
+
+    public static function getPublishedArchiveTimeline(): array
+    {
+        $posts = static::published()
+            ->select(['id', 'published_at'])
+            ->latest('published_at')
+            ->get();
+
+        $timeline = [];
+        foreach ($posts as $post) {
+            if ($post->published_at) {
+                $key = $post->published_at->format('Y-m');
+                $year = $post->published_at->format('Y');
+                $month = $post->published_at->format('F');
+                $label = $post->published_at->format('F Y');
+
+                if (! isset($timeline[$key])) {
+                    $timeline[$key] = [
+                        'key' => $key,
+                        'year' => $year,
+                        'month' => $month,
+                        'label' => $label,
+                        'count' => 0,
+                    ];
+                }
+                $timeline[$key]['count']++;
+            }
+        }
+
+        return array_values($timeline);
+    }
+
     public function incrementViews(): void
     {
-        $this->increment('views_count');
+        DB::table($this->getTable())
+            ->where($this->getKeyName(), $this->getKey())
+            ->increment('views_count');
+
+        $this->views_count = ($this->views_count ?? 0) + 1;
     }
 
     public function getPublicUrlAttribute(): string

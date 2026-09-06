@@ -61,6 +61,7 @@
                 @foreach($availableEditors as $key => $editor)
                     <button 
                         type="button" 
+                        wire:key="editor-switch-{{ $key }}"
                         x-on:click="requestEngineSwitch('{{ $key }}'); open = false"
                         class="w-full text-left p-2.5 rounded-xl text-xs flex flex-col transition-colors {{ $editorType === $key ? 'bg-indigo-600/25 text-indigo-300 border border-indigo-500/40' : 'text-slate-300 hover:bg-white/10' }}"
                     >
@@ -116,12 +117,14 @@
         <!-- Blog Publishing Button -->
         <button 
             type="button" 
-            wire:click="openBlogModal" 
-            x-on:click="if (!showRightPanel) { toggleRightPanel(); } rightTab = 'post'"
+            x-on:click="openBlogModalInstant()"
+            wire:loading.attr="disabled"
+            wire:target="openBlogModal"
             class="px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 {{ $isPublishedToBlog ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300 shadow-md shadow-emerald-500/15 ring-1 ring-emerald-500/30' : 'bg-slate-900/90 border-white/10 hover:border-violet-500/40 text-slate-300 hover:text-white' }}"
             title="{{ $isPublishedToBlog ? 'Article is Live on Blog — Click to manage post' : 'Publish this article to the public Blog' }}"
         >
-            <span>📰</span>
+            <span wire:loading.remove wire:target="openBlogModal">📰</span>
+            <span wire:loading wire:target="openBlogModal" class="inline-block animate-spin text-violet-400 text-[10px]">⏳</span>
             <span class="hidden sm:inline">{{ $isPublishedToBlog ? 'Blog Post' : 'Post to Blog' }}</span>
             @if($isPublishedToBlog)
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -131,15 +134,32 @@
         <!-- Share & Public Link Button -->
         <button 
             type="button" 
-            wire:click="openShareModal" 
+            x-on:click="openShareModalInstant()"
+            wire:loading.attr="disabled"
+            wire:target="openShareModal"
             class="px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 {{ $isShareActive ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-300 shadow-md shadow-indigo-500/10' : 'bg-slate-900/90 border-white/10 hover:border-indigo-500/40 text-slate-300 hover:text-white' }}"
             title="Share document publicly"
         >
-            <span>🔗</span>
+            <span wire:loading.remove wire:target="openShareModal">🔗</span>
+            <span wire:loading wire:target="openShareModal" class="inline-block animate-spin text-indigo-400 text-[10px]">⏳</span>
             <span class="hidden sm:inline">Share</span>
             @if($isShareActive)
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
             @endif
+        </button>
+
+        <!-- Import Document Button -->
+        <button 
+            type="button" 
+            x-on:click="openImportModalInstant()"
+            wire:loading.attr="disabled"
+            wire:target="openImportModal"
+            class="px-2.5 sm:px-3 py-1.5 rounded-xl border border-white/10 hover:border-indigo-500/40 bg-slate-900/90 text-slate-300 hover:text-white text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-sm"
+            title="Import documents (.docx, .pdf, .md, .txt, .html, .csv, .json)"
+        >
+            <span wire:loading.remove wire:target="openImportModal" class="text-indigo-400">📥</span>
+            <span wire:loading wire:target="openImportModal" class="inline-block animate-spin text-indigo-400 text-[10px]">⏳</span>
+            <span class="hidden sm:inline">Import</span>
         </button>
 
         <!-- Export Menu Dropdown -->

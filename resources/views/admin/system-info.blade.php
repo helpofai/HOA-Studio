@@ -17,7 +17,7 @@
 
 @vite(['resources/css/markdown.css'])
 
-<div class="space-y-8" x-data="{ activeTab: @entangle('activeTab'), otherDocKey: @entangle('otherDocKey') }">
+<div class="hoa-system-info-space space-y-8" x-data="{ activeTab: $wire.entangle('activeTab'), otherDocKey: $wire.entangle('otherDocKey') }">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -175,7 +175,7 @@
                 </div>
                 <div class="space-y-2 text-xs font-mono">
                     @foreach(($diagnostics['permissions'] ?? []) as $label => $perm)
-                        <div class="flex items-center justify-between p-2 rounded-lg bg-slate-900/70 border border-white/5">
+                        <div wire:key="perm-{{ $label }}" class="flex items-center justify-between p-2 rounded-lg bg-slate-900/70 border border-white/5">
                             <span class="text-slate-300">{{ $label }}</span>
                             <div class="flex items-center gap-2">
                                 <span class="text-[10px] text-slate-500">({{ $perm['perms'] }})</span>
@@ -202,7 +202,7 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 @foreach(($diagnostics['extensions'] ?? []) as $ext => $info)
-                    <div class="p-3 rounded-xl bg-slate-900/80 border border-white/5 flex items-center justify-between gap-2">
+                    <div wire:key="ext-{{ $ext }}" class="p-3 rounded-xl bg-slate-900/80 border border-white/5 flex items-center justify-between gap-2">
                         <div>
                             <div class="font-mono font-bold text-xs {{ $info['loaded'] ? 'text-white' : 'text-rose-400' }}">{{ $info['name'] }}</div>
                             <div class="text-[10px] text-slate-400 truncate max-w-[130px]">{{ $info['description'] }}</div>
@@ -292,7 +292,7 @@
         </div>
 
         @foreach(['production' => 'PRODUCTION-GUIDE.md', 'multieditor' => 'ADVANCED MULTI-EDITOR.md', 'license' => 'LICENSE.md'] as $subKey => $subFile)
-            <div x-show="otherDocKey === '{{ $subKey }}'" style="display: none;">
+            <div wire:key="subdoc-{{ $subKey }}" x-show="otherDocKey === '{{ $subKey }}'" style="display: none;">
                 <x-glass.card variant="elevated" class="p-6 sm:p-8 space-y-4">
                     <div class="flex items-center justify-between pb-4 border-b border-white/10">
                         <div class="flex items-center gap-2">

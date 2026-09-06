@@ -1,4 +1,5 @@
 {{--
+/*
 |--------------------------------------------------------------------------
 | HelpOfAi (HOA) Professional Software - AI Content Gaps & Ideas Tab
 |--------------------------------------------------------------------------
@@ -11,6 +12,7 @@
 | Location    : Basta Purba Para, Aranghata, Nadia, West Bengal, India
 |
 |--------------------------------------------------------------------------
+*/
 --}}
 
 <!-- ─── TAB 3: AI CONTENT GAPS, FAQS, E-E-A-T & TABLES ────────────── -->
@@ -26,7 +28,9 @@
             <button 
                 type="button" 
                 wire:click="generateContentGaps" 
-                class="px-3 py-1 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-mono text-[10.5px] font-bold shadow-md shadow-cyan-600/25 transition-all cursor-pointer"
+                wire:loading.attr="disabled"
+                wire:target="generateContentGaps"
+                class="px-3 py-1 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-mono text-[10.5px] font-bold shadow-md shadow-cyan-600/25 transition-all cursor-pointer disabled:opacity-50"
             >
                 <span wire:loading.remove wire:target="generateContentGaps">⚡ Find Gaps</span>
                 <span wire:loading wire:target="generateContentGaps" class="animate-pulse">Analyzing...</span>
@@ -36,7 +40,7 @@
         <div class="space-y-2 max-h-56 overflow-y-auto pr-1 text-xs">
             @if(!empty($aiContentGaps))
                 @foreach($aiContentGaps as $gap)
-                    <div class="p-2.5 rounded-xl bg-slate-950/80 border border-white/5 space-y-1.5">
+                    <div wire:key="ai-gap-{{ $loop->index }}" class="p-2.5 rounded-xl bg-slate-950/80 border border-white/5 space-y-1.5">
                         <div class="font-bold text-white text-[11px]">{{ $gap['topic'] ?? 'Missing Subtopic' }}</div>
                         <p class="text-[10.5px] text-slate-400 leading-snug">{{ $gap['reason'] ?? '' }}</p>
                         @if(!empty($gap['suggested_h2']))
@@ -77,7 +81,9 @@
             <button 
                 type="button" 
                 wire:click="generateFaqSuggestions" 
-                class="px-3 py-1 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-mono text-[10.5px] font-bold shadow-md shadow-indigo-600/25 transition-all cursor-pointer"
+                wire:loading.attr="disabled"
+                wire:target="generateFaqSuggestions"
+                class="px-3 py-1 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-mono text-[10.5px] font-bold shadow-md shadow-indigo-600/25 transition-all cursor-pointer disabled:opacity-50"
             >
                 <span wire:loading.remove wire:target="generateFaqSuggestions">⚡ Generate FAQs</span>
                 <span wire:loading wire:target="generateFaqSuggestions" class="animate-pulse">Generating...</span>
@@ -87,7 +93,7 @@
         <div class="space-y-2 max-h-56 overflow-y-auto pr-1 text-xs">
             @if(!empty($aiFaqs))
                 @foreach($aiFaqs as $faq)
-                    <div class="p-2.5 rounded-xl bg-slate-950/80 border border-white/5 space-y-1.5">
+                    <div wire:key="ai-faq-{{ $loop->index }}" class="p-2.5 rounded-xl bg-slate-950/80 border border-white/5 space-y-1.5">
                         <div class="font-bold text-indigo-300 text-[11px]">Q: {{ $faq['question'] ?? '' }}</div>
                         <p class="text-[10.5px] text-slate-300 leading-relaxed">{{ $faq['answer'] ?? '' }}</p>
                         <button 
@@ -115,7 +121,9 @@
             <button 
                 type="button" 
                 wire:click="generateQuickAnswer" 
-                class="px-3 py-1 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-mono text-[10.5px] font-bold shadow-md shadow-amber-600/25 transition-all cursor-pointer"
+                wire:loading.attr="disabled"
+                wire:target="generateQuickAnswer"
+                class="px-3 py-1 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-mono text-[10.5px] font-bold shadow-md shadow-amber-600/25 transition-all cursor-pointer disabled:opacity-50"
             >
                 <span wire:loading.remove wire:target="generateQuickAnswer">⚡ Generate</span>
                 <span wire:loading wire:target="generateQuickAnswer" class="animate-pulse">...</span>

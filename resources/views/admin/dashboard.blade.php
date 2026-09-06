@@ -147,7 +147,7 @@
                                 </tr>
                             @else
                                 @foreach($stats['recent_users'] as $user)
-                                    <tr class="hover:bg-white/5 transition-colors">
+                                    <tr wire:key="admin-recent-user-{{ $user->id }}" class="hover:bg-white/5 transition-colors">
                                         <td class="p-4 font-medium text-white">
                                             <div>{{ $user->name }}</div>
                                             <div class="text-[11px] text-slate-400">{{ $user->email }}</div>

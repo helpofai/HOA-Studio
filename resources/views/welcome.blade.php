@@ -1246,25 +1246,27 @@ Modern content production platforms demand high-throughput intelligence routing 
 
     <!-- Alpine.js Component Definition Script for Clean, Quote-Safe Initialization -->
     <script>
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('multiEditorDemo', () => ({
-                activeEngine: 'tiptap',
-                activeIntelTab: 'seo',
-                showLeftPanel: true,
-                showRightPanel: true,
-                isStreaming: false,
-                showInlinePrompt: false,
-                documentTitle: 'How to Write High-Ranking AI Content in 2026',
-                aiPromptText: 'Write a comprehensive guide on AI multi-editor architecture in 2026',
-                selectedProvider: 'omniroute',
-                selectedAiModel: 'Claude 3.7 Sonnet (OmniRoute)',
-                streamingToken: '',
-                streamSpeed: 48,
-                receivedTokens: 0,
-                wordCount: 428,
-                seoScore: 94,
-                readScore: 82,
-                targetGoal: 1500,
+        (function() {
+            const registerMultiEditorDemo = () => {
+                if (window.Alpine && typeof window.Alpine.data === 'function') {
+                    window.Alpine.data('multiEditorDemo', () => ({
+                        activeEngine: 'tiptap',
+                        activeIntelTab: 'seo',
+                        showLeftPanel: true,
+                        showRightPanel: true,
+                        isStreaming: false,
+                        showInlinePrompt: false,
+                        documentTitle: 'How to Write High-Ranking AI Content in 2026',
+                        aiPromptText: 'Write a comprehensive guide on AI multi-editor architecture in 2026',
+                        selectedProvider: 'omniroute',
+                        selectedAiModel: 'Claude 3.7 Sonnet (OmniRoute)',
+                        streamingToken: '',
+                        streamSpeed: 48,
+                        receivedTokens: 0,
+                        wordCount: 428,
+                        seoScore: 94,
+                        readScore: 82,
+                        targetGoal: 1500,
 
                 gtBlocks: [
                     { id: 1, type: 'heading', level: 2, content: 'Architectural Blueprint: Universal Document Model' },
@@ -1360,6 +1362,13 @@ Modern content production platforms demand high-throughput intelligence routing 
                     }, 750);
                 }
             }));
-        });
-    </script>
+        };
+
+        if (window.Alpine && typeof window.Alpine.data === 'function') {
+            registerMultiEditorDemo();
+        } else {
+            document.addEventListener('alpine:init', registerMultiEditorDemo);
+        }
+    })();
+</script>
 </x-layouts.app>

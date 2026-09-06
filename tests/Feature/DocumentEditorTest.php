@@ -2,12 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Features\Blog\Models\BlogPost;
 use App\Features\Documents\Actions\CreateDocument;
 use App\Features\Documents\Actions\SaveDocumentVersion;
 use App\Features\Documents\Livewire\DocumentEditor;
 use App\Features\Documents\Models\Document;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -141,5 +144,150 @@ class DocumentEditorTest extends TestCase
 
         $doc->refresh();
         $this->assertLessThanOrEqual(255, mb_strlen($doc->title));
+    }
+
+    public function test_featured_image_upload_with_multi_formats(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $doc = (new CreateDocument())->execute($user, [
+            'title' => 'Featured Image Test',
+            'content_html' => '<p>Article with image</p>',
+        ]);
+
+        $this->actingAs($user);
+
+        // Test uploading PNG image
+        $pngFile = UploadedFile::fake()->image('cover.png', 800, 600);
+        $component = Livewire::test(DocumentEditor::class, ['id' => $doc->id])
+            ->set('featuredImageUpload', $pngFile);
+
+        $component->assertHasNoErrors('featuredImageUpload');
+        $this->assertNotEmpty($component->get('blogFeaturedImage'));
+        $this->assertStringContainsString('featured-images', $component->get('blogFeaturedImage'));
+        $this->assertTrue($component->get('hasUnsavedChanges'));
+
+        // Test uploading WebP image
+        $webpFile = UploadedFile::fake()->create('cover.webp', 300, 'image/webp');
+        $component->set('featuredImageUpload', $webpFile);
+        $component->assertHasNoErrors('featuredImageUpload');
+        $this->assertStringContainsString('featured-images', $component->get('blogFeaturedImage'));
+    }
+
+    public function test_featured_image_upload_updates_existing_blog_post(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $doc = (new CreateDocument())->execute($user, [
+            'title' => 'Blog Post Image Test',
+            'content_html' => '<p>Content</p>',
+        ]);
+
+        $post = BlogPost::create([
+            'user_id' => $user->id,
+            'document_id' => $doc->id,
+            'title' => 'Blog Post Image Test',
+            'slug' => 'blog-post-image-test',
+            'category' => 'Technology',
+            'status' => 'draft',
+            'content_html' => '<p>Content</p>',
+            'featured_image' => null,
+        ]);
+
+        $this->actingAs($user);
+
+        $image = UploadedFile::fake()->image('hero.jpg', 1200, 630);
+        Livewire::test(DocumentEditor::class, ['id' => $doc->id])
+            ->set('featuredImageUpload', $image)
+            ->assertHasNoErrors('featuredImageUpload');
+
+        $post->refresh();
+        $this->assertNotNull($post->featured_image);
+        $this->assertStringContainsString('featured-images', $post->featured_image);
+    }
+
+    public function test_featured_image_remove_clears_image_and_updates_blog_post(): void
+    {
+        $user = User::factory()->create();
+        $doc = (new CreateDocument())->execute($user, [
+            'title' => 'Blog Post Remove Image Test',
+            'content_html' => '<p>Content</p>',
+        ]);
+
+        $post = BlogPost::create([
+            'user_id' => $user->id,
+            'document_id' => $doc->id,
+            'title' => 'Blog Post Remove Image Test',
+            'slug' => 'blog-post-remove-image-test',
+            'category' => 'Technology',
+            'status' => 'draft',
+            'content_html' => '<p>Content</p>',
+            'featured_image' => 'https://images.unsplash.com/photo-1234',
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(DocumentEditor::class, ['id' => $doc->id])
+            ->assertSet('blogFeaturedImage', 'https://images.unsplash.com/photo-1234')
+            ->call('removeFeaturedImage')
+            ->assertSet('blogFeaturedImage', '');
+
+        $post->refresh();
+        $this->assertNull($post->featured_image);
+    }
+
+    public function test_featured_image_upload_validation_rejects_invalid_file(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $doc = (new CreateDocument())->execute($user, [
+            'title' => 'Invalid Image Test',
+            'content_html' => '<p>Content</p>',
+        ]);
+
+        $this->actingAs($user);
+
+        $invalidFile = UploadedFile::fake()->create('malicious.pdf', 500, 'application/pdf');
+        Livewire::test(DocumentEditor::class, ['id' => $doc->id])
+            ->set('featuredImageUpload', $invalidFile)
+            ->assertHasErrors(['featuredImageUpload']);
+    }
+
+    public function test_featured_image_upload_generates_seo_friendly_filename(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create();
+        $doc = (new CreateDocument())->execute($user, [
+            'title' => 'High Performance SEO Strategy',
+            'content_html' => '<p>SEO content</p>',
+        ]);
+
+        $this->actingAs($user);
+
+        $image = UploadedFile::fake()->image('IMG_9876.jpg', 800, 600);
+        $component = Livewire::test(DocumentEditor::class, ['id' => $doc->id])
+            ->set('featuredImageUpload', $image);
+
+        $component->assertHasNoErrors('featuredImageUpload');
+        $imageUrl = $component->get('blogFeaturedImage');
+        $this->assertNotEmpty($imageUrl);
+        // Verify SEO slug in filename
+        $this->assertStringContainsString('high-performance-seo-strategy-featured-image-', $imageUrl);
+        $this->assertStringEndsWith('.jpg', $imageUrl);
+    }
+
+    public function test_storage_fallback_route_serves_files(): void
+    {
+        Storage::disk('public')->put('featured-images/test-seo-sample.png', 'fake-image-bytes');
+
+        $response = $this->get('/storage/featured-images/test-seo-sample.png');
+        $response->assertStatus(200);
+
+        // Cleanup
+        Storage::disk('public')->delete('featured-images/test-seo-sample.png');
     }
 }

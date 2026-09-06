@@ -111,6 +111,72 @@ showLossyWarning: false,
 pendingEngine: null,
 lossyEngines: { plaintext: true, html: true },
 
+// Client-side instant modal triggers (0ms toggle)
+showImportModalLocal: false,
+showShareModalLocal: false,
+showBlogModalLocal: false,
+
+openImportModalInstant() {
+    this.showImportModalLocal = true;
+    if (this.$wire && typeof this.$wire.openImportModal === 'function') {
+        this.$wire.openImportModal();
+    }
+},
+
+closeImportModalInstant() {
+    this.showImportModalLocal = false;
+    if (this.$wire) {
+        this.$wire.showImportModal = false;
+        if (typeof this.$wire.closeImportModal === 'function') {
+            this.$wire.closeImportModal();
+        }
+    }
+},
+
+openShareModalInstant() {
+    this.showShareModalLocal = true;
+    if (this.$wire && typeof this.$wire.openShareModal === 'function') {
+        this.$wire.openShareModal();
+    }
+},
+
+closeShareModalInstant() {
+    this.showShareModalLocal = false;
+    if (this.$wire) {
+        this.$wire.showShareModal = false;
+    }
+},
+
+openBlogModalInstant() {
+    this.showBlogModalLocal = true;
+    if (this.$wire && typeof this.$wire.openBlogModal === 'function') {
+        this.$wire.openBlogModal();
+    }
+},
+
+closeBlogModalInstant() {
+    this.showBlogModalLocal = false;
+    if (this.$wire) {
+        this.$wire.showBlogModal = false;
+    }
+},
+
+async loadSnapshotDiff(versionId, versionNumber) {
+    if (!this.$wire || typeof this.$wire.getVersionContent !== 'function') return;
+    try {
+        const html = await this.$wire.getVersionContent(versionId);
+        this.selectedSnapshot = { id: versionId, version_number: versionNumber, content_html: html };
+        const ed = (this.getEditor ? this.getEditor() : null) || window.hoaEditorInstance;
+        const liveHtml = ed && typeof ed.getHTML === 'function' ? ed.getHTML() : '';
+        if (typeof computeWordDiff === 'function') {
+            this.snapshotDiffHtml = computeWordDiff(html, liveHtml).unifiedHtml;
+        }
+        this.showSnapshotDiff = true;
+    } catch (err) {
+        console.error('Failed to load snapshot diff:', err);
+    }
+},
+
 showRestoredDraftBanner: false,
 restoredDraftTime: '',
 restoredWordCount: 0,
@@ -181,6 +247,61 @@ init() {
     Livewire.on('editor:setContent', ({ content }) => {
         if (this.editorInstance) this.editorInstance.setContent(content);
         this.addLog('INFO', 'Canvas content reset via server action.');
+    });
+
+    Livewire.on('editor:insertImportedContent', (event) => {
+        const data = (event && event.content !== undefined) ? event : (event && event[0] ? event[0] : {});
+        const content = data.content || '';
+        const mode = data.mode || 'replace';
+        const title = data.title || '';
+
+        const ed = this.getEditor();
+        if (!ed) {
+            console.error('[Import] No active editor instance available.');
+            return;
+        }
+
+        if (mode === 'replace') {
+            Livewire.dispatch('saveExplicitSnapshot');
+            this.addLog('SYSTEM', 'Automatic snapshot created before replacing canvas.');
+            ed.setContent(content, true);
+            this.addLog('IMPORT', 'Canvas content replaced from imported document.');
+        } else if (mode === 'append') {
+            const currentHtml = (ed.getHTML ? ed.getHTML() : '').trim();
+            const isDocEmpty = typeof this.isContentEmpty === 'function' 
+                ? this.isContentEmpty(currentHtml) 
+                : (!currentHtml || currentHtml === '<p></p>' || currentHtml === '<p><br></p>' || currentHtml.trim().length === 0);
+            
+            if (isDocEmpty) {
+                ed.setContent(content, true);
+            } else {
+                const separator = '<hr class="hoa-import-divider my-6 border-white/20" /><p></p>';
+                ed.setContent(currentHtml + separator + content, true);
+            }
+            this.addLog('IMPORT', 'Imported content appended to canvas.');
+        } else if (mode === 'cursor') {
+            if (typeof ed.insertContent === 'function') {
+                ed.insertContent(content);
+            } else if (typeof ed.replaceSelection === 'function') {
+                ed.replaceSelection(content);
+            } else {
+                const currentHtml = ed.getHTML ? ed.getHTML() : '';
+                ed.setContent(currentHtml + '<p></p>' + content, true);
+            }
+            this.addLog('IMPORT', 'Imported content injected at cursor position.');
+        }
+
+        if (title && (!this.title || this.title === 'Untitled Document' || this.title.trim() === '')) {
+            this.title = title;
+        }
+
+        const finalHtml = ed.getHTML ? ed.getHTML() : content;
+        const finalJson = ed.getJSON ? ed.getJSON() : null;
+        this.isDirty = true;
+        Livewire.dispatch('autosave', { html: finalHtml, json: finalJson });
+        this.saveLocalDraft(finalHtml);
+        this.updateOutline();
+        this.updateActiveFormats();
     });
 
     window.addEventListener('editor:selection-change', (e) => {

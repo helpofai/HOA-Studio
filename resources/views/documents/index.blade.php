@@ -23,7 +23,7 @@
 */
 --}}
 
-<div class="space-y-6">
+<div class="space-y-6" x-data="{ showCreateModal: $wire.entangle('showCreateModal'), showImportModal: $wire.entangle('showImportModal') }">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -31,10 +31,10 @@
             <p class="text-xs text-slate-400 mt-1">Manage, write, and version your AI-crafted long-form articles.</p>
         </div>
         <div class="flex items-center gap-2">
-            <x-glass.button variant="secondary" size="md" wire:click="openImportModal">
+            <x-glass.button variant="secondary" size="md" @click="showImportModal = true; $wire.openImportModal()">
                 ⬆ Import File
             </x-glass.button>
-            <x-glass.button variant="primary" size="md" wire:click="openCreateModal">
+            <x-glass.button variant="primary" size="md" @click="showCreateModal = true; $wire.openCreateModal()">
                 + New Document
             </x-glass.button>
         </div>
@@ -92,7 +92,7 @@
         @else
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 @foreach($documents as $doc)
-                <x-glass.card variant="standard" class="p-6 flex flex-col justify-between hover:border-indigo-500/40 hover:-translate-y-0.5 transition-all">
+                <x-glass.card wire:key="doc-card-{{ $doc->id }}" variant="standard" class="p-6 flex flex-col justify-between hover:border-indigo-500/40 hover:-translate-y-0.5 transition-all">
                     <div>
                         <div class="flex items-start justify-between gap-2 mb-3">
                             <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 uppercase">
@@ -140,12 +140,11 @@
 
     <!-- Create Document Modal -->
     <div 
-        x-data="{ show: @entangle('showCreateModal') }" 
-        x-show="show" 
+        x-show="showCreateModal" 
         class="fixed inset-0 z-50 flex items-center justify-center p-4" 
         style="display: none;"
     >
-        <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" x-on:click="show = false"></div>
+        <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" x-on:click="showCreateModal = false"></div>
         <x-glass.card variant="elevated" class="w-full max-w-md p-6 sm:p-8 z-10 border border-white/15 shadow-2xl relative">
             <h3 class="text-lg font-bold text-white mb-4">Create New Document</h3>
 
@@ -167,8 +166,11 @@
                 </div>
 
                 <div class="flex items-center justify-end gap-3 pt-4 border-t border-white/5">
-                    <x-glass.button type="button" variant="secondary" size="sm" x-on:click="show = false">Cancel</x-glass.button>
-                    <x-glass.button type="submit" variant="primary" size="sm">Create Document</x-glass.button>
+                    <x-glass.button type="button" variant="secondary" size="sm" x-on:click="showCreateModal = false">Cancel</x-glass.button>
+                    <x-glass.button type="submit" variant="primary" size="sm" wire:loading.attr="disabled" wire:target="createDocument">
+                        <span wire:loading.remove wire:target="createDocument">Create Document</span>
+                        <span wire:loading wire:target="createDocument">Creating...</span>
+                    </x-glass.button>
                 </div>
             </form>
         </x-glass.card>
@@ -176,19 +178,18 @@
 
     <!-- Import Document File Modal -->
     <div 
-        x-data="{ showImport: @entangle('showImportModal') }" 
-        x-show="showImport" 
+        x-show="showImportModal" 
         class="fixed inset-0 z-50 flex items-center justify-center p-4" 
         style="display: none;"
     >
-        <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" x-on:click="showImport = false"></div>
+        <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" x-on:click="showImportModal = false"></div>
         <x-glass.card variant="elevated" class="w-full max-w-md p-6 sm:p-8 z-10 border border-white/15 shadow-2xl relative space-y-4">
             <div class="flex items-center justify-between pb-3 border-b border-white/10">
                 <div class="flex items-center gap-2.5">
                     <span class="text-xl">📥</span>
                     <h3 class="text-base font-bold text-white tracking-tight">Import Document File</h3>
                 </div>
-                <button type="button" x-on:click="showImport = false" class="text-slate-400 hover:text-white p-1 cursor-pointer">✕</button>
+                <button type="button" x-on:click="showImportModal = false" class="text-slate-400 hover:text-white p-1 cursor-pointer">✕</button>
             </div>
 
             <p class="text-xs text-slate-400">
@@ -219,8 +220,8 @@
                 </div>
 
                 <div class="flex items-center justify-end gap-3 pt-4 border-t border-white/5">
-                    <x-glass.button type="button" variant="secondary" size="sm" x-on:click="showImport = false">Cancel</x-glass.button>
-                    <x-glass.button type="submit" variant="primary" size="sm">
+                    <x-glass.button type="button" variant="secondary" size="sm" x-on:click="showImportModal = false">Cancel</x-glass.button>
+                    <x-glass.button type="submit" variant="primary" size="sm" wire:loading.attr="disabled" wire:target="importDocument">
                         <span wire:loading.remove wire:target="importDocument">Import & Open Editor</span>
                         <span wire:loading wire:target="importDocument">Importing...</span>
                     </x-glass.button>

@@ -14,7 +14,38 @@
 --}}
 
 <!-- ─── TAB 4: KEYWORDS & REAL-TIME DENSITY MATRIX ────────────────── -->
-<div x-show="rightTab === 'keywords'" class="space-y-3.5" style="display: none;">
+<div 
+    x-show="rightTab === 'keywords'" 
+    class="space-y-3.5" 
+    style="display: none;"
+    x-data="{
+        keywords: @js($secondaryKeywords ?? []),
+        newKeywordInput: '',
+        init() {
+            this.$watch('$wire.secondaryKeywords', (val) => {
+                if (Array.isArray(val)) {
+                    this.keywords = [...val];
+                }
+            });
+        },
+        addKeyword(kw) {
+            kw = (kw || this.newKeywordInput || '').trim();
+            if (!kw) return;
+            if (!this.hasKeyword(kw)) {
+                this.keywords.push(kw);
+            }
+            this.newKeywordInput = '';
+            $wire.addSuggestedKeyword(kw);
+        },
+        removeKeyword(idx) {
+            this.keywords.splice(idx, 1);
+            $wire.removeSecondaryKeyword(idx);
+        },
+        hasKeyword(kw) {
+            return this.keywords.some(k => (k || '').toLowerCase() === (kw || '').toLowerCase());
+        }
+    }"
+>
     <div class="space-y-3 p-3.5 rounded-2xl bg-slate-900/90 border border-white/10 shadow-inner">
         <div class="flex items-center justify-between">
             <label class="text-xs font-bold text-white flex items-center gap-1.5">
@@ -24,23 +55,31 @@
             <button 
                 type="button" 
                 wire:click="suggestLsiKeywords" 
-                class="px-3 py-1 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-mono text-[10.5px] font-bold shadow-md shadow-indigo-600/25 transition-all cursor-pointer"
+                wire:loading.attr="disabled"
+                wire:target="suggestLsiKeywords"
+                class="px-3 py-1 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-mono text-[10.5px] font-bold shadow-md shadow-indigo-600/25 transition-all cursor-pointer disabled:opacity-50"
             >
                 <span wire:loading.remove wire:target="suggestLsiKeywords">⚡ AI Suggest</span>
-                <span wire:loading wire:target="suggestLsiKeywords" class="animate-pulse">Analyzing...</span>
+                <span wire:loading wire:target="suggestLsiKeywords" class="inline-block animate-pulse">Analyzing...</span>
             </button>
         </div>
 
-        <!-- Add Keyword Input -->
+        <!-- Add Keyword Input (0ms Instant) -->
         <div class="flex items-center gap-1.5">
             <input 
                 type="text" 
-                wire:model="newSecondaryKeyword" 
-                wire:keydown.enter.prevent="addSecondaryKeyword"
+                x-model="newKeywordInput"
+                x-on:keydown.enter.prevent="addKeyword()"
                 placeholder="Add secondary / LSI keyword..." 
                 class="flex-1 bg-slate-950 border border-white/15 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono shadow-inner"
             />
-            <button type="button" wire:click="addSecondaryKeyword" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs cursor-pointer shadow-md transition-all">+</button>
+            <button 
+                type="button" 
+                x-on:click="addKeyword()"
+                class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs cursor-pointer shadow-md transition-all flex items-center justify-center min-w-[28px]"
+            >
+                <span>+</span>
+            </button>
         </div>
 
         @php
@@ -90,7 +129,7 @@
                     @php
                         $skwCount = mb_substr_count($lowerPlain, mb_strtolower($skw));
                     @endphp
-                    <div class="p-2 rounded-xl bg-slate-950/80 border border-white/5 flex items-center justify-between gap-2">
+                    <div wire:key="sec-kw-{{ $index }}" class="p-2 rounded-xl bg-slate-950/80 border border-white/5 flex items-center justify-between gap-2">
                         <div class="flex items-center gap-1.5 min-w-0 flex-1">
                             <span class="text-slate-300 truncate">{{ $skw }}</span>
                             @if($skwCount > 0)
@@ -112,7 +151,12 @@
                             >
                                 ⚡ Weave
                             </button>
-                            <button type="button" wire:click="removeSecondaryKeyword({{ $index }})" class="text-slate-400 hover:text-red-400 text-xs px-1 cursor-pointer" title="Remove keyword">✕</button>
+                            <button 
+                                type="button" 
+                                x-on:click="removeKeyword({{ $index }})" 
+                                class="text-slate-400 hover:text-red-400 text-xs px-1 cursor-pointer transition-colors" 
+                                title="Remove keyword"
+                            >✕</button>
                         </div>
                     </div>
                 @empty
@@ -129,10 +173,12 @@
                     @foreach($aiSeoResults as $suggested)
                         <button 
                             type="button" 
-                            wire:click="addSuggestedKeyword(@js($suggested))"
-                            class="px-2 py-0.5 rounded-md bg-slate-950 border border-indigo-500/20 hover:border-indigo-500/50 text-slate-300 hover:text-white text-[10.5px] font-mono flex items-center gap-1 cursor-pointer transition-colors"
+                            wire:key="ai-suggested-kw-{{ $loop->index }}"
+                            x-on:click="addKeyword(@js($suggested))"
+                            class="px-2 py-0.5 rounded-md border text-[10.5px] font-mono flex items-center gap-1 cursor-pointer transition-all duration-150"
+                            :class="hasKeyword(@js($suggested)) ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300' : 'bg-slate-950 border-indigo-500/20 hover:border-indigo-500/50 text-slate-300 hover:text-white'"
                         >
-                            <span>+</span> <span>{{ $suggested }}</span>
+                            <span x-text="hasKeyword(@js($suggested)) ? '✓' : '+'"></span> <span>{{ $suggested }}</span>
                         </button>
                     @endforeach
                 </div>

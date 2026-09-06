@@ -598,7 +598,7 @@
                                 $timeStr = \Carbon\Carbon::parse($entry['timestamp'])->format('H:i:s.v');
                             @endphp
 
-                            <div class="group flex items-start gap-2 px-1.5 py-0.5 rounded hover:bg-white/5 transition-colors {{ in_array($level, ['error', 'fatal']) ? 'bg-red-500/5' : '' }}">
+                            <div wire:key="admin-omni-log-{{ $idx }}" class="group flex items-start gap-2 px-1.5 py-0.5 rounded hover:bg-white/5 transition-colors {{ in_array($level, ['error', 'fatal']) ? 'bg-red-500/5' : '' }}">
                                 <!-- Timestamp -->
                                 <span class="text-[#484f58] whitespace-nowrap shrink-0 select-none text-[10px]">
                                     {{ $timeStr }}
@@ -775,6 +775,7 @@
                         };
                     @endphp
                     <button 
+                        wire:key="admin-omni-vendor-{{ $v->owned_by }}"
                         type="button" 
                         wire:click="$set('modelVendorFilter', '{{ $v->owned_by }}')" 
                         class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] flex items-center gap-1 {{ $modelVendorFilter === $v->owned_by ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
@@ -832,7 +833,7 @@
                     $usage = $modelUsage->get($m->model_id);
                     $isBeingTested = isset($testingModelIds[$m->id]);
                 @endphp
-                <x-glass.card variant="standard" class="p-5 flex flex-col justify-between hover:border-violet-500/40 transition-all relative {{ $isCurrentDefault ? 'border-violet-500/50 bg-violet-950/20' : '' }}">
+                <x-glass.card wire:key="admin-omni-model-{{ $m->id }}" variant="standard" class="p-5 flex flex-col justify-between hover:border-violet-500/40 transition-all relative {{ $isCurrentDefault ? 'border-violet-500/50 bg-violet-950/20' : '' }}">
                     @if($isCurrentDefault)
                         <div class="absolute top-0 right-0 px-2.5 py-0.5 bg-gradient-to-l from-violet-600 to-indigo-600 text-white font-mono text-[9px] font-bold uppercase rounded-bl-lg shadow-sm">
                             ★ DEFAULT ROUTE
@@ -1115,7 +1116,7 @@
                                 default => 'bg-cyan-500/10 border-cyan-500/20 text-cyan-300',
                             };
                         @endphp
-                        <div class="flex items-start gap-2.5 font-mono">
+                        <div wire:key="admin-omni-prog-{{ $loop->index }}" class="flex items-start gap-2.5 font-mono">
                             <span class="text-[#484f58] whitespace-nowrap text-[10px] select-none shrink-0">{{ $pl['time'] }}</span>
                             <span class="px-1.5 py-0 rounded text-[9px] uppercase border font-semibold shrink-0 {{ $badgeBg }}">
                                 {{ $pl['tag'] ?? 'INFO' }}

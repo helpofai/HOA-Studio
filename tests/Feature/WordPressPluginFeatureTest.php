@@ -74,4 +74,46 @@ class WordPressPluginFeatureTest extends TestCase
         $this->assertEquals(50000, $result['user']['quota']['remaining_words']);
         $this->assertEquals('2.6.0', $result['protocol_version']);
     }
+
+    public function test_wordpress_plugin_files_and_manifest_integrity(): void
+    {
+        $service = app(WordPressPluginService::class);
+        $pluginDir = $service->getPluginDirectoryPath();
+
+        $requiredFiles = [
+            'hoa-studio-wordpress.php',
+            'includes/Core/class-hoa-plugin.php',
+            'includes/Core/class-hoa-activator.php',
+            'includes/Core/class-hoa-deactivator.php',
+            'includes/Core/class-hoa-settings.php',
+            'includes/Admin/class-hoa-admin.php',
+            'includes/Admin/class-hoa-metabox.php',
+            'includes/Admin/class-hoa-seo-generator.php',
+            'includes/Editor/class-hoa-studio-editor.php',
+            'includes/Gutenberg/class-hoa-gutenberg-blocks.php',
+            'includes/Api/class-hoa-ajax-handler.php',
+            'includes/Api/class-hoa-rest-api.php',
+            'includes/Sync/class-hoa-cloud-sync.php',
+            'views/admin-dashboard.php',
+            'views/admin-connection.php',
+            'views/admin-ai-settings.php',
+            'views/admin-editor-settings.php',
+            'views/metabox-post-sidebar.php',
+            'views/studio-canvas.php',
+            'assets/css/hoa-studio.css',
+            'assets/css/hoa-editor.css',
+            'assets/js/hoa-admin.js',
+            'assets/js/hoa-gutenberg.js',
+            'assets/js/hoa-tiptap-bundle.js',
+        ];
+
+        foreach ($requiredFiles as $file) {
+            $this->assertFileExists($pluginDir . '/' . $file, "Required plugin file [{$file}] is missing.");
+        }
+
+        $mainFileContent = file_get_contents($pluginDir . '/hoa-studio-wordpress.php');
+        $this->assertStringContainsString('Plugin Name:       HOA-Studio AI Editor & Content Suite', $mainFileContent);
+        $this->assertStringContainsString("define('HOA_STUDIO_VERSION', '2.6.0')", $mainFileContent);
+        $this->assertStringContainsString('HelpOfAi (HOA)', $mainFileContent);
+    }
 }

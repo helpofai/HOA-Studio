@@ -2,7 +2,7 @@
 
 
 
-        <div x-show="rightTab === 'seo'" class="space-y-3.5" style="display: none;">
+        <div x-show="rightTab === 'seo'" class="space-y-3.5" style="display: none;" x-data="{ showSeoDrawerLocal: $wire.entangle('showSeoDrawer') }">
 
 
 
@@ -134,10 +134,11 @@
 
                     <button 
                         type="button" 
-                        wire:click="toggleSeoDrawer" 
-                        class="px-2.5 py-1 rounded-lg {{ $showSeoDrawer ? 'bg-indigo-600 text-white shadow-sm' : 'bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white' }} font-mono text-[10.5px] font-bold border border-indigo-500/30 transition-colors shrink-0 cursor-pointer"
+                        @click="showSeoDrawerLocal = !showSeoDrawerLocal; $wire.showSeoDrawer = showSeoDrawerLocal" 
+                        class="px-2.5 py-1 rounded-lg font-mono text-[10.5px] font-bold border border-indigo-500/30 transition-colors shrink-0 cursor-pointer"
+                        :class="showSeoDrawerLocal ? 'bg-indigo-600 text-white shadow-sm' : 'bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white'"
                     >
-                        {{ $showSeoDrawer ? '✕ Close' : (!empty($targetKeyword) ? 'Edit Keyword' : '+ Set Keyword') }}
+                        <span x-text="showSeoDrawerLocal ? '✕ Close' : (@js(!empty($targetKeyword)) ? 'Edit Keyword' : '+ Set Keyword')">{{ $showSeoDrawer ? '✕ Close' : (!empty($targetKeyword) ? 'Edit Keyword' : '+ Set Keyword') }}</span>
                     </button>
 
 
@@ -170,78 +171,44 @@
 
 
 
-            @if($showSeoDrawer)
-
-
-
-                <div class="p-3.5 rounded-2xl bg-indigo-950/50 border border-indigo-500/50 space-y-2.5 animate-in shadow-xl">
-
-
-
-                    <div class="flex items-center justify-between">
-
-
-
-                        <label class="text-xs font-bold text-white flex items-center gap-1.5">
-
-
-
-                            <span class="text-indigo-400">✓</span>
-
-
-
-                            <span>Set Focus Target Keyword</span>
-
-
-
-                        </label>
-
-
-
-                        <span class="text-[10px] font-mono text-slate-400">Rank Math Algorithm</span>
-
-
-
-                    </div>
-
-
-
-
-
-
-
-                    <div class="flex items-center gap-1.5">
-
-
-
-                        <input 
-                            type="text" 
-                            wire:model.lazy="targetKeyword" 
-                            wire:keydown.enter="runSeoAudit" 
-                            placeholder="e.g. deepseek v4 flash review" 
-                            class="flex-1 bg-slate-950 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono shadow-inner" 
-                        /> 
-                        <button 
-                            type="button" 
-                            wire:click="runSeoAudit" 
-                            class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition-all cursor-pointer" 
-                        > 
-                            Analyze 
-                        </button> 
-                        <button 
-                            type="button" 
-                            wire:click="toggleSeoDrawer" 
-                            class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-white/10 text-slate-400 hover:text-white text-xs font-semibold border border-white/10 transition-all cursor-pointer" 
-                            title="Close drawer" 
-                        > 
-                            ✕ 
-                        </button> 
-                    </div> 
+            <div x-show="showSeoDrawerLocal" x-cloak style="display: none;" class="p-3.5 rounded-2xl bg-indigo-950/50 border border-indigo-500/50 space-y-2.5 animate-in shadow-xl">
+                <div class="flex items-center justify-between">
+                    <label class="text-xs font-bold text-white flex items-center gap-1.5">
+                        <span class="text-indigo-400">✓</span>
+                        <span>Set Focus Target Keyword</span>
+                    </label>
+                    <span class="text-[10px] font-mono text-slate-400">Rank Math Algorithm</span>
                 </div>
 
-
-
-            @endif
+                <div class="flex items-center gap-1.5">
+                    <input 
+                        type="text" 
+                        wire:model.lazy="targetKeyword" 
+                        wire:keydown.enter="runSeoAudit" 
+                        placeholder="e.g. deepseek v4 flash review" 
+                        class="flex-1 bg-slate-950 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono shadow-inner" 
+                    /> 
+                    <button 
+                        type="button" 
+                        wire:click="runSeoAudit" 
+                        wire:loading.attr="disabled"
+                        wire:target="runSeoAudit"
+                        class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5" 
+                    > 
+                        <span wire:loading.remove wire:target="runSeoAudit">Analyze</span>
+                        <span wire:loading wire:target="runSeoAudit" class="inline-block animate-spin text-[10px]">⏳</span>
+                        <span wire:loading wire:target="runSeoAudit">Auditing...</span>
+                    </button> 
+                    <button 
+                        type="button" 
+                        @click="showSeoDrawerLocal = false; $wire.showSeoDrawer = false" 
+                        class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-white/10 text-slate-400 hover:text-white text-xs font-semibold border border-white/10 transition-all cursor-pointer" 
+                        title="Close drawer" 
+                    > 
+                        ✕ 
+                    </button> 
+                </div> 
+            </div>
 
 
 
@@ -353,24 +320,11 @@
                 }
             @endphp
 
-            <div class="space-y-2.5" x-data="{ 
-                openPillars: { 
-                    basic_seo: true, 
-                    additional_seo: true, 
-                    title_readability: true, 
-                    content_readability: true, 
-                    eeat_authority: false, 
-                    geo_ai_search: false, 
-                    technical_competitive: false 
-                }, 
-                manualView: {},
+            <div class="space-y-2.5" wire:key="seo-checklist-master-matrix" x-data="{ 
                 allExpanded: false,
-                togglePillar(key) {
-                    this.openPillars[key] = !this.openPillars[key];
-                },
                 toggleAllPillars() {
                     this.allExpanded = !this.allExpanded;
-                    Object.keys(this.openPillars).forEach(k => this.openPillars[k] = this.allExpanded);
+                    window.dispatchEvent(new CustomEvent('seo-toggle-all-pillars', { detail: this.allExpanded }));
                 }
             }">
                 <div class="flex items-center justify-between px-1 text-[11px] font-mono text-slate-400 select-none">
@@ -381,10 +335,15 @@
                 </div>
 
                 @foreach($rmPillars as $pillarKey => $pillarData)
-                <div class="border border-white/10 bg-slate-900/50 rounded-xl overflow-hidden shadow-sm shadow-black/20">
+                <div 
+                    wire:key="seo-pillar-{{ $pillarKey }}" 
+                    x-data="{ isOpen: @js(in_array($pillarKey, ['basic_seo', 'additional_seo', 'title_readability', 'content_readability'])) }" 
+                    x-on:seo-toggle-all-pillars.window="isOpen = $event.detail"
+                    class="border border-white/10 bg-slate-900/50 rounded-xl overflow-hidden shadow-sm shadow-black/20"
+                >
                     <button 
                         type="button"
-                        x-on:click="togglePillar('{{ $pillarKey }}')" 
+                        x-on:click="isOpen = !isOpen" 
                         class="w-full flex items-center justify-between p-3 bg-slate-800/80 hover:bg-slate-700/80 transition-all cursor-pointer select-none text-left"
                     >
                         <div class="flex items-center gap-2">
@@ -393,14 +352,18 @@
                                 <span class="px-1.5 py-0.5 rounded bg-black/40 border border-white/10 text-[10px] font-mono text-slate-300">{{ $pillarData['score_label'] }}</span>
                             @endif
                         </div>
-                        <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="openPillars['{{ $pillarKey }}'] ? 'rotate-180 text-white' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="isOpen ? 'rotate-180 text-white' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
 
-                    <div x-show="openPillars['{{ $pillarKey }}']" x-transition class="p-2 space-y-1.5 bg-slate-900/95 border-t border-white/5 max-h-[500px] overflow-y-auto hoa-custom-scrollbar">
+                    <div x-show="isOpen" x-transition class="p-2 space-y-1.5 bg-slate-900/95 border-t border-white/5 max-h-[500px] overflow-y-auto hoa-custom-scrollbar">
                         @foreach($pillarData['checks'] ?? [] as $check)
-                            <div class="p-2.5 rounded-xl border {{ $check['pass'] ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-slate-800/80 border-white/10' }} flex flex-col gap-2 transition-all">
+                            <div 
+                                wire:key="seo-check-{{ $pillarKey }}-{{ $check['id'] }}" 
+                                x-data="{ manualOpen: false }"
+                                class="p-2.5 rounded-xl border {{ $check['pass'] ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-slate-800/80 border-white/10' }} flex flex-col gap-2 transition-all"
+                            >
                                 <div class="flex items-start gap-2">
                                     @if($check['pass'])
                                         <div class="w-5 h-5 shrink-0 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center mt-0.5 shadow-sm shadow-emerald-500/20">
@@ -488,14 +451,14 @@
 
                                         <button 
                                             type="button" 
-                                            x-on:click="manualView['{{ $check['id'] }}'] = !manualView['{{ $check['id'] }}']"
+                                            x-on:click="manualOpen = !manualOpen"
                                             class="px-2 py-1 rounded-lg bg-slate-900 hover:bg-white/10 text-slate-400 hover:text-slate-200 border border-white/10 transition-all flex items-center gap-1 cursor-pointer text-[10px]"
                                         >
-                                            <span>✏️ Manual</span>
+                                            <span x-text="manualOpen ? '✕ Close' : '✏️ Manual'">✏️ Manual</span>
                                         </button>
                                     </div>
 
-                                    <div x-show="manualView['{{ $check['id'] }}']" x-transition style="display: none;" class="mt-1.5 p-2 rounded-lg bg-slate-900 border border-white/5 text-[9.5px] text-slate-300 font-mono">
+                                    <div x-show="manualOpen" x-transition style="display: none;" class="mt-1.5 p-2 rounded-lg bg-slate-900 border border-white/5 text-[9.5px] text-slate-300 font-mono">
                                         {{ $check['manual_prompt'] ?? 'Manually edit this section to pass the check.' }}
                                     </div>
                                 </div>
@@ -545,6 +508,7 @@
                             @endphp
                             <button 
                                 type="button"
+                                wire:key="seo-entity-{{ $loop->index }}"
                                 x-show="entityFilter === 'all' || entityFilter === '{{ $status }}'"
                                 x-on:click="navigator.clipboard.writeText('{{ $entity['term'] }}'); copiedEntity = '{{ $entity['term'] }}'; setTimeout(() => copiedEntity = '', 1500)"
                                 class="px-2 py-1 rounded-lg border text-[10px] font-mono flex items-center gap-1.5 transition-all cursor-pointer select-none group {{ $chipStyle }}"
@@ -642,7 +606,7 @@
                                 @if(!empty($schemaData['schemas']['faq']['mainEntity']))
                                     <div class="pt-2 border-t border-slate-200 space-y-1">
                                         @foreach(array_slice($schemaData['schemas']['faq']['mainEntity'], 0, 2) as $faqItem)
-                                            <div class="text-xs text-slate-700 flex items-center justify-between font-medium">
+                                            <div wire:key="faq-preview-{{ $loop->index }}" class="text-xs text-slate-700 flex items-center justify-between font-medium">
                                                 <span>{{ $faqItem['name'] }}</span>
                                                 <span class="text-slate-400 text-[10px]">&blacktriangledown;</span>
                                             </div>

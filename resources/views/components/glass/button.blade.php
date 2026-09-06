@@ -54,24 +54,44 @@ $variantClasses = match($variant) {
 };
 
 $shimmerClass = $shimmer ? 'btn-shimmer' : '';
+
+// Resolve reactive Livewire target for instant loading feedback
+$effectiveTarget = $wireTarget;
+if (! $effectiveTarget) {
+    if ($clickAttr = $attributes->whereStartsWith('wire:click')->first()) {
+        $effectiveTarget = trim(explode('(', (string) $clickAttr)[0]);
+    } elseif ($submitAttr = $attributes->whereStartsWith('wire:submit')->first()) {
+        $effectiveTarget = trim(explode('(', (string) $submitAttr)[0]);
+    }
+}
+$isLivewireAction = ! empty($effectiveTarget) || $attributes->whereStartsWith('wire:click')->isNotEmpty() || $attributes->whereStartsWith('wire:submit')->isNotEmpty();
 @endphp
 
 <button 
     type="{{ $type }}" 
-    @if($wireTarget) wire:loading.attr="disabled" wire:target="{{ $wireTarget }}" @endif
+    @if($effectiveTarget)
+        wire:loading.attr="disabled" 
+        wire:target="{{ $effectiveTarget }}"
+        wire:loading.class="opacity-75 cursor-wait"
+    @elseif($isLivewireAction)
+        wire:loading.attr="disabled"
+        wire:loading.class="opacity-75 cursor-wait"
+    @endif
     @if($loading) disabled @endif
     {{ $attributes->merge(['class' => "$baseClasses $sizeClasses $variantClasses $shimmerClass $class"]) }}
 >
-    @if($wireTarget)
+    @if($effectiveTarget)
         <!-- Livewire Loading State Indicator -->
-        <span wire:loading.flex wire:target="{{ $wireTarget }}" class="items-center gap-2">
+        <span wire:loading.flex wire:target="{{ $effectiveTarget }}" class="items-center gap-2">
             <x-glass.loader :style="$loader" />
             @if($loadingText)
                 <span>{{ $loadingText }}</span>
+            @else
+                <span>{{ $slot }}</span>
             @endif
         </span>
         <!-- Livewire Default State Slot -->
-        <span wire:loading.remove wire:target="{{ $wireTarget }}" class="inline-flex items-center gap-2">
+        <span wire:loading.remove wire:target="{{ $effectiveTarget }}" class="inline-flex items-center gap-2">
             {{ $slot }}
         </span>
     @elseif($loading)

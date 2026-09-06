@@ -36,15 +36,21 @@ export function initCursorSpotlight() {
     let rafId = null;
 
     function updatePosition() {
-        currentX += (mouseX - currentX) * 0.18;
-        currentY += (mouseY - currentY) * 0.18;
+        const dx = mouseX - currentX;
+        const dy = mouseY - currentY;
+        currentX += dx * 0.18;
+        currentY += dy * 0.18;
 
         const el = document.getElementById('hoa-cursor-spotlight');
         if (el) {
             el.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
         }
 
-        rafId = requestAnimationFrame(updatePosition);
+        if (Math.abs(dx) > 0.2 || Math.abs(dy) > 0.2) {
+            rafId = requestAnimationFrame(updatePosition);
+        } else {
+            rafId = null;
+        }
     }
 
     window.addEventListener('pointermove', (e) => {

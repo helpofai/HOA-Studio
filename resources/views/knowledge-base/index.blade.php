@@ -172,7 +172,7 @@
                             $pct = round(($chunk['score'] ?? 0.8) * 100);
                             $cat = $chunk['category'] ?? 'general_docs';
                         @endphp
-                        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-white/10 space-y-2 text-xs font-mono">
+                        <div wire:key="kb-result-{{ $idx }}" class="p-3.5 rounded-xl bg-slate-900/90 border border-white/10 space-y-2 text-xs font-mono">
                             <div class="flex items-center justify-between">
                                 <span class="font-bold text-white truncate max-w-[200px]">{{ $chunk['source_title'] }}</span>
                                 <div class="flex items-center gap-1.5">
@@ -232,7 +232,8 @@
                         $cat = $source->category ?? 'general_docs';
                         $chunkCount = $source->chunks_count ?? 0;
                     @endphp
-                    <x-glass.card variant="standard" class="p-5 space-y-4 border border-white/10 hover:border-violet-500/40 transition-all flex flex-col justify-between group shadow-lg">
+                    <div wire:key="kb-source-{{ $source->id }}" class="h-full">
+                    <x-glass.card variant="standard" class="p-5 space-y-4 border border-white/10 hover:border-violet-500/40 transition-all flex flex-col justify-between group shadow-lg h-full">
                         <div class="space-y-3">
                             <div class="flex items-start justify-between gap-2">
                                 <div class="space-y-1 min-w-0">
@@ -286,6 +287,7 @@
                             </div>
                         </div>
                     </x-glass.card>
+                    </div>
                 @endforeach
             </div>
         @endif
@@ -296,7 +298,7 @@
     <!-- ========================================================================= -->
     @if($showIngestModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-            <x-glass.card variant="elevated" class="w-full max-w-2xl p-6 space-y-5 border border-white/15 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <x-glass.card variant="elevated" class="w-full max-w-2xl p-6 space-y-5 border border-white/15 shadow-2xl relative max-h-[90vh] overflow-y-auto" x-data="{ ingestTab: 'text' }">
                 <div class="flex items-center justify-between pb-3 border-b border-white/10">
                     <h3 class="text-sm font-bold text-white tracking-tight flex items-center gap-2">
                         <span>🧠</span>
@@ -341,42 +343,42 @@
                 <div class="flex items-center gap-2 border-b border-white/10 pb-2">
                     <button 
                         type="button" 
-                        wire:click="$set('activeTab', 'text')"
-                        class="px-3 py-1.5 rounded-lg text-xs font-mono transition-colors {{ $activeTab === 'text' ? 'bg-violet-600 text-white font-bold' : 'text-slate-400 hover:text-white' }}"
+                        @click="ingestTab = 'text'"
+                        :class="ingestTab === 'text' ? 'bg-violet-600 text-white font-bold' : 'text-slate-400 hover:text-white'"
+                        class="px-3 py-1.5 rounded-lg text-xs font-mono transition-colors cursor-pointer"
                     >
                         📝 Plain Text / Markdown
                     </button>
                     <button 
                         type="button" 
-                        wire:click="$set('activeTab', 'url')"
-                        class="px-3 py-1.5 rounded-lg text-xs font-mono transition-colors {{ $activeTab === 'url' ? 'bg-violet-600 text-white font-bold' : 'text-slate-400 hover:text-white' }}"
+                        @click="ingestTab = 'url'"
+                        :class="ingestTab === 'url' ? 'bg-violet-600 text-white font-bold' : 'text-slate-400 hover:text-white'"
+                        class="px-3 py-1.5 rounded-lg text-xs font-mono transition-colors cursor-pointer"
                     >
                         🌐 Fetch from Web URL
                     </button>
                 </div>
 
-                @if($activeTab === 'url')
-                    <div class="space-y-2 p-3 rounded-xl bg-slate-900/60 border border-white/5">
-                        <label class="text-xs font-mono text-slate-300">Public Web URL</label>
-                        <div class="flex items-center gap-2">
-                            <input 
-                                type="url" 
-                                wire:model="urlInput"
-                                placeholder="https://example.com/docs/terms"
-                                class="flex-1 bg-slate-900 border border-white/15 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-violet-500 font-mono"
-                            />
-                            <button 
-                                type="button" 
-                                wire:click="fetchFromUrl"
-                                wire:loading.attr="disabled"
-                                class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold cursor-pointer disabled:opacity-50"
-                            >
-                                <span wire:loading.remove wire:target="fetchFromUrl">Fetch Content</span>
-                                <span wire:loading wire:target="fetchFromUrl">Fetching...</span>
-                            </button>
-                        </div>
+                <div x-show="ingestTab === 'url'" class="space-y-2 p-3 rounded-xl bg-slate-900/60 border border-white/5" style="display: none;">
+                    <label class="text-xs font-mono text-slate-300">Public Web URL</label>
+                    <div class="flex items-center gap-2">
+                        <input 
+                            type="url" 
+                            wire:model="urlInput"
+                            placeholder="https://example.com/docs/terms"
+                            class="flex-1 bg-slate-900 border border-white/15 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-violet-500 font-mono"
+                        />
+                        <button 
+                            type="button" 
+                            wire:click="fetchFromUrl"
+                            wire:loading.attr="disabled"
+                            class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold cursor-pointer disabled:opacity-50"
+                        >
+                            <span wire:loading.remove wire:target="fetchFromUrl">Fetch Content</span>
+                            <span wire:loading wire:target="fetchFromUrl">Fetching...</span>
+                        </button>
                     </div>
-                @endif
+                </div>
 
                 <!-- Content Area -->
                 <div class="space-y-1.5">

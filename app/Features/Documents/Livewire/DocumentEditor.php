@@ -42,21 +42,50 @@ use App\Features\Projects\Models\Project;
 use App\Features\SEO\Actions\GenerateSeoMetadata;
 use App\Features\SEO\Models\SeoAnalysis;
 use App\Features\SEO\Services\SeoAnalyzer;
+use App\Features\Documents\Services\DocumentImporter;
+use App\Features\Documents\Services\DocumentTextAnalyzer;
+use App\Features\Documents\Services\UniversalDocumentExtractor;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 #[Layout('layouts.workspace')]
 class DocumentEditor extends Component
 {
+    use WithFileUploads;
+
     public int $documentId;
 
     public string $title = '';
 
     public string $contentHtml = '';
+
+    // Universal File Import Studio State
+    public bool $showImportModal = false;
+
+    public $importFile = null;
+
+    public bool $isExtracting = false;
+
+    public ?array $extractedDocument = null;
+
+    public string $importInsertMode = 'replace'; // 'replace', 'append', 'cursor', 'new_doc'
+
+    public string $importActiveTab = 'preview'; // 'preview', 'analysis', 'raw'
+
+    public array $importFormatOptions = [
+        'clean_whitespace' => true,
+        'preserve_headings' => true,
+        'smart_typography' => true,
+    ];
+
+    public string $importErrorMessage = '';
+
+    public string $importSuccessMessage = '';
 
     public ?int $projectId = null;
 
@@ -146,9 +175,13 @@ class DocumentEditor extends Component
 
     public string $blogCategory = 'Artificial Intelligence';
 
+    public array $blogCategories = [];
+
     public string $blogTags = '';
 
     public string $blogFeaturedImage = '';
+
+    public $featuredImageUpload = null;
 
     public string $blogExcerpt = '';
 
@@ -185,7 +218,7 @@ class DocumentEditor extends Component
             $this->metaDescription = $existingSeo->metrics['meta_description'] ?? '';
         }
 
-        // Always run comprehensive analysis to guarantee rank_math pillars, recommendations, and marked_html exist
+        // Always run comprehensive analysis to guarantee rank_math pillars, recommendations exist
         $this->seoData = $analyzer->analyze(
             $this->contentHtml,
             $this->title,
@@ -193,9 +226,11 @@ class DocumentEditor extends Component
             $this->secondaryKeywords ?? [],
             $this->metaDescription
         );
+        unset($this->seoData['marked_html']);
 
         $this->generateQualityAudit();
         $this->loadBlogState();
+        $this->loadShareState();
     }
 
     #[On('autosave')]
@@ -248,13 +283,17 @@ class DocumentEditor extends Component
                 $this->contentHtml = $liveHtml;
             }
 
-            $this->seoData = $analyzer->analyze(
+            $rawSeo = $analyzer->analyze(
                 $this->contentHtml,
                 $this->title,
                 $this->targetKeyword ?: null,
                 $this->secondaryKeywords,
                 $this->metaDescription ?? ''
             );
+
+            $markedHtml = $rawSeo['marked_html'] ?? '';
+            unset($rawSeo['marked_html']);
+            $this->seoData = $rawSeo;
 
             $savedMetrics = $this->seoData['metrics'] ?? [];
             if (! empty($this->metaDescription)) {
@@ -275,7 +314,7 @@ class DocumentEditor extends Component
 
             $this->generateQualityAudit();
 
-            return $this->seoData['marked_html'] ?? '';
+            return $markedHtml;
         } catch (Exception $e) {
             $this->seoErrorMessage = $e->getMessage();
 
@@ -931,6 +970,8 @@ class DocumentEditor extends Component
 
     public function loadBlogState(): void
     {
+        $this->blogCategories = BlogPost::defaultCategories();
+
         $post = BlogPost::where('document_id', $this->documentId)->first();
 
         if ($post) {
@@ -939,6 +980,9 @@ class DocumentEditor extends Component
             $this->blogTitle = $post->title;
             $this->blogSlug = $post->slug;
             $this->blogCategory = $post->category ?: 'Artificial Intelligence';
+            if (! in_array($this->blogCategory, $this->blogCategories)) {
+                $this->blogCategories[] = $this->blogCategory;
+            }
             $this->blogTags = implode(', ', $post->tags ?? []);
             $this->blogFeaturedImage = $post->featured_image ?? '';
             $this->blogExcerpt = $post->excerpt ?? '';
@@ -1009,15 +1053,109 @@ class DocumentEditor extends Component
         session()->flash('blog_status', 'Article has been unpublished and moved to draft.');
     }
 
+    public function updatedFeaturedImageUpload(): void
+    {
+        $this->validate([
+            'featuredImageUpload' => [
+                'required',
+                'file',
+                'mimes:png,jpg,jpeg,webp,gif,svg,avif,bmp,ico,tif,tiff',
+                'max:15360',
+            ],
+        ], [
+            'featuredImageUpload.required' => 'Please select an image file to upload.',
+            'featuredImageUpload.file' => 'The uploaded file must be a valid image file.',
+            'featuredImageUpload.mimes' => 'Supported image formats: PNG, JPG, JPEG, WebP, GIF, SVG, AVIF, BMP, ICO, TIFF.',
+            'featuredImageUpload.max' => 'The image size cannot exceed 15MB.',
+        ]);
+
+        try {
+            $seoFileName = $this->generateSeoFriendlyImageName();
+            $path = $this->featuredImageUpload->storeAs('featured-images', $seoFileName, 'public');
+            $this->blogFeaturedImage = asset('storage/' . $path);
+            if ($this->blogPostId) {
+                BlogPost::where('id', $this->blogPostId)->update(['featured_image' => $this->blogFeaturedImage]);
+            }
+            $this->hasUnsavedChanges = true;
+            session()->flash('blog_status', 'Featured image uploaded successfully!');
+        } catch (\Throwable $e) {
+            $this->addError('featuredImageUpload', 'Failed to upload image: ' . $e->getMessage());
+        } finally {
+            $this->featuredImageUpload = null;
+        }
+    }
+
+    protected function generateSeoFriendlyImageName(): string
+    {
+        // 1. Gather descriptive semantic slug candidates
+        $slugBase = '';
+        if (! empty($this->blogSlug)) {
+            $slugBase = $this->blogSlug;
+        } elseif (! empty($this->targetKeyword)) {
+            $slugBase = $this->targetKeyword;
+        } elseif (! empty($this->blogTitle)) {
+            $slugBase = $this->blogTitle;
+        } elseif (! empty($this->title)) {
+            $slugBase = $this->title;
+        }
+
+        $slugBase = Str::slug($slugBase);
+
+        // 2. Extract original filename slug
+        $originalRaw = pathinfo((string) $this->featuredImageUpload->getClientOriginalName(), PATHINFO_FILENAME);
+        $originalSlug = Str::slug($originalRaw);
+
+        // Ignore generic camera / screenshot names like IMG_1234, Screenshot 2026, image, untitled
+        $isGeneric = (bool) preg_match('/^(img|image|screenshot|photo|dsc|untitled|banner|cover)[-_0-9]*$/i', $originalSlug);
+
+        // 3. Assemble clean semantic name
+        if (! empty($slugBase)) {
+            $baseName = Str::limit($slugBase, 60, '') . '-featured-image';
+        } elseif (! empty($originalSlug) && ! $isGeneric) {
+            $baseName = Str::limit($originalSlug, 60, '') . '-featured-image';
+        } else {
+            $baseName = 'featured-image';
+        }
+
+        // 4. Resolve accurate file extension
+        $extension = strtolower(
+            $this->featuredImageUpload->getClientOriginalExtension()
+            ?: $this->featuredImageUpload->guessExtension()
+            ?: 'png'
+        );
+
+        // 5. Append short unique collision-prevention token (6 hex chars)
+        $uniqueSuffix = substr(md5(uniqid((string) mt_rand(), true)), 0, 6);
+
+        return "{$baseName}-{$uniqueSuffix}.{$extension}";
+    }
+
     public function removeFeaturedImage(): void
     {
         $this->blogFeaturedImage = '';
+        if ($this->blogPostId) {
+            BlogPost::where('id', $this->blogPostId)->update(['featured_image' => null]);
+        }
+        $this->hasUnsavedChanges = true;
         session()->flash('blog_status', 'Featured image removed.');
     }
 
     public function setBlogCategory(string $category): void
     {
+        $category = trim($category);
+        if (empty($category)) {
+            return;
+        }
+
         $this->blogCategory = $category;
+        if (! in_array($category, $this->blogCategories)) {
+            $this->blogCategories[] = $category;
+        }
+    }
+
+    public function updatedBlogStatus(string $value): void
+    {
+        $this->isPublishedToBlog = ($value === 'published');
     }
 
     public function addBlogTag(string $tag): void
@@ -1041,9 +1179,165 @@ class DocumentEditor extends Component
         $this->blogTags = implode(', ', $filtered);
     }
 
+    // =========================================================================
+    // Universal File Import Studio Methods
+    // =========================================================================
+
+    public function openImportModal(): void
+    {
+        $this->resetImportState();
+        $this->showImportModal = true;
+    }
+
+    public function closeImportModal(): void
+    {
+        $this->showImportModal = false;
+        $this->resetImportState();
+    }
+
+    public function resetImportState(): void
+    {
+        $this->importFile = null;
+        $this->isExtracting = false;
+        $this->extractedDocument = null;
+        $this->importInsertMode = 'replace';
+        $this->importActiveTab = 'preview';
+        $this->importErrorMessage = '';
+        $this->importSuccessMessage = '';
+    }
+
+    public function updatedImportFile(): void
+    {
+        $this->validate([
+            'importFile' => 'required|file|max:20480', // 20MB max file size
+        ]);
+
+        $this->processUploadedImportFile();
+    }
+
+    public function reprocessImport(): void
+    {
+        if ($this->importFile) {
+            $this->processUploadedImportFile();
+        }
+    }
+
+    protected function processUploadedImportFile(): void
+    {
+        $this->isExtracting = true;
+        $this->importErrorMessage = '';
+        $this->importSuccessMessage = '';
+
+        try {
+            $extractor = app(UniversalDocumentExtractor::class);
+            $analyzer = app(DocumentTextAnalyzer::class);
+
+            $extracted = $extractor->extract($this->importFile, $this->importFormatOptions);
+            $analysis = $analyzer->analyze($extracted['plain_text'], $extracted['html']);
+
+            $this->extractedDocument = [
+                'title' => $extracted['title'],
+                'html' => $extracted['html'],
+                'plain_text' => $extracted['plain_text'],
+                'format' => $extracted['format'],
+                'metadata' => $extracted['metadata'],
+                'metrics' => $analysis['metrics'],
+                'readability' => $analysis['readability'],
+                'tone' => $analysis['tone'],
+                'keywords' => $analysis['keywords'],
+                'summary' => $analysis['summary'],
+            ];
+
+            $this->importSuccessMessage = 'Document extracted and analyzed successfully.';
+        } catch (Exception $e) {
+            $this->importErrorMessage = 'Extraction Error: ' . $e->getMessage();
+            $this->extractedDocument = null;
+        } finally {
+            $this->isExtracting = false;
+        }
+    }
+
+    public function confirmImport(): void
+    {
+        if (! $this->extractedDocument || empty($this->extractedDocument['html'])) {
+            $this->importErrorMessage = 'No valid extracted content found to import.';
+            return;
+        }
+
+        $html = $this->extractedDocument['html'];
+        $title = $this->extractedDocument['title'];
+        $mode = $this->importInsertMode;
+
+        if ($mode === 'new_doc') {
+            $importer = app(DocumentImporter::class);
+            $user = Auth::user();
+            $newDoc = $importer->importFromText(
+                $user,
+                $title ?: 'Imported ' . strtoupper($this->extractedDocument['format']) . ' Document',
+                $this->extractedDocument['plain_text'],
+                'html',
+                $this->projectId
+            );
+
+            if ($newDoc->content) {
+                $newDoc->content->update([
+                    'content_html' => $html,
+                    'content_plain' => $this->extractedDocument['plain_text'],
+                ]);
+            }
+
+            session()->flash('status', "Document '{$newDoc->title}' created successfully from import.");
+            $this->showImportModal = false;
+            $this->resetImportState();
+            $this->redirectRoute('documents.editor', ['id' => $newDoc->id]);
+            return;
+        }
+
+        // Auto-update document title if replacing and currently untitled
+        if ($mode === 'replace' && ! empty($title) && (empty($this->title) || $this->title === 'Untitled Document')) {
+            $this->title = $title;
+            Document::where('id', $this->documentId)
+                ->where('user_id', Auth::id())
+                ->update(['title' => $title]);
+        }
+
+        // Dispatch insertion event to TipTap canvas
+        $this->dispatch('editor:insertImportedContent', [
+            'content' => $html,
+            'mode' => $mode,
+            'title' => $title,
+        ]);
+
+        $this->showImportModal = false;
+        $this->resetImportState();
+        session()->flash('status', 'Content successfully imported into editor canvas.');
+    }
+
+    public function getVersionContent(int $id): string
+    {
+        $version = DocumentVersion::where('document_id', $this->documentId)->find($id);
+
+        return $version?->content_html ?? '';
+    }
+
     public function render()
     {
-        $document = Document::with(['versions.creator', 'project'])->findOrFail($this->documentId);
+        $with = [
+            'project',
+            'versions' => function ($query) {
+                $query->select(['id', 'document_id', 'created_by', 'version_number', 'word_count', 'summary', 'operation_type', 'created_at'])
+                    ->orderBy('version_number', 'desc');
+            },
+        ];
+        if ($this->showVersionHistory) {
+            $with['versions'] = function ($query) {
+                $query->with('creator')
+                    ->select(['id', 'document_id', 'created_by', 'version_number', 'word_count', 'summary', 'operation_type', 'created_at'])
+                    ->orderBy('version_number', 'desc');
+            };
+        }
+
+        $document = Document::with($with)->findOrFail($this->documentId);
         $projects = Project::where('user_id', Auth::id())->get();
         $availableEditors = EditorRegistry::getAvailableEditors();
 

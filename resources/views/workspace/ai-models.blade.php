@@ -113,7 +113,7 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             @foreach($providers as $p)
-                <x-glass.card variant="standard" class="p-5 flex flex-col justify-between hover:border-indigo-500/40 transition-all group relative overflow-hidden">
+                <x-glass.card wire:key="ai-prov-{{ $p->id }}" variant="standard" class="p-5 flex flex-col justify-between hover:border-indigo-500/40 transition-all group relative overflow-hidden">
                     @if($p->slug === 'omniroute')
                         <div class="absolute top-0 right-0 px-2.5 py-0.5 bg-gradient-to-l from-indigo-600 to-purple-600 text-white font-mono text-[9px] font-bold uppercase rounded-bl-lg shadow-md">
                             PRIMARY GATEWAY
@@ -246,7 +246,7 @@
                 </thead>
                 <tbody class="divide-y divide-white/5">
                     @forelse($models as $model)
-                        <tr class="hover:bg-white/[0.02] transition-colors">
+                        <tr wire:key="ai-model-row-{{ $model->id }}" class="hover:bg-white/[0.02] transition-colors">
                             <td class="py-3 px-4">
                                 <div class="font-bold text-white flex items-center gap-2">
                                     <span>{{ $model->name }}</span>
@@ -385,9 +385,11 @@
                         </div>
                         <button 
                             type="submit" 
+                            wire:loading.attr="disabled"
                             class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/30 transition-all cursor-pointer shrink-0"
                         >
-                            Save Key
+                            <span wire:loading.remove wire:target="saveCustomKey">Save Key</span>
+                            <span wire:loading wire:target="saveCustomKey">Saving...</span>
                         </button>
                     </div>
                 </form>
@@ -416,7 +418,7 @@
                                 $isVisible = in_array($key->id, $visibleKeys, true);
                                 $rawKey = $key->getRawKeyForOwner(auth()->user());
                             @endphp
-                            <tr class="hover:bg-white/[0.02] transition-colors">
+                            <tr wire:key="ai-byok-{{ $key->id }}" class="hover:bg-white/[0.02] transition-colors">
                                 <td class="py-3 px-3">
                                     <span class="font-bold text-white uppercase font-mono">{{ $key->provider_slug }}</span>
                                 </td>

@@ -56,7 +56,8 @@
     <!-- Brand Voice Cards Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @forelse($brandVoices as $voice)
-            <x-glass.card variant="elevated" class="p-6 flex flex-col justify-between hover:border-violet-500/40 transition-all relative group {{ $voice->is_default ? 'border-violet-500/50 bg-violet-950/20' : '' }}">
+            <div wire:key="voice-card-{{ $voice->id }}" class="h-full">
+            <x-glass.card variant="elevated" class="p-6 flex flex-col justify-between hover:border-violet-500/40 transition-all relative group h-full {{ $voice->is_default ? 'border-violet-500/50 bg-violet-950/20' : '' }}">
                 @if($voice->is_default)
                     <div class="absolute top-0 right-0 px-3 py-1 bg-gradient-to-l from-violet-600 to-indigo-600 text-white font-mono text-[9px] font-bold uppercase rounded-bl-xl shadow-sm">
                         ★ DEFAULT VOICE
@@ -92,7 +93,7 @@
                                 <div class="flex items-center gap-1.5 flex-wrap">
                                     <strong class="text-slate-300">Avoid:</strong>
                                     @foreach($voice->forbidden_words as $w)
-                                        <span class="px-1.5 py-0.2 rounded bg-red-950 text-red-300 text-[9px] border border-red-500/20 font-mono">{{ $w }}</span>
+                                        <span wire:key="forbidden-{{ $voice->id }}-{{ $loop->index }}" class="px-1.5 py-0.2 rounded bg-red-950 text-red-300 text-[9px] border border-red-500/20 font-mono">{{ $w }}</span>
                                     @endforeach
                                 </div>
                             @endif
@@ -112,17 +113,16 @@
                                 Set as Default
                             </button>
                         @else
-                            <span class="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
-                                ✓ Active Default
-                            </span>
+                            <span class="text-[11px] text-emerald-400 font-mono">Active Default</span>
                         @endif
                     </div>
 
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-1.5">
                         <button 
                             type="button" 
                             wire:click="openEditModal({{ $voice->id }})"
-                            class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/10 text-xs font-semibold transition-all cursor-pointer"
+                            class="px-2 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/10 text-xs transition-all cursor-pointer"
+                            title="Edit Profile"
                         >
                             ✏️ Edit
                         </button>
@@ -138,6 +138,7 @@
                     </div>
                 </div>
             </x-glass.card>
+            </div>
         @empty
             <div class="col-span-full py-16 text-center">
                 <x-glass.card variant="subtle" class="p-8 max-w-lg mx-auto space-y-4">
@@ -187,6 +188,7 @@
                             <div class="grid grid-cols-2 gap-2">
                                 @foreach($presets as $idx => $p)
                                     <button 
+                                        wire:key="voice-preset-{{ $idx }}"
                                         type="button" 
                                         wire:click="applyPreset({{ $idx }})"
                                         class="p-2.5 text-left rounded-xl bg-slate-900/80 hover:bg-violet-950/40 border border-white/5 hover:border-violet-500/30 transition-all cursor-pointer"
@@ -291,9 +293,11 @@
                         </button>
                         <button 
                             type="submit"
+                            wire:loading.attr="disabled"
                             class="px-5 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold shadow-lg shadow-violet-600/30 transition-all cursor-pointer"
                         >
-                            {{ $editingId ? 'Update Brand Voice' : 'Create Profile' }}
+                            <span wire:loading.remove wire:target="save">{{ $editingId ? 'Update Brand Voice' : 'Create Profile' }}</span>
+                            <span wire:loading wire:target="save">Saving Profile...</span>
                         </button>
                     </div>
                 </form>

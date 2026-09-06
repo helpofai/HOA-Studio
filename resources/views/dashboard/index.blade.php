@@ -143,7 +143,7 @@
             @else
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     @foreach($stats['recent_documents'] as $doc)
-                        <a href="{{ route('documents.editor', $doc->id) }}" wire:navigate class="block group">
+                        <a wire:key="dash-doc-{{ $doc->id }}" href="{{ route('documents.editor', $doc->id) }}" wire:navigate class="block group">
                             <x-glass.card variant="standard" class="p-5 hover:border-indigo-500/40 hover:-translate-y-0.5 transition-all">
                                 <div class="flex items-start justify-between gap-2 mb-2">
                                     <h4 class="text-sm font-bold text-white truncate group-hover:text-indigo-300 transition-colors">{{ $doc->title }}</h4>
@@ -175,7 +175,7 @@
                 @else
                     <div class="space-y-3">
                         @foreach($stats['recent_versions'] as $ver)
-                            <div class="flex items-start gap-3 text-xs pb-3 border-b border-white/5 last:border-0 last:pb-0">
+                            <div wire:key="dash-ver-{{ $ver->id }}" class="flex items-start gap-3 text-xs pb-3 border-b border-white/5 last:border-0 last:pb-0">
                                 <div class="w-7 h-7 rounded-lg bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">
                                     v{{ $ver->version_number }}
                                 </div>

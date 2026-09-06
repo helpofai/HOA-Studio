@@ -70,7 +70,7 @@
                 </thead>
                 <tbody class="divide-y divide-white/5 text-slate-200">
                     @forelse($logs as $log)
-                        <tr class="hover:bg-white/5 transition-colors">
+                        <tr wire:key="admin-usage-log-{{ $log->id }}" class="hover:bg-white/5 transition-colors">
                             <td class="p-4 font-medium text-white">
                                 <div>{{ $log->user_name ?? 'System / Anonymous User' }}</div>
                                 <div class="text-[11px] text-slate-400">{{ $log->user_email ?? 'N/A' }}</div>

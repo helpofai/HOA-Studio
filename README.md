@@ -95,6 +95,28 @@
 - **Cloud & Local RAG + Brain Memory**: Vector RAG knowledge retrieval, Content Writer Brain, and brand voice personas are compiled on the server before being streamed directly to your local hardware.
 - **Automatic Server Proxy Fallback**: If your local daemon is offline or unreachable, HOA Studio automatically falls back to the cloud server proxy with zero disruption.
 
+### 📰 10. Public Blog Publishing Engine & Dynamic Knowledge Archive (`/blog`)
+- **Dynamic Knowledge Archive & Content Explorer (`/blog` & `/blog/archive`)**:
+  - Live debounced search across titles, excerpts, categories, and tags.
+  - Interactive tag cloud with article frequency counts (`BlogPost::getPublishedTagsWithCounts()`).
+  - Categories directory with live article count metrics.
+  - Chronological archive timeline (`BlogPost::getPublishedArchiveTimeline()`).
+  - Quick read-time filters (< 5m quick vs 5m+ deep dives) and multi-criteria sorting.
+  - Dynamic Active Filter Chips Bar with 1-click dismissal and reset.
+  - Dual layout presentation switcher: Magazine Grid (`▦`) and Editorial List (`☰`).
+- **Reading Progress Memory & Sync Engine (`hoaCardReadingProgress`)**:
+  - Client-side reading persistence via browser `localStorage` keyed by article slug.
+  - Animated reading progress bar and real-time status badges (`• 35% read`, `✓ 100% Read`).
+  - Dynamic reading status badges on article thumbnails.
+  - Upgraded modern glassmorphic action buttons with dynamic states ("Read →", "Resume (35%) →", and "Read Again ↺" with hover rotation).
+  - Multi-tab and bfcache (back-forward cache) synchronization via `storage`, `pageshow`, and `focus` window events.
+  - "Pick up where you left off" floating resume reading toast on `/blog/{slug}` with 1-click smooth jump.
+- **Publisher Layout & Interactive Schemas**:
+  - 100% self-hosted local Mermaid library for interactive pan-and-zoom vector schemas and ER diagrams.
+  - macOS cyberpunk ASCII terminal wrappers for box-drawing flowcharts.
+  - Mobile collapsible TOC drawer with active heading spy.
+  - Dual publication and revision dates (`Published on {date}` and `Updated on {date}`).
+
 ---
 
 ## 🏗 System Architecture
