@@ -10,6 +10,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.7.7] - 2026-09-06
 
 ### Added
+- **Multi-Stage Content Intelligence + Autonomous Writing Pipeline (Phase 1)**:
+  - **Dynamic 10-Node Workflow Graph Execution Engine (`WorkflowGraph`, `WorkflowNode`, `WorkflowRun`)**:
+    - Replaced monolithic single-prompt content generation with a structured, multi-stage state machine where each node produces rich structured telemetry utilized by downstream nodes.
+    - Implemented 10 specialized intelligence & authoring nodes:
+      - `AudienceIntentNode`: Analyzes search intent, persona pain points, cognitive reading stage, and tone directives.
+      - `SERPResearchNode`: Validates keyword opportunities, search volume signals, and competitive gap parameters.
+      - `InformationGainNode`: Discovers non-obvious perspectives, unique statistics, proprietary counter-narratives, and value hooks.
+      - `FactEvidenceNode`: Collects and validates statistical claims and verifiable citations before prose generation.
+      - `AngleOutlineNode`: Builds hierarchical section architectures (H2/H3), reading flows, and narrative focal points.
+      - `DraftCompositionNode`: Generates deep-dive, high-retention long-form prose strictly bound to researched evidence.
+      - `StyleEditorNode`: Polishes tone, cadence, rhythm, passive-to-active transformations, and brand voice adherence.
+      - `FactAuditNode`: Rigorously audits generated claims against extracted evidence tables to ensure zero AI hallucinations.
+      - `SEOOptimizerNode`: Optimizes entity density, semantic keywords, heading structures, and search intent signals.
+      - `QualityEvaluationNode`: Performs rubric-based multidimensional evaluation (Depth, Accuracy, Angle, Readability, SEO, Conversion).
+  - **Self-Correcting Dynamic Quality Feedback Loops**:
+    - Automated threshold gating (default 80/100 quality benchmark). Failed evaluations trigger targeted back-propagation loops to composition and outline nodes with specific remediation diagnostics.
+  - **TipTap Document Auto-Assembly & Bidirectional Persistence (`AssembleDocumentAction`)**:
+    - Automatically translates completed pipeline payloads into ProseMirror TipTap document schemas (headings, paragraphs, blockquotes, bullet lists) and clean HTML, creating or updating Workspace documents with real-time word counting and metadata tags.
+  - **Interactive Content Intelligence Hub (`/dashboard/content-intelligence`)**:
+    - High-performance Livewire 3 workspace interface featuring real-time KPI metrics (Missions, Active Runs, Assembled Articles, Quality Averages).
+    - Interactive single-node step execution (`stepWorkflow`) and full autonomous pipeline runs (`runFullWorkflow`).
+    - Sliding Graph Inspector drawer displaying live node states, execution latency, retry counts, and payload payloads.
+    - Content Mission initialization modal configuring personas, risk tolerance levels, budget tiers, and target word counts.
+  - **Sidebar Navigation Integration**:
+    - Direct navigation access integrated across both User Workspace sidebar and Admin Control Center with SPA page transitions (`wire:navigate`) and active route highlighting.
+  - **Robust Verification & Integrity Testing**:
+    - 25 dedicated feature tests in `ContentIntelligenceTest.php` verifying authorization, state transitions, mission creation, node execution, feedback loops, and TipTap document compilation.
 - **Client-Side Reading Progress Memory & Card Synchronization Engine (`hoaCardReadingProgress`)**:
   - Automatic persistent tracking of reading progress (`progress`, `completed`, `scrollY`, `updated_at`) using browser `localStorage` keyed by unique article slug (`hoa_read_progress_{slug}`).
   - **Dual-Gradient Progress Bar & Dynamic Status Badges**: Article cards across Grid View, List View, and Featured Hero dynamically reveal an animated gradient progress track (`0% → 100%`), live progress badge (`• 35% read` or `✓ 100% Read`), time-to-finish indicator, and thumbnail status badges.
