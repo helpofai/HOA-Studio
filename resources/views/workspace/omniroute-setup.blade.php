@@ -473,7 +473,7 @@
                 <!-- Terminal Log Container -->
                 <div class="h-64 overflow-y-auto bg-slate-950 rounded-xl border border-white/10 p-3 font-mono text-[11px] space-y-1.5 text-slate-300 select-text scrollbar-thin">
                     @forelse($filteredLogs as $log)
-                        <div class="flex items-start gap-2 leading-relaxed border-b border-white/[0.02] pb-1">
+                        <div wire:key="omni-log-{{ $loop->index }}" class="flex items-start gap-2 leading-relaxed border-b border-white/[0.02] pb-1">
                             <span class="text-slate-500 text-[10px] shrink-0 font-mono">
                                 {{ \Illuminate\Support\Carbon::parse($log['timestamp'] ?? now())->format('H:i:s') }}
                             </span>
@@ -621,6 +621,7 @@
                         };
                     @endphp
                     <button 
+                        wire:key="omni-vendor-{{ $v->owned_by }}"
                         type="button" 
                         wire:click="$set('modelVendorFilter', '{{ $v->owned_by }}')" 
                         class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] flex items-center gap-1 {{ $modelVendorFilter === $v->owned_by ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
@@ -678,7 +679,8 @@
                     $usage = $modelUsage->get($m->model_id);
                     $isBeingTested = in_array($m->id, $testingModelIds, true);
                 @endphp
-                <x-glass.card variant="standard" class="p-5 flex flex-col justify-between hover:border-indigo-500/40 transition-all relative {{ $isCurrentDefault ? 'border-indigo-500/50 bg-indigo-950/20' : '' }}">
+                <div wire:key="omni-model-{{ $m->id }}" class="h-full">
+                <x-glass.card variant="standard" class="p-5 flex flex-col justify-between hover:border-indigo-500/40 transition-all relative h-full {{ $isCurrentDefault ? 'border-indigo-500/50 bg-indigo-950/20' : '' }}">
                     @if($isCurrentDefault)
                         <div class="absolute top-0 right-0 px-2.5 py-0.5 bg-gradient-to-l from-indigo-600 to-purple-600 text-white font-mono text-[9px] font-bold uppercase rounded-bl-lg shadow-sm">
                             ★ DEFAULT ROUTE
@@ -765,6 +767,7 @@
                         </button>
                     </div>
                 </x-glass.card>
+                </div>
             @empty
                 <div class="col-span-full">
                     <x-glass.card variant="subtle" class="p-12 text-center text-slate-500">

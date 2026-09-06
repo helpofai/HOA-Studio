@@ -19,12 +19,12 @@ namespace Tests\Feature;
 
 use App\Features\Blog\Livewire\BlogIndexPage;
 use App\Features\Blog\Livewire\BlogManagerPage;
-use App\Features\Blog\Livewire\BlogPostPage;
 use App\Features\Blog\Models\BlogPost;
 use App\Features\Documents\Livewire\DocumentEditor;
 use App\Features\Documents\Models\Document;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -33,6 +33,7 @@ class BlogPostSystemTest extends TestCase
     use RefreshDatabase;
 
     protected User $author;
+
     protected Document $document;
 
     protected function setUp(): void
@@ -41,7 +42,7 @@ class BlogPostSystemTest extends TestCase
 
         $this->author = User::factory()->create([
             'name' => 'Jane Author',
-            'email' => 'author_' . uniqid() . '@helpofai.com',
+            'email' => 'author_'.uniqid().'@helpofai.com',
             'role' => 'user',
             'plan' => 'pro',
             'monthly_word_quota' => 50000,
@@ -323,7 +324,188 @@ class BlogPostSystemTest extends TestCase
             ->assertSet('blogFeaturedImage', '')
             // Test Excerpt AI generation
             ->call('generateBlogExcerpt')
-            ->assertSet('blogExcerpt', fn($excerpt) => !empty($excerpt));
+            ->assertSet('blogExcerpt', fn ($excerpt) => ! empty($excerpt));
+    }
+
+    public function test_blog_post_shows_published_and_updated_dates_when_updated_after_publication()
+    {
+        $post = BlogPost::create([
+            'user_id' => $this->author->id,
+            'document_id' => $this->document->id,
+            'title' => 'How to Master DeepSeek AI in 2026: Step-by-Step Technical Guide',
+            'slug' => 'how-to-master-deepseek-ai-in-2026-step-by-step-technical-guide',
+            'excerpt' => 'A complete technical guide to DeepSeek AI.',
+            'content_html' => '<p>DeepSeek AI architecture and mastery guide.</p>',
+            'category' => 'Artificial Intelligence',
+            'status' => 'published',
+            'published_at' => '2026-09-05 16:17:08',
+        ]);
+
+        DB::table('blog_posts')
+            ->where('id', $post->id)
+            ->update([
+                'published_at' => '2026-09-05 16:17:08',
+                'updated_at' => '2026-09-09 10:00:00',
+            ]);
+
+        $response = $this->get(route('blog.show', $post->slug));
+        $response->assertStatus(200);
+        $response->assertSee('Published on September 05, 2026');
+        $response->assertSee('Updated on September 09, 2026');
+
+        // Verify that view increment does not touch updated_at
+        $post->refresh();
+        $this->assertEquals('2026-09-09 10:00:00', $post->updated_at->format('Y-m-d H:i:s'));
+    }
+
+    public function test_dynamic_blog_archive_route_and_view_switching()
+    {
+        BlogPost::create([
+            'user_id' => $this->author->id,
+            'document_id' => $this->document->id,
+            'title' => 'Article One for Archive',
+            'slug' => 'article-one-for-archive',
+            'excerpt' => 'First test post for dynamic archive view.',
+            'content_html' => '<p>Content for post one.</p>',
+            'category' => 'Engineering',
+            'tags' => ['Laravel', 'AI'],
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+
+        $response = $this->get(route('blog.archive'));
+        $response->assertStatus(200);
+        $response->assertSee('The HelpOfAi Studio Journal');
+        $response->assertSee('Tag Cloud');
+        $response->assertSee('Categories Directory');
+        $response->assertSee('Archive Timeline');
+
+        // Test Livewire view toggle
+        Livewire::test(BlogIndexPage::class)
+            ->assertSet('view', 'grid')
+            ->call('setView', 'list')
+            ->assertSet('view', 'list')
+            ->call('setView', 'grid')
+            ->assertSet('view', 'grid');
+    }
+
+    public function test_dynamic_blog_archive_tag_and_category_filtering()
+    {
+        $postAi = BlogPost::create([
+            'user_id' => $this->author->id,
+            'document_id' => $this->document->id,
+            'title' => 'Deep Dive into LLM Architecture',
+            'slug' => 'deep-dive-into-llm-architecture',
+            'excerpt' => 'Exploring neural attention mechanisms.',
+            'content_html' => '<p>Deep attention layers.</p>',
+            'category' => 'Artificial Intelligence',
+            'tags' => ['DeepSeek', 'Neural Networks'],
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+
+        $postSeo = BlogPost::create([
+            'user_id' => $this->author->id,
+            'document_id' => $this->document->id,
+            'title' => 'Advanced SERP Intelligence Tactics',
+            'slug' => 'advanced-serp-intelligence-tactics',
+            'excerpt' => 'Optimizing search visibility.',
+            'content_html' => '<p>SERP snippets.</p>',
+            'category' => 'SEO Strategy',
+            'tags' => ['Rankings', 'Keywords'],
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+
+        // Filter by Tag
+        Livewire::test(BlogIndexPage::class)
+            ->call('filterTag', 'DeepSeek')
+            ->assertSet('tag', 'DeepSeek')
+            ->assertSee('Deep Dive into LLM Architecture')
+            ->assertDontSee('Advanced SERP Intelligence Tactics')
+            // Toggle tag off
+            ->call('filterTag', 'DeepSeek')
+            ->assertSet('tag', 'all')
+            // Filter by Category
+            ->call('filterCategory', 'SEO Strategy')
+            ->assertSet('category', 'SEO Strategy')
+            ->assertSee('Advanced SERP Intelligence Tactics')
+            ->assertDontSee('Deep Dive into LLM Architecture');
+    }
+
+    public function test_dynamic_blog_archive_search_and_clear_filters()
+    {
+        BlogPost::create([
+            'user_id' => $this->author->id,
+            'document_id' => $this->document->id,
+            'title' => 'Mastering TipTap 3.30 Realtime Extensions',
+            'slug' => 'mastering-tiptap-3-30-realtime-extensions',
+            'excerpt' => 'Rich text editing capabilities.',
+            'content_html' => '<p>TipTap editor setup.</p>',
+            'category' => 'Editor Workflows',
+            'tags' => ['TipTap', 'Vue'],
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+
+        Livewire::test(BlogIndexPage::class)
+            ->set('search', 'TipTap')
+            ->assertSee('Mastering TipTap 3.30 Realtime Extensions')
+            ->set('sort', 'popular')
+            ->set('readTime', 'quick')
+            ->assertSet('sort', 'popular')
+            ->assertSet('readTime', 'quick')
+            ->call('clearFilters')
+            ->assertSet('search', '')
+            ->assertSet('category', 'all')
+            ->assertSet('tag', 'all')
+            ->assertSet('sort', 'latest')
+            ->assertSet('readTime', 'all')
+            ->assertSet('archive', 'all');
+    }
+
+    public function test_blog_cards_render_reading_progress_tracker_and_upgraded_action_buttons()
+    {
+        BlogPost::create([
+            'user_id' => $this->author->id,
+            'document_id' => $this->document->id,
+            'title' => 'The Next Era of Semantic Search in 2026',
+            'slug' => 'the-next-era-of-semantic-search-2026',
+            'excerpt' => 'Exploring neural vector databases.',
+            'content_html' => '<p>Semantic search vectors.</p>',
+            'category' => 'Artificial Intelligence',
+            'tags' => ['Search', 'Vector'],
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+
+        $response = $this->get(route('blog.index'));
+        $response->assertStatus(200);
+        $response->assertSee('hoaCardReadingProgress');
+        $response->assertSee('the-next-era-of-semantic-search-2026');
+        $response->assertSee('Read Again');
+        $response->assertSee('Resume');
+        $response->assertSee('100% Read');
+    }
+
+    public function test_blog_post_page_renders_resume_reading_toast_and_scroll_tracker()
+    {
+        $post = BlogPost::create([
+            'user_id' => $this->author->id,
+            'document_id' => $this->document->id,
+            'title' => 'Deep Dive into LLM Architecture 2026',
+            'slug' => 'deep-dive-into-llm-architecture-2026',
+            'excerpt' => 'Architectural breakdown of transformers.',
+            'content_html' => '<p>Transformer layers and self-attention.</p>',
+            'category' => 'Deep Learning',
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+
+        $response = $this->get(route('blog.show', $post->slug));
+        $response->assertStatus(200);
+        $response->assertSee("hoaBlogPostReader('{$post->slug}')", false);
+        $response->assertSee('Pick up where you left off');
+        $response->assertSee('Jump &rarr;', false);
     }
 }
-

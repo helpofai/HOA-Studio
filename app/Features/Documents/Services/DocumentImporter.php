@@ -34,23 +34,61 @@ use Illuminate\Support\Str;
 
 class DocumentImporter
 {
+    public function __construct(
+        protected ?UniversalDocumentExtractor $extractor = null,
+        protected ?DocumentTextAnalyzer $analyzer = null
+    ) {
+        $this->extractor = $extractor ?? new UniversalDocumentExtractor();
+        $this->analyzer = $analyzer ?? new DocumentTextAnalyzer();
+    }
+
     /**
-     * Import a document from an uploaded file (.md, .txt, .html)
+     * Import a document from an uploaded file (.docx, .pdf, .md, .txt, .html, .csv, .json)
      */
-    public function importFile(User $user, UploadedFile $file, ?int $projectId = null): Document
+    public function importFile(User $user, UploadedFile $file, ?int $projectId = null, array $options = []): Document
     {
-        $extension = mb_strtolower($file->getClientOriginalExtension());
+        $extracted = $this->extractor->extract($file, $options);
+        $analysis = $this->analyzer->analyze($extracted['plain_text'], $extracted['html']);
+
         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-        $title = Str::headline($filename);
-        $content = $file->get();
+        $title = $options['title'] ?? (!empty($filename) ? Str::headline($filename) : ($extracted['title'] ?: 'Imported Document'));
+        $htmlContent = $extracted['html'];
+        $plainText = $extracted['plain_text'];
 
-        $format = match ($extension) {
-            'md', 'markdown' => 'markdown',
-            'html', 'htm' => 'html',
-            default => 'text',
-        };
+        $wordCount = $analysis['metrics']['word_count'] ?? 0;
+        $charCount = $analysis['metrics']['character_count'] ?? 0;
+        $readingTime = $analysis['metrics']['reading_time_minutes'] ?? 1;
 
-        return $this->importFromText($user, $title, $content, $format, $projectId);
+        $document = Document::create([
+            'user_id' => $user->id,
+            'project_id' => $projectId,
+            'title' => $title,
+            'slug' => Str::slug($title) . '-' . Str::random(6),
+            'status' => 'draft',
+            'word_count' => $wordCount,
+            'character_count' => $charCount,
+            'reading_time_minutes' => $readingTime,
+        ]);
+
+        DocumentContent::create([
+            'document_id' => $document->id,
+            'content_html' => $htmlContent,
+            'content_markdown' => in_array($extracted['format'], ['md', 'markdown']) ? file_get_contents($file->getRealPath()) : null,
+            'content_plain' => $plainText,
+        ]);
+
+        DocumentVersion::create([
+            'document_id' => $document->id,
+            'version_number' => 1,
+            'title' => $title,
+            'content_html' => $htmlContent,
+            'operation_type' => 'import',
+            'summary' => 'Initial document import (' . strtoupper($extracted['format']) . ')',
+            'word_count' => $wordCount,
+            'created_by' => $user->id,
+        ]);
+
+        return $document->fresh(['content', 'versions']);
     }
 
     /**

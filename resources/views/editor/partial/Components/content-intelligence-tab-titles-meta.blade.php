@@ -147,19 +147,14 @@
                     </span>
 
                     <button 
-
                         type="button" 
-
                         wire:click="generateSeoTitles" 
-
-                        class="px-3 py-1 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-mono text-[10.5px] font-bold shadow-md shadow-indigo-600/25 transition-all cursor-pointer"
-
+                        wire:loading.attr="disabled"
+                        wire:target="generateSeoTitles"
+                        class="px-3 py-1 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-mono text-[10.5px] font-bold shadow-md shadow-indigo-600/25 transition-all cursor-pointer disabled:opacity-50"
                     >
-
                         <span wire:loading.remove wire:target="generateSeoTitles">⚡ Generate Titles</span>
-
                         <span wire:loading wire:target="generateSeoTitles" class="animate-pulse">Generating...</span>
-
                     </button>
 
                 </div>
@@ -197,13 +192,20 @@
                 <div class="space-y-2 max-h-52 overflow-y-auto pr-1 text-xs">
                     @if(!empty($aiTitles))
                         @foreach($aiTitles as $t)
-                            <div class="p-2.5 rounded-xl bg-slate-950/80 border border-white/5 space-y-1.5">
+                            <div wire:key="ai-title-{{ $loop->index }}" class="p-2.5 rounded-xl bg-slate-950/80 border border-white/5 space-y-1.5">
                                 <div class="flex items-center justify-between">
                                     <span class="text-[9.5px] font-mono text-emerald-400 bg-emerald-950/80 px-1.5 py-0.2 rounded border border-emerald-500/30">🎯 High CTR</span>
                                     <span class="text-[9.5px] font-mono text-slate-500">{{ strlen($t) }} chars</span>
                                 </div>
                                 <div class="text-slate-200 text-xs leading-snug font-medium">{{ $t }}</div>
-                                <button type="button" wire:click="applyTitle(@js($t))" class="w-full py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white text-[10.5px] font-bold transition-colors cursor-pointer">
+                                <button 
+                                    type="button" 
+                                    x-on:click="$wire.title = @js($t)"
+                                    wire:click="applyTitle(@js($t))" 
+                                    wire:loading.attr="disabled"
+                                    wire:target="applyTitle(@js($t))"
+                                    class="w-full py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white text-[10.5px] font-bold transition-colors cursor-pointer disabled:opacity-50"
+                                >
                                     ✓ Apply Title to Document
                                 </button>
                             </div>
@@ -236,21 +238,15 @@
                     </span>
 
                     <button 
-
                         type="button" 
-
                         wire:click="generateMetaDescriptions" 
-
-                        class="px-3 py-1 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-mono text-[10.5px] font-bold shadow-md shadow-indigo-600/25 transition-all cursor-pointer"
-
+                        wire:loading.attr="disabled"
+                        wire:target="generateMetaDescriptions"
+                        class="px-3 py-1 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-mono text-[10.5px] font-bold shadow-md shadow-indigo-600/25 transition-all cursor-pointer disabled:opacity-50"
                     >
-
                         <span wire:loading.remove wire:target="generateMetaDescriptions">⚡ Generate Meta</span>
-
                         <span wire:loading wire:target="generateMetaDescriptions" class="animate-pulse">Generating...</span>
-
                     </button>
-
                 </div>
 
 
@@ -302,7 +298,7 @@
 
                         @foreach($aiMetaDescriptions as $meta)
 
-                            <div class="p-2.5 rounded-xl bg-slate-950/80 border border-white/5 space-y-1.5">
+                            <div wire:key="ai-meta-{{ $loop->index }}" class="p-2.5 rounded-xl bg-slate-950/80 border border-white/5 space-y-1.5">
 
                                 <p class="text-slate-300 text-xs leading-relaxed">{{ $meta }}</p>
 
@@ -310,10 +306,15 @@
 
                                     <span class="text-slate-500">{{ strlen($meta) }} chars</span>
 
-                                    <button type="button" wire:click="applyMetaDescription(@js($meta))" class="px-2.5 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600 text-emerald-300 hover:text-white font-bold transition-colors">
-
+                                    <button 
+                                        type="button" 
+                                        x-on:click="$wire.metaDescription = @js($meta)"
+                                        wire:click="applyMetaDescription(@js($meta))" 
+                                        wire:loading.attr="disabled"
+                                        wire:target="applyMetaDescription(@js($meta))"
+                                        class="px-2.5 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600 text-emerald-300 hover:text-white font-bold transition-colors disabled:opacity-50 cursor-pointer"
+                                    >
                                         Use Meta
-
                                     </button>
 
                                 </div>

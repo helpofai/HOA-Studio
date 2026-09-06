@@ -121,7 +121,7 @@
                     @php
                         $mWordPct = $summary['total_words'] > 0 ? round(($m['words'] / $summary['total_words']) * 100, 1) : 0;
                     @endphp
-                    <div class="p-4 rounded-xl bg-slate-900/80 border border-white/10 space-y-2 text-xs font-mono">
+                    <div wire:key="usage-model-{{ $m['model'] }}" class="p-4 rounded-xl bg-slate-900/80 border border-white/10 space-y-2 text-xs font-mono">
                         <div class="flex items-center justify-between">
                             <span class="font-bold text-white truncate max-w-[180px]">{{ $m['model'] }}</span>
                             <span class="text-indigo-300 font-bold">{{ $mWordPct }}%</span>
@@ -166,7 +166,7 @@
                 </thead>
                 <tbody class="divide-y divide-white/5 text-slate-300">
                     @forelse($recentLogs as $log)
-                        <tr class="hover:bg-white/5 transition-colors">
+                        <tr wire:key="usage-log-{{ $loop->index }}" class="hover:bg-white/5 transition-colors">
                             <td class="py-3 pr-4 text-slate-400 whitespace-nowrap">{{ $log['recorded_at'] }}</td>
                             <td class="py-3 px-4">
                                 <span class="px-2 py-0.5 rounded-md bg-indigo-950/80 border border-indigo-500/30 text-indigo-300 text-[11px]">

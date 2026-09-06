@@ -32,10 +32,10 @@ async function getMermaid() {
                 stroke: '#818cf8',
                 fill: '#0f172a',
                 fontSize: 12,
-                useMaxWidth: true
+                useMaxWidth: false
             },
             flowchart: {
-                useMaxWidth: true,
+                useMaxWidth: false,
                 htmlLabels: true
             },
             themeVariables: {
@@ -335,6 +335,11 @@ export async function enhanceMermaidDiagrams(container) {
                                 <span>⟲</span> <span>Fit</span>
                             </button>
 
+                            <!-- Fullscreen / Expand Button -->
+                            <button type="button" class="hoa-mermaid-fullscreen-btn px-2.5 py-1.5 rounded-xl glass-subtle hover:border-white/30 text-slate-300 hover:text-white text-[11px] font-mono transition-all flex items-center gap-1 cursor-pointer select-none" title="Toggle Fullscreen Canvas">
+                                <span>⛶</span> <span>Expand</span>
+                            </button>
+
                             <!-- Source Drawer Toggle -->
                             <button type="button" class="hoa-mermaid-toggle-btn px-2.5 py-1.5 rounded-xl glass-subtle hover:border-white/30 text-slate-300 hover:text-white text-[11px] font-mono transition-all flex items-center gap-1 cursor-pointer select-none">
                                 <span>💻</span> <span>Source</span>
@@ -347,9 +352,9 @@ export async function enhanceMermaidDiagrams(container) {
                         </div>
                     </div>
 
-                    <!-- Interactive Pan & Zoom Canvas Viewport -->
-                    <div class="hoa-mermaid-svg-viewport relative overflow-hidden rounded-2xl border border-white/10 bg-slate-950/70 select-none cursor-grab flex items-center justify-center p-4 min-h-[460px]">
-                        <div class="hoa-mermaid-canvas-inner will-change-transform flex items-center justify-center" style="transform-origin: center center; display: inline-flex;">
+                    <!-- Interactive Vector Canvas Viewport (Direct ViewBox Zoom - 100% Crisp) -->
+                    <div class="hoa-mermaid-svg-viewport relative overflow-hidden rounded-2xl border border-white/10 bg-slate-950/70 select-none cursor-grab flex items-center justify-center min-h-[480px]">
+                        <div class="hoa-mermaid-svg-stage w-full h-full flex items-center justify-center">
                             ${svg}
                         </div>
 
@@ -358,6 +363,7 @@ export async function enhanceMermaidDiagrams(container) {
                             <button type="button" class="hoa-quick-zoom-out p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors text-xs" title="Zoom Out">➖</button>
                             <button type="button" class="hoa-quick-reset px-2 py-1 rounded-lg text-slate-300 hover:text-indigo-300 hover:bg-white/10 transition-colors text-[11px] font-mono font-semibold" title="Reset View">Fit</button>
                             <button type="button" class="hoa-quick-zoom-in p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors text-xs" title="Zoom In">➕</button>
+                            <button type="button" class="hoa-quick-fullscreen p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors text-xs" title="Toggle Fullscreen">⛶</button>
                         </div>
                     </div>
 
@@ -367,143 +373,319 @@ export async function enhanceMermaidDiagrams(container) {
                 `;
 
                 const viewport = card.querySelector('.hoa-mermaid-svg-viewport');
-                const inner = card.querySelector('.hoa-mermaid-canvas-inner');
+                const svgEl = viewport.querySelector('svg');
                 const zoomLabel = card.querySelector('.hoa-mermaid-zoom-label');
                 const zoomInBtn = card.querySelector('.hoa-mermaid-zoom-in-btn');
                 const zoomOutBtn = card.querySelector('.hoa-mermaid-zoom-out-btn');
                 const zoomResetBtn = card.querySelector('.hoa-mermaid-zoom-reset-btn');
                 const fitBtn = card.querySelector('.hoa-mermaid-fit-btn');
+                const fullscreenBtn = card.querySelector('.hoa-mermaid-fullscreen-btn');
                 const quickZoomIn = card.querySelector('.hoa-quick-zoom-in');
                 const quickZoomOut = card.querySelector('.hoa-quick-zoom-out');
                 const quickReset = card.querySelector('.hoa-quick-reset');
+                const quickFullscreen = card.querySelector('.hoa-quick-fullscreen');
 
-                let scale = 1.0;
-                let panX = 0;
-                let panY = 0;
-                let isPanning = false;
-                let startX = 0;
-                let startY = 0;
-                const minScale = 0.35;
-                const maxScale = 4.0;
-
-                function updateTransform(animate = false) {
-                    inner.style.transition = animate ? 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)' : 'none';
-                    inner.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
-                    const pct = Math.round(scale * 100) + '%';
-                    if (zoomLabel) zoomLabel.textContent = pct;
+                // Normalize SVG attributes for unconstrained native vector scaling
+                if (svgEl) {
+                    svgEl.removeAttribute('height');
+                    svgEl.removeAttribute('width');
+                    svgEl.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+                    svgEl.style.width = '100%';
+                    svgEl.style.height = '100%';
+                    svgEl.style.maxWidth = 'none';
+                    svgEl.style.maxHeight = 'none';
                 }
 
-                function zoom(delta, animate = true) {
-                    scale = Math.min(maxScale, Math.max(minScale, Number((scale + delta).toFixed(2))));
-                    updateTransform(animate);
+                // Extract base viewBox coordinates
+                let origX = 0, origY = 0, origW = 1200, origH = 800;
+                const rawVb = svgEl ? svgEl.getAttribute('viewBox') : null;
+                if (rawVb) {
+                    const parts = rawVb.trim().split(/[\s,]+/).map(Number);
+                    if (parts.length === 4 && !parts.some(isNaN) && parts[2] > 0 && parts[3] > 0) {
+                        [origX, origY, origW, origH] = parts;
+                    }
+                }
+
+                const baseBox = { x: origX, y: origY, w: origW, h: origH };
+                let currentView = { ...baseBox };
+                let scale = 1.0;
+                const minScale = 0.35;
+                const maxScale = 6.0;
+
+                let rafId = null;
+                function renderViewBox() {
+                    if (svgEl) {
+                        svgEl.setAttribute('viewBox', `${currentView.x} ${currentView.y} ${currentView.w} ${currentView.h}`);
+                    }
+                    if (zoomLabel) {
+                        zoomLabel.textContent = Math.round(scale * 100) + '%';
+                    }
+                }
+
+                function queueRender() {
+                    if (rafId) cancelAnimationFrame(rafId);
+                    rafId = requestAnimationFrame(renderViewBox);
+                }
+
+                // Precise coordinate transformation using native SVG CTM
+                function getSvgPoint(cx, cy) {
+                    try {
+                        const ctm = svgEl ? svgEl.getScreenCTM() : null;
+                        if (ctm) {
+                            const pt = new DOMPoint(cx, cy);
+                            const transformed = pt.matrixTransform(ctm.inverse());
+                            if (!isNaN(transformed.x) && !isNaN(transformed.y)) {
+                                return { x: transformed.x, y: transformed.y };
+                            }
+                        }
+                    } catch (e) {}
+
+                    // Mathematical fallback
+                    const rect = viewport.getBoundingClientRect();
+                    const ratioX = (cx - rect.left) / Math.max(1, rect.width);
+                    const ratioY = (cy - rect.top) / Math.max(1, rect.height);
+                    return {
+                        x: currentView.x + ratioX * currentView.w,
+                        y: currentView.y + ratioY * currentView.h
+                    };
+                }
+
+                // Vector Zoom around a focal point
+                function zoomAroundPoint(targetScale, clientX, clientY, animate = false) {
+                    const clampedScale = Math.min(maxScale, Math.max(minScale, Number(targetScale.toFixed(3))));
+                    if (Math.abs(clampedScale - scale) < 0.001) return;
+
+                    const rect = viewport.getBoundingClientRect();
+                    const cx = (clientX !== undefined && clientX !== null) ? clientX : (rect.left + rect.width / 2);
+                    const cy = (clientY !== undefined && clientY !== null) ? clientY : (rect.top + rect.height / 2);
+
+                    const ptBefore = getSvgPoint(cx, cy);
+
+                    const newW = baseBox.w / clampedScale;
+                    const newH = baseBox.h / clampedScale;
+
+                    const ratioX = (ptBefore.x - currentView.x) / currentView.w;
+                    const ratioY = (ptBefore.y - currentView.y) / currentView.h;
+
+                    const targetX = ptBefore.x - ratioX * newW;
+                    const targetY = ptBefore.y - ratioY * newH;
+
+                    if (animate) {
+                        const startX = currentView.x;
+                        const startY = currentView.y;
+                        const startW = currentView.w;
+                        const startH = currentView.h;
+                        const startScale = scale;
+                        const startTime = performance.now();
+                        const duration = 200;
+
+                        function step(now) {
+                            const elapsed = now - startTime;
+                            const progress = Math.min(1, elapsed / duration);
+                            const ease = 1 - Math.pow(1 - progress, 3);
+
+                            currentView.x = startX + (targetX - startX) * ease;
+                            currentView.y = startY + (targetY - startY) * ease;
+                            currentView.w = startW + (newW - startW) * ease;
+                            currentView.h = startH + (newH - startH) * ease;
+                            scale = startScale + (clampedScale - startScale) * ease;
+
+                            renderViewBox();
+
+                            if (progress < 1) {
+                                requestAnimationFrame(step);
+                            } else {
+                                currentView.x = targetX;
+                                currentView.y = targetY;
+                                currentView.w = newW;
+                                currentView.h = newH;
+                                scale = clampedScale;
+                                renderViewBox();
+                            }
+                        }
+                        requestAnimationFrame(step);
+                    } else {
+                        currentView.x = targetX;
+                        currentView.y = targetY;
+                        currentView.w = newW;
+                        currentView.h = newH;
+                        scale = clampedScale;
+                        queueRender();
+                    }
                 }
 
                 function reset(animate = true) {
-                    scale = 1.0;
-                    panX = 0;
-                    panY = 0;
-                    updateTransform(animate);
+                    if (animate) {
+                        const rect = viewport.getBoundingClientRect();
+                        zoomAroundPoint(1.0, rect.left + rect.width / 2, rect.top + rect.height / 2, true);
+                    } else {
+                        currentView = { ...baseBox };
+                        scale = 1.0;
+                        queueRender();
+                    }
                 }
 
                 // Button Clicks
-                zoomInBtn.onclick = (e) => { e.stopPropagation(); zoom(0.25, true); };
-                zoomOutBtn.onclick = (e) => { e.stopPropagation(); zoom(-0.25, true); };
+                zoomInBtn.onclick = (e) => { e.stopPropagation(); zoomAroundPoint(scale * 1.25, null, null, true); };
+                zoomOutBtn.onclick = (e) => { e.stopPropagation(); zoomAroundPoint(scale * 0.8, null, null, true); };
                 zoomResetBtn.onclick = (e) => { e.stopPropagation(); reset(true); };
                 fitBtn.onclick = (e) => { e.stopPropagation(); reset(true); };
-                quickZoomIn.onclick = (e) => { e.stopPropagation(); zoom(0.25, true); };
-                quickZoomOut.onclick = (e) => { e.stopPropagation(); zoom(-0.25, true); };
+                quickZoomIn.onclick = (e) => { e.stopPropagation(); zoomAroundPoint(scale * 1.25, null, null, true); };
+                quickZoomOut.onclick = (e) => { e.stopPropagation(); zoomAroundPoint(scale * 0.8, null, null, true); };
                 quickReset.onclick = (e) => { e.stopPropagation(); reset(true); };
 
+                // Fullscreen Canvas Toggle
+                function toggleFullscreen() {
+                    const isFull = card.classList.toggle('is-fullscreen');
+                    document.body.classList.toggle('overflow-hidden', isFull);
+                    const icon = isFull ? '🗗' : '⛶';
+                    const label = isFull ? 'Compress' : 'Expand';
+                    if (fullscreenBtn) {
+                        fullscreenBtn.innerHTML = `<span>${icon}</span> <span>${label}</span>`;
+                        fullscreenBtn.title = isFull ? 'Exit Fullscreen (Esc)' : 'Fullscreen Canvas';
+                    }
+                    if (quickFullscreen) {
+                        quickFullscreen.textContent = icon;
+                        quickFullscreen.title = isFull ? 'Exit Fullscreen (Esc)' : 'Fullscreen Canvas';
+                    }
+                    setTimeout(() => {
+                        reset(false);
+                    }, 80);
+                }
+
+                if (fullscreenBtn) fullscreenBtn.onclick = (e) => { e.stopPropagation(); toggleFullscreen(); };
+                if (quickFullscreen) quickFullscreen.onclick = (e) => { e.stopPropagation(); toggleFullscreen(); };
+
+                window.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && card.classList.contains('is-fullscreen')) {
+                        toggleFullscreen();
+                    }
+                });
+
                 // Mouse Drag to Pan
+                let isDragging = false;
+                let lastX = 0;
+                let lastY = 0;
+
                 viewport.addEventListener('mousedown', (e) => {
                     if (e.target.closest('button')) return;
-                    isPanning = true;
-                    startX = e.clientX - panX;
-                    startY = e.clientY - panY;
+                    isDragging = true;
+                    lastX = e.clientX;
+                    lastY = e.clientY;
                     viewport.style.cursor = 'grabbing';
                 });
 
                 window.addEventListener('mousemove', (e) => {
-                    if (!isPanning) return;
-                    panX = e.clientX - startX;
-                    panY = e.clientY - startY;
-                    updateTransform(false);
+                    if (!isDragging) return;
+                    const dx = e.clientX - lastX;
+                    const dy = e.clientY - lastY;
+                    lastX = e.clientX;
+                    lastY = e.clientY;
+
+                    let applied = false;
+                    try {
+                        const ctm = svgEl ? svgEl.getScreenCTM() : null;
+                        if (ctm && ctm.a && ctm.d) {
+                            currentView.x -= dx / ctm.a;
+                            currentView.y -= dy / ctm.d;
+                            applied = true;
+                        }
+                    } catch (err) {}
+
+                    if (!applied) {
+                        const rect = viewport.getBoundingClientRect();
+                        currentView.x -= dx * (currentView.w / Math.max(1, rect.width));
+                        currentView.y -= dy * (currentView.h / Math.max(1, rect.height));
+                    }
+
+                    queueRender();
                 });
 
                 window.addEventListener('mouseup', () => {
-                    if (isPanning) {
-                        isPanning = false;
+                    if (isDragging) {
+                        isDragging = false;
                         viewport.style.cursor = 'grab';
                     }
                 });
 
-                // Mouse Wheel Zoom
+                // Mouse Wheel Zoom (Figma/CAD style focal zoom)
                 viewport.addEventListener('wheel', (e) => {
                     e.preventDefault();
-                    const delta = e.deltaY > 0 ? -0.15 : 0.15;
-                    const oldScale = scale;
-                    scale = Math.min(maxScale, Math.max(minScale, Number((scale + delta).toFixed(2))));
-                    
-                    const rect = viewport.getBoundingClientRect();
-                    const mouseX = e.clientX - rect.left - rect.width / 2;
-                    const mouseY = e.clientY - rect.top - rect.height / 2;
-                    panX -= mouseX * (scale / oldScale - 1);
-                    panY -= mouseY * (scale / oldScale - 1);
-
-                    updateTransform(false);
+                    const delta = e.deltaY;
+                    const factor = delta < 0 ? 1.15 : 0.87;
+                    zoomAroundPoint(scale * factor, e.clientX, e.clientY, false);
                 }, { passive: false });
 
                 // Double Click to Toggle Detail Zoom
                 viewport.addEventListener('dblclick', (e) => {
                     if (e.target.closest('button')) return;
-                    if (Math.abs(scale - 1.0) < 0.1) {
-                        scale = 1.6;
+                    if (Math.abs(scale - 1.0) < 0.25) {
+                        zoomAroundPoint(2.2, e.clientX, e.clientY, true);
                     } else {
-                        scale = 1.0;
-                        panX = 0;
-                        panY = 0;
+                        reset(true);
                     }
-                    updateTransform(true);
                 });
 
                 // Touch Gestures for Mobile Pan & Pinch
                 let touchStartX = 0;
                 let touchStartY = 0;
                 let initialPinchDist = 0;
-                let initialScale = 1.0;
+                let pinchStartScale = 1.0;
+                let pinchMidX = 0;
+                let pinchMidY = 0;
 
                 viewport.addEventListener('touchstart', (e) => {
                     if (e.touches.length === 1) {
-                        isPanning = true;
-                        touchStartX = e.touches[0].clientX - panX;
-                        touchStartY = e.touches[0].clientY - panY;
+                        isDragging = true;
+                        touchStartX = e.touches[0].clientX;
+                        touchStartY = e.touches[0].clientY;
                     } else if (e.touches.length === 2) {
-                        isPanning = false;
+                        isDragging = false;
                         initialPinchDist = Math.hypot(
                             e.touches[0].clientX - e.touches[1].clientX,
                             e.touches[0].clientY - e.touches[1].clientY
                         );
-                        initialScale = scale;
+                        pinchStartScale = scale;
+                        pinchMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                        pinchMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
                     }
                 }, { passive: true });
 
                 viewport.addEventListener('touchmove', (e) => {
-                    if (e.touches.length === 1 && isPanning) {
-                        panX = e.touches[0].clientX - touchStartX;
-                        panY = e.touches[0].clientY - touchStartY;
-                        updateTransform(false);
+                    if (e.touches.length === 1 && isDragging) {
+                        const dx = e.touches[0].clientX - touchStartX;
+                        const dy = e.touches[0].clientY - touchStartY;
+                        touchStartX = e.touches[0].clientX;
+                        touchStartY = e.touches[0].clientY;
+
+                        let applied = false;
+                        try {
+                            const ctm = svgEl ? svgEl.getScreenCTM() : null;
+                            if (ctm && ctm.a && ctm.d) {
+                                currentView.x -= dx / ctm.a;
+                                currentView.y -= dy / ctm.d;
+                                applied = true;
+                            }
+                        } catch (err) {}
+
+                        if (!applied) {
+                            const rect = viewport.getBoundingClientRect();
+                            currentView.x -= dx * (currentView.w / Math.max(1, rect.width));
+                            currentView.y -= dy * (currentView.h / Math.max(1, rect.height));
+                        }
+                        queueRender();
                     } else if (e.touches.length === 2 && initialPinchDist > 0) {
-                        const dist = Math.hypot(
+                        const currentDist = Math.hypot(
                             e.touches[0].clientX - e.touches[1].clientX,
                             e.touches[0].clientY - e.touches[1].clientY
                         );
-                        scale = Math.min(maxScale, Math.max(minScale, Number((initialScale * (dist / initialPinchDist)).toFixed(2))));
-                        updateTransform(false);
+                        const factor = currentDist / initialPinchDist;
+                        zoomAroundPoint(pinchStartScale * factor, pinchMidX, pinchMidY, false);
                     }
                 }, { passive: true });
 
                 viewport.addEventListener('touchend', () => {
-                    isPanning = false;
+                    isDragging = false;
                     initialPinchDist = 0;
                 }, { passive: true });
 

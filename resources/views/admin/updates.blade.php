@@ -15,7 +15,7 @@
 */
 --}}
 
-<div class="space-y-8" x-data="{ activeTab: @entangle('activeTab'), showLogs: false }">
+<div class="hoa-admin-updates-space space-y-8" x-data="{ activeTab: $wire.entangle('activeTab'), showLogs: false }">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -180,7 +180,7 @@
                                     </h5>
                                     <div class="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto custom-scrollbar p-2 rounded-xl bg-slate-900/60 border border-white/5">
                                         @foreach($updateInfo['changed_files'] as $cf)
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-mono flex items-center gap-1.5 {{ ($cf['status'] ?? '') === 'added' ? 'bg-emerald-500/20 text-emerald-300' : (($cf['status'] ?? '') === 'removed' ? 'bg-rose-500/20 text-rose-300' : 'bg-slate-800 text-slate-300') }}">
+                                            <span wire:key="upd-cf-{{ $loop->index }}" class="px-2 py-0.5 rounded text-[10px] font-mono flex items-center gap-1.5 {{ ($cf['status'] ?? '') === 'added' ? 'bg-emerald-500/20 text-emerald-300' : (($cf['status'] ?? '') === 'removed' ? 'bg-rose-500/20 text-rose-300' : 'bg-slate-800 text-slate-300') }}">
                                                 <span class="font-bold">{{ ($cf['status'] ?? '') === 'added' ? '+' : (($cf['status'] ?? '') === 'removed' ? '-' : '•') }}</span>
                                                 <span>{{ $cf['filename'] ?? '' }}</span>
                                             </span>
@@ -197,7 +197,7 @@
                                     </h5>
                                     <div class="space-y-1.5">
                                         @foreach($updateInfo['recent_commits'] as $rc)
-                                            <div class="flex items-start justify-between gap-2 p-2 rounded-lg bg-slate-900/40 border border-white/5 text-xs">
+                                            <div wire:key="upd-rc-{{ $rc['sha'] ?? $loop->index }}" class="flex items-start justify-between gap-2 p-2 rounded-lg bg-slate-900/40 border border-white/5 text-xs">
                                                 <div class="flex items-center gap-2">
                                                     <span class="font-mono text-[10px] text-indigo-400 font-bold bg-indigo-950/80 px-1.5 py-0.5 rounded">{{ $rc['sha'] }}</span>
                                                     <span class="text-slate-200 truncate max-w-md">{{ $rc['message'] }}</span>
@@ -301,7 +301,7 @@
                                         $msg = is_array($logEntry) ? ($logEntry['message'] ?? '') : $logEntry;
                                         $time = is_array($logEntry) ? ($logEntry['time'] ?? date('H:i:s')) : date('H:i:s');
                                     @endphp
-                                    <div class="flex items-start gap-2.5 leading-relaxed font-mono">
+                                    <div wire:key="upd-log-{{ $loop->index }}" class="flex items-start gap-2.5 leading-relaxed font-mono">
                                         <span class="text-[10px] text-slate-500 select-none shrink-0 pt-0.5">[{{ $time }}]</span>
                                         @if($type === 'command')
                                             <span class="text-cyan-400 font-black shrink-0">&gt;&gt;</span>
@@ -842,7 +842,7 @@
                                 $msg = is_array($logEntry) ? ($logEntry['message'] ?? '') : $logEntry;
                                 $time = is_array($logEntry) ? ($logEntry['time'] ?? date('H:i:s')) : date('H:i:s');
                             @endphp
-                            <div class="flex items-start gap-2.5 leading-relaxed font-mono">
+                            <div wire:key="db-upd-log-{{ $loop->index }}" class="flex items-start gap-2.5 leading-relaxed font-mono">
                                 <span class="text-[10px] text-slate-500 select-none shrink-0 pt-0.5">[{{ $time }}]</span>
                                 @if($type === 'command')
                                     <span class="text-cyan-400 font-black shrink-0">&gt;&gt;</span>
@@ -889,7 +889,7 @@
                         </thead>
                         <tbody class="divide-y divide-white/5 text-slate-200 font-mono">
                             @forelse(($migrationsData['all'] ?? []) as $mig)
-                                <tr class="hover:bg-white/5 transition-colors">
+                                <tr wire:key="mig-{{ $mig['file'] }}" class="hover:bg-white/5 transition-colors">
                                     <td class="p-4 text-white font-medium">
                                         <div class="flex items-center gap-2">
                                             <span>{{ $mig['applied'] ? '📄' : '⏳' }}</span>
@@ -946,7 +946,7 @@
                         </thead>
                         <tbody class="divide-y divide-white/5 text-slate-200">
                             @forelse($dbSnapshots as $snap)
-                                <tr class="hover:bg-white/5 transition-colors">
+                                <tr wire:key="db-snap-{{ $snap['id'] }}" class="hover:bg-white/5 transition-colors">
                                     <td class="p-4 font-mono font-bold text-indigo-300">{{ $snap['id'] }}</td>
                                     <td class="p-4 font-medium text-white">{{ $snap['label'] ?? 'DB Backup' }}</td>
                                     <td class="p-4 font-mono text-slate-300">{{ $snap['tables_count'] ?? 0 }} tables</td>
@@ -1006,7 +1006,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 @foreach(($healthReport['checks'] ?? []) as $key => $check)
-                    <div class="p-4 rounded-xl bg-slate-900/80 border border-white/10 space-y-2">
+                    <div wire:key="health-check-{{ $key }}" class="p-4 rounded-xl bg-slate-900/80 border border-white/10 space-y-2">
                         <div class="flex items-center justify-between">
                             <div class="font-bold text-sm text-white flex items-center gap-2">
                                 <span>{{ $check['status'] === 'pass' ? '✅' : ($check['status'] === 'fail' ? '❌' : '⚠️') }}</span>

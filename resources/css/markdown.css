@@ -361,6 +361,32 @@
 /* Mermaid Vector Diagram Containers */
 .hoa-mermaid-container {
     background: radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.08) 0%, rgba(2, 6, 23, 0.9) 70%);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Fullscreen Immersive Canvas Mode */
+.hoa-mermaid-container.is-fullscreen {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 99999 !important;
+    margin: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    border-radius: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: rgba(2, 6, 23, 0.97) !important;
+    backdrop-filter: blur(28px) !important;
+    padding: 1.25rem 1.5rem !important;
+    box-shadow: 0 0 80px rgba(0, 0, 0, 0.95) !important;
+}
+
+.hoa-mermaid-container.is-fullscreen .hoa-mermaid-svg-viewport {
+    flex: 1 1 0% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    border-radius: 1.25rem !important;
 }
 
 .hoa-mermaid-svg-viewport {
@@ -370,12 +396,13 @@
     user-select: none;
     touch-action: none;
     border-radius: 1rem;
-    min-height: 440px;
+    height: 520px;
+    min-height: 480px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: radial-gradient(circle at 50% 50%, rgba(30, 27, 75, 0.35) 0%, rgba(2, 6, 23, 0.95) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: inset 0 2px 24px rgba(0, 0, 0, 0.6);
 }
 
@@ -383,23 +410,30 @@
     cursor: grabbing;
 }
 
-.hoa-mermaid-canvas-inner {
-    display: inline-flex;
+.hoa-mermaid-svg-stage {
+    width: 100%;
+    height: 100%;
+    display: flex;
     align-items: center;
     justify-content: center;
-    will-change: transform;
-    transform-origin: center center;
+    overflow: hidden;
 }
 
-.hoa-mermaid-canvas-inner svg {
-    max-width: 100%;
-    height: auto !important;
+/* 100% Crisp Native Vector Precision */
+.hoa-mermaid-svg-viewport svg {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
     display: block;
     margin: 0 auto;
+    shape-rendering: geometricPrecision !important;
+    text-rendering: geometricPrecision !important;
+    image-rendering: -webkit-optimize-contrast !important;
 }
 
 /* Ensure Mermaid text matches high-contrast theme */
-.hoa-mermaid-canvas-inner svg text {
+.hoa-mermaid-svg-viewport svg text {
     font-family: ui-sans-serif, system-ui, -apple-system, sans-serif !important;
 }
 

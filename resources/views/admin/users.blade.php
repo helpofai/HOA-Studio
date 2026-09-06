@@ -15,7 +15,7 @@
 */
 --}}
 
-<div class="hoa-admin-users-space space-y-6 pb-12" x-data="{ bulkDropdownOpen: false }">
+<div class="hoa-admin-users-space space-y-6 pb-12" x-data="{ bulkDropdownOpen: false, currentTab: $wire.entangle('activeTab') }">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -165,29 +165,31 @@
     <div class="flex items-center gap-2 border-b border-white/10 pb-2">
         <button 
             type="button" 
-            wire:click="$set('activeTab', 'users')"
-            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer {{ $activeTab === 'users' ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30' : 'bg-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-800/80 border border-white/5' }}"
+            x-on:click="currentTab = 'users'"
+            :class="currentTab === 'users' ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30' : 'bg-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-800/80 border border-white/5'"
+            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
         >
             <span>👥 User Directory</span>
-            <span class="px-1.5 py-0.5 text-[10px] rounded-full {{ $activeTab === 'users' ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400' }} font-mono">
+            <span class="px-1.5 py-0.5 text-[10px] rounded-full font-mono" :class="currentTab === 'users' ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'">
                 {{ number_format($stats['total_users']) }}
             </span>
         </button>
 
         <button 
             type="button" 
-            wire:click="$set('activeTab', 'roles')"
-            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer {{ $activeTab === 'roles' ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30' : 'bg-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-800/80 border border-white/5' }}"
+            x-on:click="currentTab = 'roles'"
+            :class="currentTab === 'roles' ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30' : 'bg-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-800/80 border border-white/5'"
+            class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
         >
             <span>🛡️ Roles & Permissions Matrix</span>
-            <span class="px-1.5 py-0.5 text-[10px] rounded-full {{ $activeTab === 'roles' ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400' }} font-mono">
+            <span class="px-1.5 py-0.5 text-[10px] rounded-full font-mono" :class="currentTab === 'roles' ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'">
                 5 Roles
             </span>
         </button>
     </div>
 
     <!-- TAB 1: USERS DIRECTORY -->
-    @if($activeTab === 'users')
+    <div x-show="currentTab === 'users'" class="space-y-6">
         <!-- Search & Filter Controls Matrix -->
         <x-glass.card variant="subtle" class="p-4 space-y-3 border border-white/10">
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5">
@@ -442,7 +444,7 @@
                                 $remaining = max(0, $totalLimit - $user->used_word_quota);
                                 $percentUsed = $totalLimit > 0 ? min(100, round(($user->used_word_quota / $totalLimit) * 100)) : 0;
                             @endphp
-                            <tr class="transition-colors hover:bg-white/[0.03] {{ $isSelected ? 'bg-violet-950/25 border-l-4 border-l-violet-500' : '' }}">
+                            <tr wire:key="admin-user-row-{{ $user->id }}" class="transition-colors hover:bg-white/[0.03] {{ $isSelected ? 'bg-violet-950/25 border-l-4 border-l-violet-500' : '' }}">
                                 <!-- Checkbox -->
                                 <td class="p-4 text-center">
                                     <input 
@@ -679,34 +681,34 @@
                 </div>
             @endif
         </x-glass.card>
-    @endif
+    </div>
 
     <!-- TAB 2: ROLES & PERMISSIONS MATRIX -->
-    @if($activeTab === 'roles')
-        <div class="space-y-6 animate-fade-in">
-            <!-- Matrix Introduction Card -->
-            <x-glass.card variant="subtle" class="p-5 border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                    <h3 class="text-base font-bold text-white flex items-center gap-2">
-                        <span>🛡️ Roles, Access Limits & Quota Matrix</span>
-                    </h3>
-                    <p class="text-xs text-slate-400 mt-1">
-                        Review predefined roles, system capabilities, default word quotas, and active account distribution across the HelpOfAi Studio workspace.
-                    </p>
-                </div>
-                <button 
-                    type="button" 
-                    wire:click="$set('activeTab', 'users')"
-                    class="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-white/15 hover:border-violet-500/40 text-xs font-semibold text-slate-200 hover:text-white transition-all cursor-pointer flex items-center gap-1.5"
-                >
-                    <span>&larr; Back to User Directory</span>
-                </button>
+    <div x-show="currentTab === 'roles'" class="space-y-6 animate-fade-in" style="display: none;">
+        <!-- Matrix Introduction Card -->
+        <x-glass.card variant="subtle" class="p-5 border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <span>🛡️ Roles, Access Limits & Quota Matrix</span>
+                </h3>
+                <p class="text-xs text-slate-400 mt-1">
+                    Review predefined roles, system capabilities, default word quotas, and active account distribution across the HelpOfAi Studio workspace.
+                </p>
+            </div>
+            <button 
+                type="button" 
+                x-on:click="currentTab = 'users'"
+                class="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-white/15 hover:border-violet-500/40 text-xs font-semibold text-slate-200 hover:text-white transition-all cursor-pointer flex items-center gap-1.5"
+            >
+                <span>&larr; Back to User Directory</span>
+            </button>
             </x-glass.card>
 
             <!-- 5 Role Matrix Cards Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 @foreach($rolesMatrix as $roleCard)
-                    <x-glass.card variant="elevated" class="p-5 border border-white/10 hover:border-violet-500/30 transition-all flex flex-col justify-between relative overflow-hidden">
+                    <div wire:key="admin-role-card-{{ $roleCard['key'] }}" class="h-full">
+                    <x-glass.card variant="elevated" class="p-5 border border-white/10 hover:border-violet-500/30 transition-all flex flex-col justify-between relative overflow-hidden h-full">
                         <!-- Top Accent Banner -->
                         <div>
                             <div class="flex items-center justify-between gap-2 pb-3 border-b border-white/5">
@@ -750,7 +752,7 @@
                                 <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Granted Capabilities:</div>
                                 <ul class="space-y-1.5 text-xs text-slate-300">
                                     @foreach($roleCard['capabilities'] as $cap)
-                                        <li class="flex items-start gap-2">
+                                        <li wire:key="role-cap-{{ $roleCard['key'] }}-{{ $loop->index }}" class="flex items-start gap-2">
                                             <span class="text-emerald-400 text-xs mt-0.5">✓</span>
                                             <span class="leading-snug text-slate-300 text-[11px]">{{ $cap }}</span>
                                         </li>
@@ -771,16 +773,16 @@
                             </button>
                         </div>
                     </x-glass.card>
+                    </div>
                 @endforeach
             </div>
         </div>
-    @endif
 
     <!-- ========================================================================= -->
     <!-- UPGRADED EDIT USER MODAL (Multi-Tab Dark Glassmorphic Dialog)             -->
     <!-- ========================================================================= -->
     <div 
-        x-data="{ show: @entangle('showEditModal') }" 
+        x-data="{ show: $wire.entangle('showEditModal'), editTab: $wire.entangle('editActiveTab') }" 
         x-show="show" 
         class="fixed inset-0 z-50 flex items-center justify-center p-4" 
         style="display: none;"
@@ -817,29 +819,33 @@
             <div class="flex items-center gap-2 px-6 pt-3 pb-0 border-b border-white/5 bg-slate-950/40 text-xs">
                 <button 
                     type="button" 
-                    wire:click="$set('editActiveTab', 'profile')"
-                    class="pb-2 px-2 font-semibold border-b-2 transition-all cursor-pointer {{ $editActiveTab === 'profile' ? 'border-violet-500 text-white' : 'border-transparent text-slate-400 hover:text-slate-200' }}"
+                    x-on:click="editTab = 'profile'"
+                    :class="editTab === 'profile' ? 'border-violet-500 text-white' : 'border-transparent text-slate-400 hover:text-slate-200'"
+                    class="pb-2 px-2 font-semibold border-b-2 transition-all cursor-pointer"
                 >
                     👤 Profile
                 </button>
                 <button 
                     type="button" 
-                    wire:click="$set('editActiveTab', 'role')"
-                    class="pb-2 px-2 font-semibold border-b-2 transition-all cursor-pointer {{ $editActiveTab === 'role' ? 'border-violet-500 text-white' : 'border-transparent text-slate-400 hover:text-slate-200' }}"
+                    x-on:click="editTab = 'role'"
+                    :class="editTab === 'role' ? 'border-violet-500 text-white' : 'border-transparent text-slate-400 hover:text-slate-200'"
+                    class="pb-2 px-2 font-semibold border-b-2 transition-all cursor-pointer"
                 >
                     🛡️ Role & Plan
                 </button>
                 <button 
                     type="button" 
-                    wire:click="$set('editActiveTab', 'quota')"
-                    class="pb-2 px-2 font-semibold border-b-2 transition-all cursor-pointer {{ $editActiveTab === 'quota' ? 'border-violet-500 text-white' : 'border-transparent text-slate-400 hover:text-slate-200' }}"
+                    x-on:click="editTab = 'quota'"
+                    :class="editTab === 'quota' ? 'border-violet-500 text-white' : 'border-transparent text-slate-400 hover:text-slate-200'"
+                    class="pb-2 px-2 font-semibold border-b-2 transition-all cursor-pointer"
                 >
                     ⚡ Quota Engine
                 </button>
                 <button 
                     type="button" 
-                    wire:click="$set('editActiveTab', 'security')"
-                    class="pb-2 px-2 font-semibold border-b-2 transition-all cursor-pointer {{ $editActiveTab === 'security' ? 'border-violet-500 text-white' : 'border-transparent text-slate-400 hover:text-slate-200' }}"
+                    x-on:click="editTab = 'security'"
+                    :class="editTab === 'security' ? 'border-violet-500 text-white' : 'border-transparent text-slate-400 hover:text-slate-200'"
+                    class="pb-2 px-2 font-semibold border-b-2 transition-all cursor-pointer"
                 >
                     🔒 Security & Status
                 </button>
@@ -848,173 +854,165 @@
             <!-- Modal Form Body -->
             <form wire:submit="saveUser" class="flex-1 overflow-y-auto p-6 space-y-5">
                 <!-- TAB: PROFILE -->
-                @if($editActiveTab === 'profile')
-                    <div class="space-y-4 animate-fade-in">
-                        <div>
-                            <label class="text-xs font-semibold text-slate-300 block mb-1.5">Full Name</label>
-                            <x-glass.input wire:model="name" required :error="$errors->has('name')" placeholder="John Doe" />
-                            @error('name') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
-                        </div>
-
-                        <div>
-                            <label class="text-xs font-semibold text-slate-300 block mb-1.5">Email Address</label>
-                            <x-glass.input wire:model="email" type="email" required :error="$errors->has('email')" placeholder="user@example.com" />
-                            @error('email') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
-                        </div>
-
-                        @if($user_created_at)
-                            <div class="p-3 rounded-xl bg-slate-900/60 border border-white/5 text-xs text-slate-400">
-                                <span>📅 Account Created:</span>
-                                <span class="font-mono text-slate-200 ml-1">{{ $user_created_at }}</span>
-                            </div>
-                        @endif
+                <div x-show="editTab === 'profile'" class="space-y-4 animate-fade-in">
+                    <div>
+                        <label class="text-xs font-semibold text-slate-300 block mb-1.5">Full Name</label>
+                        <x-glass.input wire:model="name" required :error="$errors->has('name')" placeholder="John Doe" />
+                        @error('name') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
                     </div>
-                @endif
+
+                    <div>
+                        <label class="text-xs font-semibold text-slate-300 block mb-1.5">Email Address</label>
+                        <x-glass.input wire:model="email" type="email" required :error="$errors->has('email')" placeholder="user@example.com" />
+                        @error('email') <p class="text-xs text-red-400 mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    @if($user_created_at)
+                        <div class="p-3 rounded-xl bg-slate-900/60 border border-white/5 text-xs text-slate-400">
+                            <span>📅 Account Created:</span>
+                            <span class="font-mono text-slate-200 ml-1">{{ $user_created_at }}</span>
+                        </div>
+                    @endif
+                </div>
 
                 <!-- TAB: ROLE & PLAN -->
-                @if($editActiveTab === 'role')
-                    <div class="space-y-4 animate-fade-in">
-                        <div>
-                            <label class="text-xs font-semibold text-slate-300 block mb-1.5">User System Role</label>
-                            <select wire:model="role" class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-violet-500">
-                                @foreach($roles as $r)
-                                    <option value="{{ $r->value }}">{{ $r->label() }} ({{ $r->value }})</option>
-                                @endforeach
-                            </select>
-                            <p class="text-[11px] text-slate-400 mt-1">
-                                Determines system permissions, access to admin panels, and global editing capabilities.
-                            </p>
-                        </div>
-
-                        <div>
-                            <label class="text-xs font-semibold text-slate-300 block mb-1.5">Subscription Plan Tier</label>
-                            <select wire:model="plan" class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-violet-500">
-                                <option value="starter">Starter Plan</option>
-                                <option value="pro">Pro Plan</option>
-                                <option value="enterprise">Enterprise Plan</option>
-                            </select>
-                            <p class="text-[11px] text-slate-400 mt-1">
-                                Controls available AI models, document export features, and workspace limits.
-                            </p>
-                        </div>
+                <div x-show="editTab === 'role'" class="space-y-4 animate-fade-in" style="display: none;">
+                    <div>
+                        <label class="text-xs font-semibold text-slate-300 block mb-1.5">User System Role</label>
+                        <select wire:model="role" class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-violet-500">
+                            @foreach($roles as $r)
+                                <option value="{{ $r->value }}">{{ $r->label() }} ({{ $r->value }})</option>
+                            @endforeach
+                        </select>
+                        <p class="text-[11px] text-slate-400 mt-1">
+                            Determines system permissions, access to admin panels, and global editing capabilities.
+                        </p>
                     </div>
-                @endif
+
+                    <div>
+                        <label class="text-xs font-semibold text-slate-300 block mb-1.5">Subscription Plan Tier</label>
+                        <select wire:model="plan" class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-violet-500">
+                            <option value="starter">Starter Plan</option>
+                            <option value="pro">Pro Plan</option>
+                            <option value="enterprise">Enterprise Plan</option>
+                        </select>
+                        <p class="text-[11px] text-slate-400 mt-1">
+                            Controls available AI models, document export features, and workspace limits.
+                        </p>
+                    </div>
+                </div>
 
                 <!-- TAB: QUOTA ENGINE -->
-                @if($editActiveTab === 'quota')
-                    <div class="space-y-5 animate-fade-in">
-                        <!-- Real-time Quota Bar -->
-                        @php
-                            $modalTotalLimit = (int)$monthly_word_quota + (int)$bonus_word_quota;
-                            $modalRemaining = max(0, $modalTotalLimit - (int)$used_word_quota);
-                            $modalPctUsed = $modalTotalLimit > 0 ? min(100, round(((int)$used_word_quota / $modalTotalLimit) * 100)) : 0;
-                        @endphp
-                        <div class="p-4 rounded-xl bg-slate-950/80 border border-violet-500/20 space-y-2">
-                            <div class="flex items-center justify-between text-xs font-mono">
-                                <span class="text-slate-400">Total Word Capacity:</span>
-                                <span class="text-cyan-300 font-bold">{{ number_format($modalTotalLimit) }} words</span>
-                            </div>
-                            <div class="flex items-center justify-between text-xs font-mono">
-                                <span class="text-slate-400">Words Consumed:</span>
-                                <span class="text-white font-bold">{{ number_format((int)$used_word_quota) }} ({{ $modalPctUsed }}%)</span>
-                            </div>
-                            <div class="flex items-center justify-between text-xs font-mono">
-                                <span class="text-slate-400">Remaining Available:</span>
-                                <span class="text-emerald-400 font-bold">{{ number_format($modalRemaining) }} words</span>
-                            </div>
-                            <div class="w-full bg-slate-900 rounded-full h-2 border border-white/5 overflow-hidden mt-2">
-                                <div class="h-full rounded-full transition-all duration-300 {{ $modalPctUsed > 90 ? 'bg-rose-500' : ($modalPctUsed > 70 ? 'bg-amber-500' : 'bg-emerald-400') }}" style="width: {{ $modalPctUsed }}%"></div>
-                            </div>
+                <div x-show="editTab === 'quota'" class="space-y-5 animate-fade-in" style="display: none;">
+                    <!-- Real-time Quota Bar -->
+                    @php
+                        $modalTotalLimit = (int)$monthly_word_quota + (int)$bonus_word_quota;
+                        $modalRemaining = max(0, $modalTotalLimit - (int)$used_word_quota);
+                        $modalPctUsed = $modalTotalLimit > 0 ? min(100, round(((int)$used_word_quota / $modalTotalLimit) * 100)) : 0;
+                    @endphp
+                    <div class="p-4 rounded-xl bg-slate-950/80 border border-violet-500/20 space-y-2">
+                        <div class="flex items-center justify-between text-xs font-mono">
+                            <span class="text-slate-400">Total Word Capacity:</span>
+                            <span class="text-cyan-300 font-bold">{{ number_format($modalTotalLimit) }} words</span>
                         </div>
-
-                        <!-- Numeric Inputs -->
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <div>
-                                <label class="text-xs font-semibold text-slate-300 block mb-1">Monthly Quota</label>
-                                <x-glass.input wire:model="monthly_word_quota" type="number" required />
-                            </div>
-                            <div>
-                                <label class="text-xs font-semibold text-slate-300 block mb-1">Bonus Quota</label>
-                                <x-glass.input wire:model="bonus_word_quota" type="number" required />
-                            </div>
-                            <div>
-                                <label class="text-xs font-semibold text-slate-300 block mb-1">Used Words</label>
-                                <x-glass.input wire:model="used_word_quota" type="number" required />
-                            </div>
+                        <div class="flex items-center justify-between text-xs font-mono">
+                            <span class="text-slate-400">Words Consumed:</span>
+                            <span class="text-white font-bold">{{ number_format((int)$used_word_quota) }} ({{ $modalPctUsed }}%)</span>
                         </div>
-
-                        <!-- Instant Action Presets -->
-                        <div class="space-y-2 pt-2 border-t border-white/5">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Instant Quota Boosters & Reset</span>
-                            <div class="flex flex-wrap items-center gap-2">
-                                <button 
-                                    type="button"
-                                    wire:click="modalGrantBonus(10000)"
-                                    class="px-2.5 py-1.5 rounded-lg bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-900 text-xs font-bold transition-all cursor-pointer"
-                                >
-                                    +10,000 Bonus
-                                </button>
-                                <button 
-                                    type="button"
-                                    wire:click="modalGrantBonus(50000)"
-                                    class="px-2.5 py-1.5 rounded-lg bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-900 text-xs font-bold transition-all cursor-pointer"
-                                >
-                                    +50,000 Bonus
-                                </button>
-                                <button 
-                                    type="button"
-                                    wire:click="modalResetUsed"
-                                    class="px-2.5 py-1.5 rounded-lg bg-amber-950/80 border border-amber-500/30 text-amber-300 hover:bg-amber-900 text-xs font-bold transition-all cursor-pointer"
-                                >
-                                    Reset Used to 0
-                                </button>
-                                <button 
-                                    type="button"
-                                    wire:click="modalSetPlanQuota(15000)"
-                                    class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-white/10 text-slate-300 hover:text-white text-xs cursor-pointer"
-                                >
-                                    Apply Starter (15k)
-                                </button>
-                                <button 
-                                    type="button"
-                                    wire:click="modalSetPlanQuota(100000)"
-                                    class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-white/10 text-slate-300 hover:text-white text-xs cursor-pointer"
-                                >
-                                    Apply Pro (100k)
-                                </button>
-                            </div>
+                        <div class="flex items-center justify-between text-xs font-mono">
+                            <span class="text-slate-400">Remaining Available:</span>
+                            <span class="text-emerald-400 font-bold">{{ number_format($modalRemaining) }} words</span>
+                        </div>
+                        <div class="w-full bg-slate-900 rounded-full h-2 border border-white/5 overflow-hidden mt-2">
+                            <div class="h-full rounded-full transition-all duration-300 {{ $modalPctUsed > 90 ? 'bg-rose-500' : ($modalPctUsed > 70 ? 'bg-amber-500' : 'bg-emerald-400') }}" style="width: {{ $modalPctUsed }}%"></div>
                         </div>
                     </div>
-                @endif
+
+                    <!-- Numeric Inputs -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="text-xs font-semibold text-slate-300 block mb-1">Monthly Quota</label>
+                            <x-glass.input wire:model="monthly_word_quota" type="number" required />
+                        </div>
+                        <div>
+                            <label class="text-xs font-semibold text-slate-300 block mb-1">Bonus Quota</label>
+                            <x-glass.input wire:model="bonus_word_quota" type="number" required />
+                        </div>
+                        <div>
+                            <label class="text-xs font-semibold text-slate-300 block mb-1">Used Words</label>
+                            <x-glass.input wire:model="used_word_quota" type="number" required />
+                        </div>
+                    </div>
+
+                    <!-- Instant Action Presets -->
+                    <div class="space-y-2 pt-2 border-t border-white/5">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Instant Quota Boosters & Reset</span>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button 
+                                type="button"
+                                wire:click="modalGrantBonus(10000)"
+                                class="px-2.5 py-1.5 rounded-lg bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-900 text-xs font-bold transition-all cursor-pointer"
+                            >
+                                +10,000 Bonus
+                            </button>
+                            <button 
+                                type="button"
+                                wire:click="modalGrantBonus(50000)"
+                                class="px-2.5 py-1.5 rounded-lg bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-900 text-xs font-bold transition-all cursor-pointer"
+                            >
+                                +50,000 Bonus
+                            </button>
+                            <button 
+                                type="button"
+                                wire:click="modalResetUsed"
+                                class="px-2.5 py-1.5 rounded-lg bg-amber-950/80 border border-amber-500/30 text-amber-300 hover:bg-amber-900 text-xs font-bold transition-all cursor-pointer"
+                            >
+                                Reset Used to 0
+                            </button>
+                            <button 
+                                type="button"
+                                wire:click="modalSetPlanQuota(15000)"
+                                class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-white/10 text-slate-300 hover:text-white text-xs cursor-pointer"
+                            >
+                                Apply Starter (15k)
+                            </button>
+                            <button 
+                                type="button"
+                                wire:click="modalSetPlanQuota(100000)"
+                                class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-white/10 text-slate-300 hover:text-white text-xs cursor-pointer"
+                            >
+                                Apply Pro (100k)
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- TAB: SECURITY & STATUS -->
-                @if($editActiveTab === 'security')
-                    <div class="space-y-4 animate-fade-in">
-                        <div>
-                            <label class="text-xs font-semibold text-slate-300 block mb-1.5">Reset Password (Optional)</label>
-                            <x-glass.input wire:model="new_password" type="password" placeholder="Leave blank to keep existing password" />
-                            <p class="text-[11px] text-slate-400 mt-1">If provided, must be at least 8 characters long.</p>
-                        </div>
-
-                        <div class="pt-2 space-y-3">
-                            <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-900/60 border border-white/5 cursor-pointer">
-                                <input type="checkbox" wire:model="is_active" class="mt-0.5 rounded bg-slate-950 border-white/20 text-violet-600 focus:ring-violet-500/30">
-                                <div>
-                                    <span class="text-xs font-bold text-white block">Account is Active</span>
-                                    <span class="text-[11px] text-slate-400">Allow this user to authenticate and access the HelpOfAi workspace.</span>
-                                </div>
-                            </label>
-
-                            <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-900/60 border border-white/5 cursor-pointer">
-                                <input type="checkbox" wire:model="email_verified" class="mt-0.5 rounded bg-slate-950 border-white/20 text-violet-600 focus:ring-violet-500/30">
-                                <div>
-                                    <span class="text-xs font-bold text-white block">Email Address is Verified</span>
-                                    <span class="text-[11px] text-slate-400">Mark the user's email address as verified without requiring them to click a verification link.</span>
-                                </div>
-                            </label>
-                        </div>
+                <div x-show="editTab === 'security'" class="space-y-4 animate-fade-in" style="display: none;">
+                    <div>
+                        <label class="text-xs font-semibold text-slate-300 block mb-1.5">Reset Password (Optional)</label>
+                        <x-glass.input wire:model="new_password" type="password" placeholder="Leave blank to keep existing password" />
+                        <p class="text-[11px] text-slate-400 mt-1">If provided, must be at least 8 characters long.</p>
                     </div>
-                @endif
+
+                    <div class="pt-2 space-y-3">
+                        <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-900/60 border border-white/5 cursor-pointer">
+                            <input type="checkbox" wire:model="is_active" class="mt-0.5 rounded bg-slate-950 border-white/20 text-violet-600 focus:ring-violet-500/30">
+                            <div>
+                                <span class="text-xs font-bold text-white block">Account is Active</span>
+                                <span class="text-[11px] text-slate-400">Allow this user to authenticate and access the HelpOfAi workspace.</span>
+                            </div>
+                        </label>
+
+                        <label class="flex items-start gap-3 p-3 rounded-xl bg-slate-900/60 border border-white/5 cursor-pointer">
+                            <input type="checkbox" wire:model="email_verified" class="mt-0.5 rounded bg-slate-950 border-white/20 text-violet-600 focus:ring-violet-500/30">
+                            <div>
+                                <span class="text-xs font-bold text-white block">Email Address is Verified</span>
+                                <span class="text-[11px] text-slate-400">Mark the user's email address as verified without requiring them to click a verification link.</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
 
                 <!-- Modal Footer -->
                 <div class="flex items-center justify-between gap-3 pt-4 border-t border-white/10">
@@ -1034,7 +1032,7 @@
     <!-- CREATE USER MODAL                                                         -->
     <!-- ========================================================================= -->
     <div 
-        x-data="{ show: @entangle('showCreateModal') }" 
+        x-data="{ show: $wire.entangle('showCreateModal') }" 
         x-show="show" 
         class="fixed inset-0 z-50 flex items-center justify-center p-4" 
         style="display: none;"

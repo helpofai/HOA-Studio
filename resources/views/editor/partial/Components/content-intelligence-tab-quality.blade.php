@@ -229,7 +229,7 @@
                     };
                 @endphp
 
-                <div class="p-2.5 rounded-xl bg-slate-950/60 border border-white/5 space-y-1.5 hover:border-white/15 transition-all">
+                <div wire:key="qa-factor-{{ $factor['id'] ?? $key }}" class="p-2.5 rounded-xl bg-slate-950/60 border border-white/5 space-y-1.5 hover:border-white/15 transition-all">
                     {{-- Row 1: Title, Category & Score --}}
                     <div class="flex items-center justify-between gap-2">
                         <div class="flex items-center gap-1.5 min-w-0 flex-1">

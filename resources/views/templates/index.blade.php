@@ -64,6 +64,7 @@
 
             @foreach($categories as $cat)
                 <button 
+                    wire:key="tmpl-cat-{{ $cat->slug }}"
                     type="button" 
                     wire:click="$set('selectedCategory', '{{ $cat->slug }}')"
                     class="px-3 py-1.5 rounded-xl text-xs transition-all cursor-pointer flex items-center gap-1.5 font-medium {{ $selectedCategory === $cat->slug ? 'bg-violet-600 text-white font-bold shadow-md shadow-violet-600/30' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
@@ -78,9 +79,10 @@
     <!-- Templates Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @forelse($templates as $tmpl)
+            <div wire:key="tmpl-card-{{ $tmpl->id }}" class="h-full">
             <x-glass.card 
                 variant="elevated" 
-                class="p-6 flex flex-col justify-between hover:border-violet-500/50 hover:shadow-2xl hover:shadow-violet-500/10 transition-all cursor-pointer group relative"
+                class="p-6 flex flex-col justify-between hover:border-violet-500/50 hover:shadow-2xl hover:shadow-violet-500/10 transition-all cursor-pointer group relative h-full"
                 wire:click="selectTemplate({{ $tmpl->id }})"
             >
                 <div class="space-y-3">
@@ -113,6 +115,7 @@
                     </span>
                 </div>
             </x-glass.card>
+            </div>
         @empty
             <div class="col-span-full py-16 text-center">
                 <x-glass.card variant="subtle" class="p-8 max-w-md mx-auto">
@@ -193,7 +196,7 @@
 
                         <!-- Template Specific Fields -->
                         @foreach($activeTemplate->inputs_schema ?? [] as $field)
-                            <div class="space-y-1.5">
+                            <div wire:key="tmpl-field-{{ $field['name'] ?? $loop->index }}" class="space-y-1.5">
                                 <label class="font-bold text-slate-300 block">
                                     {{ $field['label'] }}
                                     @if(!empty($field['required'])) <span class="text-red-400">*</span> @endif

@@ -48,6 +48,7 @@ flowchart TD
         TIPTAP_CANVAS["[TipTap ProseMirror Canvas]"]:::cortex
         TOOLBAR_INTEL["[Editor Toolbar & Intelligence Tabs]"]:::cortex
         VERSION_SYS["[Version History & Snapshot Engine]"]:::cortex
+        UNIVERSAL_IMPORT["[Universal Document Import Studio]"]:::cortex
     end
 
     subgraph PARIETAL_LOBE ["🎯 Parietal Lobe (SEO, Analytics & Perception)"]
@@ -94,6 +95,8 @@ flowchart TD
     SEO_ANALYZER -- "Audit Criteria Check" --> QUALITY_AUDIT
 
     DOC_EDITOR -- "Save Snapshot" --> VERSION_SYS
+    DOC_EDITOR -- "File Ingestion & Parsing" --> UNIVERSAL_IMPORT
+    UNIVERSAL_IMPORT -- "editor:insertImportedContent" --> TIPTAP_CANVAS
     DOC_EDITOR -- "One-Click Publish" --> BLOG_PUBLISH
     BLOG_PUBLISH -- "Render Public Article" --> PUBLIC_WEB
     DOC_EDITOR -- "Generate Secret Link" --> DOC_SHARE
@@ -109,6 +112,7 @@ flowchart TD
     %% Clickable Hyperlinks to Synapse Cards
     click DOC_EDITOR href "#1-documenteditor-livewire-core-cerebral-cortex" "Jump to DocumentEditor Synapse Spec"
     click TIPTAP_CANVAS href "#1-documenteditor-livewire-core-cerebral-cortex" "Jump to TipTap Canvas Spec"
+    click UNIVERSAL_IMPORT href "#11-universal-document-import-studio-cerebral-cortex" "Jump to Universal Import Spec"
     click OMNIRoute href "#2-ai-intelligence--omniroute-gateway-frontal-lobe" "Jump to OmniRoute Gateway Spec"
     click WRITER_BRAIN href "#2-ai-intelligence--omniroute-gateway-frontal-lobe" "Jump to Content Writer Brain Spec"
     click STREAM_CTRL href "#2-ai-intelligence--omniroute-gateway-frontal-lobe" "Jump to SSE Controller Spec"
@@ -129,6 +133,7 @@ flowchart TD
 | Neural Hub | Feature Module | Core Entrypoint File | Primary Inbound Connection | Primary Outbound Connection |
 | :--- | :--- | :--- | :--- | :--- |
 | **Cortex** | [Document Editor](#1-documenteditor-livewire-core-cerebral-cortex) | [`DocumentEditor.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/Documents/Livewire/DocumentEditor.php) | Web Router (`/documents/{id}/edit`) | TipTap Canvas, SEO Engine, Blog, AI Stream |
+| **Cortex** | [Universal Document Import Studio](#11-universal-document-import-studio-cerebral-cortex) | [`UniversalDocumentExtractor.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/Documents/Services/UniversalDocumentExtractor.php) | Toolbar Import Modal, File Uploads (`.docx`, `.pdf`, `.md`, `.html`, `.csv`, `.txt`, `.json`) | TipTap Canvas Insertion (`replace`, `append`, `cursor`, `new_doc`), Content Intelligence Analytics |
 | **Frontal** | [OmniRoute AI Gateway](#2-ai-intelligence--omniroute-gateway-frontal-lobe) | [`OmniRouteClient.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Services/OmniRouteClient.php) | AI Stream Controller, Admin Settings | External AI Providers (OpenAI, Claude, DeepSeek) |
 | **Frontal** | [Writer Brain & Pipeline](#2-ai-intelligence--omniroute-gateway-frontal-lobe) | [`ContentWriterBrain.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Services/ContentWriterBrain.php) | Stream Controller, Livewire Canvas | OmniRoute Gateway, RAG Knowledge, Brand Voice |
 | **Parietal** | [Rank Math SEO Engine](#3-rank-math-seo-analyzer--heatmap-parietal-lobe) | [`SeoAnalyzer.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/SEO/Services/SeoAnalyzer.php) | DocumentEditor (`runSeoAudit`) | In-Canvas Color Heatmap, Schema Generator |
@@ -153,6 +158,17 @@ flowchart TD
   - Master View: [`editor.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/documents/editor.blade.php)
   - Canvas Partial: [`canvas.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/canvas.blade.php)
   - Toolbar Partial: [`toolbar.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/toolbar.blade.php)
+  - Modals Partial: [`modals.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/modals.blade.php)
+  - Intelligence Tabs & Partials:
+    - [`content-intelligence.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/content-intelligence.blade.php)
+    - [`content-intelligence-tab-post.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/Components/content-intelligence-tab-post.blade.php)
+    - [`content-intelligence-tab-seo.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/Components/content-intelligence-tab-seo.blade.php)
+    - [`content-intelligence-tab-titles-meta.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/Components/content-intelligence-tab-titles-meta.blade.php)
+    - [`content-intelligence-tab-ai-ideas.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/Components/content-intelligence-tab-ai-ideas.blade.php)
+    - [`content-intelligence-tab-keywords.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/Components/content-intelligence-tab-keywords.blade.php)
+    - [`content-intelligence-tab-quality.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/Components/content-intelligence-tab-quality.blade.php)
+    - [`content-intelligence-tab-outline.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/Components/content-intelligence-tab-outline.blade.php)
+    - [`content-intelligence-tab-versions.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/Components/content-intelligence-tab-versions.blade.php)
   - Intelligence Scripts: [`scripts-ai.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/scripts-ai.blade.php)
   - Canvas Scripts: [`scripts-canvas.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/scripts-canvas.blade.php)
 * **Inbound Synapses**:
@@ -167,6 +183,15 @@ flowchart TD
   - Debounced autosave (3 seconds) writes to `documents` and `document_contents` tables.
   - Clamps titles to 190 characters to respect MySQL `VARCHAR(191)` constraints.
   - Heatmap is rendered in an isolated browser overlay `#seo-heatmap-overlay` in `canvas.blade.php`, never mutating ProseMirror state.
+  - **Instant 0ms Modal & Tab Decoupling**: Toolbar modal triggers (`showImportModalLocal`, `showShareModalLocal`, `showBlogModalLocal`, `showSeoDrawerLocal`) and modal internal tabs (Import Canvas Preview vs Analysis vs Raw Text) switch in 0ms directly via client-side Alpine.js without waiting for blocking Livewire server roundtrips.
+  - **Optimistic Tag & Keyword Chips (0ms UI Addition)**: Secondary keywords and post tags update the UI instantly (0ms) through reactive Alpine state with `$watch` synchronization to Livewire properties in the background, eliminating click latency when adding or toggling tags.
+  - **Global `wire:key` DOM Morphing Protection**: Every dynamic loop across the editor (Post Categories, Popular Tags, Secondary Keywords, AI Entities, SERP FAQ Previews, Titles, Meta Descriptions, Content Gaps, FAQs, and Version History) enforces explicit, deterministic `wire:key` attributes, preventing Livewire 3 DOM tree corruption, misaligned morphs, and button click delays.
+  - **Blade vs Alpine Syntax Conflict Elimination**: Replaced problematic `@entangle` directives inside partial views with `$wire.entangle()` and removed duplicate `.live` entanglements from controls already bound via event handlers, preventing duplicate HTTP requests on UI interactions.
+  - **Memory & Serialization Safeguards**: Strip heavy AST HTML from persistent state (`seoData.marked_html`). Historical version records are queried with lightweight metadata columns (`['id', 'document_id', 'created_by', 'version_number', 'word_count', 'summary', 'operation_type', 'created_at']`). Deep version content is retrieved strictly on-demand via `getVersionContent(id)` for diffing, saving megabytes per autosave cycle.
+  - **Instant Button Feedback Engine**: All action buttons across toolbar and Content Intelligence tabs (SEO, Versions, Keywords, Post/Publish, AI Ideas, Titles & Meta) enforce `wire:loading.attr="disabled"`, visual spinners, and state disabling, completely preventing duplicate requests and click lag.
+  - **Multi-Format Drag-and-Drop Featured Image Upload Engine with Live Progress & Dual-Preview Sync**: Integrated native file uploads via `WithFileUploads` in [`DocumentEditor.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/Documents/Livewire/DocumentEditor.php) (`$featuredImageUpload`, `updatedFeaturedImageUpload()`). Supports multi-format assets (`png, jpg, jpeg, webp, gif, svg, avif, bmp, ico, tif, tiff`) up to 15MB with automatic public storage linking (`featured-images/`). Features client-side animated upload progress bars (`livewire-upload-progress`, `0% → 100%`) directly inside the dropzone container, in-place instant image previewing with 1-click replacement overlays, and synchronized previews across both the Post Settings sidebar and the Publish Article to Blog modal (`class="w-full h-36 object-cover"`).
+  - **SEO-Optimized Semantic Image Filenames & Public Storage Fallback**: Uploaded featured images automatically generate Google-friendly, keyword-rich filenames via `generateSeoFriendlyImageName()` (e.g. `{article-slug}-featured-image-{hash6}.{ext}`) instead of raw random hashes. Paired with a dedicated public storage fallback route (`/storage/{path}`) in [`routes/web.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/routes/web.php), completely preventing 403 Forbidden errors across Windows and shared hosting/cPanel environments without symlink privileges.
+  - **Single-Root DOM Integrity**: Strictly preserves Livewire 3 single root container rule across `editor.blade.php` and partials (`modals.blade.php`), preventing DOM morphing desyncs and premature container closure.
 * **Failure Guardrail**: Never remove public methods bound to `wire:click` (e.g. `toggleSeoDrawer`, `runSeoAudit`, `openBlogModal`). Ensure single root `<div>` in `editor.blade.php`.
 
 ---
@@ -247,20 +272,31 @@ flowchart TD
   - Publisher Action: [`PublishDocumentToBlog.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/Blog/Actions/PublishDocumentToBlog.php)
   - Unpublisher Action: [`UnpublishDocumentFromBlog.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/Blog/Actions/UnpublishDocumentFromBlog.php)
   - Model: [`BlogPost.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/Blog/Models/BlogPost.php)
-  - Livewire UI: [`BlogManagerPage.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/Blog/Livewire/BlogManagerPage.php), [`BlogPostPage.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/Blog/Livewire/BlogPostPage.php)
+  - Livewire UI: [`BlogIndexPage.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/Blog/Livewire/BlogIndexPage.php), [`BlogManagerPage.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/Blog/Livewire/BlogManagerPage.php), [`BlogPostPage.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/Blog/Livewire/BlogPostPage.php)
   - Public Show View: [`show.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/blog/show.blade.php)
+  - Public Archive View: [`index.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/blog/index.blade.php)
   - Typography Stylesheet: [`markdown.css`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/css/markdown.css)
   - Tab UI: [`content-intelligence-tab-post.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/Components/content-intelligence-tab-post.blade.php)
 * **Inbound Synapses**:
   - Triggered via `publishToBlog()` in [`DocumentEditor.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/Documents/Livewire/DocumentEditor.php).
 * **Outbound Synapses**:
-  - Public routes: `GET /blog` and `GET /blog/{slug}`
+  - Public routes: `GET /blog`, `GET /blog/archive`, and `GET /blog/{slug}`
 * **Internal Mechanics**:
   - Generates unique slug using `BlogPost::generateUniqueSlug()`.
   - Maintains link between `document_id` and `blog_posts.id` for instant sync updates.
+  - **Dynamic Knowledge Archive & Content Explorer (`BlogIndexPage.php`, `index.blade.php`)**:
+    - **Live Debounced Search**: Multi-field querying across title, excerpt, category, tags, and content.
+    - **Dynamic Tag Cloud**: Automated frequency indexing (`BlogPost::getPublishedTagsWithCounts()`), interactive tag pills, and URL query synchronization (`?tag=...`).
+    - **Categories Directory**: Horizontal pill carousel and vertical sidebar deck with live article counts.
+    - **Archive Timeline**: Chronological Year/Month breakdown (`BlogPost::getPublishedArchiveTimeline()`) with one-click period scoping (`?archive=YYYY-mm`).
+    - **Read-Time Filters & Multi-Criteria Sorting**: Quick reads (< 5 min), deep dives (5+ min), and sorting by newest, views (popularity), oldest, read duration, or alphabetical.
+    - **Dual Presentation Views**: One-click switcher between Magazine Grid (`▦`) and Editorial List (`☰`) layouts.
+    - **Active Filter Chips Bar**: Visual dismissible chips for each active filter criteria with single-click reset.
   - Public article content rendered with `.hoa-article-content` and `.markdown-body` via [`markdown.css`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/css/markdown.css), providing dark glassmorphic styling for tables, checklists, callouts, and code blocks with automatic duplicate leading `<h1>` suppression.
+  - **Zero-Latency Independent Post Sidebar Accordions & Multi-Format Featured Image Upload**: Status & Visibility, Multi-Format Featured Image Upload (PNG/JPG/WebP/GIF/SVG/AVIF/BMP/ICO/TIFF drag-and-drop dropzone with browse, replace, and instant preview), Categories, Tags, and Excerpt panels in [`content-intelligence-tab-post.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/Components/content-intelligence-tab-post.blade.php) utilize self-contained Alpine components (`x-data="{ isOpen: ... }"`) keyed with `wire:key` to prevent Livewire morphing conflicts, deliver 0ms category selection, instant image dropzone uploads and preset previews, and real-time character counts without collapsing active panels.
   - **Publisher-Grade Editorial Layout**: Responsive 2-column magazine architecture (`lg:grid-cols-12`):
     - **Editorial Masthead**: Typographic hero with category kicker, reading time, view count, byline strip, and cinematic featured image banner.
+    - **Dual Editorial Publication & Revision Dates**: Byline strip supports dual publication tracking, cleanly rendering `Published on {date}` alongside `Updated on {date}` whenever an article has been updated or revised post-publication, backed by atomic view counting (`DB::table()->increment('views_count')`) that preserves content modification timestamps.
     - **Dynamic Table of Contents (TOC)**: Alpine.js (`hoaBlogPostReader()`) auto-extracts `h2` and `h3` tags, generates semantic anchor IDs, applies `scroll-margin-top`, and tracks scroll position with active section highlight. Includes mobile collapsible drawer for screens `< lg`.
     - **Reading Immersion**: Fixed top scroll progress bar (`0% → 100%`) and a floating blurred glass header that slides in when scrolled past hero with real-time reading progress and quick-share actions.
     - **Circulation & Navigation**: Previous and Next article cards (`$previousPost`, `$nextPost`), verified author card with author post archive links, and related category stories deck.
@@ -278,19 +314,52 @@ flowchart TD
         - **Floating Quick Dock & Source Drawers**: In-canvas floating quick action buttons, toggleable Mermaid source-code drawers, and 1-click schema clipboard copying.
       - **Cyberpunk ASCII Architecture Terminals**: Box-drawing flowcharts (e.g. `┌─┐│└┘▼▲`) are auto-wrapped in a macOS terminal frame (`🔴 🟡 🟢`) with locked monospace font alignment and 1-click diagram copy.
       - **Permission & Feature Matrix Enhancer**: Tables comparing features/plans auto-highlight checkmarks (`✓` in glowing emerald), crossmarks (`✕` in muted slate), and pills (`⚡ ...`) with responsive horizontal scrollers.
+    - **Client-Side Reading Memory & Multi-Card Progress Sync Engine (`hoaCardReadingProgress`)**:
+      - **Persistent Reading Storage**: Automatically records and persists per-article reading progress (`progress`, `completed`, `scrollY`, `updated_at`) using browser `localStorage` keyed by unique article slug (`hoa_read_progress_{slug}`).
+      - **Dynamic Reading Progress Bar & Status Metrics**: Article cards across Grid View, List View, and the Featured Hero Spotlight dynamically reveal an animated gradient progress track (`0% → 100%`) with real-time status badges (`• 35% read` or `✓ 100% Read`), calculated time remaining (`4m left`), and floating thumbnail status pills.
+      - **Upgraded Glassmorphic Action Buttons**: Replaced generic text links with high-end, rounded-xl glassmorphic action buttons featuring 3 reactive dynamic states:
+        - *Unread*: "Read →" with subtle hover arrow translation and indigo border glow.
+        - *In Progress*: "Resume (35%) →" with active indigo gradient glow and direct jump option.
+        - *Completed*: "Read Again ↺" with emerald glass styling and smooth 180° rotation on hover.
+      - **Zero-Latency bfcache & Multi-Tab Synchronization**: Automatically listens for window `storage`, `pageshow`, and `focus` events, ensuring instant updates when navigating back from an article without requiring a full page reload.
+      - **Pick-Up Where You Left Off (Floating Resume Toast)**: In `/blog/{slug}`, if a reader previously read past 350px without completing the article, a non-intrusive floating toast appears with a 1-click `Jump →` action to smoothly glide down to their exact saved reading point.
 
 ---
 
-### 7. WordPress Headless Bridge System
-* **Primary Role**: Bi-directional bridge enabling users to edit WordPress posts directly using HOA-Studio's TipTap editor and AI pipeline from inside WP-Admin.
+### 7. WordPress Headless Bridge & Enterprise Plugin Suite
+* **Primary Role**: Full-featured enterprise content production workspace for WordPress. Connects WP-Admin with TipTap 3.30, OmniRoute AI SSE streaming, live word/token speed telemetry, 2-way cloud document synchronization, automatic SEO meta generation, and Gutenberg AI sidebar assistance.
 * **Core Files**:
-  - Bridge Controller: [`WordPressBridgeController.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/WordPress/Http/Controllers/WordPressBridgeController.php)
-  - Plugin Assets: `public/plugins/hoa-studio-wordpress/`
-  - JS Bundle: `resources/js/plugins/wordpress-editor.js`
+  - Backend Controller: [`WordPressBridgeController.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/WordPress/Http/Controllers/WordPressBridgeController.php)
+  - Handshake Verifier: [`VerifyWordPressHandshake.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/WordPress/Actions/VerifyWordPressHandshake.php)
+  - Distribution Packaging Service: [`WordPressPluginService.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/WordPress/Services/WordPressPluginService.php)
+  - Studio Token Manager: [`UserStudioToken.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/Auth/Models/UserStudioToken.php)
+  - Plugin Main Bootstrap: [`hoa-studio-wordpress.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/public/plugins/hoa-studio-wordpress/hoa-studio-wordpress.php)
+  - Plugin Core Modules:
+    - Orchestrator: [`class-hoa-plugin.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/public/plugins/hoa-studio-wordpress/includes/Core/class-hoa-plugin.php)
+    - Activator & Deactivator: [`class-hoa-activator.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/public/plugins/hoa-studio-wordpress/includes/Core/class-hoa-activator.php), [`class-hoa-deactivator.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/public/plugins/hoa-studio-wordpress/includes/Core/class-hoa-deactivator.php)
+    - Settings Manager: [`class-hoa-settings.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/public/plugins/hoa-studio-wordpress/includes/Core/class-hoa-settings.php)
+    - Admin Controller: [`class-hoa-admin.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/public/plugins/hoa-studio-wordpress/includes/Admin/class-hoa-admin.php)
+    - Metabox Controller: [`class-hoa-metabox.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/public/plugins/hoa-studio-wordpress/includes/Admin/class-hoa-metabox.php)
+    - SEO Generator & Auditor: [`class-hoa-seo-generator.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/public/plugins/hoa-studio-wordpress/includes/Admin/class-hoa-seo-generator.php)
+    - Fullscreen TipTap Studio Editor: [`class-hoa-studio-editor.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/public/plugins/hoa-studio-wordpress/includes/Editor/class-hoa-studio-editor.php)
+    - Gutenberg Block Suite: [`class-hoa-gutenberg-blocks.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/public/plugins/hoa-studio-wordpress/includes/Gutenberg/class-hoa-gutenberg-blocks.php)
+    - AJAX Handshake & SSE Stream Proxy: [`class-hoa-ajax-handler.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/public/plugins/hoa-studio-wordpress/includes/Api/class-hoa-ajax-handler.php)
+    - REST API Inbound Sync & Inventory: [`class-hoa-rest-api.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/public/plugins/hoa-studio-wordpress/includes/Api/class-hoa-rest-api.php)
+    - 2-Way Cloud Synchronizer: [`class-hoa-cloud-sync.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/public/plugins/hoa-studio-wordpress/includes/Sync/class-hoa-cloud-sync.php)
+  - Plugin Views:
+    - [`admin-dashboard.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/public/plugins/hoa-studio-wordpress/views/admin-dashboard.php), [`admin-connection.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/public/plugins/hoa-studio-wordpress/views/admin-connection.php), [`admin-ai-settings.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/public/plugins/hoa-studio-wordpress/views/admin-ai-settings.php), [`admin-editor-settings.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/public/plugins/hoa-studio-wordpress/views/admin-editor-settings.php), [`metabox-post-sidebar.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/public/plugins/hoa-studio-wordpress/views/metabox-post-sidebar.php), [`studio-canvas.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/public/plugins/hoa-studio-wordpress/views/studio-canvas.php)
+  - Assets & Bundles:
+    - CSS: [`hoa-studio.css`](file:///C:/Users/rajib/Desktop/HOA-Studio/public/plugins/hoa-studio-wordpress/assets/css/hoa-studio.css), [`hoa-editor.css`](file:///C:/Users/rajib/Desktop/HOA-Studio/public/plugins/hoa-studio-wordpress/assets/css/hoa-editor.css)
+    - JS: [`hoa-admin.js`](file:///C:/Users/rajib/Desktop/HOA-Studio/public/plugins/hoa-studio-wordpress/assets/js/hoa-admin.js), [`hoa-gutenberg.js`](file:///C:/Users/rajib/Desktop/HOA-Studio/public/plugins/hoa-studio-wordpress/assets/js/hoa-gutenberg.js), [`hoa-tiptap-bundle.js`](file:///C:/Users/rajib/Desktop/HOA-Studio/public/plugins/hoa-studio-wordpress/assets/js/hoa-tiptap-bundle.js) (compiled from `resources/js/plugins/wordpress-editor.js`)
 * **Inbound Synapses**:
-  - WP-Admin AJAX calls to `/api/wordpress/v1/sync` and `/api/wordpress/v1/ai-stream`
+  - `POST /api/v1/wordpress/connect`: Token handshake verification and telemetry discovery.
+  - `POST /api/v1/wordpress/stream`: Real-time SSE streaming for text generation, rewrites, and tone adjustments.
+  - `POST /api/v1/wordpress/transform`: Synchronous AI transformations.
+  - `POST /api/v1/wordpress/sync-document`: Bidirectional article sync.
+  - `GET /dashboard/wordpress/plugin/download`: Dynamic packaging and download of the distribution ZIP.
 * **Outbound Synapses**:
-  - Dispatches directly to [`OmniRouteClient.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Services/OmniRouteClient.php) with authentication tokens.
+  - WordPress REST endpoint `/wp-json/hoa-studio/v1/sync` for inbound draft webhooks from HOA-Studio cloud.
+  - Proxy dispatches directly to [`OmniRouteClient.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Services/OmniRouteClient.php) with Bearer token authentication and quota deduction.
 
 ---
 
@@ -333,6 +402,52 @@ flowchart TD
 * **Outbound Synapses**:
   - Safely syncs `.env.example` into `.env` without overwriting production credentials.
   - Executes defensive database migrations.
+* **Internal Mechanics**:
+  - Automatically verifies target version compatibility before applying updates.
+  - Generates atomic pre-update code backups in `storage/app/backups/`.
+  - In testing environments (`app()->environment('testing')`), uses an optimized lightweight mock snapshot to prevent memory exhaustion and preserve sub-second test execution speeds.
+
+---
+
+### 11. Universal Document Import Studio (Cerebral Cortex)
+* **Primary Role**: Advanced multi-format document parser, intelligent content extractor, and real-time text intelligence engine. Extracts formatted typography, headings, lists, and tables while computing comprehensive readability and stylistic metrics.
+* **Core Files**:
+  - Universal Extractor: [`UniversalDocumentExtractor.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/Documents/Services/UniversalDocumentExtractor.php)
+  - Text Intelligence Analyzer: [`DocumentTextAnalyzer.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/Documents/Services/DocumentTextAnalyzer.php)
+  - Importer Service: [`DocumentImporter.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/Documents/Services/DocumentImporter.php)
+  - Livewire Orchestrator: [`DocumentEditor.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/Documents/Livewire/DocumentEditor.php)
+  - Studio Modal: [`modals.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/modals.blade.php)
+  - Client Event Bridge: [`scripts-core.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/scripts-core.blade.php)
+  - Feature Tests: [`DocumentImportSystemTest.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/tests/Feature/DocumentImportSystemTest.php)
+* **Inbound Synapses**:
+  - Toolbar `📥 Import` button triggers `openImportModal()`.
+  - Multi-format file drag-and-drop or file upload via `wire:model="importFile"` (`.docx`, `.pdf`, `.md`, `.html`, `.csv`, `.txt`, `.json`).
+  - Formatting tuning (`clean_whitespace`, `preserve_headings`, `smart_typography`) via `reprocessImport()`.
+* **Outbound Synapses**:
+  - Dispatches browser event `editor:insertImportedContent` to TipTap engine with insertion modes:
+    1. `replace`: Overwrites current editor draft with automatic pre-import snapshot.
+    2. `append`: Appends content to canvas bottom with clean divider.
+    3. `cursor`: Injects content directly at current active caret position.
+    4. `new_doc`: Persists as an independent new document via `DocumentImporter::importFromText()` and navigates to it.
+  - Automatically synchronizes document title if currently untitled.
+* **Internal Mechanics**:
+  - Pure PHP / zero CLI dependency architecture: parses `.docx` via native `ZipArchive` and `DOMXPath`, decodes `.pdf` stream flates via `gzuncompress`, parses GFM tables and markdown structures, sanitizes HTML, builds rich tables from `.csv`, and converts TipTap JSON AST.
+  - Smart typography parser is tag-aware, safely applying curly quotes, em-dashes, and ellipses without mutating HTML attribute values.
+  - Content intelligence engine computes Flesch Reading Ease scores, US School Grade level, stylistic tone registers, top keyword entities, and extractive executive summaries.
+  - **Zero-Latency Mode Switching**: Canvas insertion mode selectors (`replace`, `append`, `cursor`, `new_doc`) toggle immediately via Alpine.js (`currentMode = '...'`) with instant visual highlight and synchronous `$wire.importInsertMode` binding, avoiding server wait times during mode changes.
+* **Failure Guardrails**: Never overwrite canvas in `replace` mode without triggering `saveExplicitSnapshot`. Keep all file decoders pure-PHP to ensure 100% compatibility with Windows and shared hosting/cPanel environments.
+
+---
+
+### 12. System-Wide Reactivity & Zero-Latency UI Architecture (Neuro-Synaptic Matrix)
+* **Primary Role**: System-wide performance, responsiveness, and instant UI feedback layer governing Livewire 3 and Alpine.js interactions across the entire codebase.
+* **Core Optimization Matrix**:
+  - **100% Modernized Entanglement**: Fully replaced legacy Blade `@entangle` directives with `$wire.entangle(...)` across all feature modules (`admin/users`, `admin/updates`, `admin/system-info`, `projects/index`, `documents/index`, `auth/register`, `editor/partial/modals`, `editor/partial/Components/*`).
+  - **0ms Client-Side State Decoupling**: Converted tab switches, view toggles, and modal states from blocking `.live` server round-trips to local Alpine.js reactive state (`activeImportTab`, `editTab`, `ingestTab`, `otherDocKey`). Navigating tabs in Admin Edit User, Updates, System Diagnostics, Knowledge Base Ingest, and Document Editor now takes 0ms without server wait time.
+  - **Deterministic Global `wire:key` Coverage**: Enforced unique, deterministic `wire:key` attributes across all dynamic loops (`@foreach` and `@forelse`) system-wide. Covered views include Admin Users Directory, Role Matrix & Capabilities, DB Snapshots & Migrations, System Diagnostic Checks, Project Folders, AI Model Catalogs, BYOK Keys, Brand Voice Cards, Knowledge Base Sources & Semantic Chunks, Templates Recipes, Usage Logs, and Public Blog Articles. This eliminates Livewire 3 DOM morphing bottlenecks, dropped focus, and sluggish re-renders.
+  - **Universal Double-Click & Rate Protection**: Implemented `wire:loading.attr="disabled"`, animated spinners, and progressive status text ("Saving...", "Vectorizing...", "Creating...", "Restoring...") across all primary action and submission buttons, preventing race conditions and duplicated database transactions.
+  - **Zero-Latency Password Strength Engine**: Upgraded auth registration security meter to evaluate password strength locally in 0ms via Alpine `@input` listeners, removing unnecessary network latency during typing.
+* **Failure Guardrails**: Never add `.live` modifiers to purely visual state variables (e.g. active tabs or accordion accordions). Always provide unique `wire:key` on loop root elements.
 
 ---
 

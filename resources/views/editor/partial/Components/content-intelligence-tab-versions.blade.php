@@ -1,4 +1,4 @@
-﻿{{--
+{{--
 /*
 |--------------------------------------------------------------------------
 | HelpOfAi (HOA) Professional Software - Version History & Snapshots Tab
@@ -16,14 +16,48 @@
 --}}
 
 <!-- ─── TAB 8: SNAPSHOT VERSIONS TIMELINE & TIME-MACHINE DIFF ───────── -->
-<div x-show="rightTab === 'versions'" class="space-y-3" style="display: none;" x-data="{ selectedSnapshot: null, showSnapshotDiff: false, snapshotDiffHtml: '' }">
+<div x-show="rightTab === 'versions'" class="space-y-3" style="display: none;" 
+     x-data="{ 
+         selectedSnapshot: null, 
+         showSnapshotDiff: false, 
+         snapshotDiffHtml: '', 
+         diffLoadingId: null,
+         async compareSnapshot(vId, vNum) {
+             this.diffLoadingId = vId;
+             try {
+                 const html = await $wire.getVersionContent(vId);
+                 this.selectedSnapshot = { id: vId, version_number: vNum, content_html: html };
+                 const ed = (typeof getEditor === 'function' ? getEditor() : null) || window.hoaEditorInstance;
+                 const liveHtml = ed && typeof ed.getHTML === 'function' ? ed.getHTML() : '';
+                 if (typeof computeWordDiff === 'function') {
+                     this.snapshotDiffHtml = computeWordDiff(html, liveHtml).unifiedHtml;
+                 } else {
+                     this.snapshotDiffHtml = html;
+                 }
+                 this.showSnapshotDiff = true;
+             } catch (e) {
+                 console.error('Error diffing snapshot:', e);
+             } finally {
+                 this.diffLoadingId = null;
+             }
+         }
+     }">
     <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-white/10 space-y-2.5 shadow-inner">
         <div class="flex items-center justify-between pb-1 border-b border-white/5">
             <span class="text-xs font-bold text-white flex items-center gap-1.5">
                 <span class="text-indigo-400">🕒</span>
                 <span>Version History & Time-Machine</span>
             </span>
-            <button type="button" wire:click="saveExplicitSnapshot" class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-[10px] font-bold shadow-md cursor-pointer">+ New Snapshot</button>
+            <button 
+                type="button" 
+                wire:click="saveExplicitSnapshot" 
+                wire:loading.attr="disabled"
+                wire:target="saveExplicitSnapshot"
+                class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-[10px] font-bold shadow-md cursor-pointer flex items-center gap-1"
+            >
+                <span wire:loading.remove wire:target="saveExplicitSnapshot">+ New Snapshot</span>
+                <span wire:loading wire:target="saveExplicitSnapshot" class="inline-block animate-spin text-[9px]">⏳ Saving...</span>
+            </button>
         </div>
 
         <!-- Interactive Snapshot Version Diff Modal / Flyout -->
@@ -62,7 +96,7 @@
         <!-- Snapshot List -->
         <div class="space-y-2 max-h-96 overflow-y-auto pr-1">
             @forelse($document->versions as $v)
-                <div class="p-3 rounded-xl {{ $document->current_version_id === $v->id ? 'bg-indigo-600/20 border border-indigo-500/40' : 'bg-slate-950/80 border border-white/5' }} space-y-1 text-xs">
+                <div wire:key="doc-version-{{ $v->id }}" class="p-3 rounded-xl {{ $document->current_version_id === $v->id ? 'bg-indigo-600/20 border border-indigo-500/40' : 'bg-slate-950/80 border border-white/5' }} space-y-1 text-xs">
                     <div class="flex items-center justify-between">
                         <span class="font-bold text-white text-[11px]">Version #{{ $v->version_number }}</span>
                         <span class="text-[10px] text-slate-400 font-mono">{{ $v->created_at->format('M d, H:i') }}</span>
@@ -73,14 +107,25 @@
                         <div class="flex items-center gap-1.5">
                             <button 
                                 type="button" 
-                                x-on:click="selectedSnapshot = { id: {{ $v->id }}, version_number: {{ $v->version_number }}, content_html: @js($v->content_html ?? '') }; snapshotDiffHtml = computeWordDiff(selectedSnapshot.content_html, ((typeof getEditor === 'function' ? getEditor() : null) || window.hoaEditorInstance)?.getHTML ? ((typeof getEditor === 'function' ? getEditor() : null) || window.hoaEditorInstance).getHTML() : '').unifiedHtml; showSnapshotDiff = true;" 
-                                class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                                x-on:click="compareSnapshot({{ $v->id }}, {{ $v->version_number }})" 
+                                :disabled="diffLoadingId === {{ $v->id }}"
+                                class="px-2 py-0.5 rounded bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1"
                                 title="Compare snapshot diff against current canvas"
                             >
-                                🔍 Diff
+                                <span x-show="diffLoadingId === {{ $v->id }}" class="animate-spin text-[9px]">⏳</span>
+                                <span>🔍 Diff</span>
                             </button>
                             @if($document->current_version_id !== $v->id)
-                                <button type="button" wire:click="restoreVersion({{ $v->id }})" class="px-2 py-0.5 rounded bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white font-bold transition-colors cursor-pointer">Restore</button>
+                                <button 
+                                    type="button" 
+                                    wire:click="restoreVersion({{ $v->id }})" 
+                                    wire:loading.attr="disabled"
+                                    wire:target="restoreVersion({{ $v->id }})"
+                                    class="px-2 py-0.5 rounded bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white font-bold transition-colors cursor-pointer flex items-center gap-1"
+                                >
+                                    <span wire:loading wire:target="restoreVersion({{ $v->id }})" class="animate-spin text-[9px]">⏳</span>
+                                    <span>Restore</span>
+                                </button>
                             @else
                                 <span class="text-emerald-400 font-bold">Active</span>
                             @endif

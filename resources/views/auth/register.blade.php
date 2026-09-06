@@ -101,7 +101,7 @@
                 <!-- Password Input with Live Alpine.js Security Strength Meter & Show Toggle -->
                 <div 
                     x-data="{
-                        password: @entangle('password'),
+                        password: $wire.entangle('password'),
                         showPass: false,
                         get strength() {
                             if (!this.password) return 0;
@@ -130,6 +130,7 @@
                     <div class="relative">
                         <input
                             wire:model="password"
+                            @input="password = $event.target.value"
                             :type="showPass ? 'text' : 'password'"
                             placeholder="Min 8 chars, uppercase, number & symbol"
                             required

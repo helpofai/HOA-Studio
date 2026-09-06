@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.7.7] - 2026-09-06
+
+### Added
+- **Client-Side Reading Progress Memory & Card Synchronization Engine (`hoaCardReadingProgress`)**:
+  - Automatic persistent tracking of reading progress (`progress`, `completed`, `scrollY`, `updated_at`) using browser `localStorage` keyed by unique article slug (`hoa_read_progress_{slug}`).
+  - **Dual-Gradient Progress Bar & Dynamic Status Badges**: Article cards across Grid View, List View, and Featured Hero dynamically reveal an animated gradient progress track (`0% → 100%`), live progress badge (`• 35% read` or `✓ 100% Read`), time-to-finish indicator, and thumbnail status badges.
+  - **Upgraded Modern Glassmorphic Action Buttons**: Replaced generic text links with high-end, rounded-xl glassmorphic buttons with dynamic states:
+    - *Unread*: "Read →" with subtle border glow and hover translation.
+    - *In Progress*: "Resume (35%) →" with active indigo glow and direct jump option.
+    - *Completed*: "Read Again ↺" with emerald glass styling and smooth 180° rotation on hover.
+  - **Zero-Latency bfcache & Multi-Tab Synchronization**: Listens to `storage`, `pageshow`, and `focus` window events, ensuring instant updates when navigating back from an article without page reloads.
+  - **Pick-Up Where You Left Off (Floating Resume Toast)**: On `/blog/{slug}`, if a reader previously scrolled past 350px without completing the article, a non-intrusive floating toast appears with a 1-click `Jump →` button that smoothly scrolls to the saved point.
+- **Dynamic Knowledge Archive & Content Explorer Suite (`/blog` & `/blog/archive`)**:
+  - Real-time debounced search across titles, excerpts, categories, and tags.
+  - Interactive tag cloud with article frequency counts (`BlogPost::getPublishedTagsWithCounts()`).
+  - Categories directory with live count metrics.
+  - Chronological archive timeline (`BlogPost::getPublishedArchiveTimeline()`).
+  - Quick read-time filters (< 5m quick vs 5m+ deep dive) and multi-criteria sorting.
+  - Dynamic Active Filter Chips Bar with 1-click reset.
+  - Grid View (`▦`) and List View (`☰`) presentation layout switcher.
+- **Multi-Format Featured Image Upload Engine**:
+  - Support for PNG, JPG, WebP, GIF, SVG, AVIF, BMP, ICO, and TIFF formats.
+  - Real-time upload progress bar and instant image preview in Section 1 post editor tab.
+  - SEO-friendly slug-based filename generation with timestamps.
+  - Public storage fallback route (`/storage/{path}`) and NTFS junction handling for Windows & shared hosting compatibility.
+- **Dual Editorial Publication & Revision Dates**:
+  - Added display of `Published on {date}` and `Updated on {date}` on article views.
+  - Atomic view counting (`DB::table()->increment('views_count')`) that preserves content modification timestamps.
+
 ## [2.7.6] - 2026-09-05
 
 ### Added

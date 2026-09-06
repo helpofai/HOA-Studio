@@ -127,7 +127,7 @@
                 $pTokens = $pUsage->tokens ?? 0;
                 $pWords = $pUsage->words ?? 0;
             @endphp
-            <x-glass.card variant="standard" class="p-6 flex flex-col justify-between hover:border-violet-500/40 transition-all relative overflow-hidden group {{ $isOmni ? 'border-violet-500/30 bg-violet-950/10 md:col-span-2 lg:col-span-1 shadow-lg shadow-violet-950/20' : '' }}">
+            <x-glass.card wire:key="admin-provider-{{ $provider->id }}" variant="standard" class="p-6 flex flex-col justify-between hover:border-violet-500/40 transition-all relative overflow-hidden group {{ $isOmni ? 'border-violet-500/30 bg-violet-950/10 md:col-span-2 lg:col-span-1 shadow-lg shadow-violet-950/20' : '' }}">
                 @if($isOmni)
                     <div class="absolute top-0 right-0 px-3 py-1 bg-gradient-to-l from-violet-600 to-indigo-600 text-white font-mono text-[9px] font-bold uppercase rounded-bl-xl shadow-md flex items-center gap-1.5">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -274,7 +274,7 @@
                         @php
                             $st = $usageStats->get($model->model_id);
                         @endphp
-                        <tr class="hover:bg-white/[0.03] transition-colors {{ $model->is_default ? 'bg-violet-600/10' : '' }}">
+                        <tr wire:key="admin-ai-model-{{ $model->id }}" class="hover:bg-white/[0.03] transition-colors {{ $model->is_default ? 'bg-violet-600/10' : '' }}">
                             <!-- Model Info -->
                             <td class="py-3.5 px-4">
                                 <div class="flex items-center gap-2.5">

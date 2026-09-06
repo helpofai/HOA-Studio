@@ -365,6 +365,7 @@
                     <div class="space-y-1.5 pt-2">
                         @foreach ($templatesList as $tKey => $tData)
                             <button 
+                                wire:key="admin-mail-tpl-{{ $tKey }}"
                                 type="button" 
                                 wire:click="selectTemplate('{{ $tKey }}')"
                                 class="w-full text-left p-3 rounded-2xl border transition-all flex items-start gap-3 cursor-pointer {{ $selectedTemplateKey === $tKey ? 'bg-violet-600/20 border-violet-500 text-white shadow-lg shadow-violet-500/10 ring-1 ring-violet-500' : 'bg-slate-900/60 border-white/10 text-slate-300 hover:bg-white/5 hover:border-white/20' }}"
@@ -497,6 +498,7 @@
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
                                     @foreach ($currentTpl['placeholders'] as $tag => $tagDesc)
                                         <div 
+                                            wire:key="admin-mail-ph-{{ $tag }}"
                                             x-data="{ copied: false }"
                                             x-on:click="navigator.clipboard.writeText('{{ $tag }}'); copied = true; setTimeout(() => copied = false, 2000)"
                                             class="flex items-center justify-between p-2 rounded-xl bg-slate-950/70 border border-white/5 hover:border-violet-500/40 hover:bg-slate-900 transition-all cursor-pointer group"

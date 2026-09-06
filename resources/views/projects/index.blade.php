@@ -54,7 +54,8 @@
     @else
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach($projects as $project)
-                <x-glass.card variant="standard" class="p-6 flex flex-col justify-between hover:border-indigo-500/40 transition-all">
+                <div wire:key="project-card-{{ $project->id }}" class="h-full">
+                <x-glass.card variant="standard" class="p-6 flex flex-col justify-between hover:border-indigo-500/40 transition-all h-full">
                     <div>
                         <div class="flex items-center justify-between mb-4">
                             <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow-md" style="background-color: {{ $project->color }}20; border: 1px solid {{ $project->color }}40;">
@@ -79,13 +80,14 @@
                         <span>{{ $project->created_at->format('M d, Y') }}</span>
                     </div>
                 </x-glass.card>
+                </div>
             @endforeach
         </div>
     @endif
 
     <!-- Project Create / Edit Modal -->
     <div 
-        x-data="{ show: @entangle('showModal') }" 
+        x-data="{ show: $wire.entangle('showModal') }" 
         x-show="show" 
         class="fixed inset-0 z-50 flex items-center justify-center p-4" 
         style="display: none;"
@@ -117,7 +119,10 @@
 
                 <div class="flex items-center justify-end gap-3 pt-4 border-t border-white/5">
                     <x-glass.button type="button" variant="secondary" size="sm" x-on:click="show = false">Cancel</x-glass.button>
-                    <x-glass.button type="submit" variant="primary" size="sm">Save Project</x-glass.button>
+                    <x-glass.button type="submit" variant="primary" size="sm" wire:loading.attr="disabled">
+                        <span wire:loading.remove wire:target="save">Save Project</span>
+                        <span wire:loading wire:target="save">Saving...</span>
+                    </x-glass.button>
                 </div>
             </form>
         </x-glass.card>
