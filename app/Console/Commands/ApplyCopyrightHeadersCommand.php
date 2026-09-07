@@ -9,6 +9,7 @@ use Symfony\Component\Finder\Finder;
 class ApplyCopyrightHeadersCommand extends Command
 {
     protected $signature = 'hoa:apply-copyright';
+
     protected $description = 'Inject proprietary copyright headers into all PHP, Blade, JS, and CSS files';
 
     protected string $copyrightBlock = <<<'HEADER'
@@ -52,9 +53,11 @@ HEADER;
         ];
 
         foreach ($phpDirs as $dir) {
-            if (!File::isDirectory($dir)) continue;
+            if (! File::isDirectory($dir)) {
+                continue;
+            }
 
-            $finder = (new Finder())->files()->in($dir)->name('*.php');
+            $finder = (new Finder)->files()->in($dir)->name('*.php');
             foreach ($finder as $file) {
                 $path = $file->getRealPath();
                 $content = File::get($path);
@@ -65,9 +68,9 @@ HEADER;
 
                 if (str_starts_with($content, '<?php')) {
                     $rest = ltrim(substr($content, 5), "\r\n");
-                    $newContent = "<?php\n\n" . $this->copyrightBlock . "\n\n" . $rest;
+                    $newContent = "<?php\n\n".$this->copyrightBlock."\n\n".$rest;
                     File::put($path, $newContent);
-                    $this->line("  ✓ PHP: " . str_replace(base_path() . DIRECTORY_SEPARATOR, '', $path));
+                    $this->line('  ✓ PHP: '.str_replace(base_path().DIRECTORY_SEPARATOR, '', $path));
                     $count++;
                 }
             }
@@ -76,7 +79,7 @@ HEADER;
         // 2. Process Blade View Files
         $viewsDir = resource_path('views');
         if (File::isDirectory($viewsDir)) {
-            $finder = (new Finder())->files()->in($viewsDir)->name('*.blade.php');
+            $finder = (new Finder)->files()->in($viewsDir)->name('*.blade.php');
             foreach ($finder as $file) {
                 $path = $file->getRealPath();
                 $content = File::get($path);
@@ -85,10 +88,10 @@ HEADER;
                     continue;
                 }
 
-                $bladeHeader = "{{--\n" . $this->copyrightBlock . "\n--}}\n\n";
-                $newContent = $bladeHeader . ltrim($content, "\r\n");
+                $bladeHeader = "{{--\n".$this->copyrightBlock."\n--}}\n\n";
+                $newContent = $bladeHeader.ltrim($content, "\r\n");
                 File::put($path, $newContent);
-                $this->line("  ✓ Blade: " . str_replace(base_path() . DIRECTORY_SEPARATOR, '', $path));
+                $this->line('  ✓ Blade: '.str_replace(base_path().DIRECTORY_SEPARATOR, '', $path));
                 $count++;
             }
         }
@@ -100,9 +103,11 @@ HEADER;
         ];
 
         foreach ($assetDirs as $dir) {
-            if (!File::isDirectory($dir)) continue;
+            if (! File::isDirectory($dir)) {
+                continue;
+            }
 
-            $finder = (new Finder())->files()->in($dir)->name(['*.js', '*.css']);
+            $finder = (new Finder)->files()->in($dir)->name(['*.js', '*.css']);
             foreach ($finder as $file) {
                 $path = $file->getRealPath();
                 $content = File::get($path);
@@ -111,14 +116,15 @@ HEADER;
                     continue;
                 }
 
-                $newContent = $this->copyrightBlock . "\n\n" . ltrim($content, "\r\n");
+                $newContent = $this->copyrightBlock."\n\n".ltrim($content, "\r\n");
                 File::put($path, $newContent);
-                $this->line("  ✓ Asset: " . str_replace(base_path() . DIRECTORY_SEPARATOR, '', $path));
+                $this->line('  ✓ Asset: '.str_replace(base_path().DIRECTORY_SEPARATOR, '', $path));
                 $count++;
             }
         }
 
         $this->info("\nSUCCESS: Copyright headers injected into {$count} files!");
+
         return self::SUCCESS;
     }
 }

@@ -26,7 +26,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('section_drafts')) {
+        if (! Schema::hasTable('section_drafts')) {
             Schema::create('section_drafts', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('workflow_run_id')->constrained('workflow_runs')->cascadeOnDelete();

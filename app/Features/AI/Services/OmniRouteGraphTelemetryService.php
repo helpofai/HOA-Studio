@@ -36,10 +36,9 @@ class OmniRouteGraphTelemetryService
     /**
      * Generate structured time-series telemetry buckets for lightweight SVG graph rendering.
      *
-     * @param int $hours Time range in hours (1, 5, 12, 24)
-     * @param int|null $userId Specific user ID or null for platform-wide admin metrics
-     * @param string $statusFilter 'all', 'pass', 'info', 'warning', 'fail'
-     * @return array
+     * @param  int  $hours  Time range in hours (1, 5, 12, 24)
+     * @param  int|null  $userId  Specific user ID or null for platform-wide admin metrics
+     * @param  string  $statusFilter  'all', 'pass', 'info', 'warning', 'fail'
      */
     public function generate(int $hours = 24, ?int $userId = null, string $statusFilter = 'all'): array
     {
@@ -48,7 +47,7 @@ class OmniRouteGraphTelemetryService
         $startTime = $now->copy()->subHours($hours);
 
         // Determine bucket intervals
-        $bucketCount = match($hours) {
+        $bucketCount = match ($hours) {
             1 => 12,   // 5 min intervals
             5 => 15,   // 20 min intervals
             12 => 24,  // 30 min intervals
@@ -88,7 +87,7 @@ class OmniRouteGraphTelemetryService
             $bucketStart = $currentTime->copy();
             $bucketEnd = $currentTime->copy()->addSeconds($intervalSeconds);
 
-            $labelFormat = match($hours) {
+            $labelFormat = match ($hours) {
                 1, 5 => 'H:i',
                 default => 'H:00',
             };
@@ -177,7 +176,7 @@ class OmniRouteGraphTelemetryService
         $maxBucketRequests = 1;
 
         foreach ($buckets as &$b) {
-            if (!empty($b['latencies'])) {
+            if (! empty($b['latencies'])) {
                 $b['avg_latency'] = (int) round(array_sum($b['latencies']) / count($b['latencies']));
             } elseif ($b['avg_latency'] === 0) {
                 $b['avg_latency'] = $b['total_requests'] > 0 ? 12 : 0;
@@ -189,7 +188,7 @@ class OmniRouteGraphTelemetryService
             $totalFail += $b['fail'];
             $totalRequests += $b['total_requests'];
             $totalTokens += $b['tokens'];
-            
+
             if ($b['avg_latency'] > 0) {
                 $allLatencies[] = $b['avg_latency'];
             }
@@ -200,7 +199,7 @@ class OmniRouteGraphTelemetryService
         }
         unset($b);
 
-        $avgLatencyOverall = !empty($allLatencies) ? (int) round(array_sum($allLatencies) / count($allLatencies)) : 12;
+        $avgLatencyOverall = ! empty($allLatencies) ? (int) round(array_sum($allLatencies) / count($allLatencies)) : 12;
         $successRate = $totalRequests > 0 ? round(($totalPass / $totalRequests) * 100, 1) : 100.0;
 
         // Calculate smooth SVG Coordinates & Bezier Paths (800x160 canvas)
@@ -317,6 +316,7 @@ class OmniRouteGraphTelemetryService
         if ($statusCode === 201 || $statusCode === 202 || $statusCode === 304) {
             return 'info';
         }
+
         return 'pass';
     }
 }

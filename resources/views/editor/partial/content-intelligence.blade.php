@@ -39,8 +39,8 @@
             <span class="text-[10px] font-mono text-emerald-400 font-bold px-2 py-0.5 rounded-full bg-emerald-600/15 border border-emerald-500/30" x-text="'Goal: ' + Math.min(100, Math.round((wordCount/targetWordGoal)*100)) + '%'"></span>
         </div>
 
-        <!-- Responsive Multi-Row Tab Navigation Grid -->
-        <div class="grid grid-cols-4 gap-1 p-1.5 rounded-2xl bg-slate-950/90 border border-white/10 text-xs font-mono select-none shadow-inner backdrop-blur-md">
+        <!-- Responsive Multi-Row Tab Navigation Grid (3x3 Matrix) -->
+        <div class="grid grid-cols-3 gap-1 p-1.5 rounded-2xl bg-slate-950/90 border border-white/10 text-xs font-mono select-none shadow-inner backdrop-blur-md">
             <button type="button" x-on:click="rightTab = 'post'" :class="rightTab === 'post' ? 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-white font-bold shadow-md shadow-indigo-600/30 border border-indigo-400/50' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" class="py-2 px-1 rounded-xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5" title="Post Settings (Featured Image, Categories, Tags)">
                 <span class="text-sm">📝</span><span class="text-[10px] font-bold truncate w-full">Post</span>
             </button>
@@ -65,6 +65,9 @@
             <button type="button" x-on:click="rightTab = 'versions'" :class="rightTab === 'versions' ? 'bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-white font-bold shadow-md shadow-indigo-600/30 border border-indigo-400/50' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" class="py-2 px-1 rounded-xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5" title="Version Snapshots Timeline">
                 <span class="text-sm">🕒</span><span class="text-[10px] font-bold truncate w-full">History</span>
             </button>
+            <button type="button" x-on:click="rightTab = 'brain'; $wire.loadBrainState()" :class="rightTab === 'brain' ? 'bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 text-white font-bold shadow-md shadow-violet-600/30 border border-violet-400/50' : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'" class="py-2 px-1 rounded-xl text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5" title="🧠 Neuro-Brain & 7-Tier Lineage Intelligence">
+                <span class="text-sm">🧠</span><span class="text-[10px] font-bold truncate w-full">Brain</span>
+            </button>
         </div>
 
         {{-- Tab Content Panels (each tab is a dedicated sub-partial for clean maintainability) --}}
@@ -76,6 +79,7 @@
         @include('editor.partial.Components.content-intelligence-tab-quality')
         @include('editor.partial.Components.content-intelligence-tab-outline')
         @include('editor.partial.Components.content-intelligence-tab-versions')
+        @include('editor.partial.Components.content-intelligence-tab-brain')
 
     </div>
 </div>

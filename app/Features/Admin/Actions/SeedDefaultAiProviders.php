@@ -25,7 +25,6 @@
 
 namespace App\Features\Admin\Actions;
 
-use App\Features\AI\Models\AiModel;
 use App\Features\AI\Models\AiProvider;
 
 class SeedDefaultAiProviders

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Features\AI\Actions\TransformText;
 use App\Features\AI\Services\OmniRouteClient;
+use App\Http\Middleware\VerifyCsrfToken;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -46,7 +47,7 @@ class OmniRouteClientTest extends TestCase
             ]),
         ]);
 
-        $client = new OmniRouteClient();
+        $client = new OmniRouteClient;
         $response = $client->chatCompletion([
             ['role' => 'user', 'content' => 'Polish this content.'],
         ], ['model' => 'deepseek/deepseek-chat']);
@@ -105,7 +106,7 @@ class OmniRouteClientTest extends TestCase
 
     public function test_transform_api_endpoint_returns_json_response(): void
     {
-        $this->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class);
+        $this->withoutMiddleware(VerifyCsrfToken::class);
         Http::fake([
             '*/v1/chat/completions' => Http::response([
                 'model' => 'cc/claude-3-7-sonnet',
@@ -140,7 +141,7 @@ class OmniRouteClientTest extends TestCase
 
     public function test_transform_fails_when_user_has_no_quota(): void
     {
-        $this->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class);
+        $this->withoutMiddleware(VerifyCsrfToken::class);
         $user = User::factory()->create([
             'monthly_word_quota' => 1000,
             'used_word_quota' => 1000, // No words left

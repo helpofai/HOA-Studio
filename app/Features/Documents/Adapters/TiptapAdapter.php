@@ -50,7 +50,7 @@ class TiptapAdapter implements EditorAdapterInterface
         // Handle both JSON string and decoded array
         $tiptapJson = is_string($editorContent) ? json_decode($editorContent, true) : $editorContent;
 
-        if (!$tiptapJson || !isset($tiptapJson['type'])) {
+        if (! $tiptapJson || ! isset($tiptapJson['type'])) {
             return CanonicalDocumentSchema::getEmptyDocument();
         }
 
@@ -61,7 +61,7 @@ class TiptapAdapter implements EditorAdapterInterface
         $canonical['attrs']['converted_at'] = now()->toISOString();
 
         // Validate
-        if (!CanonicalDocumentSchema::validate($canonical)) {
+        if (! CanonicalDocumentSchema::validate($canonical)) {
             // Fallback to empty document with warning
             return CanonicalDocumentSchema::getEmptyDocument();
         }
@@ -72,7 +72,7 @@ class TiptapAdapter implements EditorAdapterInterface
     public function fromCanonical(array $canonicalAst): string|array
     {
         // Ensure it's a valid canonical document
-        if (!CanonicalDocumentSchema::validate($canonicalAst)) {
+        if (! CanonicalDocumentSchema::validate($canonicalAst)) {
             return CanonicalDocumentSchema::getEmptyDocument();
         }
 
@@ -83,7 +83,9 @@ class TiptapAdapter implements EditorAdapterInterface
     public function extractPlainText(string|array $editorContent): string
     {
         $tiptapJson = is_string($editorContent) ? json_decode($editorContent, true) : $editorContent;
-        if (!$tiptapJson) return '';
+        if (! $tiptapJson) {
+            return '';
+        }
 
         return $this->extractTextFromNode($tiptapJson);
     }
@@ -116,6 +118,7 @@ class TiptapAdapter implements EditorAdapterInterface
     public function sanitize(string|array $editorContent): string|array
     {
         $tiptapJson = is_string($editorContent) ? json_decode($editorContent, true) : $editorContent;
+
         return $this->sanitizeNode($tiptapJson);
     }
 
@@ -179,7 +182,7 @@ class TiptapAdapter implements EditorAdapterInterface
 
         if (isset($node['content']) && is_array($node['content'])) {
             foreach ($node['content'] as $child) {
-                $text .= ' ' . $this->extractTextFromNode($child);
+                $text .= ' '.$this->extractTextFromNode($child);
             }
         }
 
@@ -197,7 +200,7 @@ class TiptapAdapter implements EditorAdapterInterface
         ];
 
         if (isset($node['marks']) && is_array($node['marks'])) {
-            $sanitized['marks'] = array_filter($node['marks'], function($mark) {
+            $sanitized['marks'] = array_filter($node['marks'], function ($mark) {
                 return in_array($mark['type'] ?? '', $this->supportedMarkTypes);
             });
         }
@@ -205,7 +208,7 @@ class TiptapAdapter implements EditorAdapterInterface
         if (isset($node['content']) && is_array($node['content'])) {
             $sanitized['content'] = array_map([$this, 'sanitizeNode'], $node['content']);
             // Filter out unsupported node types
-            $sanitized['content'] = array_filter($sanitized['content'], function($child) {
+            $sanitized['content'] = array_filter($sanitized['content'], function ($child) {
                 return in_array($child['type'] ?? '', $this->supportedNodeTypes);
             });
         } elseif (isset($node['text'])) {

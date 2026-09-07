@@ -19,6 +19,7 @@ class SecurityHardeningAndPerformanceTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected User $otherUser;
 
     protected function setUp(): void
@@ -26,20 +27,20 @@ class SecurityHardeningAndPerformanceTest extends TestCase
         parent::setUp();
 
         $this->user = User::factory()->create([
-            'email' => 'author_' . uniqid() . '@helpofai.com',
+            'email' => 'author_'.uniqid().'@helpofai.com',
             'role' => 'user',
             'plan' => 'starter',
             'is_active' => true,
         ]);
 
         $this->otherUser = User::factory()->create([
-            'email' => 'other_' . uniqid() . '@helpofai.com',
+            'email' => 'other_'.uniqid().'@helpofai.com',
             'role' => 'user',
             'plan' => 'starter',
             'is_active' => true,
         ]);
 
-        RateLimiter::clear('hoa_ai_rate_limit:' . $this->user->id);
+        RateLimiter::clear('hoa_ai_rate_limit:'.$this->user->id);
     }
 
     public function test_security_headers_middleware_attaches_strict_headers_to_responses()

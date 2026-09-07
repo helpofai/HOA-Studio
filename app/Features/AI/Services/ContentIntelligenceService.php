@@ -30,7 +30,7 @@ use App\Features\SEO\Services\SeoAnalyzer;
 
 /**
  * Content Intelligence Service
- * 
+ *
  * Provides intelligent analysis and transformations for documents
  * based on the Universal Canonical AST.
  */
@@ -42,16 +42,12 @@ class ContentIntelligenceService
 
     /**
      * Analyze a document AST for SEO and readability.
-     * 
-     * @param array $canonicalAst
-     * @param array $options
-     * @return array
      */
     public function analyze(array $canonicalAst, array $options = []): array
     {
         $plainText = CanonicalDocumentSchema::extractPlainText($canonicalAst);
         $wordCount = CanonicalDocumentSchema::calculateWordCount($canonicalAst);
-        
+
         // Structure analysis
         $structure = $this->analyzeStructure($canonicalAst['content'] ?? []);
 
@@ -94,7 +90,9 @@ class ContentIntelligenceService
             if (isset($node['content'])) {
                 $subStats = $this->analyzeStructure($node['content']);
                 // Merge sub-stats
-                foreach ($subStats['headings'] as $lvl => $count) $stats['headings'][$lvl] += $count;
+                foreach ($subStats['headings'] as $lvl => $count) {
+                    $stats['headings'][$lvl] += $count;
+                }
                 $stats['images'] += $subStats['images'];
                 $stats['paragraphs'] += $subStats['paragraphs'];
                 $stats['lists'] += $subStats['lists'];

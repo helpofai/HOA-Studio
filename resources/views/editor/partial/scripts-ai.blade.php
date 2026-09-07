@@ -37,6 +37,8 @@ get subAgentModeLabel() {
         'generate_faq': 'Generating FAQ Block',
         'key_takeaways': 'Extracting Key Takeaways',
         'seo_optimize': 'SEO Optimizing Text',
+        'surgical_micro_repair': 'Surgical Micro-Repair',
+        'verify_lineage': 'Verifying Lineage & Evidence',
     };
     return labels[this.subAgentMode] || this.subAgentMode || 'Writing Intelligence';
 },
@@ -1807,7 +1809,9 @@ triggerSubContentSubAgent(mode = 'recreate', customInstruction = '') {
         'simplify': "Simplify this paragraph into crisp, effortless plain English at an 8th-grade reading level. Use short sentences and simple words.",
         'generate_faq': "Generate 2-3 high-value FAQ questions with concise answers based on this content. Format using ### Question and bold terms.",
         'key_takeaways': "Extract 3-4 high-leverage key takeaways from this content as a bulleted list with bold leading concepts.",
-        'seo_optimize': "Optimize this paragraph for search intent and semantic topical authority with natural keywords and bold concepts."
+        'seo_optimize': "Optimize this paragraph for search intent and semantic topical authority with natural keywords and bold concepts.",
+        'surgical_micro_repair': "Perform an ultra-precise surgical micro-repair on this specific sentence or text unit. Fix grammatical friction, strip cliché AI filler, strengthen factual clarity, and polish cadence while keeping all core facts and surrounding context strictly preserved.",
+        'verify_lineage': "Analyze and verify the epistemic grounding, claims, and factual lineage of this text. Ensure metrics, citations, and declarative assertions are rigorously formulated and grounded."
     };
 
     const prompt = customInstruction || defaultPrompts[mode] || defaultPrompts['rewrite'];

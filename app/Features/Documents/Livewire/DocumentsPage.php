@@ -41,20 +41,26 @@ use Livewire\WithPagination;
 #[Title('Documents — HelpOfAi Studio')]
 class DocumentsPage extends Component
 {
-    use WithPagination, WithFileUploads;
+    use WithFileUploads, WithPagination;
 
     public string $search = '';
+
     public string $selectedProject = '';
+
     public string $selectedStatus = '';
 
     // Create Modal state
     public bool $showCreateModal = false;
+
     public string $newTitle = '';
+
     public ?int $newProjectId = null;
 
     // Import Modal state
     public bool $showImportModal = false;
+
     public $importFile = null;
+
     public ?int $importProjectId = null;
 
     protected array $rules = [
@@ -122,7 +128,7 @@ class DocumentsPage extends Component
             ->where('user_id', Auth::id());
 
         if (! empty($this->search)) {
-            $query->where('title', 'like', '%' . $this->search . '%');
+            $query->where('title', 'like', '%'.$this->search.'%');
         }
 
         if (! empty($this->selectedProject)) {

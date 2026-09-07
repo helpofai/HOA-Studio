@@ -42,7 +42,7 @@ class AiRateLimiterService
         // 1. Check if user has active BYOK or Local Custom Endpoint for this provider
         $userKey = $user->getActiveApiKeyFor($providerSlug ?: 'omniroute');
 
-        if ($userKey !== null && (!empty($userKey->api_key) || !empty($userKey->custom_base_url))) {
+        if ($userKey !== null && (! empty($userKey->api_key) || ! empty($userKey->custom_base_url))) {
             return [
                 'allowed' => true,
                 'is_unlimited' => true,
@@ -63,7 +63,7 @@ class AiRateLimiterService
             $maxAttempts = 300;
         }
 
-        $key = 'hoa_ai_rate_limit:' . $user->id;
+        $key = 'hoa_ai_rate_limit:'.$user->id;
 
         if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
             $retryAfter = RateLimiter::availableIn($key);
@@ -82,7 +82,7 @@ class AiRateLimiterService
         return [
             'allowed' => true,
             'is_unlimited' => false,
-            'reason' => "Platform shared gateway active",
+            'reason' => 'Platform shared gateway active',
             'remaining' => RateLimiter::remaining($key, $maxAttempts),
             'retry_after' => 0,
         ];

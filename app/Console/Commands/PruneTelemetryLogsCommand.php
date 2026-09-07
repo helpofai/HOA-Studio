@@ -20,6 +20,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class PruneTelemetryLogsCommand extends Command
 {
@@ -48,18 +49,19 @@ class PruneTelemetryLogsCommand extends Command
 
     public function handle(): int
     {
-        $days    = max(7, (int) $this->option('days'));
-        $dryRun  = (bool) $this->option('dry-run');
-        $cutoff  = now()->subDays($days)->toDateTimeString();
+        $days = max(7, (int) $this->option('days'));
+        $dryRun = (bool) $this->option('dry-run');
+        $cutoff = now()->subDays($days)->toDateTimeString();
 
-        $this->info("HOA Telemetry Pruner — cutoff: {$cutoff}" . ($dryRun ? ' [DRY RUN]' : ''));
+        $this->info("HOA Telemetry Pruner — cutoff: {$cutoff}".($dryRun ? ' [DRY RUN]' : ''));
         $this->newLine();
 
         $totalDeleted = 0;
 
         foreach ($this->targets as ['table' => $table, 'column' => $col]) {
-            if (! \Illuminate\Support\Facades\Schema::hasTable($table)) {
+            if (! Schema::hasTable($table)) {
                 $this->line("  <fg=yellow>SKIP</> {$table} — table does not exist");
+
                 continue;
             }
 
@@ -67,12 +69,14 @@ class PruneTelemetryLogsCommand extends Command
 
             if ($count === 0) {
                 $this->line("  <fg=green>CLEAN</> {$table} — no eligible rows");
+
                 continue;
             }
 
             if ($dryRun) {
                 $this->line("  <fg=cyan>PREVIEW</> {$table} — would delete {$count} rows");
                 $totalDeleted += $count;
+
                 continue;
             }
 

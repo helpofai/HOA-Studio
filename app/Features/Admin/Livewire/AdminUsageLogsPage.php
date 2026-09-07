@@ -39,8 +39,11 @@ class AdminUsageLogsPage extends Component
     use WithPagination;
 
     public string $search = '';
+
     public string $selectedModel = '';
+
     public int $graphTimeRange = 24; // 1, 5, 12, 24
+
     public string $graphStatusFilter = 'all'; // 'all', 'pass', 'info', 'warning', 'fail'
 
     public function updatingSearch()
@@ -64,15 +67,15 @@ class AdminUsageLogsPage extends Component
                 'users.role as user_role'
             );
 
-        if (!empty($this->search)) {
+        if (! empty($this->search)) {
             $query->where(function ($q) {
-                $q->where('users.name', 'like', '%' . $this->search . '%')
-                  ->orWhere('users.email', 'like', '%' . $this->search . '%')
-                  ->orWhere('generation_usage.model_slug', 'like', '%' . $this->search . '%');
+                $q->where('users.name', 'like', '%'.$this->search.'%')
+                    ->orWhere('users.email', 'like', '%'.$this->search.'%')
+                    ->orWhere('generation_usage.model_slug', 'like', '%'.$this->search.'%');
             });
         }
 
-        if (!empty($this->selectedModel)) {
+        if (! empty($this->selectedModel)) {
             $query->where('generation_usage.model_slug', $this->selectedModel);
         }
 

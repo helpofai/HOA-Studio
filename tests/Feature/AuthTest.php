@@ -2,13 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Features\Auth\Livewire\LoginPage;
+use App\Features\Auth\Livewire\ProfilePage;
+use App\Features\Auth\Livewire\RegisterPage;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
-use App\Features\Auth\Livewire\LoginPage;
-use App\Features\Auth\Livewire\RegisterPage;
-use App\Features\Auth\Livewire\ProfilePage;
 
 class AuthTest extends TestCase
 {

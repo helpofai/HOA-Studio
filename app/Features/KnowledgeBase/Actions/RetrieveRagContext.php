@@ -76,8 +76,8 @@ class RetrieveRagContext
             $relevancePercent = round(($item['score'] ?? 0.8) * 100);
 
             $snippet .= "[Source {$sourceNum}: {$title} | {$categoryName} | Match: {$relevancePercent}%]\n";
-            $snippet .= trim($chunk->content) . "\n\n";
-            
+            $snippet .= trim($chunk->content)."\n\n";
+
             $tokens = $chunk->token_count > 0 ? $chunk->token_count : (int) ceil(mb_strlen($chunk->content) / 4);
             $totalTokens += $tokens;
 

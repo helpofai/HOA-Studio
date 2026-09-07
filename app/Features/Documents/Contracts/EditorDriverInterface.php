@@ -25,14 +25,17 @@
 
 namespace App\Features\Documents\Contracts;
 
-use App\Features\Documents\Models\Document;
-
 interface EditorDriverInterface
 {
     public function getKey(): string;
+
     public function getDisplayName(): string;
+
     public function getIcon(): string;
+
     public function getAssetRequirements(): array;
+
     public function formatContentForSave(string $rawContent, ?array $rawAst = null): array;
+
     public function extractPlainText(string $rawContent): string;
 }

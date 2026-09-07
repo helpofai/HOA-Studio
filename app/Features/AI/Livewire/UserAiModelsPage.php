@@ -44,8 +44,11 @@ class UserAiModelsPage extends Component
     use WithPagination;
 
     public string $search = '';
+
     public string $selectedProvider = 'all';
+
     public string $selectedModality = 'all';
+
     public string $selectedTier = 'all';
 
     public function paginationView()
@@ -54,14 +57,20 @@ class UserAiModelsPage extends Component
     }
 
     public bool $isTestingPing = false;
+
     public ?int $testingModelId = null;
+
     public array $pingResults = [];
 
     // BYOK Quick Management
     public string $byok_provider = 'openai';
+
     public string $byok_api_key = '';
+
     public string $byok_custom_url = '';
+
     public array $visibleKeys = [];
+
     public ?string $statusMessage = null;
 
     // Gateway Health Snapshot
@@ -114,8 +123,9 @@ class UserAiModelsPage extends Component
 
         // Ensure provider allows BYOK keys
         $provider = AiProvider::where('slug', $this->byok_provider)->first();
-        if ($provider && (!$provider->allow_user_key || !$provider->is_active)) {
+        if ($provider && (! $provider->allow_user_key || ! $provider->is_active)) {
             session()->flash('error', "Administrator has disabled custom BYOK keys for provider '{$this->byok_provider}'.");
+
             return;
         }
 
@@ -132,13 +142,13 @@ class UserAiModelsPage extends Component
             ],
             [
                 'api_key' => $this->byok_api_key,
-                'custom_base_url' => !empty($this->byok_custom_url) ? $this->byok_custom_url : null,
+                'custom_base_url' => ! empty($this->byok_custom_url) ? $this->byok_custom_url : null,
                 'is_active' => true,
             ]
         );
 
         $this->reset(['byok_api_key', 'byok_custom_url']);
-        $this->statusMessage = "API Key for '" . strtoupper($this->byok_provider) . "' saved securely (AES-256-GCM encrypted). Unlimited rate limits unlocked!";
+        $this->statusMessage = "API Key for '".strtoupper($this->byok_provider)."' saved securely (AES-256-GCM encrypted). Unlimited rate limits unlocked!";
     }
 
     public function toggleKeyVisibility(int $keyId)
@@ -166,11 +176,11 @@ class UserAiModelsPage extends Component
 
         $query = AiModel::with('provider')->where('is_active', true);
 
-        if (!empty($this->search)) {
+        if (! empty($this->search)) {
             $query->where(function ($q) {
-                $q->where('name', 'like', '%' . $this->search . '%')
-                    ->orWhere('model_id', 'like', '%' . $this->search . '%')
-                    ->orWhere('description', 'like', '%' . $this->search . '%');
+                $q->where('name', 'like', '%'.$this->search.'%')
+                    ->orWhere('model_id', 'like', '%'.$this->search.'%')
+                    ->orWhere('description', 'like', '%'.$this->search.'%');
             });
         }
 

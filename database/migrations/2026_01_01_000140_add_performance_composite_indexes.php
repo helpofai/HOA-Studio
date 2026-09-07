@@ -32,19 +32,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('documents', function (Blueprint $table) {
-            if (!Schema::hasIndex('documents', 'idx_documents_user_updated')) {
+            if (! Schema::hasIndex('documents', 'idx_documents_user_updated')) {
                 $table->index(['user_id', 'updated_at'], 'idx_documents_user_updated');
             }
         });
 
         Schema::table('knowledge_chunks', function (Blueprint $table) {
-            if (!Schema::hasIndex('knowledge_chunks', 'idx_chunks_source_index')) {
+            if (! Schema::hasIndex('knowledge_chunks', 'idx_chunks_source_index')) {
                 $table->index(['knowledge_source_id', 'chunk_index'], 'idx_chunks_source_index');
             }
         });
 
         Schema::table('generation_usage', function (Blueprint $table) {
-            if (!Schema::hasIndex('generation_usage', 'idx_usage_user_recorded')) {
+            if (! Schema::hasIndex('generation_usage', 'idx_usage_user_recorded')) {
                 $table->index(['user_id', 'recorded_at'], 'idx_usage_user_recorded');
             }
         });

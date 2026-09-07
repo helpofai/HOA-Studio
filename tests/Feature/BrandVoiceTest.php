@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Features\BrandVoice\Livewire\BrandVoicePage;
 use App\Features\BrandVoice\Models\BrandProfile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class BrandVoiceTest extends TestCase
@@ -28,8 +30,8 @@ class BrandVoiceTest extends TestCase
 
     public function test_user_can_create_brand_voice(): void
     {
-        \Livewire\Livewire::actingAs($this->user)
-            ->test(\App\Features\BrandVoice\Livewire\BrandVoicePage::class)
+        Livewire::actingAs($this->user)
+            ->test(BrandVoicePage::class)
             ->set('name', 'Acme Visionary Tech')
             ->set('tone_description', 'High-energy, authoritative, future-focused')
             ->set('target_audience', 'CTOs and Software Architects')
@@ -59,8 +61,8 @@ class BrandVoiceTest extends TestCase
             'is_default' => false,
         ]);
 
-        \Livewire\Livewire::actingAs($this->user)
-            ->test(\App\Features\BrandVoice\Livewire\BrandVoicePage::class)
+        Livewire::actingAs($this->user)
+            ->test(BrandVoicePage::class)
             ->call('openEditModal', $profile->id)
             ->set('name', 'Updated Modern Voice')
             ->call('save')
@@ -71,8 +73,8 @@ class BrandVoiceTest extends TestCase
             'name' => 'Updated Modern Voice',
         ]);
 
-        \Livewire\Livewire::actingAs($this->user)
-            ->test(\App\Features\BrandVoice\Livewire\BrandVoicePage::class)
+        Livewire::actingAs($this->user)
+            ->test(BrandVoicePage::class)
             ->call('delete', $profile->id);
 
         $this->assertDatabaseMissing('brand_profiles', [

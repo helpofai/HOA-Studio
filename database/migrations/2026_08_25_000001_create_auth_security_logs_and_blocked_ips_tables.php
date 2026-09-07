@@ -23,7 +23,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('auth_security_logs')) {
+        if (! Schema::hasTable('auth_security_logs')) {
             Schema::create('auth_security_logs', function (Blueprint $table) {
                 $table->id();
                 $table->string('ip_address', 45)->index();
@@ -37,7 +37,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('blocked_ips')) {
+        if (! Schema::hasTable('blocked_ips')) {
             Schema::create('blocked_ips', function (Blueprint $table) {
                 $table->id();
                 $table->string('ip_address', 45)->unique();

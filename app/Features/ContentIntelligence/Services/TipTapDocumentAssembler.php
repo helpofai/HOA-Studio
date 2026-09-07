@@ -184,6 +184,32 @@ class TipTapDocumentAssembler
         $run->document_id = $document->id;
         $run->save();
 
+        // Level 3: Article Brain Element Mapping (Section -> Paragraph -> Sentence -> Claim)
+        try {
+            $articleBrain = app(ArticleBrainService::class);
+            $sectionsData = [];
+            foreach ($drafts as $draft) {
+                $sectionsData[] = [
+                    'title' => $draft->heading,
+                    'content' => $draft->bodyMarkdown ?: strip_tags($draft->bodyHtml),
+                    'claim_ids' => $draft->groundedClaimIds ?? [],
+                ];
+            }
+            if ($run->mission) {
+                $articleBrain->indexArticleElements($run->mission, $document, $sectionsData);
+            }
+        } catch (\Throwable) {
+            // Graceful fallback if article brain service encountered an issue
+        }
+
+        // Phase 6: Content Lineage Extraction & Autonomous Learning Engine Harvest
+        try {
+            app(ContentLineageService::class)->extractAndRecordDocumentLineage($document, $run);
+            app(AutonomousLearningEngineService::class)->harvestWorkflowRunLessons($run);
+        } catch (\Throwable) {
+            // Graceful fallback
+        }
+
         return new MasterDocumentDTO(
             documentId: $document->id,
             title: $title,

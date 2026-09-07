@@ -35,6 +35,7 @@ class OmniRouteTelemetryLog extends Model
     use HasFactory;
 
     protected $table = 'omniroute_telemetry_logs';
+
     public $timestamps = false;
 
     protected $fillable = [

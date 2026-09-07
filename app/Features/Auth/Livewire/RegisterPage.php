@@ -37,14 +37,20 @@ use Livewire\Component;
 class RegisterPage extends Component
 {
     public string $name = '';
+
     public string $email = '';
+
     public string $password = '';
+
     public string $password_confirmation = '';
+
     public bool $agree = false;
 
     // Security & Anti-Bot Properties
     public string $honeypot = ''; // Hidden anti-bot trap field
+
     public ?int $formLoadedAt = null;
+
     public ?string $turnstileToken = null;
 
     public function mount()
@@ -61,7 +67,7 @@ class RegisterPage extends Component
             ->symbols();
 
         // Only enforce HaveIBeenPwned network lookup if not in local unit tests
-        if (!app()->runningUnitTests()) {
+        if (! app()->runningUnitTests()) {
             $passwordRule->uncompromised(3);
         }
 
@@ -116,8 +122,8 @@ class RegisterPage extends Component
 
     public function render()
     {
-        $siteKey = \App\Features\Auth\Services\AuthSecurityService::getTurnstileSiteKey();
-        $isEnabled = \App\Features\Auth\Services\AuthSecurityService::isTurnstileEnabled();
+        $siteKey = AuthSecurityService::getTurnstileSiteKey();
+        $isEnabled = AuthSecurityService::isTurnstileEnabled();
 
         return view('auth.register', [
             'turnstileSiteKey' => $isEnabled ? $siteKey : '',

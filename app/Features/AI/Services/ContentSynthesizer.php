@@ -38,9 +38,9 @@ class ContentSynthesizer
         $systemPrompt = '';
         foreach ($messages as $msg) {
             if (($msg['role'] ?? '') === 'user') {
-                $userPrompt .= ' ' . ($msg['content'] ?? '');
+                $userPrompt .= ' '.($msg['content'] ?? '');
             } elseif (($msg['role'] ?? '') === 'system') {
-                $systemPrompt .= ' ' . ($msg['content'] ?? '');
+                $systemPrompt .= ' '.($msg['content'] ?? '');
             }
         }
         $userPrompt = trim($userPrompt);
@@ -49,12 +49,14 @@ class ContentSynthesizer
         // 1. Check for targeted single-paragraph / selection transformation
         if (preg_match('/<(?:target_marked_content|target_paragraph)>(.*?)<\/(?:target_marked_content|target_paragraph)>/s', $userPrompt, $matches)) {
             $paragraphText = trim($matches[1]);
+
             return $this->rewriteParagraph($paragraphText);
         }
 
         if (str_contains($systemPrompt, 'target_marked_content') || str_contains($systemPrompt, 'target_paragraph') || str_contains($systemPrompt, 'CRITICAL SURGICAL')) {
             $paragraphText = preg_replace('/^.*?<(?:target_marked_content|target_paragraph)>/s', '', $userPrompt);
             $paragraphText = preg_replace('/<\/(?:target_marked_content|target_paragraph)>.*$/s', '', $paragraphText);
+
             return $this->rewriteParagraph(trim($paragraphText));
         }
 
@@ -90,7 +92,7 @@ class ContentSynthesizer
 
         if (empty($userPrompt)) {
             foreach ($messages as $msg) {
-                $userPrompt .= ' ' . ($msg['content'] ?? '');
+                $userPrompt .= ' '.($msg['content'] ?? '');
             }
             $userPrompt = trim($userPrompt);
         }
@@ -114,16 +116,18 @@ class ContentSynthesizer
     {
         $cleanText = strip_tags(trim($rawText));
         if (empty($cleanText)) {
-            return "The optimized architecture establishes a streamlined, high-throughput execution pathway with superior operational reliability and predictable performance across all workloads.";
+            return 'The optimized architecture establishes a streamlined, high-throughput execution pathway with superior operational reliability and predictable performance across all workloads.';
         }
 
         // Split into sentences
         $sentences = preg_split('/(?<=[.?!])\s+/u', $cleanText, -1, PREG_SPLIT_NO_EMPTY);
-        
+
         $polishedSentences = [];
         foreach ($sentences as $sentence) {
             $trimmed = trim($sentence);
-            if (empty($trimmed)) continue;
+            if (empty($trimmed)) {
+                continue;
+            }
 
             $polished = $this->polishSentence($trimmed);
             $polishedSentences[] = $polished;
@@ -155,6 +159,7 @@ class ContentSynthesizer
         ];
 
         $s = preg_replace(array_keys($replacements), array_values($replacements), $s);
+
         return ucfirst(trim($s));
     }
 
@@ -169,14 +174,16 @@ class ContentSynthesizer
         $words = preg_split('/(\s+|\n+)/u', $fullText, -1, PREG_SPLIT_DELIM_CAPTURE);
 
         foreach ($words as $word) {
-            if ($word === '') continue;
+            if ($word === '') {
+                continue;
+            }
             yield [
                 'token' => $word,
                 'model' => $model,
                 'done' => false,
             ];
             // 2.5ms micro-cadence for smooth 60fps streaming (skipped in unit tests)
-            if (!app()->runningUnitTests()) {
+            if (! app()->runningUnitTests()) {
                 usleep(2500);
             }
         }
@@ -220,7 +227,7 @@ class ContentSynthesizer
 
     protected function detectDomain(string $topic, string $prompt): string
     {
-        $text = strtolower($topic . ' ' . $prompt);
+        $text = strtolower($topic.' '.$prompt);
 
         if (preg_match('/\b(game|games|gaming|android game|mobile game|playstation|xbox|nintendo|rpg|fps|esports|gameplay|steam|roblox|minecraft|pubg|cod mobile|genshin)\b/i', $text)) {
             return 'gaming';
@@ -516,6 +523,7 @@ HTML;
     protected function buildComprehensiveResponse(string $topic, string $prompt, string $model): string
     {
         $cleanTopic = $this->extractTopic($topic ?: $prompt);
+
         return <<<HTML
 <h2>✦ Comprehensive Analysis: {$cleanTopic}</h2>
 
@@ -551,9 +559,9 @@ HTML;
         $cleanFocus = preg_replace('/^(Overview of|Analysis of|Techniques for|Strategies for|Best practices for|Step-by-step to)\s+/i', '', $cleanFocus);
 
         $entityList = array_values(array_filter(array_map('trim', explode(',', $entities))));
-        $entity1 = !empty($entityList[1]) ? $entityList[1] : 'high-throughput execution';
-        $entity2 = !empty($entityList[2]) ? $entityList[2] : 'operational efficiency';
-        $entity3 = !empty($entityList[3]) ? $entityList[3] : 'scalable performance';
+        $entity1 = ! empty($entityList[1]) ? $entityList[1] : 'high-throughput execution';
+        $entity2 = ! empty($entityList[2]) ? $entityList[2] : 'operational efficiency';
+        $entity3 = ! empty($entityList[3]) ? $entityList[3] : 'scalable performance';
 
         return match (strtolower(trim($domain))) {
             'tech' => $this->buildTechSectionProse($cleanSubject, $cleanFocus, $entity1, $entity2, $entity3),

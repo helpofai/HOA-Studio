@@ -40,28 +40,28 @@ class BackfillAiModelCapabilities
         foreach ($models as $m) {
             $id = strtolower($m->model_id);
             $isCombo = str_starts_with($id, 'combo:') || str_starts_with($id, 'cascade:') || str_starts_with($id, 'auto:');
-            
-            $isFree = str_contains($id, 'flash') || 
-                      str_contains($id, 'free') || 
-                      str_contains($id, 'lite') || 
-                      str_starts_with($id, 'groq/') || 
-                      str_starts_with($id, 'cerebras/') || 
-                      str_starts_with($id, 'glm/') || 
-                      str_starts_with($id, 'siliconflow/') || 
-                      str_starts_with($id, 'mistral/') || 
-                      str_starts_with($id, 'sambanova/') || 
-                      str_starts_with($id, 'together/') || 
-                      str_starts_with($id, 'cloudflare/') || 
-                      str_starts_with($id, 'nebius/') || 
+
+            $isFree = str_contains($id, 'flash') ||
+                      str_contains($id, 'free') ||
+                      str_contains($id, 'lite') ||
+                      str_starts_with($id, 'groq/') ||
+                      str_starts_with($id, 'cerebras/') ||
+                      str_starts_with($id, 'glm/') ||
+                      str_starts_with($id, 'siliconflow/') ||
+                      str_starts_with($id, 'mistral/') ||
+                      str_starts_with($id, 'sambanova/') ||
+                      str_starts_with($id, 'together/') ||
+                      str_starts_with($id, 'cloudflare/') ||
+                      str_starts_with($id, 'nebius/') ||
                       str_starts_with($id, 'kilo/');
 
-            $supportsReasoning = str_contains($id, 'think') || 
-                                 str_contains($id, 'reason') || 
-                                 str_contains($id, 'r1') || 
-                                 str_contains($id, 'o1') || 
-                                 str_contains($id, 'o3') || 
-                                 str_contains($id, 'high') || 
-                                 str_contains($id, 'claude-3-7') || 
+            $supportsReasoning = str_contains($id, 'think') ||
+                                 str_contains($id, 'reason') ||
+                                 str_contains($id, 'r1') ||
+                                 str_contains($id, 'o1') ||
+                                 str_contains($id, 'o3') ||
+                                 str_contains($id, 'high') ||
+                                 str_contains($id, 'claude-3-7') ||
                                  str_contains($id, 'deepseek');
 
             $ownedBy = str_contains($m->model_id, '/') ? explode('/', $m->model_id)[0] : 'omniroute';
@@ -72,9 +72,15 @@ class BackfillAiModelCapabilities
             $m->owned_by = $ownedBy;
             $m->save();
 
-            if ($isFree) $freeCount++;
-            if ($isCombo) $comboCount++;
-            if ($supportsReasoning) $reasoningCount++;
+            if ($isFree) {
+                $freeCount++;
+            }
+            if ($isCombo) {
+                $comboCount++;
+            }
+            if ($supportsReasoning) {
+                $reasoningCount++;
+            }
         }
 
         // Add 4 known OmniRoute Combo cascades if missing

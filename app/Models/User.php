@@ -26,6 +26,9 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Features\Auth\Models\UserApiKey;
+use App\Features\Documents\Models\Document;
+use App\Features\Projects\Models\Project;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -101,12 +104,12 @@ class User extends Authenticatable
 
     public function projects()
     {
-        return $this->hasMany(\App\Features\Projects\Models\Project::class);
+        return $this->hasMany(Project::class);
     }
 
     public function documents()
     {
-        return $this->hasMany(\App\Features\Documents\Models\Document::class);
+        return $this->hasMany(Document::class);
     }
 
     /**
@@ -146,12 +149,11 @@ class User extends Authenticatable
 
     public function apiKeys()
     {
-        return $this->hasMany(\App\Features\Auth\Models\UserApiKey::class);
+        return $this->hasMany(UserApiKey::class);
     }
 
-    public function getActiveApiKeyFor(string $providerSlug): ?\App\Features\Auth\Models\UserApiKey
+    public function getActiveApiKeyFor(string $providerSlug): ?UserApiKey
     {
         return $this->apiKeys()->where('provider_slug', $providerSlug)->where('is_active', true)->first();
     }
 }
-

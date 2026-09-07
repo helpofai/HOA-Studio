@@ -32,6 +32,7 @@ use App\Features\AI\Services\AiCircuitBreaker;
 use App\Features\AI\Services\ModelGovernanceService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -41,6 +42,7 @@ use Livewire\Component;
 class AdminAiSettingsPage extends Component
 {
     public bool $isTestingPing = false;
+
     public ?int $testingModelId = null;
 
     public function mount(SeedDefaultAiProviders $seeder)
@@ -51,16 +53,16 @@ class AdminAiSettingsPage extends Component
     public function toggleProviderActive(int $providerId)
     {
         $provider = AiProvider::findOrFail($providerId);
-        $provider->is_active = !$provider->is_active;
+        $provider->is_active = ! $provider->is_active;
         $provider->save();
 
-        session()->flash('status', "Provider '{$provider->name}' " . ($provider->is_active ? 'enabled' : 'disabled') . " successfully.");
+        session()->flash('status', "Provider '{$provider->name}' ".($provider->is_active ? 'enabled' : 'disabled').' successfully.');
     }
 
     public function toggleAllowUserKey(int $providerId)
     {
         $provider = AiProvider::findOrFail($providerId);
-        $provider->allow_user_key = !$provider->allow_user_key;
+        $provider->allow_user_key = ! $provider->allow_user_key;
         $provider->save();
 
         session()->flash('status', "User BYOK API key policy updated for '{$provider->name}'.");
@@ -79,7 +81,7 @@ class AdminAiSettingsPage extends Component
         if ($res['status'] === 'healthy') {
             session()->flash('status', "Model '{$model->name}' is healthy! Latency: {$res['latency_ms']}ms");
         } else {
-            session()->flash('warning', "Model '{$model->name}' ping returned {$res['status']}: " . ($res['error'] ?? 'Unknown error'));
+            session()->flash('warning', "Model '{$model->name}' ping returned {$res['status']}: ".($res['error'] ?? 'Unknown error'));
         }
     }
 
@@ -96,7 +98,7 @@ class AdminAiSettingsPage extends Component
         $model = AiModel::findOrFail($modelId);
         $active = $service->toggleActive($model);
 
-        session()->flash('status', "Model '{$model->name}' " . ($active ? 'activated' : 'deactivated') . " successfully.");
+        session()->flash('status', "Model '{$model->name}' ".($active ? 'activated' : 'deactivated').' successfully.');
     }
 
     public function toggleModelFreeTier(int $modelId, ModelGovernanceService $service)
@@ -104,7 +106,7 @@ class AdminAiSettingsPage extends Component
         $model = AiModel::findOrFail($modelId);
         $free = $service->toggleFreeTier($model);
 
-        session()->flash('status', "Model '{$model->name}' is now " . ($free ? 'available to Starter / Free tier' : 'restricted to Pro / Enterprise plans') . ".");
+        session()->flash('status', "Model '{$model->name}' is now ".($free ? 'available to Starter / Free tier' : 'restricted to Pro / Enterprise plans').'.');
     }
 
     public function toggleCircuitBreaker(AiCircuitBreaker $breaker)
@@ -114,45 +116,48 @@ class AdminAiSettingsPage extends Component
             session()->flash('status', 'AI Gateway Circuit Breaker RESET. Normal AI traffic restored.');
         } else {
             $user = Auth::user();
-            $breaker->trip('Emergency stop initiated by admin ' . $user->name, $user->name);
+            $breaker->trip('Emergency stop initiated by admin '.$user->name, $user->name);
             session()->flash('warning', 'EMERGENCY: AI Circuit Breaker TRIPPED. All outgoing AI calls paused.');
         }
     }
 
     public ?bool $gatewayOnline = null;
+
     public ?int $gatewayLatencyMs = null;
 
     public function pingGatewayHealth()
     {
         $omniProvider = AiProvider::where('slug', 'omniroute')->first();
         $baseUrl = $omniProvider->base_url ?? config('omniroute.base_url', 'http://localhost:20128/v1');
-        
+
         $parsed = parse_url($baseUrl);
         $host = $parsed['host'] ?? '127.0.0.1';
         $port = $parsed['port'] ?? 20128;
-        $isRemoteHttps = str_starts_with($baseUrl, 'https://') && !str_contains($baseUrl, 'localhost') && !str_contains($baseUrl, '127.0.0.1');
+        $isRemoteHttps = str_starts_with($baseUrl, 'https://') && ! str_contains($baseUrl, 'localhost') && ! str_contains($baseUrl, '127.0.0.1');
 
         $start = microtime(true);
 
-        if (!$isRemoteHttps) {
+        if (! $isRemoteHttps) {
             $ipToCheck = ($host === 'localhost') ? '127.0.0.1' : $host;
             $fp = @fsockopen($ipToCheck, $port, $errno, $errstr, 0.3);
-            if (!$fp && $ipToCheck !== '127.0.0.1') {
+            if (! $fp && $ipToCheck !== '127.0.0.1') {
                 $fp = @fsockopen('127.0.0.1', $port, $errno, $errstr, 0.3);
             }
             if ($fp) {
                 fclose($fp);
                 $this->gatewayOnline = true;
                 $this->gatewayLatencyMs = max(1, (int) round((microtime(true) - $start) * 1000));
+
                 return;
             }
             $this->gatewayOnline = false;
             $this->gatewayLatencyMs = null;
+
             return;
         }
 
         try {
-            $res = \Illuminate\Support\Facades\Http::timeout(1.5)->get($baseUrl . '/models');
+            $res = Http::timeout(1.5)->get($baseUrl.'/models');
             $this->gatewayOnline = $res->successful() || $res->status() === 200 || $res->status() === 401;
             $this->gatewayLatencyMs = max(1, (int) round((microtime(true) - $start) * 1000));
         } catch (\Exception $e) {

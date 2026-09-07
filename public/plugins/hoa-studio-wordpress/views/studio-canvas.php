@@ -16,7 +16,7 @@
 
 use HOA_Studio\Core\HOA_Settings;
 
-if (!defined('ABSPATH')) {
+if (! defined('ABSPATH')) {
     exit;
 }
 
@@ -35,7 +35,7 @@ $selectedCategories = $post ? wp_get_post_categories($post->ID) : [];
 $tags = '';
 if ($post) {
     $tagList = wp_get_post_tags($post->ID, ['fields' => 'names']);
-    if (!empty($tagList)) {
+    if (! empty($tagList)) {
         $tags = implode(', ', $tagList);
     }
 }
@@ -59,7 +59,7 @@ $defaultModel = HOA_Settings::getDefaultModel();
 <head>
     <meta charset="<?php bloginfo('charset'); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $post ? esc_html($post->post_title) . ' - ' : ''; ?><?php esc_html_e('HOA Studio Master Editor', 'hoa-studio'); ?></title>
+    <title><?php echo $post ? esc_html($post->post_title).' - ' : ''; ?><?php esc_html_e('HOA Studio Master Editor', 'hoa-studio'); ?></title>
     <?php wp_print_head_scripts(); ?>
     <?php wp_print_styles(); ?>
 </head>
@@ -146,11 +146,11 @@ $defaultModel = HOA_Settings::getDefaultModel();
                 <label class="hoa-section-label"><?php esc_html_e('Target Model', 'hoa-studio'); ?></label>
                 <select id="hoa-ai-model-select" class="hoa-sidebar-select">
                     <option value="auto">⚡ <?php esc_html_e('Auto (OmniRoute Smart Router)', 'hoa-studio'); ?></option>
-                    <?php foreach ($models as $m): ?>
+                    <?php foreach ($models as $m) { ?>
                         <option value="<?php echo esc_attr($m['model_id']); ?>" <?php selected($defaultModel, $m['model_id']); ?>>
                             <?php echo esc_html($m['name'] ?? $m['model_id']); ?> (<?php echo esc_html($m['provider'] ?? 'OmniRoute'); ?>)
                         </option>
-                    <?php endforeach; ?>
+                    <?php } ?>
                 </select>
             </div>
 
@@ -348,13 +348,13 @@ $defaultModel = HOA_Settings::getDefaultModel();
                     <label class="hoa-section-label"><?php esc_html_e('Featured Image', 'hoa-studio'); ?></label>
                     <input type="hidden" id="hoa-featured-image-id" value="<?php echo esc_attr($featuredImageId); ?>" />
                     <div class="hoa-featured-image-preview-box" id="hoa-featured-image-wrapper">
-                        <?php if ($featuredImageUrl): ?>
+                        <?php if ($featuredImageUrl) { ?>
                             <img src="<?php echo esc_url($featuredImageUrl); ?>" id="hoa-featured-image-preview" alt="Featured" />
-                        <?php else: ?>
+                        <?php } else { ?>
                             <div class="hoa-no-image-placeholder" id="hoa-no-image-text">
                                 <span>🖼️ <?php esc_html_e('No featured image selected', 'hoa-studio'); ?></span>
                             </div>
-                        <?php endif; ?>
+                        <?php } ?>
                     </div>
                     <div class="hoa-featured-image-actions hoa-mt-2">
                         <button type="button" id="hoa-set-featured-image-btn" class="hoa-btn hoa-btn-secondary hoa-btn-sm">
@@ -370,7 +370,7 @@ $defaultModel = HOA_Settings::getDefaultModel();
                 <div class="hoa-panel-section">
                     <label class="hoa-section-label"><?php esc_html_e('Categories', 'hoa-studio'); ?></label>
                     <div class="hoa-categories-checklist" id="hoa-post-categories-list">
-                        <?php foreach ($allCategories as $cat): ?>
+                        <?php foreach ($allCategories as $cat) { ?>
                             <label class="hoa-checkbox-label-sm">
                                 <input 
                                     type="checkbox" 
@@ -380,7 +380,7 @@ $defaultModel = HOA_Settings::getDefaultModel();
                                 />
                                 <span><?php echo esc_html($cat->name); ?></span>
                             </label>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </div>
                 </div>
 

@@ -49,7 +49,7 @@ class SystemInfoService
         $allExtensionsMet = true;
         foreach ($requiredExtensions as $ext => $description) {
             $isLoaded = extension_loaded($ext);
-            if (!$isLoaded) {
+            if (! $isLoaded) {
                 $allExtensionsMet = false;
             }
             $extensionsStatus[$ext] = [
@@ -71,23 +71,24 @@ class SystemInfoService
             if ($dbDriver === 'SQLITE') {
                 $sqlitePath = config('database.connections.sqlite.database');
                 if (file_exists($sqlitePath)) {
-                    $dbSizeFormatted = round(filesize($sqlitePath) / (1024 * 1024), 2) . ' MB';
+                    $dbSizeFormatted = round(filesize($sqlitePath) / (1024 * 1024), 2).' MB';
                 }
                 $dbTableCount = count(DB::select("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"));
-                $dbVersion = 'SQLite ' . (DB::select('SELECT sqlite_version() as v')[0]->v ?? '3.x');
+                $dbVersion = 'SQLite '.(DB::select('SELECT sqlite_version() as v')[0]->v ?? '3.x');
             } else {
                 $dbVersionResult = DB::select('SELECT VERSION() as v');
-                $dbVersion = 'MySQL ' . ($dbVersionResult[0]->v ?? '8.x');
+                $dbVersion = 'MySQL '.($dbVersionResult[0]->v ?? '8.x');
                 $tables = DB::select('SHOW TABLES');
                 $dbTableCount = count($tables);
 
                 $dbName = $conn->getDatabaseName();
                 $sizeResult = DB::select("SELECT table_schema AS 'db', SUM(data_length + index_length) / 1024 / 1024 AS 'size' FROM information_schema.TABLES WHERE table_schema = ? GROUP BY table_schema", [$dbName]);
-                if (!empty($sizeResult)) {
-                    $dbSizeFormatted = round($sizeResult[0]->size ?? 0, 2) . ' MB';
+                if (! empty($sizeResult)) {
+                    $dbSizeFormatted = round($sizeResult[0]->size ?? 0, 2).' MB';
                 }
             }
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         // 3. Storage Directory & Permission Diagnostics
         $storagePaths = [
@@ -103,7 +104,7 @@ class SystemInfoService
         $allPermissionsWritable = true;
         foreach ($storagePaths as $label => $path) {
             $isWritable = is_writable($path);
-            if (!$isWritable) {
+            if (! $isWritable) {
                 $allPermissionsWritable = false;
             }
             $directoryPermissions[$label] = [
@@ -116,13 +117,13 @@ class SystemInfoService
 
         // 4. Memory & Upload Limits
         $memoryLimit = ini_get('memory_limit');
-        $maxExecutionTime = ini_get('max_execution_time') . 's';
+        $maxExecutionTime = ini_get('max_execution_time').'s';
         $uploadMaxFilesize = ini_get('upload_max_filesize');
         $postMaxSize = ini_get('post_max_size');
 
         return [
             'server' => [
-                'os' => PHP_OS . ' (' . php_uname('s') . ' ' . php_uname('r') . ')',
+                'os' => PHP_OS.' ('.php_uname('s').' '.php_uname('r').')',
                 'server_software' => $_SERVER['SERVER_SOFTWARE'] ?? 'PHP CLI / Built-in Server',
                 'php_version' => PHP_VERSION,
                 'php_sapi' => PHP_SAPI,
@@ -142,7 +143,7 @@ class SystemInfoService
             'database' => [
                 'driver' => $dbDriver,
                 'version' => $dbVersion,
-                'database' => config('database.connections.' . config('database.default') . '.database'),
+                'database' => config('database.connections.'.config('database.default').'.database'),
                 'table_count' => $dbTableCount,
                 'size' => $dbSizeFormatted,
             ],

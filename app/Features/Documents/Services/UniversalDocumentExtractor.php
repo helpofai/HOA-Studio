@@ -28,14 +28,14 @@ class UniversalDocumentExtractor
      * Supported file extensions
      */
     public const SUPPORTED_EXTENSIONS = [
-        'docx', 'pdf', 'md', 'markdown', 'txt', 'html', 'htm', 'csv', 'json'
+        'docx', 'pdf', 'md', 'markdown', 'txt', 'html', 'htm', 'csv', 'json',
     ];
 
     /**
      * Extract structured content from an uploaded file or file path
      *
-     * @param UploadedFile|string $file
-     * @param array $options Formatting and parsing options
+     * @param  UploadedFile|string  $file
+     * @param  array  $options  Formatting and parsing options
      * @return array ['title' => string, 'html' => string, 'plain_text' => string, 'format' => string, 'metadata' => array]
      */
     public function extract($file, array $options = []): array
@@ -103,20 +103,20 @@ class UniversalDocumentExtractor
      */
     protected function extractDocx(string $filePath, array $options): array
     {
-        if (!class_exists('ZipArchive')) {
-            throw new Exception("ZipArchive PHP extension is required to extract .docx documents.");
+        if (! class_exists('ZipArchive')) {
+            throw new Exception('ZipArchive PHP extension is required to extract .docx documents.');
         }
 
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         if ($zip->open($filePath) !== true) {
-            throw new Exception("Unable to open .docx archive.");
+            throw new Exception('Unable to open .docx archive.');
         }
 
         $xmlContent = $zip->getFromName('word/document.xml');
         $zip->close();
 
-        if (!$xmlContent) {
-            throw new Exception("The .docx file does not contain a valid word/document.xml component.");
+        if (! $xmlContent) {
+            throw new Exception('The .docx file does not contain a valid word/document.xml component.');
         }
 
         // Clean namespaces for simplified XPath
@@ -127,7 +127,7 @@ class UniversalDocumentExtractor
         $title = null;
 
         libxml_use_internal_errors(true);
-        $dom = new \DOMDocument();
+        $dom = new \DOMDocument;
         $dom->loadXML($xmlContent, LIBXML_NOENT | LIBXML_XINCLUDE | LIBXML_NOERROR | LIBXML_NOWARNING);
         libxml_clear_errors();
 
@@ -147,26 +147,40 @@ class UniversalDocumentExtractor
                 $runs = $xpath->query('.//r', $node);
                 foreach ($runs as $r) {
                     $textNode = $xpath->query('.//t', $r)->item(0);
-                    if (!$textNode) continue;
+                    if (! $textNode) {
+                        continue;
+                    }
                     $chunk = htmlspecialchars($textNode->nodeValue, ENT_QUOTES, 'UTF-8');
                     $isBold = $xpath->query('.//b', $r)->length > 0;
                     $isItalic = $xpath->query('.//i', $r)->length > 0;
                     $isUnderline = $xpath->query('.//u', $r)->length > 0;
                     $isStrike = $xpath->query('.//strike', $r)->length > 0;
 
-                    if ($isBold) $chunk = "<strong>{$chunk}</strong>";
-                    if ($isItalic) $chunk = "<em>{$chunk}</em>";
-                    if ($isUnderline) $chunk = "<u>{$chunk}</u>";
-                    if ($isStrike) $chunk = "<s>{$chunk}</s>";
+                    if ($isBold) {
+                        $chunk = "<strong>{$chunk}</strong>";
+                    }
+                    if ($isItalic) {
+                        $chunk = "<em>{$chunk}</em>";
+                    }
+                    if ($isUnderline) {
+                        $chunk = "<u>{$chunk}</u>";
+                    }
+                    if ($isStrike) {
+                        $chunk = "<s>{$chunk}</s>";
+                    }
 
                     $pText .= $chunk;
                 }
 
                 $pText = trim($pText);
-                if (empty($pText)) continue;
+                if (empty($pText)) {
+                    continue;
+                }
 
                 if (str_contains($styleVal, 'heading1') || str_contains($styleVal, 'title')) {
-                    if (!$title) $title = strip_tags($pText);
+                    if (! $title) {
+                        $title = strip_tags($pText);
+                    }
                     $htmlParts[] = "<h2>{$pText}</h2>";
                 } elseif (str_contains($styleVal, 'heading2')) {
                     $htmlParts[] = "<h3>{$pText}</h3>";
@@ -188,7 +202,7 @@ class UniversalDocumentExtractor
                         $cellText = '';
                         $tcParas = $xpath->query('.//p', $tc);
                         foreach ($tcParas as $tcp) {
-                            $cellText .= htmlspecialchars(trim($tcp->textContent), ENT_QUOTES, 'UTF-8') . ' ';
+                            $cellText .= htmlspecialchars(trim($tcp->textContent), ENT_QUOTES, 'UTF-8').' ';
                         }
                         $cellText = trim($cellText);
                         $tag = $isFirstRow ? 'th' : 'td';
@@ -207,7 +221,7 @@ class UniversalDocumentExtractor
 
         return [
             'title' => $title,
-            'html' => !empty($html) ? $html : '<p>No readable content found in Word document.</p>',
+            'html' => ! empty($html) ? $html : '<p>No readable content found in Word document.</p>',
             'metadata' => [
                 'paragraphs_count' => count($htmlParts),
             ],
@@ -220,8 +234,8 @@ class UniversalDocumentExtractor
     protected function extractPdf(string $filePath, array $options): array
     {
         $content = file_get_contents($filePath);
-        if (!$content) {
-            throw new Exception("Unable to read PDF file.");
+        if (! $content) {
+            throw new Exception('Unable to read PDF file.');
         }
 
         // Extract text streams from PDF objects
@@ -244,7 +258,7 @@ class UniversalDocumentExtractor
                         if (preg_match_all('/\((.*?)\)\s*T[jJ]/s', $block, $tMatches)) {
                             foreach ($tMatches[1] as $tm) {
                                 $clean = stripcslashes($tm);
-                                $text .= $clean . ' ';
+                                $text .= $clean.' ';
                             }
                             $text .= "\n";
                         } elseif (preg_match_all('/\[(.*?)\]\s*TJ/s', $block, $tjMatches)) {
@@ -265,7 +279,7 @@ class UniversalDocumentExtractor
         // Fallback: search for direct text strings in PDF
         if (empty(trim($text))) {
             preg_match_all('/\(([^\)]{4,})\)/s', $content, $rawStrings);
-            if (!empty($rawStrings[1])) {
+            if (! empty($rawStrings[1])) {
                 $text = implode("\n", array_slice($rawStrings[1], 0, 100));
             }
         }
@@ -282,23 +296,24 @@ class UniversalDocumentExtractor
             foreach ($lines as $line) {
                 $trimmed = trim($line);
                 if (empty($trimmed)) {
-                    if (!empty($para)) {
-                        $htmlParts[] = '<p>' . htmlspecialchars(implode(' ', $para), ENT_QUOTES, 'UTF-8') . '</p>';
+                    if (! empty($para)) {
+                        $htmlParts[] = '<p>'.htmlspecialchars(implode(' ', $para), ENT_QUOTES, 'UTF-8').'</p>';
                         $para = [];
                     }
+
                     continue;
                 }
 
                 // Short lines in title case or uppercase can be treated as headings
-                if (strlen($trimmed) < 65 && !str_ends_with($trimmed, '.') && count($para) === 0) {
-                    $htmlParts[] = '<h3>' . htmlspecialchars($trimmed, ENT_QUOTES, 'UTF-8') . '</h3>';
+                if (strlen($trimmed) < 65 && ! str_ends_with($trimmed, '.') && count($para) === 0) {
+                    $htmlParts[] = '<h3>'.htmlspecialchars($trimmed, ENT_QUOTES, 'UTF-8').'</h3>';
                 } else {
                     $para[] = $trimmed;
                 }
             }
 
-            if (!empty($para)) {
-                $htmlParts[] = '<p>' . htmlspecialchars(implode(' ', $para), ENT_QUOTES, 'UTF-8') . '</p>';
+            if (! empty($para)) {
+                $htmlParts[] = '<p>'.htmlspecialchars(implode(' ', $para), ENT_QUOTES, 'UTF-8').'</p>';
             }
 
             $html = implode("\n", $htmlParts);
@@ -348,6 +363,7 @@ class UniversalDocumentExtractor
                     $inCodeBlock = false;
                     $codeLang = '';
                     $codeBuffer = [];
+
                     continue;
                 } else {
                     if ($inList) {
@@ -356,12 +372,14 @@ class UniversalDocumentExtractor
                     }
                     $inCodeBlock = true;
                     $codeLang = trim(substr($trimmed, 3));
+
                     continue;
                 }
             }
 
             if ($inCodeBlock) {
                 $codeBuffer[] = $line;
+
                 continue;
             }
 
@@ -376,6 +394,7 @@ class UniversalDocumentExtractor
                     $tableHasHeader = false;
                     $inTable = false;
                 }
+
                 continue;
             }
 
@@ -388,12 +407,14 @@ class UniversalDocumentExtractor
                 // Check if this is delimiter row (| --- | :---: |)
                 if (preg_match('/^\|(\s*:?-+:?\s*\|)+$/', $trimmed)) {
                     $tableHasHeader = true;
+
                     continue;
                 }
 
                 $cells = array_map('trim', explode('|', trim($trimmed, '|')));
                 $tableRows[] = $cells;
                 $inTable = true;
+
                 continue;
             }
 
@@ -412,10 +433,11 @@ class UniversalDocumentExtractor
                 }
                 $level = strlen($m[1]);
                 $headingText = htmlspecialchars($m[2], ENT_QUOTES, 'UTF-8');
-                if (!$title && $level <= 2) {
+                if (! $title && $level <= 2) {
                     $title = $m[2];
                 }
                 $html .= "<h{$level}>{$headingText}</h{$level}>\n";
+
                 continue;
             }
 
@@ -426,6 +448,7 @@ class UniversalDocumentExtractor
                     $inList = false;
                 }
                 $html .= "<hr />\n";
+
                 continue;
             }
 
@@ -437,32 +460,39 @@ class UniversalDocumentExtractor
                 }
                 $quoteText = $this->parseInlineMarkdown(trim(substr($trimmed, 1)));
                 $html .= "<blockquote><p>{$quoteText}</p></blockquote>\n";
+
                 continue;
             }
 
             // Unordered Lists
             if (preg_match('/^[-*+]\s+(.*)$/', $trimmed, $m)) {
-                if (!$inList || $listType !== 'ul') {
-                    if ($inList) $html .= "</{$listType}>\n";
+                if (! $inList || $listType !== 'ul') {
+                    if ($inList) {
+                        $html .= "</{$listType}>\n";
+                    }
                     $html .= "<ul>\n";
                     $inList = true;
                     $listType = 'ul';
                 }
                 $itemText = $this->parseInlineMarkdown($m[1]);
                 $html .= "<li>{$itemText}</li>\n";
+
                 continue;
             }
 
             // Ordered Lists
             if (preg_match('/^\d+\.\s+(.*)$/', $trimmed, $m)) {
-                if (!$inList || $listType !== 'ol') {
-                    if ($inList) $html .= "</{$listType}>\n";
+                if (! $inList || $listType !== 'ol') {
+                    if ($inList) {
+                        $html .= "</{$listType}>\n";
+                    }
                     $html .= "<ol>\n";
                     $inList = true;
                     $listType = 'ol';
                 }
                 $itemText = $this->parseInlineMarkdown($m[1]);
                 $html .= "<li>{$itemText}</li>\n";
+
                 continue;
             }
 
@@ -495,11 +525,13 @@ class UniversalDocumentExtractor
 
     protected function renderMarkdownTable(array $rows, bool $hasHeader): string
     {
-        if (empty($rows)) return '';
+        if (empty($rows)) {
+            return '';
+        }
 
         $html = '<div class="overflow-x-auto my-4"><table class="w-full border-collapse border border-white/15">';
 
-        if ($hasHeader && !empty($rows)) {
+        if ($hasHeader && ! empty($rows)) {
             $headerRow = array_shift($rows);
             $html .= '<thead><tr class="bg-white/10">';
             foreach ($headerRow as $cell) {
@@ -518,7 +550,7 @@ class UniversalDocumentExtractor
             }
             $html .= '</tr>';
         }
-        $html .= '</tbody></table></div>' . "\n";
+        $html .= '</tbody></table></div>'."\n";
 
         return $html;
     }
@@ -573,9 +605,13 @@ class UniversalDocumentExtractor
         $colCount = 0;
 
         foreach ($lines as $line) {
-            if (empty(trim($line))) continue;
+            if (empty(trim($line))) {
+                continue;
+            }
             $row = str_getcsv($line, $delimiter);
-            if (empty($row)) continue;
+            if (empty($row)) {
+                continue;
+            }
 
             $rowCount++;
             if ($isFirst) {
@@ -622,6 +658,7 @@ class UniversalDocumentExtractor
         // Check if this is a TipTap JSON document
         if (isset($data['type']) && $data['type'] === 'doc' && isset($data['content']) && is_array($data['content'])) {
             $html = $this->convertTipTapNodeToHtml($data);
+
             return [
                 'title' => null,
                 'html' => $html,
@@ -631,7 +668,7 @@ class UniversalDocumentExtractor
 
         // Regular JSON formatted as readable code
         $formatted = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-        $html = '<pre class="language-json"><code class="language-json">' . htmlspecialchars($formatted, ENT_QUOTES, 'UTF-8') . '</code></pre>';
+        $html = '<pre class="language-json"><code class="language-json">'.htmlspecialchars($formatted, ENT_QUOTES, 'UTF-8').'</code></pre>';
 
         return [
             'title' => null,
@@ -647,7 +684,7 @@ class UniversalDocumentExtractor
     {
         $paragraphs = array_filter(array_map('trim', explode("\n\n", $content)));
         if (empty($paragraphs)) {
-            return ['html' => '<p>' . nl2br(htmlspecialchars($content, ENT_QUOTES, 'UTF-8')) . '</p>', 'metadata' => []];
+            return ['html' => '<p>'.nl2br(htmlspecialchars($content, ENT_QUOTES, 'UTF-8')).'</p>', 'metadata' => []];
         }
 
         $html = '';
@@ -665,11 +702,11 @@ class UniversalDocumentExtractor
                 $html .= "<ul>\n";
                 foreach ($lines as $l) {
                     $item = preg_replace('/^(\*|-|•|\d+\.)\s+/', '', trim($l));
-                    $html .= "<li>" . htmlspecialchars($item, ENT_QUOTES, 'UTF-8') . "</li>\n";
+                    $html .= '<li>'.htmlspecialchars($item, ENT_QUOTES, 'UTF-8')."</li>\n";
                 }
                 $html .= "</ul>\n";
             } else {
-                $html .= '<p>' . nl2br(htmlspecialchars($p, ENT_QUOTES, 'UTF-8')) . '</p>' . "\n";
+                $html .= '<p>'.nl2br(htmlspecialchars($p, ENT_QUOTES, 'UTF-8')).'</p>'."\n";
             }
         }
 
@@ -692,19 +729,24 @@ class UniversalDocumentExtractor
 
         if ($type === 'text') {
             $str = htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
-            if (!empty($node['marks'])) {
+            if (! empty($node['marks'])) {
                 foreach ($node['marks'] as $mark) {
                     $mType = $mark['type'] ?? '';
-                    if ($mType === 'bold') $str = "<strong>{$str}</strong>";
-                    elseif ($mType === 'italic') $str = "<em>{$str}</em>";
-                    elseif ($mType === 'strike') $str = "<s>{$str}</s>";
-                    elseif ($mType === 'code') $str = "<code>{$str}</code>";
-                    elseif ($mType === 'link' && !empty($mark['attrs']['href'])) {
+                    if ($mType === 'bold') {
+                        $str = "<strong>{$str}</strong>";
+                    } elseif ($mType === 'italic') {
+                        $str = "<em>{$str}</em>";
+                    } elseif ($mType === 'strike') {
+                        $str = "<s>{$str}</s>";
+                    } elseif ($mType === 'code') {
+                        $str = "<code>{$str}</code>";
+                    } elseif ($mType === 'link' && ! empty($mark['attrs']['href'])) {
                         $href = htmlspecialchars($mark['attrs']['href'], ENT_QUOTES, 'UTF-8');
                         $str = "<a href=\"{$href}\">{$str}</a>";
                     }
                 }
             }
+
             return $str;
         }
 
@@ -716,7 +758,7 @@ class UniversalDocumentExtractor
         return match ($type) {
             'doc' => $innerHtml,
             'paragraph' => "<p>{$innerHtml}</p>\n",
-            'heading' => "<h" . ($attrs['level'] ?? 2) . ">{$innerHtml}</h" . ($attrs['level'] ?? 2) . ">\n",
+            'heading' => '<h'.($attrs['level'] ?? 2).">{$innerHtml}</h".($attrs['level'] ?? 2).">\n",
             'bulletList' => "<ul>\n{$innerHtml}</ul>\n",
             'orderedList' => "<ol>\n{$innerHtml}</ol>\n",
             'listItem' => "<li>{$innerHtml}</li>\n",
@@ -764,11 +806,12 @@ class UniversalDocumentExtractor
     protected function formatBytes(int $bytes): string
     {
         if ($bytes >= 1048576) {
-            return number_format($bytes / 1048576, 2) . ' MB';
+            return number_format($bytes / 1048576, 2).' MB';
         }
         if ($bytes >= 1024) {
-            return number_format($bytes / 1024, 1) . ' KB';
+            return number_format($bytes / 1024, 1).' KB';
         }
-        return $bytes . ' B';
+
+        return $bytes.' B';
     }
 }

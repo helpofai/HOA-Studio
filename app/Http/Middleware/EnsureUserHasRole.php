@@ -34,19 +34,18 @@ class EnsureUserHasRole
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     * @param  string  ...$roles
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('login');
         }
 
-        if (!$user->hasRole($roles)) {
-            abort(403, 'Unauthorized. You do not have the required role privileges (' . implode(', ', $roles) . ') to access this resource.');
+        if (! $user->hasRole($roles)) {
+            abort(403, 'Unauthorized. You do not have the required role privileges ('.implode(', ', $roles).') to access this resource.');
         }
 
         return $next($request);

@@ -71,12 +71,12 @@ class DocumentShare extends Model
 
     public function isPasswordProtected(): bool
     {
-        return !empty($this->password_hash);
+        return ! empty($this->password_hash);
     }
 
     public function verifyPassword(string $password): bool
     {
-        if (!$this->isPasswordProtected()) {
+        if (! $this->isPasswordProtected()) {
             return true;
         }
 

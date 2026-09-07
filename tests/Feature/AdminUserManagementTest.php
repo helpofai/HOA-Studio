@@ -28,6 +28,7 @@ class AdminUserManagementTest extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected User $targetUser;
 
     protected function setUp(): void
@@ -36,14 +37,14 @@ class AdminUserManagementTest extends TestCase
 
         $this->admin = User::factory()->create([
             'name' => 'Master Admin',
-            'email' => 'admin_' . uniqid() . '@helpofai.com',
+            'email' => 'admin_'.uniqid().'@helpofai.com',
             'role' => 'admin',
             'plan' => 'enterprise',
         ]);
 
         $this->targetUser = User::factory()->create([
             'name' => 'John Creator',
-            'email' => 'john_' . uniqid() . '@creator.com',
+            'email' => 'john_'.uniqid().'@creator.com',
             'role' => 'user',
             'plan' => 'starter',
             'monthly_word_quota' => 15000,
@@ -267,5 +268,3 @@ class AdminUserManagementTest extends TestCase
             ->assertSet('selectAll', true);
     }
 }
-
-

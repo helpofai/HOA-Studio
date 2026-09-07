@@ -22,10 +22,10 @@ class SchemaGenerator
     /**
      * Generate Schema.org JSON-LD structured data and validation report
      *
-     * @param string $htmlContent Document HTML content
-     * @param string $title Document title
-     * @param string $metaDescription Meta description
-     * @param array $options Author, publisher, dates, URL
+     * @param  string  $htmlContent  Document HTML content
+     * @param  string  $title  Document title
+     * @param  string  $metaDescription  Meta description
+     * @param  array  $options  Author, publisher, dates, URL
      * @return array Schemas, validation report, and JSON-LD markup
      */
     public function generate(string $htmlContent, string $title = '', string $metaDescription = '', array $options = []): array
@@ -35,7 +35,7 @@ class SchemaGenerator
         if (empty($cleanDesc)) {
             // Extract first 150 chars from first paragraph
             if (preg_match('/<p[^>]*>(.*?)<\/p>/si', $htmlContent, $pMatch)) {
-                $cleanDesc = mb_substr(trim(strip_tags($pMatch[1])), 0, 155) . '...';
+                $cleanDesc = mb_substr(trim(strip_tags($pMatch[1])), 0, 155).'...';
             } else {
                 $cleanDesc = $cleanTitle;
             }
@@ -44,10 +44,10 @@ class SchemaGenerator
         $authorName = $options['author_name'] ?? 'Editorial Team';
         $authorUrl = $options['author_url'] ?? config('app.url');
         $siteName = config('app.name', 'HelpOfAi Studio');
-        $canonicalUrl = $options['canonical_url'] ?? (config('app.url') . '/p/' . ($options['slug'] ?? 'post'));
+        $canonicalUrl = $options['canonical_url'] ?? (config('app.url').'/p/'.($options['slug'] ?? 'post'));
         $publishedAt = $options['published_at'] ?? date('c');
         $modifiedAt = $options['modified_at'] ?? date('c');
-        $wordCount = !empty($htmlContent) ? count(preg_split('/\s+/u', strip_tags($htmlContent), -1, PREG_SPLIT_NO_EMPTY)) : 0;
+        $wordCount = ! empty($htmlContent) ? count(preg_split('/\s+/u', strip_tags($htmlContent), -1, PREG_SPLIT_NO_EMPTY)) : 0;
 
         $schemas = [];
         $validationErrors = [];
@@ -74,7 +74,7 @@ class SchemaGenerator
                 'url' => config('app.url'),
                 'logo' => [
                     '@type' => 'ImageObject',
-                    'url' => config('app.url') . '/logo.png',
+                    'url' => config('app.url').'/logo.png',
                 ],
             ],
             'datePublished' => $publishedAt,
@@ -93,7 +93,7 @@ class SchemaGenerator
 
         // 2. FAQPage Schema Detection (Q&A Extraction)
         $faqItems = $this->extractFaqItems($htmlContent);
-        if (!empty($faqItems) && count($faqItems) >= 2) {
+        if (! empty($faqItems) && count($faqItems) >= 2) {
             $faqEntities = [];
             foreach ($faqItems as $item) {
                 $faqEntities[] = [
@@ -115,7 +115,7 @@ class SchemaGenerator
 
         // 3. HowTo Schema Detection (Step Extraction)
         $howToSteps = $this->extractHowToSteps($htmlContent);
-        if (!empty($howToSteps) && count($howToSteps) >= 2) {
+        if (! empty($howToSteps) && count($howToSteps) >= 2) {
             $stepEntities = [];
             foreach ($howToSteps as $idx => $step) {
                 $stepEntities[] = [
@@ -143,7 +143,7 @@ class SchemaGenerator
         ];
 
         $jsonLdPretty = json_encode(count($schemas) === 1 ? reset($schemas) : $combinedSchema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        $scriptTag = "<script type=\"application/ld+json\">\n" . $jsonLdPretty . "\n</script>";
+        $scriptTag = "<script type=\"application/ld+json\">\n".$jsonLdPretty."\n</script>";
 
         return [
             'schemas' => $schemas,
@@ -184,9 +184,9 @@ class SchemaGenerator
                 $qLower = mb_strtolower($q);
 
                 $isQuestion = str_ends_with($q, '?');
-                if (!$isQuestion) {
+                if (! $isQuestion) {
                     foreach ($questionStarters as $starter) {
-                        if (str_starts_with($qLower, $starter . ' ') || str_starts_with($qLower, $starter . '\'')) {
+                        if (str_starts_with($qLower, $starter.' ') || str_starts_with($qLower, $starter.'\'')) {
                             $isQuestion = true;
                             break;
                         }
@@ -233,7 +233,7 @@ class SchemaGenerator
                     $cleanLi = trim(strip_tags($liHtml));
                     if (mb_strlen($cleanLi) >= 15) {
                         $colonPos = mb_strpos($cleanLi, ':');
-                        $name = $colonPos !== false && $colonPos < 40 ? mb_substr($cleanLi, 0, $colonPos) : ('Step ' . ($idx + 1));
+                        $name = $colonPos !== false && $colonPos < 40 ? mb_substr($cleanLi, 0, $colonPos) : ('Step '.($idx + 1));
                         $text = $colonPos !== false && $colonPos < 40 ? trim(mb_substr($cleanLi, $colonPos + 1)) : $cleanLi;
                         $steps[] = [
                             'name' => $name,

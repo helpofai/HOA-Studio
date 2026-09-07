@@ -18,6 +18,7 @@
 namespace Tests\Feature;
 
 use App\Features\Auth\Livewire\ProfilePage;
+use App\Features\Auth\Models\UserStudioToken;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -117,7 +118,7 @@ class UserSettingsTest extends TestCase
             'name' => 'My Production Blog',
         ]);
 
-        $tokenRecord = \App\Features\Auth\Models\UserStudioToken::where('user_id', $user->id)->first();
+        $tokenRecord = UserStudioToken::where('user_id', $user->id)->first();
         $this->assertNotNull($tokenRecord);
 
         $component->call('deleteStudioToken', $tokenRecord->id);

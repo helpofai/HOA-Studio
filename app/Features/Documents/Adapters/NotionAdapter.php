@@ -34,11 +34,11 @@ class NotionAdapter implements EditorAdapterInterface
     protected array $supportedNodeTypes = [
         'doc', 'paragraph', 'heading', 'blockquote', 'code_block',
         'bullet_list', 'ordered_list', 'list_item', 'horizontal_rule',
-        'image', 'link', 'callout', 'toggle'
+        'image', 'link', 'callout', 'toggle',
     ];
 
     protected array $supportedMarkTypes = [
-        'bold', 'italic', 'strike', 'code', 'link', 'highlight'
+        'bold', 'italic', 'strike', 'code', 'link', 'highlight',
     ];
 
     public function toCanonical(string|array $content): array
@@ -48,8 +48,8 @@ class NotionAdapter implements EditorAdapterInterface
         // Notion API returns JSON blocks; this is simplified for HTML input
         $canonical = CanonicalDocumentSchema::createDocument([
             CanonicalDocumentSchema::createNode('paragraph', [], [
-                CanonicalDocumentSchema::createTextNode(strip_tags($html))
-            ])
+                CanonicalDocumentSchema::createTextNode(strip_tags($html)),
+            ]),
         ]);
 
         $canonical['attrs']['source_editor'] = 'notion';
@@ -60,7 +60,7 @@ class NotionAdapter implements EditorAdapterInterface
 
     public function fromCanonical(array $canonical): string|array
     {
-        return '<p>' . ($this->extractPlainText($canonical)) . '</p>';
+        return '<p>'.($this->extractPlainText($canonical)).'</p>';
     }
 
     public function extractPlainText(string|array $editorContent): string
@@ -69,11 +69,13 @@ class NotionAdapter implements EditorAdapterInterface
             $text = $editorContent['text'] ?? '';
             if (isset($editorContent['content']) && is_array($editorContent['content'])) {
                 foreach ($editorContent['content'] as $child) {
-                    $text .= ' ' . $this->extractPlainText($child);
+                    $text .= ' '.$this->extractPlainText($child);
                 }
             }
+
             return trim($text);
         }
+
         return strip_tags($editorContent);
     }
 

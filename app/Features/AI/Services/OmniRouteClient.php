@@ -29,6 +29,7 @@ use App\Core\Exceptions\AiProviderDownException;
 use App\Core\Exceptions\AiTokenLimitException;
 use Exception;
 use Generator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -36,25 +37,30 @@ use Illuminate\Support\Str;
 class OmniRouteClient
 {
     protected string $baseUrl;
+
     protected string $apiKey;
+
     protected int $timeout;
+
     protected array $endpoints;
+
     protected ContentSynthesizer $synthesizer;
 
     public function __construct(?ContentSynthesizer $synthesizer = null)
     {
         $this->endpoints = OmniRouteUrlResolver::resolve();
         $this->baseUrl = $this->endpoints['openai_base'];
-        
+
         $apiKey = null;
         try {
-            $apiKey = \Illuminate\Support\Facades\DB::table('settings')->where('key', 'omniroute_api_key')->value('value')
-                ?: \Illuminate\Support\Facades\DB::table('ai_providers')->where('slug', 'omniroute')->value('api_key_encrypted');
-        } catch (\Throwable $e) {}
+            $apiKey = DB::table('settings')->where('key', 'omniroute_api_key')->value('value')
+                ?: DB::table('ai_providers')->where('slug', 'omniroute')->value('api_key_encrypted');
+        } catch (\Throwable $e) {
+        }
 
         $this->apiKey = $apiKey ?: config('omniroute.api_key', 'omniroute-default-key');
         $this->timeout = (int) config('omniroute.timeout_seconds', 60);
-        $this->synthesizer = $synthesizer ?? new ContentSynthesizer();
+        $this->synthesizer = $synthesizer ?? new ContentSynthesizer;
     }
 
     /**
@@ -81,7 +87,7 @@ class OmniRouteClient
         $headers = $this->buildHeaders([
             'X-OmniRoute-Session-Id' => $sessionId,
             'X-Request-Id' => $requestId,
-            'X-OmniRoute-No-Cache' => !($options['cache'] ?? config('omniroute.cache_enabled', true)) ? 'true' : 'false',
+            'X-OmniRoute-No-Cache' => ! ($options['cache'] ?? config('omniroute.cache_enabled', true)) ? 'true' : 'false',
             'x-omniroute-compression' => $options['compression'] ?? config('omniroute.compression', 'default'),
         ]);
 
@@ -105,7 +111,7 @@ class OmniRouteClient
                 $data = $response->json();
                 $content = $data['choices'][0]['message']['content'] ?? '';
                 $usage = $data['usage'] ?? [];
-                $routedModel = !empty($response->header('X-OmniRoute-Model')) ? $response->header('X-OmniRoute-Model') : ($data['model'] ?? $model);
+                $routedModel = ! empty($response->header('X-OmniRoute-Model')) ? $response->header('X-OmniRoute-Model') : ($data['model'] ?? $model);
 
                 return [
                     'content' => $content,
@@ -129,13 +135,15 @@ class OmniRouteClient
                 throw new AiProviderDownException('Provider error', 'omniroute', 30);
             }
         } catch (Exception $e) {
-            Log::info('[OmniRouteClient] Primary model error: ' . $e->getMessage());
+            Log::info('[OmniRouteClient] Primary model error: '.$e->getMessage());
         }
 
         // Secondary Fallback Model Pool Attempt
         $fallbackModels = ['deepseek/deepseek-chat', 'auto', 'cc/claude-3-7-sonnet'];
         foreach ($fallbackModels as $fallbackModel) {
-            if ($fallbackModel === $model) continue;
+            if ($fallbackModel === $model) {
+                continue;
+            }
             try {
                 $fallbackPayload = $payload;
                 $fallbackPayload['model'] = $fallbackModel;
@@ -149,6 +157,7 @@ class OmniRouteClient
                     $data = $fbResponse->json();
                     $content = $data['choices'][0]['message']['content'] ?? '';
                     $usage = $data['usage'] ?? [];
+
                     return [
                         'content' => $content,
                         'model' => $data['model'] ?? $fallbackModel,
@@ -170,6 +179,7 @@ class OmniRouteClient
 
         // Fallback to Autonomous Neural Synthesizer
         $synthesized = $this->synthesizer->generate($messages, $options);
+
         return [
             'content' => $synthesized,
             'model' => 'Claude 3.7 Sonnet (OmniRoute Auto)',
@@ -218,6 +228,7 @@ class OmniRouteClient
             foreach ($this->synthesizer->stream($messages, $options) as $chunk) {
                 yield $chunk;
             }
+
             return;
         }
 
@@ -225,7 +236,7 @@ class OmniRouteClient
             $curlOptions = [
                 CURLOPT_POST => true,
                 CURLOPT_POSTFIELDS => json_encode($payload),
-                CURLOPT_HTTPHEADER => array_map(fn($k, $v) => "{$k}: {$v}", array_keys($headers), array_values($headers)),
+                CURLOPT_HTTPHEADER => array_map(fn ($k, $v) => "{$k}: {$v}", array_keys($headers), array_values($headers)),
                 CURLOPT_RETURNTRANSFER => false,
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_CONNECTTIMEOUT => $connectTimeout,
@@ -251,11 +262,15 @@ class OmniRouteClient
                 rewind($fp);
                 while (($line = fgets($fp)) !== false) {
                     $line = trim($line);
-                    if (empty($line) || str_starts_with($line, ':')) continue;
+                    if (empty($line) || str_starts_with($line, ':')) {
+                        continue;
+                    }
 
                     if (str_starts_with($line, 'data: ')) {
                         $payloadStr = substr($line, 6);
-                        if ($payloadStr === '[DONE]') break;
+                        if ($payloadStr === '[DONE]') {
+                            break;
+                        }
 
                         $json = json_decode($payloadStr, true);
                         if ($json && isset($json['choices'][0]['delta']['content'])) {
@@ -352,8 +367,8 @@ class OmniRouteClient
     public function createEmbedding(string $input, string $model = 'text-embedding-3-small'): array
     {
         try {
-            $endpoint = rtrim($this->baseUrl, '/') . '/embeddings';
-            
+            $endpoint = rtrim($this->baseUrl, '/').'/embeddings';
+
             $response = Http::withHeaders($this->buildHeaders())
                 ->withOptions(['force_ip_resolve' => 'v4'])
                 ->timeout(5)
@@ -364,7 +379,7 @@ class OmniRouteClient
 
             if ($response->successful()) {
                 $data = $response->json();
-                if (!empty($data['data'][0]['embedding'])) {
+                if (! empty($data['data'][0]['embedding'])) {
                     return $data['data'][0]['embedding'];
                 }
             }

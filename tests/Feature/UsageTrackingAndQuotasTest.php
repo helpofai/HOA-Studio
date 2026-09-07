@@ -29,7 +29,7 @@ class UsageTrackingAndQuotasTest extends TestCase
 
     public function test_token_cost_calculator_resolves_model_rates_and_calculates_cost(): void
     {
-        $calculator = new TokenCostCalculator();
+        $calculator = new TokenCostCalculator;
 
         // 1,000 input tokens + 1,000 output tokens on gpt-4o ($2.50 / $10.00 per M)
         $cost = $calculator->calculateCost('openai/gpt-4o', 1000, 1000);
@@ -46,7 +46,7 @@ class UsageTrackingAndQuotasTest extends TestCase
 
     public function test_quota_manager_reports_accurate_status(): void
     {
-        $quotaManager = new QuotaManager();
+        $quotaManager = new QuotaManager;
 
         $details = $quotaManager->getQuotaDetails($this->user);
 
@@ -92,7 +92,7 @@ class UsageTrackingAndQuotasTest extends TestCase
 
     public function test_adjust_user_quota_action_updates_limits(): void
     {
-        $action = new AdjustUserQuota();
+        $action = new AdjustUserQuota;
         $updatedUser = $action->execute($this->user, 25000, 5000);
 
         $this->assertEquals(30000, $updatedUser->monthly_word_quota);

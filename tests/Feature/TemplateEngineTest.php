@@ -5,10 +5,12 @@ namespace Tests\Feature;
 use App\Features\AI\Models\AiProvider;
 use App\Features\BrandVoice\Models\BrandProfile;
 use App\Features\Templates\Database\Seeders\TemplateSeeder;
+use App\Features\Templates\Livewire\TemplatesHubPage;
 use App\Features\Templates\Models\Template;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class TemplateEngineTest extends TestCase
@@ -77,8 +79,8 @@ class TemplateEngineTest extends TestCase
             ], 200),
         ]);
 
-        \Livewire\Livewire::actingAs($this->user)
-            ->test(\App\Features\Templates\Livewire\TemplatesHubPage::class)
+        Livewire::actingAs($this->user)
+            ->test(TemplatesHubPage::class)
             ->call('selectTemplate', $template->id)
             ->set('formInputs.offer', 'AI latency optimizer plugin')
             ->set('formInputs.prospect_role', 'VP of Engineering')
@@ -97,8 +99,8 @@ class TemplateEngineTest extends TestCase
     {
         $template = Template::firstOrFail();
 
-        \Livewire\Livewire::actingAs($this->user)
-            ->test(\App\Features\Templates\Livewire\TemplatesHubPage::class)
+        Livewire::actingAs($this->user)
+            ->test(TemplatesHubPage::class)
             ->set('activeTemplateId', $template->id)
             ->set('generatedContent', 'This is generated sample article copy.')
             ->call('createDocumentFromGeneration')

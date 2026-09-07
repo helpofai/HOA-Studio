@@ -26,7 +26,6 @@
 namespace App\Features\AI\Http\Controllers;
 
 use App\Core\Exceptions\AiProviderDownException;
-use App\Core\Exceptions\AiRateLimitException;
 use App\Core\Exceptions\AiTokenLimitException;
 use App\Features\AI\Actions\RecordGenerationUsage;
 use App\Features\AI\Actions\TransformText;
@@ -35,7 +34,9 @@ use App\Features\AI\Services\AiRateLimiterService;
 use App\Features\AI\Services\ContentWriterBrain;
 use App\Features\AI\Services\OmniRouteClient;
 use App\Features\AI\Services\OmniRouteUrlResolver;
+use App\Features\AI\Services\PipelineCoordinator;
 use App\Features\Auth\Models\UserApiKey;
+use App\Features\KnowledgeBase\Actions\RetrieveRagContext;
 use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -54,14 +55,14 @@ class AiStreamController extends Controller
         if ($breaker->isTripped()) {
             return response()->json([
                 'success' => false,
-                'error' => 'AI Gateway Paused: ' . $breaker->getStatus()['reason'],
+                'error' => 'AI Gateway Paused: '.$breaker->getStatus()['reason'],
             ], 503);
         }
 
         $user = Auth::user();
         $rateCheck = $limiter->checkRateLimit($user);
 
-        if (!$rateCheck['allowed']) {
+        if (! $rateCheck['allowed']) {
             return response()->json([
                 'success' => false,
                 'error' => $rateCheck['reason'],
@@ -106,18 +107,17 @@ class AiStreamController extends Controller
      * Live SSE Streaming Contextual Transformation API
      */
     public function streamTransform(
-        Request $request, 
-        TransformText $action, 
-        OmniRouteClient $client, 
-        RecordGenerationUsage $recordUsage, 
-        AiCircuitBreaker $breaker, 
+        Request $request,
+        TransformText $action,
+        OmniRouteClient $client,
+        RecordGenerationUsage $recordUsage,
+        AiCircuitBreaker $breaker,
         AiRateLimiterService $limiter,
         ContentWriterBrain $brain
-    ): StreamedResponse
-    {
+    ): StreamedResponse {
         if ($breaker->isTripped()) {
             return response()->stream(function () use ($breaker) {
-                echo "event: error\ndata: " . json_encode(['message' => 'AI Gateway Paused: ' . $breaker->getStatus()['reason']]) . "\n\n";
+                echo "event: error\ndata: ".json_encode(['message' => 'AI Gateway Paused: '.$breaker->getStatus()['reason']])."\n\n";
                 ob_flush();
                 flush();
             }, 200, [
@@ -130,9 +130,9 @@ class AiStreamController extends Controller
         $user = Auth::user();
         $rateCheck = $limiter->checkRateLimit($user);
 
-        if (!$rateCheck['allowed']) {
+        if (! $rateCheck['allowed']) {
             return response()->stream(function () use ($rateCheck) {
-                echo "event: error\ndata: " . json_encode(['message' => $rateCheck['reason']]) . "\n\n";
+                echo "event: error\ndata: ".json_encode(['message' => $rateCheck['reason']])."\n\n";
                 ob_flush();
                 flush();
             }, 200, [
@@ -152,9 +152,9 @@ class AiStreamController extends Controller
 
         $user = Auth::user();
 
-        if (!$user->hasQuota(1)) {
+        if (! $user->hasQuota(1)) {
             return response()->stream(function () {
-                echo "event: error\ndata: " . json_encode(['message' => 'Monthly word quota exceeded. Please upgrade plan.']) . "\n\n";
+                echo "event: error\ndata: ".json_encode(['message' => 'Monthly word quota exceeded. Please upgrade plan.'])."\n\n";
                 ob_flush();
                 flush();
             }, 200, [
@@ -165,8 +165,8 @@ class AiStreamController extends Controller
         }
 
         $context = $request->input('context', []);
-        $hasSelection = !empty($context['has_selection']) && !empty($context['selected_text']);
-        if (!isset($context['selected_text']) && !isset($context['target_text'])) {
+        $hasSelection = ! empty($context['has_selection']) && ! empty($context['selected_text']);
+        if (! isset($context['selected_text']) && ! isset($context['target_text'])) {
             $context['target_text'] = $validated['text'];
         }
         $pipelineStages = $request->input('pipeline_stages', []);
@@ -175,7 +175,7 @@ class AiStreamController extends Controller
         $targetKeyword = $context['target_keyword'] ?? null;
         $docTitle = $context['document_title'] ?? null;
 
-        if (!$isFullArticle) {
+        if (! $isFullArticle) {
             $brainPrompt = $brain->buildSurgicalPrompt(
                 $validated['type'],
                 $context,
@@ -187,15 +187,15 @@ class AiStreamController extends Controller
             // -------------------------------------------------------------------------------- //
             // MULTI-AGENT SWARM PIPELINE WITH VECTOR MEMORY & AGENTIC CHUNKING
             // -------------------------------------------------------------------------------- //
-            
+
             $rawText = trim($validated['text'] ?? '');
             $customInst = trim($validated['custom_instruction'] ?? '');
             $resolvedTopic = $rawText;
             if ($rawText === 'Document Context' || empty($rawText) || strcasecmp($rawText, 'document') === 0) {
-                $resolvedTopic = !empty($customInst) ? $customInst : ($context['document_title'] ?? 'The Definitive Guide');
+                $resolvedTopic = ! empty($customInst) ? $customInst : ($context['document_title'] ?? 'The Definitive Guide');
             }
 
-            return response()->stream(function () use ($validated, $context, $pipelineStages, $user, $client, $brain, $recordUsage, $hasSelection, $resolvedTopic) {
+            return response()->stream(function () use ($validated, $context, $pipelineStages, $user, $resolvedTopic) {
                 // Pre-configure the SSE header cleanly for real-time state feedback
                 ob_implicit_flush(1);
 
@@ -218,15 +218,17 @@ class AiStreamController extends Controller
                     } else {
                         $payload['token'] = $data;
                     }
-                    echo "data: " . json_encode($payload) . "\n\n";
-                    if (ob_get_level() > 0) ob_flush();
+                    echo 'data: '.json_encode($payload)."\n\n";
+                    if (ob_get_level() > 0) {
+                        ob_flush();
+                    }
                     flush();
                 };
-                
+
                 try {
                     // Initiate the Pipeline Coordinator
-                    $coordinator = app(\App\Features\AI\Services\PipelineCoordinator::class);
-                    
+                    $coordinator = app(PipelineCoordinator::class);
+
                     // Run the 15-stage workflow
                     $fullDraft = $coordinator->executeAgenticPipeline(
                         $pipelineStages,
@@ -238,14 +240,16 @@ class AiStreamController extends Controller
                     );
 
                     // Send the final closure event
-                    echo "data: " . json_encode(['token' => '', 'done' => true]) . "\n\n";
+                    echo 'data: '.json_encode(['token' => '', 'done' => true])."\n\n";
 
                 } catch (\Throwable $e) {
-                    \Log::error('AI Swarm Pipeline Failed: ' . $e->getMessage());
-                    echo "event: error\ndata: " . json_encode(['message' => 'Swarm Execution Error: ' . $e->getMessage()]) . "\n\n";
+                    \Log::error('AI Swarm Pipeline Failed: '.$e->getMessage());
+                    echo "event: error\ndata: ".json_encode(['message' => 'Swarm Execution Error: '.$e->getMessage()])."\n\n";
                 }
-                
-                if (ob_get_level() > 0) ob_flush();
+
+                if (ob_get_level() > 0) {
+                    ob_flush();
+                }
                 flush();
             }, 200, [
                 'Content-Type' => 'text/event-stream',
@@ -266,7 +270,9 @@ class AiStreamController extends Controller
 
             // Disable PHP output buffering entirely for zero-latency SSE token delivery
             @ob_implicit_flush(true);
-            while (ob_get_level() > 0) { ob_end_flush(); }
+            while (ob_get_level() > 0) {
+                ob_end_flush();
+            }
 
             $defaultTemperatures = [
                 'recreate' => 0.82,
@@ -300,13 +306,13 @@ class AiStreamController extends Controller
                 foreach ($generator as $chunk) {
                     $token = is_array($chunk) ? ($chunk['token'] ?? '') : (string) $chunk;
                     $accumulated .= $token;
-                    
+
                     if (is_array($chunk) && isset($chunk['model'])) {
                         $routedModel = $chunk['model'];
                     }
 
                     echo "event: token\n";
-                    echo "data: " . json_encode(['token' => $token, 'model' => $routedModel]) . "\n\n";
+                    echo 'data: '.json_encode(['token' => $token, 'model' => $routedModel])."\n\n";
 
                     flush();
                 }
@@ -314,7 +320,7 @@ class AiStreamController extends Controller
                 // Anti-Echo Safety Net: If AI returned identical text, apply algorithmic transformation
                 if ($hasSelection && trim(mb_strtolower($accumulated)) === trim(mb_strtolower($context['selected_text'] ?? ''))) {
                     $fallback = $brain->executeLocalActionTransform($validated['type'], $context['selected_text'], $context);
-                    if (!empty($fallback)) {
+                    if (! empty($fallback)) {
                         $accumulated = $fallback;
                     }
                 }
@@ -327,21 +333,21 @@ class AiStreamController extends Controller
                 ]);
 
                 echo "event: complete\n";
-                echo "data: " . json_encode([
+                echo 'data: '.json_encode([
                     'done' => true,
                     'result' => $accumulated,
                     'words_used' => $words,
                     'quota_remaining' => max(0, $user->monthly_word_quota - $user->used_word_quota),
-                ]) . "\n\n";
+                ])."\n\n";
 
                 flush();
             } catch (AiTokenLimitException $e) {
-                echo "event: error\ndata: " . json_encode(['message' => 'Token limit exceeded.']) . "\n\n";
+                echo "event: error\ndata: ".json_encode(['message' => 'Token limit exceeded.'])."\n\n";
             } catch (AiProviderDownException $e) {
-                echo "event: error\ndata: " . json_encode(['message' => 'Provider unavailable.']) . "\n\n";
+                echo "event: error\ndata: ".json_encode(['message' => 'Provider unavailable.'])."\n\n";
             } catch (Exception $e) {
                 echo "event: error\n";
-                echo "data: " . json_encode(['message' => $e->getMessage()]) . "\n\n";
+                echo 'data: '.json_encode(['message' => $e->getMessage()])."\n\n";
                 flush();
             }
         }, 200, [
@@ -366,9 +372,9 @@ class AiStreamController extends Controller
 
         $user = Auth::user();
 
-        if (!$user->hasQuota(1)) {
+        if (! $user->hasQuota(1)) {
             return response()->stream(function () {
-                echo "event: error\ndata: " . json_encode(['message' => 'Quota exceeded']) . "\n\n";
+                echo "event: error\ndata: ".json_encode(['message' => 'Quota exceeded'])."\n\n";
                 ob_flush();
                 flush();
             }, 200, [
@@ -378,7 +384,7 @@ class AiStreamController extends Controller
         }
 
         $messages = [];
-        if (!empty($validated['system_prompt'])) {
+        if (! empty($validated['system_prompt'])) {
             $messages[] = ['role' => 'system', 'content' => $validated['system_prompt']];
         }
         $messages[] = ['role' => 'user', 'content' => $validated['prompt']];
@@ -389,7 +395,9 @@ class AiStreamController extends Controller
 
             // Disable PHP output buffering entirely for zero-latency SSE token delivery
             @ob_implicit_flush(true);
-            while (ob_get_level() > 0) { ob_end_flush(); }
+            while (ob_get_level() > 0) {
+                ob_end_flush();
+            }
 
             try {
                 $generator = $client->streamChatCompletion($messages, [
@@ -400,13 +408,13 @@ class AiStreamController extends Controller
                 foreach ($generator as $chunk) {
                     $token = is_array($chunk) ? ($chunk['token'] ?? '') : (string) $chunk;
                     $accumulated .= $token;
-                    
+
                     if (is_array($chunk) && isset($chunk['model'])) {
                         $routedModel = $chunk['model'];
                     }
 
                     echo "event: token\n";
-                    echo "data: " . json_encode(['token' => $token, 'model' => $routedModel]) . "\n\n";
+                    echo 'data: '.json_encode(['token' => $token, 'model' => $routedModel])."\n\n";
                     flush();
                 }
 
@@ -418,20 +426,20 @@ class AiStreamController extends Controller
                 ]);
 
                 echo "event: complete\n";
-                echo "data: " . json_encode([
+                echo 'data: '.json_encode([
                     'done' => true,
                     'words_used' => $words,
                     'quota_remaining' => max(0, $user->monthly_word_quota - $user->used_word_quota),
-                ]) . "\n\n";
+                ])."\n\n";
 
                 flush();
             } catch (AiTokenLimitException $e) {
-                echo "event: error\ndata: " . json_encode(['message' => 'Token limit exceeded.']) . "\n\n";
+                echo "event: error\ndata: ".json_encode(['message' => 'Token limit exceeded.'])."\n\n";
             } catch (AiProviderDownException $e) {
-                echo "event: error\ndata: " . json_encode(['message' => 'Provider unavailable.']) . "\n\n";
+                echo "event: error\ndata: ".json_encode(['message' => 'Provider unavailable.'])."\n\n";
             } catch (Exception $e) {
                 echo "event: error\n";
-                echo "data: " . json_encode(['message' => $e->getMessage()]) . "\n\n";
+                echo 'data: '.json_encode(['message' => $e->getMessage()])."\n\n";
                 flush();
             }
         }, 200, [
@@ -454,16 +462,16 @@ class AiStreamController extends Controller
         if ($breaker->isTripped()) {
             return response()->json([
                 'success' => false,
-                'message' => 'AI Gateway Paused: ' . $breaker->getStatus()['reason']
+                'message' => 'AI Gateway Paused: '.$breaker->getStatus()['reason'],
             ], 503);
         }
 
         $user = Auth::user();
         $rateCheck = $limiter->checkRateLimit($user);
-        if (!$rateCheck['allowed']) {
+        if (! $rateCheck['allowed']) {
             return response()->json([
                 'success' => false,
-                'message' => $rateCheck['reason']
+                'message' => $rateCheck['reason'],
             ], 429);
         }
 
@@ -477,22 +485,22 @@ class AiStreamController extends Controller
             'pipeline_stages' => 'nullable|array',
         ]);
 
-        if (!$user->hasQuota(1)) {
+        if (! $user->hasQuota(1)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Monthly word quota exceeded. Please upgrade plan.'
+                'message' => 'Monthly word quota exceeded. Please upgrade plan.',
             ], 402);
         }
 
         $context = $request->input('context', []);
-        $hasSelection = !empty($context['has_selection']) && !empty($context['selected_text']);
-        if (!isset($context['selected_text']) && !isset($context['target_text'])) {
+        $hasSelection = ! empty($context['has_selection']) && ! empty($context['selected_text']);
+        if (! isset($context['selected_text']) && ! isset($context['target_text'])) {
             $context['target_text'] = $validated['text'];
         }
         $pipelineStages = $request->input('pipeline_stages', []);
         $isFullArticle = $brain->isFullArticleType($validated['type'], $validated['custom_instruction'] ?? null, $context);
 
-        if (!$isFullArticle) {
+        if (! $isFullArticle) {
             $brainPrompt = $brain->buildSurgicalPrompt(
                 $validated['type'],
                 $context,
@@ -505,7 +513,7 @@ class AiStreamController extends Controller
             $customInst = trim($validated['custom_instruction'] ?? '');
             $resolvedTopic = $rawText;
             if ($rawText === 'Document Context' || empty($rawText) || strcasecmp($rawText, 'document') === 0) {
-                $resolvedTopic = !empty($customInst) ? $customInst : ($context['document_title'] ?? 'The Definitive Guide');
+                $resolvedTopic = ! empty($customInst) ? $customInst : ($context['document_title'] ?? 'The Definitive Guide');
             }
 
             $brainPrompt = $brain->buildPipelineArticlePrompt(
@@ -519,10 +527,10 @@ class AiStreamController extends Controller
 
             // Ground with Knowledge Base RAG context if available
             try {
-                $ragAction = app(\App\Features\KnowledgeBase\Actions\RetrieveRagContext::class);
+                $ragAction = app(RetrieveRagContext::class);
                 $ragResult = $ragAction->execute($user, $userContent, limit: 3);
-                if (!empty($ragResult['has_context']) && !empty($ragResult['prompt_snippet'])) {
-                    $systemPrompt .= "\n\n" . $ragResult['prompt_snippet'];
+                if (! empty($ragResult['has_context']) && ! empty($ragResult['prompt_snippet'])) {
+                    $systemPrompt .= "\n\n".$ragResult['prompt_snippet'];
                 }
             } catch (\Throwable $e) {
                 // Non-blocking fallback
@@ -538,7 +546,7 @@ class AiStreamController extends Controller
         $userApiKey = $userKeyRow ? $userKeyRow->getRawKeyForOwner($user) : null;
 
         $endpoints = OmniRouteUrlResolver::resolve($userCustomUrl);
-        $isLocal = !$endpoints['is_remote'];
+        $isLocal = ! $endpoints['is_remote'];
 
         $resolvedApiKey = $userApiKey ?: config('omniroute.api_key', 'omniroute-default-key');
         $routedModel = $validated['model'] ?? config('omniroute.default_model', 'auto');
@@ -600,7 +608,7 @@ class AiStreamController extends Controller
                 'model_slug' => $model,
             ]);
         } catch (\Throwable $e) {
-            Log::warning("[AiStreamController::recordUsage] Failed to record usage: " . $e->getMessage());
+            Log::warning('[AiStreamController::recordUsage] Failed to record usage: '.$e->getMessage());
         }
 
         return response()->json([

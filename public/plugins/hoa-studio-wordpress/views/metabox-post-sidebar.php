@@ -14,7 +14,7 @@
 |--------------------------------------------------------------------------
 */
 
-if (!defined('ABSPATH')) {
+if (! defined('ABSPATH')) {
     exit;
 }
 ?>
@@ -36,11 +36,11 @@ if (!defined('ABSPATH')) {
             <span class="hoa-status-dot"></span>
             <?php echo $isConnected ? esc_html__('Studio Gateway Connected', 'hoa-studio') : esc_html__('Gateway Offline', 'hoa-studio'); ?>
         </div>
-        <?php if (!empty($syncedDocId)): ?>
+        <?php if (! empty($syncedDocId)) { ?>
             <div class="hoa-status-badge hoa-badge-synced">
                 <span>🔄 <?php esc_html_e('Synced Doc #', 'hoa-studio'); ?><?php echo esc_html($syncedDocId); ?></span>
             </div>
-        <?php endif; ?>
+        <?php } ?>
     </div>
 
     <!-- Target Keyword Field -->

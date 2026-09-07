@@ -16,7 +16,7 @@
 
 use HOA_Studio\Core\HOA_Settings;
 
-if (!defined('ABSPATH')) {
+if (! defined('ABSPATH')) {
     exit;
 }
 
@@ -67,7 +67,7 @@ $brandVoices = HOA_Settings::getBrandVoices();
                 </div>
             </div>
             <div class="hoa-card-body">
-                <?php if ($isConnected): ?>
+                <?php if ($isConnected) { ?>
                     <div class="hoa-user-pill">
                         <div class="hoa-avatar-letter"><?php echo esc_html(strtoupper(substr($user['name'] ?? 'U', 0, 1))); ?></div>
                         <div class="hoa-user-meta">
@@ -75,11 +75,11 @@ $brandVoices = HOA_Settings::getBrandVoices();
                             <span class="hoa-user-plan"><?php echo esc_html($user['plan'] ?? 'Pro'); ?> Plan</span>
                         </div>
                     </div>
-                <?php else: ?>
+                <?php } else { ?>
                     <div class="hoa-alert-box hoa-alert-warning">
                         <span>⚠️ <?php esc_html_e('Plugin is not connected to your HOA Studio instance. Please configure your token.', 'hoa-studio'); ?></span>
                     </div>
-                <?php endif; ?>
+                <?php } ?>
             </div>
         </div>
 
@@ -122,9 +122,9 @@ $brandVoices = HOA_Settings::getBrandVoices();
             <div class="hoa-card-body">
                 <div class="hoa-badge-grid">
                     <span class="hoa-tag-badge hoa-tag-violet">⚡ OmniRoute Auto</span>
-                    <?php foreach (array_slice($models, 0, 4) as $m): ?>
+                    <?php foreach (array_slice($models, 0, 4) as $m) { ?>
                         <span class="hoa-tag-badge"><?php echo esc_html($m['name'] ?? $m['model_id']); ?></span>
-                    <?php endforeach; ?>
+                    <?php } ?>
                 </div>
                 <div class="hoa-card-action-link">
                     <a href="<?php echo esc_url(admin_url('admin.php?page=hoa-studio-ai')); ?>">

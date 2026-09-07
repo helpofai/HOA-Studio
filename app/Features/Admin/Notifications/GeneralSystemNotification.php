@@ -56,7 +56,7 @@ class GeneralSystemNotification extends Notification
             $mail->action($this->actionText, $this->actionUrl);
         }
 
-        return $mail->line('Thank you for using ' . $appName . '!');
+        return $mail->line('Thank you for using '.$appName.'!');
     }
 
     public function toArray(object $notifiable): array

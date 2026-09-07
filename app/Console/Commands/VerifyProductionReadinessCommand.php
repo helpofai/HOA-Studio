@@ -34,6 +34,7 @@ use Illuminate\Support\Facades\File;
 class VerifyProductionReadinessCommand extends Command
 {
     protected $signature = 'hoa:verify-production';
+
     protected $description = 'Verify system readiness for shared-hosting or cloud production deployment';
 
     public function handle(): int
@@ -46,7 +47,7 @@ class VerifyProductionReadinessCommand extends Command
 
         // 1. PHP Version & Extensions
         $this->comment("\n1. PHP Environment & Extensions:");
-        $this->line('  • PHP Version: ' . PHP_VERSION);
+        $this->line('  • PHP Version: '.PHP_VERSION);
 
         $requiredExts = ['curl', 'mbstring', 'openssl', 'pdo', 'tokenizer', 'xml', 'ctype', 'fileinfo'];
         foreach ($requiredExts as $ext) {
@@ -68,7 +69,7 @@ class VerifyProductionReadinessCommand extends Command
             $modelCount = AiModel::count();
             $this->line("  ✓ Database seeded with {$providerCount} AI providers and {$modelCount} AI models.");
         } catch (\Exception $e) {
-            $this->error('  ✗ Database connection error: ' . $e->getMessage());
+            $this->error('  ✗ Database connection error: '.$e->getMessage());
             $hasError = true;
         }
 
@@ -83,14 +84,14 @@ class VerifyProductionReadinessCommand extends Command
         ];
 
         foreach ($paths as $path) {
-            if (!File::exists($path)) {
+            if (! File::exists($path)) {
                 File::makeDirectory($path, 0775, true, true);
             }
 
             if (is_writable($path)) {
-                $this->line("  ✓ Directory writable: " . str_replace(base_path() . DIRECTORY_SEPARATOR, '', $path));
+                $this->line('  ✓ Directory writable: '.str_replace(base_path().DIRECTORY_SEPARATOR, '', $path));
             } else {
-                $this->error("  ✗ Directory is NOT writable: " . $path);
+                $this->error('  ✗ Directory is NOT writable: '.$path);
                 $hasError = true;
             }
         }
@@ -123,6 +124,7 @@ class VerifyProductionReadinessCommand extends Command
         $this->info("\n===========================================================");
         if ($hasError) {
             $this->error('  FAILED: Some checks did not pass. Please resolve above items.');
+
             return self::FAILURE;
         }
 

@@ -2,8 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Features\Documents\Actions\SaveDocumentVersion;
+use App\Features\Documents\Actions\CreateDocument;
 use App\Features\Documents\Actions\RestoreDocumentVersion;
+use App\Features\Documents\Actions\SaveDocumentVersion;
 use App\Features\Documents\Livewire\DocumentsPage;
 use App\Features\Documents\Models\Document;
 use App\Features\Projects\Actions\CreateProject;
@@ -21,7 +22,7 @@ class DocumentsTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        $projAction = new CreateProject();
+        $projAction = new CreateProject;
         $project = $projAction->execute($user, ['name' => 'AI Guides']);
 
         // Create Document via Livewire modal
@@ -53,12 +54,12 @@ class DocumentsTest extends TestCase
     public function test_document_versioning_and_restore(): void
     {
         $user = User::factory()->create();
-        $doc = (new \App\Features\Documents\Actions\CreateDocument())->execute($user, [
+        $doc = (new CreateDocument)->execute($user, [
             'title' => 'Initial Title',
             'content_html' => '<p>Version 1 content</p>',
         ]);
 
-        $saveVersion = new SaveDocumentVersion();
+        $saveVersion = new SaveDocumentVersion;
         $v2 = $saveVersion->execute($doc, $user, [
             'title' => 'Title v2',
             'content_html' => '<p>Version 2 expanded content with extra details.</p>',
@@ -70,7 +71,7 @@ class DocumentsTest extends TestCase
         $this->assertEquals('Title v2', $doc->fresh()->title);
 
         // Restore v1
-        $restoreAction = new RestoreDocumentVersion();
+        $restoreAction = new RestoreDocumentVersion;
         $restoredDoc = $restoreAction->execute($doc, $doc->versions()->where('version_number', 1)->first(), $user);
 
         $this->assertEquals(3, $restoredDoc->versions()->count());

@@ -19,17 +19,25 @@ namespace App\Features\ContentIntelligence\Services;
 
 use App\Features\ContentIntelligence\DTOs\ClaimNodeDTO;
 use App\Features\ContentIntelligence\DTOs\ContentMissionDTO;
+use App\Features\ContentIntelligence\DTOs\EvidenceSnippetDTO;
 use App\Features\ContentIntelligence\DTOs\KnowledgeFabricDTO;
 use App\Features\ContentIntelligence\DTOs\KnowledgeTripleDTO;
+use App\Features\ContentIntelligence\DTOs\MemoryCandidateDTO;
 use App\Features\ContentIntelligence\DTOs\ResearchPlanDTO;
 use App\Features\ContentIntelligence\DTOs\SourceIntelligenceDTO;
+use App\Features\ContentIntelligence\DTOs\WorldEntityDTO;
+use App\Features\ContentIntelligence\Enums\BrainScope;
 use App\Features\ContentIntelligence\Enums\EpistemicState;
+use App\Features\ContentIntelligence\Enums\EvidenceRelationType;
+use App\Features\ContentIntelligence\Enums\MemoryLayerType;
 use App\Features\ContentIntelligence\Enums\SourceReliabilityTier;
+use App\Features\ContentIntelligence\Memory\MemoryManager;
 use App\Features\ContentIntelligence\Models\ClaimNode;
 use App\Features\ContentIntelligence\Models\ContentMission;
 use App\Features\ContentIntelligence\Models\KnowledgeTriple;
 use App\Features\ContentIntelligence\Models\SourceIntelligence;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class KnowledgeFabricService
 {
@@ -166,7 +174,7 @@ class KnowledgeFabricService
             foreach ($finalClaims as $clmDto) {
                 $sourceModel = $sourceModelMap[$clmDto->sourceUrl] ?? null;
 
-                ClaimNode::create([
+                $claimModel = ClaimNode::create([
                     'mission_id' => $mission->id,
                     'source_id' => $sourceModel?->id,
                     'statement' => $clmDto->statement,
@@ -178,6 +186,69 @@ class KnowledgeFabricService
                     'contradiction_details' => $clmDto->contradictionDetails,
                     'resolution_strategy' => $clmDto->resolutionStrategy,
                 ]);
+
+                // Deep Evidence Grounding (SOURCE ➔ EVIDENCE ➔ CLAIM)
+                if ($sourceModel && ! empty($clmDto->evidenceExtract)) {
+                    try {
+                        $evidenceGraph = app(DeepEvidenceGraphService::class);
+                        $snippet = $evidenceGraph->recordSnippet(new EvidenceSnippetDTO(
+                            id: 'evd_'.Str::lower(Str::random(10)),
+                            sourceId: (int) $sourceModel->id,
+                            missionId: $mission->id,
+                            extractText: (string) $clmDto->evidenceExtract,
+                            verbatimQuote: (string) $clmDto->evidenceExtract,
+                            sectionOrHeading: $clmDto->sectionTarget,
+                            confidenceScore: $clmDto->confidenceScore,
+                            epistemicState: $clmDto->epistemicState
+                        ));
+                        $evidenceGraph->linkClaimToEvidence($claimModel->id, $snippet->id, EvidenceRelationType::SUPPORTS, 1.0);
+                    } catch (\Throwable) {
+                        // Graceful fallback
+                    }
+                }
+            }
+
+            // 5. Submit Verified Triples to Cognitive Memory OS Admission Gate
+            try {
+                $memoryManager = app(MemoryManager::class);
+                foreach ($triples as $trpDto) {
+                    $sourceModel = $sourceModelMap[$trpDto->sourceUrl] ?? null;
+                    $candidateDto = new MemoryCandidateDTO(
+                        id: 'cand_'.Str::lower(Str::random(10)),
+                        userId: (int) $mission->user_id,
+                        content: "{$trpDto->subject} {$trpDto->predicate} {$trpDto->object}",
+                        missionId: $mission->id,
+                        scope: BrainScope::PROJECT,
+                        layer: MemoryLayerType::SEMANTIC,
+                        type: 'technical_fact',
+                        subject: $trpDto->subject,
+                        predicate: $trpDto->predicate,
+                        object: $trpDto->object,
+                        sourceUrl: $trpDto->sourceUrl,
+                        sourceId: $sourceModel?->id,
+                        provenance: ['synthesizer' => 'KnowledgeFabricService'],
+                        confidence: $trpDto->confidence,
+                        importanceScore: 0.90
+                    );
+                    $memoryManager->admit($candidateDto);
+                }
+            } catch (\Throwable) {
+                // Graceful fallback if memory OS is running offline or unbooted
+            }
+
+            // 6. Register Discovered Domain Entity in World Model
+            try {
+                $worldModel = app(WorldModelService::class);
+                $worldModel->registerEntity(new WorldEntityDTO(
+                    id: 'ent_'.Str::lower(Str::random(10)),
+                    name: $topic,
+                    slug: Str::slug($topic),
+                    category: 'technology',
+                    description: "Domain entity discovered for {$topic}",
+                    userId: (int) $mission->user_id
+                ));
+            } catch (\Throwable) {
+                // Graceful fallback
             }
 
             return new KnowledgeFabricDTO(

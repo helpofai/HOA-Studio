@@ -703,6 +703,12 @@
                 <button type="button" x-on:click="closeContextMenu(); triggerSubContentSubAgent('seo_optimize')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer transition-colors">
                     <span class="text-emerald-400">⌁</span> <span>SEO Optimize Text</span>
                 </button>
+                <button type="button" x-on:click="closeContextMenu(); triggerSubContentSubAgent('surgical_micro_repair')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-emerald-600/25 text-emerald-300 hover:text-white flex items-center gap-2 cursor-pointer transition-colors">
+                    <span class="text-emerald-400">🔬</span> <span>Surgical Micro-Repair</span>
+                </button>
+                <button type="button" x-on:click="closeContextMenu(); triggerSubContentSubAgent('verify_lineage')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-cyan-600/25 text-cyan-300 hover:text-white flex items-center gap-2 cursor-pointer transition-colors">
+                    <span class="text-cyan-400">🛡️</span> <span>Verify Lineage & Grounding</span>
+                </button>
             </div>
 
             <!-- SECTION 3: TONE SHIFTER SUBMENU -->
@@ -805,6 +811,20 @@ style="display: none;"
                 <div>
                     <div>Comparison Table</div>
                     <div class="text-[10px] text-slate-400">Generate structured pros/cons table</div>
+                </div>
+            </button>
+            <button type="button" x-on:click="executeSlashAction('surgical_micro_repair')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/30 text-slate-200 hover:text-white flex items-center gap-2.5 transition-colors cursor-pointer">
+                <span class="w-5 h-5 rounded-lg bg-indigo-950 flex items-center justify-center text-xs text-emerald-400">🔬</span>
+                <div>
+                    <div>Surgical Micro-Repair</div>
+                    <div class="text-[10px] text-slate-400">Precision sentence repair & fact grounding</div>
+                </div>
+            </button>
+            <button type="button" x-on:click="executeSlashAction('verify_lineage')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/30 text-slate-200 hover:text-white flex items-center gap-2.5 transition-colors cursor-pointer">
+                <span class="w-5 h-5 rounded-lg bg-indigo-950 flex items-center justify-center text-xs text-cyan-400">🛡️</span>
+                <div>
+                    <div>Verify Lineage & Sources</div>
+                    <div class="text-[10px] text-slate-400">Trace facts, claims, and citation roots</div>
                 </div>
             </button>
         </div>

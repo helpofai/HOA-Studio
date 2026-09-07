@@ -31,7 +31,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('tags')) {
+        if (! Schema::hasTable('tags')) {
             Schema::create('tags', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->cascadeOnDelete();
@@ -42,7 +42,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('document_tags')) {
+        if (! Schema::hasTable('document_tags')) {
             Schema::create('document_tags', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('document_id')->constrained()->cascadeOnDelete();
@@ -53,7 +53,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('settings')) {
+        if (! Schema::hasTable('settings')) {
             Schema::create('settings', function (Blueprint $table) {
                 $table->id();
                 $table->string('key')->unique();
@@ -64,7 +64,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('audit_logs')) {
+        if (! Schema::hasTable('audit_logs')) {
             Schema::create('audit_logs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();

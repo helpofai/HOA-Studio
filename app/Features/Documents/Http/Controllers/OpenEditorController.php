@@ -44,6 +44,7 @@ class OpenEditorController extends Controller
                 'title' => 'Untitled Document',
                 'content_html' => '<p>Start writing your AI-powered content...</p>',
             ]);
+
             return redirect()->route('documents.editor', $doc->id);
         }
 

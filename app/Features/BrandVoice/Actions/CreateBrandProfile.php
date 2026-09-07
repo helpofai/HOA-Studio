@@ -32,7 +32,7 @@ class CreateBrandProfile
 {
     public function execute(User $user, array $data): BrandProfile
     {
-        if (!empty($data['is_default'])) {
+        if (! empty($data['is_default'])) {
             BrandProfile::where('user_id', $user->id)->update(['is_default' => false]);
         }
 

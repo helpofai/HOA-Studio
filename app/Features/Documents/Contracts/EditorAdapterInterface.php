@@ -25,7 +25,6 @@
 
 namespace App\Features\Documents\Contracts;
 
-use App\Features\Documents\Models\Document;
 use App\Features\Documents\Data\ConversionRiskAssessment;
 
 interface EditorAdapterInterface

@@ -25,9 +25,13 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\Facades\Vite;
+use App\Features\Admin\Livewire\NotificationBell;
+use App\Features\Documents\Services\EditorManager;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -36,8 +40,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(\App\Features\Documents\Services\EditorManager::class, function () {
-            return new \App\Features\Documents\Services\EditorManager();
+        $this->app->singleton(EditorManager::class, function () {
+            return new EditorManager;
         });
     }
 
@@ -50,11 +54,11 @@ class AppServiceProvider extends ServiceProvider
 
         // Force HTTPS in production or behind SSL reverse proxies (cPanel, LiteSpeed, Cloudflare, Nginx)
         if (config('app.env') === 'production' || str_starts_with((string) config('app.url'), 'https://')) {
-            \Illuminate\Support\Facades\URL::forceScheme('https');
+            URL::forceScheme('https');
         }
 
         Vite::useBuildDirectory('build');
 
-        \Livewire\Livewire::component('admin.notification-bell', \App\Features\Admin\Livewire\NotificationBell::class);
+        Livewire::component('admin.notification-bell', NotificationBell::class);
     }
 }

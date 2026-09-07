@@ -26,7 +26,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('source_intelligences')) {
+        if (! Schema::hasTable('source_intelligences')) {
             Schema::create('source_intelligences', function (Blueprint $table) {
                 $table->id();
                 $table->string('url_hash', 64)->index();
@@ -43,7 +43,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('research_items')) {
+        if (! Schema::hasTable('research_items')) {
             Schema::create('research_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('mission_id')->constrained('content_missions')->cascadeOnDelete();
@@ -56,7 +56,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('knowledge_triples')) {
+        if (! Schema::hasTable('knowledge_triples')) {
             Schema::create('knowledge_triples', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('mission_id')->constrained('content_missions')->cascadeOnDelete();
@@ -70,7 +70,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('claim_nodes')) {
+        if (! Schema::hasTable('claim_nodes')) {
             Schema::create('claim_nodes', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('mission_id')->constrained('content_missions')->cascadeOnDelete();

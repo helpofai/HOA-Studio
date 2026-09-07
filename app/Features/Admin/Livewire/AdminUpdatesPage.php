@@ -29,25 +29,41 @@ use Livewire\Component;
 class AdminUpdatesPage extends Component
 {
     public array $updateInfo = [];
+
     public array $versionMeta = [];
+
     public array $restorePoints = [];
+
     public array $selectedRestorePoints = [];
+
     public bool $selectAll = false;
+
     public array $dbSnapshots = [];
+
     public array $dbDetails = [];
+
     public array $migrationsData = [];
+
     public array $healthReport = [];
+
     public array $updateLogs = [];
+
     public bool $isChecking = false;
+
     public bool $isUpdating = false;
+
     public bool $isMigrating = false;
+
     public bool $isRollingBack = false;
+
     public string $activeTab = 'core'; // 'core', 'database', 'migrations', 'health'
+
     public ?string $feedbackMessage = null;
+
     public ?string $feedbackType = null;
 
     public function mount(
-        CoreUpdateService $updateService, 
+        CoreUpdateService $updateService,
         HealthProberService $healthProber,
         DatabaseUpdateRollbackService $dbService
     ) {
@@ -55,7 +71,7 @@ class AdminUpdatesPage extends Component
     }
 
     public function refreshData(
-        CoreUpdateService $updateService, 
+        CoreUpdateService $updateService,
         HealthProberService $healthProber,
         DatabaseUpdateRollbackService $dbService
     ) {
@@ -78,14 +94,14 @@ class AdminUpdatesPage extends Component
         $this->isChecking = true;
         $this->updateInfo = $updateService->checkForUpdates();
         $this->isChecking = false;
-        
-        if (!empty($this->updateInfo['connection_error'])) {
+
+        if (! empty($this->updateInfo['connection_error'])) {
             $this->feedbackType = 'error';
             $this->feedbackMessage = $this->updateInfo['connection_error'];
         } else {
             $this->feedbackType = $this->updateInfo['has_update'] ? 'success' : 'info';
-            $this->feedbackMessage = $this->updateInfo['has_update'] 
-                ? "New update available: v{$this->updateInfo['latest_version']} directly from GitHub!" 
+            $this->feedbackMessage = $this->updateInfo['has_update']
+                ? "New update available: v{$this->updateInfo['latest_version']} directly from GitHub!"
                 : "You are currently running the latest version (v{$this->updateInfo['current_version']}).";
         }
     }
@@ -177,9 +193,10 @@ class AdminUpdatesPage extends Component
             }
         }
 
-        if (!$target || empty($target['file_backup']) || !file_exists($target['file_backup'])) {
+        if (! $target || empty($target['file_backup']) || ! file_exists($target['file_backup'])) {
             $this->feedbackType = 'error';
-            $this->feedbackMessage = "Snapshot archive file not found on disk.";
+            $this->feedbackMessage = 'Snapshot archive file not found on disk.';
+
             return;
         }
 
@@ -262,6 +279,7 @@ class AdminUpdatesPage extends Component
                 $total += (float) ($rp['file_size_mb'] ?? 0);
             }
         }
+
         return round($total, 2);
     }
 
@@ -270,6 +288,7 @@ class AdminUpdatesPage extends Component
         if (empty($this->selectedRestorePoints)) {
             $this->feedbackType = 'error';
             $this->feedbackMessage = 'No restore snapshots selected for deletion.';
+
             return;
         }
 
@@ -299,6 +318,7 @@ class AdminUpdatesPage extends Component
         if (empty($this->selectedRestorePoints)) {
             $this->feedbackType = 'error';
             $this->feedbackMessage = 'No restore snapshots selected for download.';
+
             return;
         }
 
@@ -307,9 +327,10 @@ class AdminUpdatesPage extends Component
         }
 
         $bundle = $updateService->bundleRestorePoints($this->selectedRestorePoints);
-        if (!$bundle || !file_exists($bundle)) {
+        if (! $bundle || ! file_exists($bundle)) {
             $this->feedbackType = 'error';
             $this->feedbackMessage = 'Failed to generate bulk snapshot archive bundle.';
+
             return;
         }
 

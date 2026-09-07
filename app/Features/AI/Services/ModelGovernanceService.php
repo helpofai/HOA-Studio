@@ -42,7 +42,7 @@ class ModelGovernanceService
     {
         $start = microtime(true);
         $endpoints = OmniRouteUrlResolver::resolve(config('omniroute.base_url', 'http://127.0.0.1:20128/v1'));
-        $chatEndpoint = rtrim($endpoints['openai_base'], '/') . '/chat/completions';
+        $chatEndpoint = rtrim($endpoints['openai_base'], '/').'/chat/completions';
         $apiKey = config('omniroute.api_key', 'sk-or-v1-dev-master-key');
 
         try {
@@ -50,15 +50,15 @@ class ModelGovernanceService
                 'Authorization' => "Bearer {$apiKey}",
                 'Content-Type' => 'application/json',
             ])
-            ->timeout(5)
-            ->withOptions(['force_ip_resolve' => 'v4'])
-            ->post($chatEndpoint, [
-                'model' => $model->model_id,
-                'messages' => [
-                    ['role' => 'user', 'content' => 'ping'],
-                ],
-                'max_tokens' => 5,
-            ]);
+                ->timeout(5)
+                ->withOptions(['force_ip_resolve' => 'v4'])
+                ->post($chatEndpoint, [
+                    'model' => $model->model_id,
+                    'messages' => [
+                        ['role' => 'user', 'content' => 'ping'],
+                    ],
+                    'max_tokens' => 5,
+                ]);
 
             $latency = (int) round((microtime(true) - $start) * 1000);
 
@@ -73,7 +73,7 @@ class ModelGovernanceService
                 return ['status' => 'healthy', 'latency_ms' => $latency, 'error' => null];
             }
 
-            $errMsg = 'HTTP ' . $response->status() . ': ' . $response->body();
+            $errMsg = 'HTTP '.$response->status().': '.$response->body();
             $status = $response->status() >= 500 ? 'offline' : 'degraded';
 
             $model->update([
@@ -113,7 +113,7 @@ class ModelGovernanceService
      */
     public function toggleActive(AiModel $model): bool
     {
-        $model->is_active = !$model->is_active;
+        $model->is_active = ! $model->is_active;
         $model->save();
 
         return $model->is_active;
@@ -124,7 +124,7 @@ class ModelGovernanceService
      */
     public function toggleFreeTier(AiModel $model): bool
     {
-        $model->is_free_tier = !$model->is_free_tier;
+        $model->is_free_tier = ! $model->is_free_tier;
         $model->save();
 
         return $model->is_free_tier;

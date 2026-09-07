@@ -7,9 +7,142 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.7.7] - 2026-09-06
+## [2.7.9] - 2026-09-07
 
 ### Added
+- **Full TipTap Editor & Content Intelligence Neuro-Brain Integration**:
+  - **Dedicated "🧠 Brain & Lineage" Sidebar Tab (`content-intelligence-tab-brain.blade.php`)**:
+    - **7-Tier Sentence Lineage Inspector**: Deep provenance inspector tracing any active prose sentence across all 7 layers (`Source` $\rightarrow$ `Evidence` $\rightarrow$ `Claim` $\rightarrow$ `Sentence` $\rightarrow$ `Paragraph` $\rightarrow$ `Section` $\rightarrow$ `Article` $\rightarrow$ `Published URL`).
+    - **Stale Fact Alert Banner & 1-Click Surgical Micro-Repair**: Detects when underlying research sources have changed and provides 1-click localized surgical rewriting without re-drafting the rest of the document.
+    - **15-Dimension Content Health Assessment Scorecard**: Real-time evaluation across 15 dimensions (Search Intent, Information Quality, Evidence Strength, Factual Reliability, Topic Coverage, Entity Coverage, Semantic Depth, Original Value, Readability, Structure, SEO, Internal Linking, Freshness, Brand Alignment, User Value) with letter grade (`A+` to `F`) and actionable recommendations.
+    - **Continuous Author Style Intelligence Matrix**: Live display of learned user style rules (`prefer_concise_sentences`, `eliminate_fluff_phrases`, `prefer_bulleted_breakdowns`) with confidence ratings and active toggles.
+    - **Site-Level Cannibalization Shield & Linking Matrix**: Project-wide search intent collision detection and high-leverage internal cross-linking suggestions.
+    - **Content Genome Snapshot Synthesizer**: 1-click DNA snapshotting preserving mission, topic, entity, claim, and quality DNA for future article knowledge inheritance.
+  - **In-Canvas Floating AI Actions & Slash Commands (`canvas.blade.php`, `scripts-ai.blade.php`, `scripts-canvas.blade.php`)**:
+    - Added `surgical_micro_repair` and `verify_lineage` sub-agent modes to the TipTap paragraph context menu and `/` Slash AI command palette.
+    - Precision prompt engineering preserving surrounding context while stripping clichés and tightening factual grounding.
+  - **Continuous Background Learning on Autosave (`DocumentEditor.php`)**:
+    - Wired diff intelligence in `autosave()` comparing manual user prose revisions against previous versions via `UserFeedbackIntelligenceService::analyzeDiffAndRecordPreference()`.
+  - **Direct Text Auditing in `QualityEngineService`**:
+    - Added `auditDirectText(string $text, array $metadata = [])` method to evaluate 15-dimension health on arbitrary editor text without requiring an active `WorkflowRun`.
+  - **Public Prose Repair in `MicroRepairService`**:
+    - Exposed `repairProseUnit(string $text, ProblemCategory|string|null $category = null)` for immediate localized repair execution.
+  - **Expanded Feature Test Suite (`tests/Feature/DocumentEditorTest.php`)**:
+    - Added 5 new comprehensive integration tests covering neuro-brain state loading, surgical micro-repair, autosave diff learning, genome synthesis, and style rule toggles (17 total tests, 100% pass rate).
+
+## [2.7.8] - 2026-09-07
+
+### Added
+- **Content Intelligence Phase 6: Content Lineage, Autonomous Learning Engine, User Feedback Intelligence & Site-Level Topic Strategy (`brain.md` Sections 26, 27, 28, 29)**:
+  - **7-Tier Deep Content Lineage System (`ContentLineageService`, `ContentLineageNode`, `LineageTraceDTO`, `DownstreamImpactDTO`)**:
+    - Complete unbroken traceability graph: `Source` $\rightarrow$ `Evidence` $\rightarrow$ `Claim` $\rightarrow$ `Sentence` $\rightarrow$ `Paragraph` $\rightarrow$ `Section` $\rightarrow$ `Article` $\rightarrow$ `Published URL`.
+    - Answers fundamental provenance questions: "Where did this statement come from?", "Which articles depend on this source?", and "What content needs updating if this fact changes?".
+    - Granular fact invalidation marking stale sentences without breaking downstream article integrity, paired with localized sentence resolution.
+    - Integrated with `TipTapDocumentAssembler` for automatic sentence-level lineage extraction on document compilation.
+  - **Autonomous Strategy Learning Engine (`AutonomousLearningEngineService`, `StrategyMemory`, `StrategyCandidateDTO`)**:
+    - Closed cognitive feedback loop advancing successful strategic patterns through a 4-stage lifecycle: `Observation` $\rightarrow$ `Candidate` $\rightarrow$ `Validated` $\rightarrow$ `Adopted`.
+    - Automated post-mission learning harvesting lessons from quality audits, evidence density, and readability performance.
+    - Strategy candidate adoption and rejection workflows with evidence accumulation thresholds.
+  - **User Feedback Intelligence Engine (`UserFeedbackIntelligenceService`, `UserStylePreference`)**:
+    - Ingests and diffs manual user edits against AI-generated prose to infer authorial writing preferences (e.g. `prefer_concise_sentences`, `eliminate_fluff_phrases`, `prefer_bulleted_breakdowns`).
+    - Progressive confidence calibration preventing hasty rule modifications on singular edits.
+    - Interactive diff tester and rule activation toggles.
+  - **Site-Level Topic Strategy & Portfolio Brain (`SiteTopicStrategyService`, `SiteTopicCluster`, `SitePortfolioReportDTO`)**:
+    - Content portfolio analysis clustering articles by semantic topic domains and calculating cluster coverage scores ($0-100\%$).
+    - Cross-document keyword cannibalization detection analyzing lexical and intent overlap with actionable merge/differentiation recommendations.
+    - Uncovered subtopic opportunity discovery and internal cross-linking matrix generation.
+  - **Livewire 3 UI Inspector Tab 11 `🧭 Lineage & Strategy` (`resources/views/content-intelligence/index.blade.php`, `ContentIntelligencePage.php`)**:
+    - Interactive 7-tier sentence lineage inspector with upstream epistemic root drawer.
+    - Autonomous strategy memories matrix with progress badges, evidence counters, confidence bars, and custom observation recorder.
+    - User feedback style rules feed with active toggles and real-time diff analyzer test bed.
+    - Site topic portfolio dashboard displaying cluster coverage gauges, cannibalization risk alerts, and cross-linking opportunities.
+  - **Phase 6 Verification & Test Suite (`tests/Feature/ContentBrainLineageAndLearningTest.php`)**:
+    - 8 comprehensive feature tests with 50 assertions covering 7-tier sentence lineage, downstream fact invalidation, strategy progression lifecycle, workflow lesson harvesting, diff preference learning, portfolio clustering, cannibalization detection, and dual-role Livewire 3 UI rendering.
+
+## [2.7.7] - 2026-09-07
+
+### Added
+- **Content Intelligence Phase 5: Surgical Micro-Repair Loop, Multidimensional Quality & Risk Engine**:
+  - **Surgical Micro-Repair Loop Engine (`MicroRepairService`, `MicroRepair`)**:
+    - Localized smallest-affected-unit self-correction avoiding wasteful full-document regenerations.
+    - Escalation ladder: `Sentence` $\rightarrow$ `Paragraph` $\rightarrow$ `Section` $\rightarrow$ `Article`.
+    - Automated problem detection (run-on sentences, repetitive AI clichés, ungrounded absolute assertions), root-cause diagnosis, surgical localized string replacement, and word-level diff summaries.
+  - **15-Dimension Multidimensional Content Health Model (`QualityEngineService`, `QualityHealthAudit`)**:
+    - Replaces single flat scores with a weighted 15-dimension assessment (`Search Intent`, `Information Quality`, `Evidence Strength`, `Factual Reliability`, `Topic Coverage`, `Entity Coverage`, `Semantic Depth`, `Original Value`, `Readability`, `Structure`, `SEO`, `Internal Linking`, `Freshness`, `Brand Alignment`, `User Value`).
+    - Letter grade calculation (`A+` to `F`), overall score ($0-100$), verified strengths, critical gaps, and actionable recommendations.
+  - **Content Risk Engine & Verification Gating (`ContentRiskEngineService`, `RiskAssessment`)**:
+    - YMYL classification (health/medical, finance/legal), risk score calculation ($0-100$), risk tiers (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`).
+    - Mandatory primary source requirements enforcement and human approval checkpoints with 1-click signoff.
+  - **Content Genome Knowledge Representation (`ContentGenomeService`, `ContentGenome`)**:
+    - Structured knowledge asset capturing Mission DNA, Topics DNA, Entities DNA, Claims DNA, Facts DNA, Sources DNA, Quality DNA, and reusable fragments with deterministic cryptographic signatures for cross-mission knowledge inheritance.
+  - **Livewire 3 UI Inspector Tab 10 `🔬 Health & Micro-Repair` (`resources/views/content-intelligence/index.blade.php`)**:
+    - 15-dimension Content Health scorecard with ratings, progress bars, and explainable reasons.
+    - Surgical Micro-Repairs feed with diff summaries and escalation levels.
+    - Risk verification checklist with YMYL badges and 1-click human signoff button.
+    - Content Genome explorer and 1-click synthesizer.
+  - **Phase 5 Verification & Test Suite (`tests/Feature/ContentBrainSurgicalRepairAndQualityTest.php`)**:
+    - 11 comprehensive tests with 64 assertions verifying problem detection, smallest-unit repair, escalation ladder, 15-dimension health audits, YMYL detection, human signoff gating, genome synthesis, knowledge inheritance, and Livewire UI integration.
+- **Content Intelligence Phase 4: Agent Orchestration, Multi-Model Dynamic Routing & Brain Blackboard**:
+  - **7 Specialized Worker Agents (`AgentOrchestratorService`, `AgentInterface`)**:
+    - `ResearcherAgent`: Discovers authoritative external sources, data points, and empirical citations.
+    - `AnalystAgent`: Conducts competitive SERP gap analysis, counter-narrative discovery, and Information Gain thesis framing.
+    - `WriterAgent`: Composes cohesive, high-retention long-form narrative prose strictly grounded in validated evidence.
+    - `FactCheckerAgent`: Epistemic fact verification auditing draft claims against source snippet citations to eliminate hallucinations.
+    - `CriticAgent`: 6-rubric multidimensional quality evaluator (Depth, Accuracy, Angle, Readability, SEO, Conversion) generating actionable repair directives.
+    - `SeoAgent`: Optimizes entity density, LSI keyword distribution, structured data schema graphs, and search intent alignment.
+    - `EditorAgent`: Polishes sentence cadence, voice consistency, transition flow, and brand voice adherence.
+  - **Task-Specialized Dynamic Model Router (`ModelRouterService`, `ModelRoutingDecisionDTO`)**:
+    - Dynamic tier categorization (`fast`, `balanced`, `reasoning`, `high_accuracy`) mapping 9 specific task types to optimal OmniRoute models with automated fallback routing and latency benchmarking.
+    - Real-time model tier metadata resolution with automatic quota tracking and cost optimization.
+  - **Shared Mission Blackboard (`MissionBlackboard`, `BlackboardInterface`)**:
+    - Centralized cognitive bulletin board allowing asynchronous inter-agent hypothesis sharing, key findings aggregation, and working drafts synthesis across workflow stages.
+    - Automatic state persistence across pipeline execution runs with full JSON-serializable telemetry.
+  - **Auditable Brain Decisions Engine (`BrainDecisionEngine`, `BrainDecision`)**:
+    - Explainable decision logging recording decision keys, selected choices, rationale, alternative candidates considered, evaluation criteria weights, and confidence levels.
+  - **Telemetry & Activity Logging (`AgentActivity`)**:
+    - Full telemetry capture tracking agent execution duration, token consumption, latency, prompt templates, and output payload summaries.
+  - **Livewire 3 Agents & Router Explorer UI (`resources/views/content-intelligence/index.blade.php`)**:
+    - Tab 9 `🤖 Agents & Router` inspector pane featuring:
+      - Interactive Model Routing Matrix with task tiers and live active models.
+      - 7 Worker Agent Dispatch Cards with 1-click execution triggers and role badges.
+      - Live Mission Blackboard status monitor displaying findings, hypotheses, and state.
+      - Auditable Brain Decisions feed with rationale, confidence meters, and alternative options.
+      - Agent Activity execution log displaying execution times, latency, and status.
+  - **Verification & Test Suite (`tests/Feature/ContentBrainAgentOrchestratorAndRouterTest.php`)**:
+    - 11 comprehensive tests with 56 assertions covering agent dispatch, blackboard updates, model routing, decision engine records, and Livewire UI integration.
+- **Content Intelligence Phase 3: World Model, Deep Evidence Graph & Epistemic Truth Layer**:
+  - **Dynamic Domain World Model Engine (`WorldModelService`, `WorldEntity`, `WorldRelationship`)**:
+    - Canonical entity catalog with multi-variant alias resolution, temporal validity dates, and JSON attributes.
+    - Directional semantic graph linking subject-predicate-object relationships with confidence weights and explanations.
+    - Automated detection of architectural incompatibilities and conflicts (`incompatible_with`, `conflicts_with`, `deprecated_by`) across domain tech stacks.
+    - Prerequisite dependency chain resolution (`requires`) determining technical prerequisites before generating guide sections.
+  - **Deep Evidence Graph Engine (`DeepEvidenceGraphService`, `EvidenceSnippet`, `ClaimEvidenceLink`)**:
+    - Verbatim quote extract capture with character offsets, section headings, and page coordinates directly linked to authoritative sources.
+    - Bidirectional claim grounding with typed relationship semantics: `SUPPORTS`, `REFUTES`, `QUALIFIES`, and `CONTEXTUALIZES`.
+    - Weighted epistemic consensus calculator evaluating source credibility and detecting active contradictions (`is_contradicted`).
+    - Full 5-tier end-to-end lineage tracer (`SOURCE ➔ EVIDENCE ➔ CLAIM ➔ SENTENCE ➔ DOCUMENT`) linking TipTap text directly to original source documentation.
+  - **Truth Layer Epistemic Audit (`TruthLayerService`, `TruthAuditReportDTO`)**:
+    - Mission-wide epistemic health assessment calculating overall truth scores ($0 - 100\%$), risk ratings (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`), and verified vs contradicted claim breakdown.
+    - Dynamic actionable truth directives and alerts flagging unverified assertions before assembly.
+  - **Livewire 3 World & Truth Explorer UI (`resources/views/content-intelligence/index.blade.php`)**:
+    - New `🌐 World & Truth` inspector tab featuring the Truth Layer Audit Scorecard, Deep Evidence Lineage Explorer, interactive claim selector pills, and World Model Knowledge Graph matrix.
+  - **Robust Verification Suite (`ContentBrainWorldModelAndTruthTest.php`)**:
+    - 10 feature tests with 55 assertions covering entity resolution, relationship linking, incompatibility detection, evidence snippet grounding, consensus calculation, deep lineage tracing, truth audits, and Livewire UI integration.
+- **Content Intelligence Phase 2: Cognitive Memory OS (3-Tier Brain Architecture)**:
+  - **3-Tier Brain Hierarchy**:
+    - *Level 1 (Site Brain)*: Cross-mission and workspace memory; scans existing documents to prevent topic cannibalization and supply brand profile guidelines.
+    - *Level 2 (Project Brain)*: Project-scoped working memory, knowledge triples, and mission-specific architectural constraints.
+    - *Level 3 (Article Brain)*: Granular sentence-level dependency graph (`ArticleElementNode`); tracks Section -> Paragraph -> Sentence -> Claim mapping with surgical downstream fact invalidation.
+  - **8-Stage Memory Admission Gate Protocol (`MemoryAdmissionGate`, `DuplicateDetector`, `EvidenceValidator`)**:
+    - Automatic screening of newly synthesized facts: schema validation, minimum confidence ($\ge 0.80$), duplicate detection, contradiction audit, and minimum importance threshold ($\ge 0.70$) before admitting facts into `brain_memories`.
+  - **Non-Destructive Memory Decay & Lineage Reconciliation (`MemoryDecayService`)**:
+    - Half-life freshness score calculation; automatic transition of contradicted or outdated facts to `SUPERSEDED` and `OUTDATED` while preserving historical lineage (`v1 ➔ v2`).
+  - **Focused Context Retrieval (`AttentionEngine`)**:
+    - Synthesizes high-salience, budget-constrained context for LLM prompts without token waste.
+  - **Livewire 3 Memory OS Inspector Console**:
+    - Tab 7 in Content Intelligence Hub for inspecting Site/Project/Article brain memories, decay checks, and surgical downstream fact invalidation.
+  - **Comprehensive Phase 2 Test Suite (`ContentBrainMemoryOSTest.php`)**:
+    - 11 feature tests with 58 assertions verifying admission gates, decay engines, 3-tier brains, and Livewire UI.
 - **Multi-Stage Content Intelligence + Autonomous Writing Pipeline (Phase 1)**:
   - **Dynamic 10-Node Workflow Graph Execution Engine (`WorkflowGraph`, `WorkflowNode`, `WorkflowRun`)**:
     - Replaced monolithic single-prompt content generation with a structured, multi-stage state machine where each node produces rich structured telemetry utilized by downstream nodes.

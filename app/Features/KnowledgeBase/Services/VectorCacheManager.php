@@ -39,6 +39,7 @@ class VectorCacheManager
     public function getCacheHash(string $text, string $model): string
     {
         $normalized = mb_strtolower(trim(preg_replace('/\s+/', ' ', $text)));
+
         return hash('sha256', "{$normalized}::{$model}");
     }
 
@@ -54,15 +55,16 @@ class VectorCacheManager
 
         // 1. Check L1 Fast Memory/Redis Cache
         $l1Vector = Cache::get($l1Key);
-        if (is_array($l1Vector) && !empty($l1Vector)) {
+        if (is_array($l1Vector) && ! empty($l1Vector)) {
             $this->recordHitAsync($hash);
+
             return $l1Vector;
         }
 
         // 2. Check L2 Database Vector Store
         try {
             $record = VectorEmbeddingCache::where('hash', $hash)->first();
-            if ($record && is_array($record->vector) && !empty($record->vector)) {
+            if ($record && is_array($record->vector) && ! empty($record->vector)) {
                 $ttlSeconds = $this->resolveTtlSeconds($user);
                 // Populate L1 cache for sub-millisecond future lookups
                 Cache::put($l1Key, $record->vector, min($ttlSeconds, 86400));
@@ -82,7 +84,7 @@ class VectorCacheManager
     /**
      * Store vector embedding in both L1 Fast Cache and L2 Persistent Database Cache
      *
-     * @param array<float> $vector
+     * @param  array<float>  $vector
      */
     public function storeVector(string $text, string $model, array $vector, ?User $user = null, int $tokenCount = 0): void
     {
@@ -123,7 +125,7 @@ class VectorCacheManager
     {
         try {
             $query = VectorEmbeddingCache::query();
-            if ($user && !$user->isAdmin()) {
+            if ($user && ! $user->isAdmin()) {
                 $query->where('user_id', $user->id);
             }
 
@@ -140,7 +142,7 @@ class VectorCacheManager
                 'tokens_saved' => $tokensSaved,
                 'estimated_cost_saved_usd' => $estimatedCostSaved,
                 'avg_dimensions' => $totalVectors > 0 ? (int) $query->avg('dimensions') : 1536,
-                'cache_hit_ratio' => $totalVectors > 0 ? round(($totalHits / ($totalVectors + $totalHits)) * 100, 1) . '%' : '100%',
+                'cache_hit_ratio' => $totalVectors > 0 ? round(($totalHits / ($totalVectors + $totalHits)) * 100, 1).'%' : '100%',
             ];
         } catch (Throwable $e) {
             return [
@@ -161,6 +163,7 @@ class VectorCacheManager
     {
         try {
             $cutoff = now()->subDays($days);
+
             return VectorEmbeddingCache::where('last_accessed_at', '<', $cutoff)->delete();
         } catch (Throwable $e) {
             return 0;
@@ -176,6 +179,7 @@ class VectorCacheManager
                 $days = $userDays;
             }
         }
+
         return $days * 86400;
     }
 
@@ -183,6 +187,7 @@ class VectorCacheManager
     {
         try {
             VectorEmbeddingCache::where('hash', $hash)->increment('hit_count');
-        } catch (Throwable $e) {}
+        } catch (Throwable $e) {
+        }
     }
 }

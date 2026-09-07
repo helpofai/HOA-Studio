@@ -3,6 +3,10 @@
 namespace Tests\Feature;
 
 use App\Features\AI\Models\AiProvider;
+use App\Features\AI\Services\ContentWriterBrain;
+use App\Features\AI\Services\OmniRouteClient;
+use App\Features\AI\Services\PipelineCoordinator;
+use App\Http\Middleware\VerifyCsrfToken;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -40,7 +44,7 @@ class ContextualAiTransformTest extends TestCase
 
     public function test_user_can_execute_polish_transformation(): void
     {
-        $this->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class);
+        $this->withoutMiddleware(VerifyCsrfToken::class);
         Http::fake([
             '*/chat/completions' => Http::response([
                 'id' => 'chatcmpl-test-123',
@@ -287,7 +291,7 @@ class ContextualAiTransformTest extends TestCase
                                 'sections' => [
                                     ['title' => 'DeepSeek Architecture Overview', 'focus' => 'Mixture-of-Experts and Multi-Head Latent Attention.'],
                                     ['title' => 'Inference Benchmarks and Efficiency', 'focus' => 'Throughput and latency comparisons.'],
-                                ]
+                                ],
                             ]),
                         ],
                     ],
@@ -302,9 +306,9 @@ class ContextualAiTransformTest extends TestCase
             ], 200),
         ]);
 
-        $brain = app(\App\Features\AI\Services\ContentWriterBrain::class);
-        $client = app(\App\Features\AI\Services\OmniRouteClient::class);
-        $coordinator = new \App\Features\AI\Services\PipelineCoordinator($brain, $client);
+        $brain = app(ContentWriterBrain::class);
+        $client = app(OmniRouteClient::class);
+        $coordinator = new PipelineCoordinator($brain, $client);
 
         $events = [];
         $sendEvent = function ($type, $data) use (&$events) {
@@ -314,7 +318,7 @@ class ContextualAiTransformTest extends TestCase
         $fullDraft = $coordinator->executeAgenticPipeline(
             pipelineStages: [
                 'search_intent', 'keyword_research', 'article_outline',
-                'section_generation', 'schema_generation', 'publish_assembly'
+                'section_generation', 'schema_generation', 'publish_assembly',
             ],
             topic: 'Document Context',
             context: ['target_keyword' => 'DeepSeek AI'],
@@ -324,22 +328,22 @@ class ContextualAiTransformTest extends TestCase
         );
 
         // 1. Verify title was emitted with DeepSeek AI
-        $titleEvents = array_filter($events, fn($e) => $e['type'] === 'title');
+        $titleEvents = array_filter($events, fn ($e) => $e['type'] === 'title');
         $this->assertNotEmpty($titleEvents);
         $title = array_values($titleEvents)[0]['data'];
         $this->assertStringContainsString('DeepSeek AI', $title);
 
         // 2. Verify pipeline intelligence events were emitted for modal popup
-        $stageEvents = array_filter($events, fn($e) => $e['type'] === 'pipeline_stage');
+        $stageEvents = array_filter($events, fn ($e) => $e['type'] === 'pipeline_stage');
         $this->assertNotEmpty($stageEvents);
 
-        $keywordEvents = array_filter($events, fn($e) => $e['type'] === 'pipeline_keywords');
+        $keywordEvents = array_filter($events, fn ($e) => $e['type'] === 'pipeline_keywords');
         $this->assertNotEmpty($keywordEvents);
 
-        $outlineEvents = array_filter($events, fn($e) => $e['type'] === 'pipeline_outline');
+        $outlineEvents = array_filter($events, fn ($e) => $e['type'] === 'pipeline_outline');
         $this->assertNotEmpty($outlineEvents);
 
-        $schemaEvents = array_filter($events, fn($e) => $e['type'] === 'pipeline_schema');
+        $schemaEvents = array_filter($events, fn ($e) => $e['type'] === 'pipeline_schema');
         $this->assertNotEmpty($schemaEvents);
 
         // 3. Verify Canvas Isolation: final draft has H1 and H2, but does NOT contain raw <script> tag
@@ -351,9 +355,9 @@ class ContextualAiTransformTest extends TestCase
 
     public function test_pipeline_coordinator_dynamically_adapts_to_multiple_domains_and_intents(): void
     {
-        $brain = app(\App\Features\AI\Services\ContentWriterBrain::class);
-        $client = app(\App\Features\AI\Services\OmniRouteClient::class);
-        $coordinator = new \App\Features\AI\Services\PipelineCoordinator($brain, $client);
+        $brain = app(ContentWriterBrain::class);
+        $client = app(OmniRouteClient::class);
+        $coordinator = new PipelineCoordinator($brain, $client);
 
         // 1. Gaming Listicle
         $gamingMeta = $coordinator->detectDomainAndIntent('Genshin Impact', 'top 10 best mobile games');

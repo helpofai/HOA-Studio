@@ -36,7 +36,7 @@ class DocumentTextAnalyzer
         'this', 'those', 'through', 'to', 'too', 'under', 'until', 'up', 'very', 'was', 'wasn\'t', 'we', 'we\'d', 'we\'ll',
         'we\'re', 'we\'ve', 'were', 'weren\'t', 'what', 'what\'s', 'when', 'when\'s', 'where', 'where\'s', 'which', 'while',
         'who', 'who\'s', 'whom', 'why', 'why\'s', 'with', 'won\'t', 'would', 'wouldn\'t', 'you', 'you\'d', 'you\'ll',
-        'you\'re', 'you\'ve', 'your', 'yours', 'yourself', 'yourselves', 'will', 'also', 'can', 'just', 'like', 'one'
+        'you\'re', 'you\'ve', 'your', 'yours', 'yourself', 'yourselves', 'will', 'also', 'can', 'just', 'like', 'one',
     ];
 
     /**
@@ -63,7 +63,7 @@ class DocumentTextAnalyzer
         $headingCount = 0;
         $tableCount = 0;
         $listCount = 0;
-        if (!empty($htmlContent)) {
+        if (! empty($htmlContent)) {
             $headingCount = preg_match_all('/<h[1-6]\b[^>]*>/i', $htmlContent);
             $tableCount = preg_match_all('/<table\b[^>]*>/i', $htmlContent);
             $listCount = preg_match_all('/<(ul|ol)\b[^>]*>/i', $htmlContent);
@@ -76,7 +76,9 @@ class DocumentTextAnalyzer
 
         foreach ($words as $word) {
             $cleanWord = preg_replace('/[^\p{L}]/u', '', mb_strtolower($word));
-            if (empty($cleanWord)) continue;
+            if (empty($cleanWord)) {
+                continue;
+            }
             $totalWordChars += mb_strlen($cleanWord);
             $totalSyllables += $this->countSyllables($cleanWord);
         }
@@ -135,7 +137,9 @@ class DocumentTextAnalyzer
     protected function countSyllables(string $word): int
     {
         $word = mb_strtolower(trim($word));
-        if (mb_strlen($word) <= 3) return 1;
+        if (mb_strlen($word) <= 3) {
+            return 1;
+        }
 
         $word = preg_replace('/(?:[^laeiouy]|ed|es|e)$/i', '', $word);
         $word = preg_replace('/^y/i', '', $word);
@@ -216,22 +220,30 @@ class DocumentTextAnalyzer
 
         $techScore = 0;
         foreach ($techKeywords as $kw) {
-            if (str_contains($lower, $kw)) $techScore++;
+            if (str_contains($lower, $kw)) {
+                $techScore++;
+            }
         }
 
         $bizScore = 0;
         foreach ($bizKeywords as $kw) {
-            if (str_contains($lower, $kw)) $bizScore++;
+            if (str_contains($lower, $kw)) {
+                $bizScore++;
+            }
         }
 
         $academicScore = 0;
         foreach ($academicKeywords as $kw) {
-            if (str_contains($lower, $kw)) $academicScore++;
+            if (str_contains($lower, $kw)) {
+                $academicScore++;
+            }
         }
 
         $convScore = 0;
         foreach ($convKeywords as $kw) {
-            if (str_contains($lower, $kw)) $convScore++;
+            if (str_contains($lower, $kw)) {
+                $convScore++;
+            }
         }
 
         $totalScores = max(1, $techScore + $academicScore + $bizScore + $convScore);
@@ -305,9 +317,15 @@ class DocumentTextAnalyzer
 
         foreach ($words as $rawWord) {
             $word = mb_strtolower(preg_replace('/[^\p{L}0-9_-]/u', '', $rawWord));
-            if (mb_strlen($word) < 3) continue;
-            if (isset($stopWords[$word])) continue;
-            if (is_numeric($word)) continue;
+            if (mb_strlen($word) < 3) {
+                continue;
+            }
+            if (isset($stopWords[$word])) {
+                continue;
+            }
+            if (is_numeric($word)) {
+                continue;
+            }
 
             $frequencies[$word] = ($frequencies[$word] ?? 0) + 1;
         }
@@ -319,7 +337,9 @@ class DocumentTextAnalyzer
         $count = 0;
 
         foreach ($frequencies as $term => $freq) {
-            if ($count++ >= $limit) break;
+            if ($count++ >= $limit) {
+                break;
+            }
             $percentage = $totalFiltered > 0 ? round(($freq / $totalFiltered) * 100, 1) : 0;
             $top[] = [
                 'term' => $term,
@@ -355,6 +375,7 @@ class DocumentTextAnalyzer
 
             if ($wordCount < 6 || $wordCount > 45) {
                 $scores[$idx] = 0;
+
                 continue;
             }
 

@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class WorkflowRun extends Model
 {
@@ -72,6 +73,36 @@ class WorkflowRun extends Model
     public function nodes(): HasMany
     {
         return $this->hasMany(WorkflowNodeRecord::class, 'workflow_run_id');
+    }
+
+    public function drafts(): HasMany
+    {
+        return $this->hasMany(SectionDraft::class, 'workflow_run_id');
+    }
+
+    public function seoMetadata(): HasOne
+    {
+        return $this->hasOne(ContentSeoMetadata::class, 'workflow_run_id');
+    }
+
+    public function microRepairs(): HasMany
+    {
+        return $this->hasMany(MicroRepair::class, 'workflow_run_id');
+    }
+
+    public function qualityAudit(): HasOne
+    {
+        return $this->hasOne(QualityHealthAudit::class, 'workflow_run_id');
+    }
+
+    public function riskAssessment(): HasOne
+    {
+        return $this->hasOne(RiskAssessment::class, 'workflow_run_id');
+    }
+
+    public function contentGenome(): HasOne
+    {
+        return $this->hasOne(ContentGenome::class, 'workflow_run_id');
     }
 
     public function getGraphStateValue(string $key, mixed $default = null): mixed

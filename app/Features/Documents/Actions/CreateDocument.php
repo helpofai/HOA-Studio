@@ -38,7 +38,7 @@ class CreateDocument
     {
         return DB::transaction(function () use ($user, $data) {
             $title = trim($data['title'] ?? 'Untitled Document');
-            $slug = Str::slug($title) . '-' . Str::lower(Str::random(6));
+            $slug = Str::slug($title).'-'.Str::lower(Str::random(6));
 
             $initialHtml = $data['content_html'] ?? '<p>Start writing your AI-powered content...</p>';
             $plainText = strip_tags($initialHtml);

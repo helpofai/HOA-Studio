@@ -65,8 +65,8 @@ class UserStudioToken extends Model
     public static function createTokenForUser(User $user, string $name = 'WordPress Integration', ?array $abilities = ['*'], ?\DateTimeInterface $expiresAt = null): array
     {
         $entropy = Str::random(40);
-        $prefix = 'hoa_live_' . substr(bin2hex(random_bytes(4)), 0, 8);
-        $plainText = $prefix . '_' . $entropy;
+        $prefix = 'hoa_live_'.substr(bin2hex(random_bytes(4)), 0, 8);
+        $plainText = $prefix.'_'.$entropy;
         $hash = hash('sha256', $plainText);
 
         $token = self::create([
@@ -100,7 +100,7 @@ class UserStudioToken extends Model
             ->with('user')
             ->first();
 
-        if (!$token) {
+        if (! $token) {
             return null;
         }
 

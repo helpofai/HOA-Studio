@@ -26,7 +26,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('content_missions')) {
+        if (! Schema::hasTable('content_missions')) {
             Schema::create('content_missions', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->cascadeOnDelete();
@@ -56,7 +56,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('workflow_runs')) {
+        if (! Schema::hasTable('workflow_runs')) {
             Schema::create('workflow_runs', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('mission_id')->constrained('content_missions')->cascadeOnDelete();
@@ -74,7 +74,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('workflow_nodes')) {
+        if (! Schema::hasTable('workflow_nodes')) {
             Schema::create('workflow_nodes', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('workflow_run_id')->constrained('workflow_runs')->cascadeOnDelete();

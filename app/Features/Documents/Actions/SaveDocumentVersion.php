@@ -49,7 +49,7 @@ class SaveDocumentVersion
                 'content_html' => $html,
                 'content_json' => $data['content_json'] ?? ($document->content->content_json ?? null),
                 'operation_type' => $data['operation_type'] ?? 'manual_save',
-                'summary' => $data['summary'] ?? ('Version ' . $nextVersion . ' saved'),
+                'summary' => $data['summary'] ?? ('Version '.$nextVersion.' saved'),
                 'word_count' => $wordCount,
                 'created_by' => $user->id,
             ]);

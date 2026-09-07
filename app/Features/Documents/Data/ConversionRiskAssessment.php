@@ -27,26 +27,36 @@ namespace App\Features\Documents\Data;
 
 /**
  * Conversion Risk Assessment
- * 
+ *
  * Provides detailed analysis of potential data loss when converting
  * a Canonical Document AST to a specific editor format.
- * 
+ *
  * Used by the UI to warn users before switching editors.
  */
 class ConversionRiskAssessment
 {
     public const RISK_NONE = 'none';       // No data loss expected
+
     public const RISK_LOW = 'low';         // Minor formatting loss (e.g., custom colors)
+
     public const RISK_MEDIUM = 'medium';   // Structural loss (e.g., tables to paragraphs)
+
     public const RISK_HIGH = 'high';       // Major content loss (e.g., images, embeds)
+
     public const RISK_CRITICAL = 'critical'; // Content cannot be represented at all
 
     protected string $riskLevel = self::RISK_NONE;
+
     protected array $warnings = [];
+
     protected array $unsupportedNodes = [];
+
     protected array $unsupportedMarks = [];
+
     protected array $transformations = [];
+
     protected int $affectedNodeCount = 0;
+
     protected bool $requiresConfirmation = false;
 
     public function __construct(
@@ -64,8 +74,8 @@ class ConversionRiskAssessment
         $this->transformations = $transformations;
         $this->affectedNodeCount = $affectedNodeCount;
         $this->requiresConfirmation = in_array($riskLevel, [
-            self::RISK_HIGH, 
-            self::RISK_CRITICAL
+            self::RISK_HIGH,
+            self::RISK_CRITICAL,
         ]);
     }
 
@@ -87,6 +97,7 @@ class ConversionRiskAssessment
     public static function high(array $warnings = [], array $unsupportedNodes = [], array $unsupportedMarks = [], array $transformations = []): self
     {
         $count = count($unsupportedNodes) + count($unsupportedMarks);
+
         return new self(self::RISK_HIGH, $warnings, $unsupportedNodes, $unsupportedMarks, $transformations, $count);
     }
 
@@ -96,13 +107,40 @@ class ConversionRiskAssessment
     }
 
     // Getters
-    public function getRiskLevel(): string { return $this->riskLevel; }
-    public function getWarnings(): array { return $this->warnings; }
-    public function getUnsupportedNodes(): array { return $this->unsupportedNodes; }
-    public function getUnsupportedMarks(): array { return $this->unsupportedMarks; }
-    public function getTransformations(): array { return $this->transformations; }
-    public function getAffectedNodeCount(): int { return $this->affectedNodeCount; }
-    public function requiresConfirmation(): bool { return $this->requiresConfirmation; }
+    public function getRiskLevel(): string
+    {
+        return $this->riskLevel;
+    }
+
+    public function getWarnings(): array
+    {
+        return $this->warnings;
+    }
+
+    public function getUnsupportedNodes(): array
+    {
+        return $this->unsupportedNodes;
+    }
+
+    public function getUnsupportedMarks(): array
+    {
+        return $this->unsupportedMarks;
+    }
+
+    public function getTransformations(): array
+    {
+        return $this->transformations;
+    }
+
+    public function getAffectedNodeCount(): int
+    {
+        return $this->affectedNodeCount;
+    }
+
+    public function requiresConfirmation(): bool
+    {
+        return $this->requiresConfirmation;
+    }
 
     /**
      * Get user-friendly risk label.

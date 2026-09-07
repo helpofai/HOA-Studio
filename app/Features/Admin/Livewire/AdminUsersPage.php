@@ -18,10 +18,10 @@
 namespace App\Features\Admin\Livewire;
 
 use App\Features\Admin\Actions\UpdateUserQuotaAndRole;
+use App\Features\Admin\Mail\TemplateMailable;
 use App\Features\Auth\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -39,39 +39,64 @@ class AdminUsersPage extends Component
 
     // Filtering, Search & Sorting
     public string $search = '';
+
     public string $selectedRole = '';
+
     public string $selectedPlan = '';
+
     public string $selectedStatus = ''; // '', 'active', 'inactive', 'zero_quota', 'unverified'
+
     public string $sortBy = 'latest'; // 'latest', 'oldest', 'name_asc', 'quota_high', 'quota_low', 'words_used'
+
     public int $perPage = 15;
 
     // Bulk Selection State
     public array $selectedUsers = [];
+
     public bool $selectAll = false;
 
     // Edit User Modal State
     public bool $showEditModal = false;
+
     public ?int $editingUserId = null;
+
     public string $name = '';
+
     public string $email = '';
+
     public string $role = 'user';
+
     public string $plan = 'starter';
+
     public int $monthly_word_quota = 15000;
+
     public int $used_word_quota = 0;
+
     public int $bonus_word_quota = 0;
+
     public bool $is_active = true;
+
     public bool $email_verified = true;
+
     public string $new_password = '';
+
     public ?string $user_created_at = null;
+
     public string $editActiveTab = 'profile'; // 'profile', 'role', 'quota', 'security'
 
     // Create User Modal State
     public bool $showCreateModal = false;
+
     public string $new_user_name = '';
+
     public string $new_user_email = '';
+
     public string $new_user_password = '';
+
     public string $new_user_role = 'user';
+
     public string $new_user_plan = 'starter';
+
     public int $new_user_quota = 15000;
 
     public function updatingSearch()
@@ -152,7 +177,7 @@ class AdminUsersPage extends Component
         }
 
         $pageIds = $this->getCurrentPageUserIds();
-        $this->selectAll = (!empty($pageIds) && count(array_intersect($pageIds, $this->selectedUsers)) === count($pageIds));
+        $this->selectAll = (! empty($pageIds) && count(array_intersect($pageIds, $this->selectedUsers)) === count($pageIds));
     }
 
     public function updatedSelectAll($value)
@@ -167,7 +192,7 @@ class AdminUsersPage extends Component
     public function updatedSelectedUsers()
     {
         $pageIds = $this->getCurrentPageUserIds();
-        $this->selectAll = (!empty($pageIds) && count(array_intersect($pageIds, $this->selectedUsers)) === count($pageIds));
+        $this->selectAll = (! empty($pageIds) && count(array_intersect($pageIds, $this->selectedUsers)) === count($pageIds));
     }
 
     public function selectAllOnPage()
@@ -178,25 +203,25 @@ class AdminUsersPage extends Component
 
     public function selectAllMatching()
     {
-        $this->selectedUsers = $this->buildFilteredQuery()->pluck('id')->map(fn($id) => (int)$id)->all();
+        $this->selectedUsers = $this->buildFilteredQuery()->pluck('id')->map(fn ($id) => (int) $id)->all();
         $this->selectAll = true;
     }
 
     public function selectAdmins()
     {
-        $this->selectedUsers = User::where('role', 'admin')->pluck('id')->map(fn($id) => (int)$id)->all();
+        $this->selectedUsers = User::where('role', 'admin')->pluck('id')->map(fn ($id) => (int) $id)->all();
         $this->selectAll = false;
     }
 
     public function selectInactive()
     {
-        $this->selectedUsers = User::where('is_active', false)->pluck('id')->map(fn($id) => (int)$id)->all();
+        $this->selectedUsers = User::where('is_active', false)->pluck('id')->map(fn ($id) => (int) $id)->all();
         $this->selectAll = false;
     }
 
     public function selectZeroQuota()
     {
-        $this->selectedUsers = User::whereRaw('((monthly_word_quota + bonus_word_quota) - used_word_quota) <= 0')->pluck('id')->map(fn($id) => (int)$id)->all();
+        $this->selectedUsers = User::whereRaw('((monthly_word_quota + bonus_word_quota) - used_word_quota) <= 0')->pluck('id')->map(fn ($id) => (int) $id)->all();
         $this->selectAll = false;
     }
 
@@ -222,37 +247,41 @@ class AdminUsersPage extends Component
     {
         if (empty($this->selectedUsers)) {
             session()->flash('error', 'No users selected.');
+
             return;
         }
 
-        if (!in_array($newRole, UserRole::values(), true)) {
+        if (! in_array($newRole, UserRole::values(), true)) {
             session()->flash('error', 'Invalid role specified.');
+
             return;
         }
 
         // Safety: Do not downgrade logged-in admin
-        $targetIds = array_filter($this->selectedUsers, fn($id) => (int)$id !== (int)Auth::id() || $newRole === 'admin');
+        $targetIds = array_filter($this->selectedUsers, fn ($id) => (int) $id !== (int) Auth::id() || $newRole === 'admin');
 
         $updated = User::whereIn('id', $targetIds)->update(['role' => $newRole]);
         $this->clearSelection();
 
-        session()->flash('status', "Role updated to '" . ucfirst($newRole) . "' for {$updated} user account(s).");
+        session()->flash('status', "Role updated to '".ucfirst($newRole)."' for {$updated} user account(s).");
     }
 
     public function bulkChangePlan(string $newPlan)
     {
         if (empty($this->selectedUsers)) {
             session()->flash('error', 'No users selected.');
+
             return;
         }
 
         $validPlans = ['starter', 'pro', 'enterprise'];
-        if (!in_array($newPlan, $validPlans, true)) {
+        if (! in_array($newPlan, $validPlans, true)) {
             session()->flash('error', 'Invalid plan specified.');
+
             return;
         }
 
-        $defaultQuota = match($newPlan) {
+        $defaultQuota = match ($newPlan) {
             'enterprise' => 500000,
             'pro' => 100000,
             default => 15000,
@@ -264,26 +293,28 @@ class AdminUsersPage extends Component
         ]);
         $this->clearSelection();
 
-        session()->flash('status', "Subscription plan updated to '" . strtoupper($newPlan) . "' with " . number_format($defaultQuota) . " words for {$updated} user(s).");
+        session()->flash('status', "Subscription plan updated to '".strtoupper($newPlan)."' with ".number_format($defaultQuota)." words for {$updated} user(s).");
     }
 
     public function bulkGrantBonus(int $amount)
     {
         if (empty($this->selectedUsers)) {
             session()->flash('error', 'No users selected.');
+
             return;
         }
 
         $updated = User::whereIn('id', $this->selectedUsers)->increment('bonus_word_quota', $amount);
         $this->clearSelection();
 
-        session()->flash('status', "Granted +" . number_format($amount) . " bonus words to {$updated} user(s).");
+        session()->flash('status', 'Granted +'.number_format($amount)." bonus words to {$updated} user(s).");
     }
 
     public function bulkSetQuota(int $quota)
     {
         if (empty($this->selectedUsers)) {
             session()->flash('error', 'No users selected.');
+
             return;
         }
 
@@ -292,13 +323,14 @@ class AdminUsersPage extends Component
         ]);
         $this->clearSelection();
 
-        session()->flash('status', "Monthly word quota updated to " . number_format($quota) . " words for {$updated} user(s).");
+        session()->flash('status', 'Monthly word quota updated to '.number_format($quota)." words for {$updated} user(s).");
     }
 
     public function bulkResetUsedQuota()
     {
         if (empty($this->selectedUsers)) {
             session()->flash('error', 'No users selected.');
+
             return;
         }
 
@@ -312,11 +344,12 @@ class AdminUsersPage extends Component
     {
         if (empty($this->selectedUsers)) {
             session()->flash('error', 'No users selected.');
+
             return;
         }
 
         // Safety: Do not deactivate logged-in admin account
-        $targetIds = array_filter($this->selectedUsers, fn($id) => (int)$id !== (int)Auth::id() || $status === true);
+        $targetIds = array_filter($this->selectedUsers, fn ($id) => (int) $id !== (int) Auth::id() || $status === true);
 
         $updated = User::whereIn('id', $targetIds)->update(['is_active' => $status]);
         $this->clearSelection();
@@ -329,6 +362,7 @@ class AdminUsersPage extends Component
     {
         if (empty($this->selectedUsers)) {
             session()->flash('error', 'No users selected.');
+
             return;
         }
 
@@ -344,14 +378,16 @@ class AdminUsersPage extends Component
     {
         if (empty($this->selectedUsers)) {
             session()->flash('error', 'No users selected.');
+
             return;
         }
 
         // Safety: Strictly exclude currently authenticated user
-        $targetIds = array_filter($this->selectedUsers, fn($id) => (int)$id !== (int)Auth::id());
+        $targetIds = array_filter($this->selectedUsers, fn ($id) => (int) $id !== (int) Auth::id());
 
         if (empty($targetIds)) {
             session()->flash('error', 'You cannot delete your own logged-in admin account.');
+
             return;
         }
 
@@ -367,10 +403,10 @@ class AdminUsersPage extends Component
 
     public function exportSelectedCsv()
     {
-        $userIds = !empty($this->selectedUsers) ? $this->selectedUsers : $this->buildFilteredQuery()->pluck('id')->all();
+        $userIds = ! empty($this->selectedUsers) ? $this->selectedUsers : $this->buildFilteredQuery()->pluck('id')->all();
         $users = User::whereIn('id', $userIds)->orderBy('name')->get();
 
-        $fileName = 'users_export_' . date('Ymd_His') . '.csv';
+        $fileName = 'users_export_'.date('Ymd_His').'.csv';
 
         return response()->streamDownload(function () use ($users) {
             $out = fopen('php://output', 'w');
@@ -412,7 +448,7 @@ class AdminUsersPage extends Component
 
     public function exportSelectedJson()
     {
-        $userIds = !empty($this->selectedUsers) ? $this->selectedUsers : $this->buildFilteredQuery()->pluck('id')->all();
+        $userIds = ! empty($this->selectedUsers) ? $this->selectedUsers : $this->buildFilteredQuery()->pluck('id')->all();
         $users = User::whereIn('id', $userIds)->orderBy('name')->get()->map(function ($u) {
             return [
                 'id' => $u->id,
@@ -424,13 +460,13 @@ class AdminUsersPage extends Component
                 'used_word_quota' => $u->used_word_quota,
                 'bonus_word_quota' => $u->bonus_word_quota ?? 0,
                 'remaining_quota' => max(0, ($u->monthly_word_quota + ($u->bonus_word_quota ?? 0)) - $u->used_word_quota),
-                'is_active' => (bool)$u->is_active,
-                'email_verified' => (bool)$u->email_verified_at,
+                'is_active' => (bool) $u->is_active,
+                'email_verified' => (bool) $u->email_verified_at,
                 'created_at' => $u->created_at?->toIso8601String(),
             ];
         });
 
-        $fileName = 'users_export_' . date('Ymd_His') . '.json';
+        $fileName = 'users_export_'.date('Ymd_His').'.json';
 
         return response()->streamDownload(function () use ($users) {
             echo json_encode($users, JSON_PRETTY_PRINT);
@@ -452,8 +488,8 @@ class AdminUsersPage extends Component
         $this->monthly_word_quota = $user->monthly_word_quota;
         $this->used_word_quota = $user->used_word_quota;
         $this->bonus_word_quota = $user->bonus_word_quota ?? 0;
-        $this->is_active = (bool)$user->is_active;
-        $this->email_verified = !empty($user->email_verified_at);
+        $this->is_active = (bool) $user->is_active;
+        $this->email_verified = ! empty($user->email_verified_at);
         $this->user_created_at = $user->created_at?->format('M d, Y H:i');
         $this->new_password = '';
         $this->editActiveTab = 'profile';
@@ -473,7 +509,7 @@ class AdminUsersPage extends Component
     public function modalSetPlanQuota(string $plan)
     {
         $this->plan = $plan;
-        $this->monthly_word_quota = match($plan) {
+        $this->monthly_word_quota = match ($plan) {
             'enterprise' => 500000,
             'pro' => 100000,
             default => 15000,
@@ -484,8 +520,8 @@ class AdminUsersPage extends Component
     {
         $this->validate([
             'name' => 'required|string|min:2|max:100',
-            'email' => 'required|email|max:255|unique:users,email,' . $this->editingUserId,
-            'role' => 'required|string|in:' . implode(',', UserRole::values()),
+            'email' => 'required|email|max:255|unique:users,email,'.$this->editingUserId,
+            'role' => 'required|string|in:'.implode(',', UserRole::values()),
             'plan' => 'required|string',
             'monthly_word_quota' => 'required|integer|min:0',
             'used_word_quota' => 'required|integer|min:0',
@@ -512,7 +548,7 @@ class AdminUsersPage extends Component
             'email_verified' => $this->email_verified,
         ];
 
-        if (!empty($this->new_password)) {
+        if (! empty($this->new_password)) {
             $data['password'] = $this->new_password;
         }
 
@@ -543,7 +579,7 @@ class AdminUsersPage extends Component
             'new_user_name' => 'required|string|min:2|max:100',
             'new_user_email' => 'required|email|max:255|unique:users,email',
             'new_user_password' => 'required|string|min:8',
-            'new_user_role' => 'required|string|in:' . implode(',', UserRole::values()),
+            'new_user_role' => 'required|string|in:'.implode(',', UserRole::values()),
             'new_user_plan' => 'required|string',
             'new_user_quota' => 'required|integer|min:0',
         ]);
@@ -564,7 +600,7 @@ class AdminUsersPage extends Component
         // Send Account Details Email with credentials
         try {
             Mail::to($user->email)->send(
-                new \App\Features\Admin\Mail\TemplateMailable('account_details', [
+                new TemplateMailable('account_details', [
                     '{user_name}' => $user->name,
                     '{user_email}' => $user->email,
                     '{user_role}' => strtoupper($user->role),
@@ -573,7 +609,8 @@ class AdminUsersPage extends Component
                     '{temporary_password}' => $this->new_user_password,
                 ])
             );
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         $this->showCreateModal = false;
         session()->flash('status', "New user '{$user->name}' created successfully and welcome credentials dispatched.");
@@ -588,6 +625,7 @@ class AdminUsersPage extends Component
         $user = User::findOrFail($userId);
         if ($user->id === Auth::id()) {
             session()->flash('error', 'You cannot delete your own logged-in admin account.');
+
             return;
         }
 
@@ -602,24 +640,26 @@ class AdminUsersPage extends Component
         $user = User::findOrFail($userId);
         if ($user->id === Auth::id()) {
             session()->flash('error', 'You cannot deactivate your own admin account.');
+
             return;
         }
 
-        $user->is_active = !$user->is_active;
+        $user->is_active = ! $user->is_active;
         $user->save();
 
         try {
             $template = $user->is_active ? 'account_unbanned' : 'account_banned';
             Mail::to($user->email)->send(
-                new \App\Features\Admin\Mail\TemplateMailable($template, [
+                new TemplateMailable($template, [
                     '{user_name}' => $user->name,
                     '{ban_reason}' => 'Administrative review or policy suspension',
                     '{timestamp}' => now()->toDayDateTimeString(),
                 ])
             );
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
-        session()->flash('status', "User '{$user->name}' status toggled to " . ($user->is_active ? 'Active' : 'Inactive') . ".");
+        session()->flash('status', "User '{$user->name}' status toggled to ".($user->is_active ? 'Active' : 'Inactive').'.');
     }
 
     public function grantBonusQuota(int $userId, int $amount)
@@ -630,16 +670,17 @@ class AdminUsersPage extends Component
 
         try {
             Mail::to($user->email)->send(
-                new \App\Features\Admin\Mail\TemplateMailable('plan_upgraded', [
+                new TemplateMailable('plan_upgraded', [
                     '{user_name}' => $user->name,
                     '{new_plan}' => strtoupper($user->plan),
                     '{monthly_words}' => number_format($user->monthly_word_quota),
                     '{bonus_words}' => number_format($amount),
                 ])
             );
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
-        session()->flash('status', "Granted +" . number_format($amount) . " bonus words to '{$user->name}'.");
+        session()->flash('status', 'Granted +'.number_format($amount)." bonus words to '{$user->name}'.");
     }
 
     public function resetUserQuota(int $userId)
@@ -666,7 +707,7 @@ class AdminUsersPage extends Component
 
         try {
             Mail::to($user->email)->send(
-                new \App\Features\Admin\Mail\TemplateMailable('account_details', [
+                new TemplateMailable('account_details', [
                     '{user_name}' => $user->name,
                     '{user_email}' => $user->email,
                     '{user_role}' => strtoupper($user->role),
@@ -689,20 +730,20 @@ class AdminUsersPage extends Component
     {
         $query = User::query();
 
-        if (!empty($this->search)) {
+        if (! empty($this->search)) {
             $term = trim($this->search);
             $query->where(function ($q) use ($term) {
-                $q->where('name', 'like', '%' . $term . '%')
-                  ->orWhere('email', 'like', '%' . $term . '%')
-                  ->orWhere('id', $term);
+                $q->where('name', 'like', '%'.$term.'%')
+                    ->orWhere('email', 'like', '%'.$term.'%')
+                    ->orWhere('id', $term);
             });
         }
 
-        if (!empty($this->selectedRole)) {
+        if (! empty($this->selectedRole)) {
             $query->where('role', $this->selectedRole);
         }
 
-        if (!empty($this->selectedPlan)) {
+        if (! empty($this->selectedPlan)) {
             $query->where('plan', $this->selectedPlan);
         }
 
@@ -733,7 +774,7 @@ class AdminUsersPage extends Component
         return $this->buildFilteredQuery()
             ->paginate($this->perPage)
             ->pluck('id')
-            ->map(fn($id) => (int)$id)
+            ->map(fn ($id) => (int) $id)
             ->all();
     }
 
@@ -764,7 +805,7 @@ class AdminUsersPage extends Component
             $allocatedWords = (int) User::where('role', $roleValue)->sum('monthly_word_quota');
             $usedWords = (int) User::where('role', $roleValue)->sum('used_word_quota');
 
-            $capabilities = match($roleValue) {
+            $capabilities = match ($roleValue) {
                 'admin' => [
                     'Universal super-administrator access',
                     'Core System Updates & Automated Rollback',
@@ -800,7 +841,7 @@ class AdminUsersPage extends Component
                 ],
             };
 
-            $defaultQuota = match($roleValue) {
+            $defaultQuota = match ($roleValue) {
                 'admin' => 1000000,
                 'editor' => 250000,
                 'pro' => 100000,
@@ -808,7 +849,7 @@ class AdminUsersPage extends Component
                 'member' => 5000,
             };
 
-            $defaultPlan = match($roleValue) {
+            $defaultPlan = match ($roleValue) {
                 'admin' => 'Enterprise',
                 'editor' => 'Enterprise',
                 'pro' => 'Pro',

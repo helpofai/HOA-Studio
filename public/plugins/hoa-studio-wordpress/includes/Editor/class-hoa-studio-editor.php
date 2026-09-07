@@ -1,4 +1,5 @@
 <?php
+
 /*
 |--------------------------------------------------------------------------
 | HelpOfAi (HOA) Professional Software - WordPress Studio Editor
@@ -18,7 +19,7 @@ namespace HOA_Studio\Editor;
 
 use HOA_Studio\Core\HOA_Settings;
 
-if (!defined('ABSPATH')) {
+if (! defined('ABSPATH')) {
     exit;
 }
 
@@ -29,14 +30,13 @@ class HOA_Studio_Editor
     public static function instance(): HOA_Studio_Editor
     {
         if (self::$instance === null) {
-            self::$instance = new self();
+            self::$instance = new self;
         }
+
         return self::$instance;
     }
 
-    private function __construct()
-    {
-    }
+    private function __construct() {}
 
     public function register_hooks(): void
     {
@@ -58,7 +58,7 @@ class HOA_Studio_Editor
 
     public function enqueue_editor_assets(string $hook): void
     {
-        if (!isset($_GET['page']) || $_GET['page'] !== 'hoa-studio-editor') {
+        if (! isset($_GET['page']) || $_GET['page'] !== 'hoa-studio-editor') {
             return;
         }
 
@@ -68,14 +68,14 @@ class HOA_Studio_Editor
         // Enqueue Editor Stylesheets
         wp_enqueue_style(
             'hoa-studio-css',
-            HOA_STUDIO_URL . 'assets/css/hoa-studio.css',
+            HOA_STUDIO_URL.'assets/css/hoa-studio.css',
             [],
             HOA_STUDIO_VERSION
         );
 
         wp_enqueue_style(
             'hoa-editor-css',
-            HOA_STUDIO_URL . 'assets/css/hoa-editor.css',
+            HOA_STUDIO_URL.'assets/css/hoa-editor.css',
             ['hoa-studio-css'],
             HOA_STUDIO_VERSION
         );
@@ -83,7 +83,7 @@ class HOA_Studio_Editor
         // Enqueue Compiled TipTap Suite Bundle
         wp_enqueue_script(
             'hoa-tiptap-bundle',
-            HOA_STUDIO_URL . 'assets/js/hoa-tiptap-bundle.js',
+            HOA_STUDIO_URL.'assets/js/hoa-tiptap-bundle.js',
             ['jquery'],
             HOA_STUDIO_VERSION,
             true
@@ -112,7 +112,7 @@ class HOA_Studio_Editor
         $tags = '';
         if ($post) {
             $tagList = wp_get_post_tags($post->ID, ['fields' => 'names']);
-            if (!empty($tagList) && is_array($tagList)) {
+            if (! empty($tagList) && is_array($tagList)) {
                 $tags = implode(', ', $tagList);
             }
         }
@@ -168,6 +168,6 @@ class HOA_Studio_Editor
         $postId = isset($_GET['post_id']) ? intval($_GET['post_id']) : 0;
         $post = $postId > 0 ? get_post($postId) : null;
 
-        require_once HOA_STUDIO_DIR . 'views/studio-canvas.php';
+        require_once HOA_STUDIO_DIR.'views/studio-canvas.php';
     }
 }

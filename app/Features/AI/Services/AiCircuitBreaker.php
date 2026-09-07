@@ -33,23 +33,23 @@ class AiCircuitBreaker
 
     public function isTripped(): bool
     {
-        return (bool) Cache::get(self::CACHE_KEY . '_tripped', false);
+        return (bool) Cache::get(self::CACHE_KEY.'_tripped', false);
     }
 
     public function trip(string $reason = 'Emergency maintenance triggered by administrator', ?string $adminName = null): void
     {
-        Cache::forever(self::CACHE_KEY . '_tripped', true);
-        Cache::forever(self::CACHE_KEY . '_reason', $reason);
-        Cache::forever(self::CACHE_KEY . '_tripped_by', $adminName ?: 'System Admin');
-        Cache::forever(self::CACHE_KEY . '_tripped_at', now()->toIso8601String());
+        Cache::forever(self::CACHE_KEY.'_tripped', true);
+        Cache::forever(self::CACHE_KEY.'_reason', $reason);
+        Cache::forever(self::CACHE_KEY.'_tripped_by', $adminName ?: 'System Admin');
+        Cache::forever(self::CACHE_KEY.'_tripped_at', now()->toIso8601String());
     }
 
     public function reset(): void
     {
-        Cache::forget(self::CACHE_KEY . '_tripped');
-        Cache::forget(self::CACHE_KEY . '_reason');
-        Cache::forget(self::CACHE_KEY . '_tripped_by');
-        Cache::forget(self::CACHE_KEY . '_tripped_at');
+        Cache::forget(self::CACHE_KEY.'_tripped');
+        Cache::forget(self::CACHE_KEY.'_reason');
+        Cache::forget(self::CACHE_KEY.'_tripped_by');
+        Cache::forget(self::CACHE_KEY.'_tripped_at');
     }
 
     public function getStatus(): array
@@ -58,9 +58,9 @@ class AiCircuitBreaker
 
         return [
             'is_tripped' => $tripped,
-            'reason' => Cache::get(self::CACHE_KEY . '_reason', 'Normal Operations'),
-            'tripped_by' => Cache::get(self::CACHE_KEY . '_tripped_by', null),
-            'tripped_at' => Cache::get(self::CACHE_KEY . '_tripped_at', null),
+            'reason' => Cache::get(self::CACHE_KEY.'_reason', 'Normal Operations'),
+            'tripped_by' => Cache::get(self::CACHE_KEY.'_tripped_by', null),
+            'tripped_at' => Cache::get(self::CACHE_KEY.'_tripped_at', null),
         ];
     }
 }

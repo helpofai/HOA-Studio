@@ -23,6 +23,4 @@ use App\Features\WordPress\Http\Controllers\WordPressBridgeController as BaseWor
  * Backward-compatibility alias for WordPress Bridge Controller.
  * Core implementation now resides in App\Features\WordPress\Http\Controllers\WordPressBridgeController
  */
-class WordPressBridgeController extends BaseWordPressBridgeController
-{
-}
+class WordPressBridgeController extends BaseWordPressBridgeController {}

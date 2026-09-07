@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Middleware\AuthenticateStudioToken;
+use App\Http\Middleware\EnsureUserHasRole;
+use App\Http\Middleware\SecurityHeadersMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,7 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
-            \App\Http\Middleware\SecurityHeadersMiddleware::class,
+            SecurityHeadersMiddleware::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [
@@ -24,8 +27,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*', headers: 0b111111); // Set to 63 (all headers)
 
         $middleware->alias([
-            'role' => \App\Http\Middleware\EnsureUserHasRole::class,
-            'auth.studio' => \App\Http\Middleware\AuthenticateStudioToken::class,
+            'role' => EnsureUserHasRole::class,
+            'auth.studio' => AuthenticateStudioToken::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

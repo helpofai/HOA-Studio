@@ -32,6 +32,7 @@ use App\Features\Documents\Data\ConversionRiskAssessment;
 class GutenbergAdapter implements EditorAdapterInterface
 {
     protected array $supportedNodeTypes = ['doc', 'paragraph', 'heading', 'blockquote', 'code_block', 'bullet_list', 'list_item'];
+
     protected array $supportedMarkTypes = ['bold', 'italic', 'link'];
 
     public function toCanonical(string|array $content): array
@@ -42,20 +43,20 @@ class GutenbergAdapter implements EditorAdapterInterface
         // For production, this would use a dedicated WP block parser
         $canonical = CanonicalDocumentSchema::createDocument([
             CanonicalDocumentSchema::createNode('paragraph', [], [
-                CanonicalDocumentSchema::createTextNode(strip_tags($html))
-            ])
+                CanonicalDocumentSchema::createTextNode(strip_tags($html)),
+            ]),
         ]);
 
         $canonical['attrs']['source_editor'] = 'gutenberg';
         $canonical['attrs']['converted_at'] = now()->toISOString();
-        
+
         return $canonical;
     }
 
     public function fromCanonical(array $canonical): string|array
     {
         // Simple HTML serialization
-        return '<p>' . ($this->extractPlainText($canonical)) . '</p>';
+        return '<p>'.($this->extractPlainText($canonical)).'</p>';
     }
 
     public function extractPlainText(string|array $editorContent): string
@@ -64,11 +65,13 @@ class GutenbergAdapter implements EditorAdapterInterface
             $text = $editorContent['text'] ?? '';
             if (isset($editorContent['content']) && is_array($editorContent['content'])) {
                 foreach ($editorContent['content'] as $child) {
-                    $text .= ' ' . $this->extractPlainText($child);
+                    $text .= ' '.$this->extractPlainText($child);
                 }
             }
+
             return trim($text);
         }
+
         return strip_tags($editorContent);
     }
 

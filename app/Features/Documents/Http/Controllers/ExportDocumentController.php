@@ -64,7 +64,7 @@ class ExportDocumentController extends Controller
             abort(410, 'This shared document link has expired.');
         }
 
-        if (!$share->allow_download) {
+        if (! $share->allow_download) {
             abort(403, 'Downloads are disabled for this shared document.');
         }
 
@@ -81,7 +81,7 @@ class ExportDocumentController extends Controller
 
         // Inject auto print trigger script
         $autoPrintScript = '<script>window.addEventListener("DOMContentLoaded", () => setTimeout(() => window.print(), 300));</script>';
-        $html = str_replace('</body>', $autoPrintScript . '</body>', $html);
+        $html = str_replace('</body>', $autoPrintScript.'</body>', $html);
 
         return response($html)->header('Content-Type', 'text/html; charset=UTF-8');
     }
@@ -97,36 +97,41 @@ class ExportDocumentController extends Controller
             case 'md':
             case 'markdown':
                 $content = $this->exporter->exportMarkdown($document);
+
                 return response($content)
                     ->header('Content-Type', 'text/markdown; charset=UTF-8')
-                    ->header('Content-Disposition', 'attachment; filename="' . $slug . '.md"');
+                    ->header('Content-Disposition', 'attachment; filename="'.$slug.'.md"');
 
             case 'html':
                 $content = $this->exporter->exportHtml($document);
+
                 return response($content)
                     ->header('Content-Type', 'text/html; charset=UTF-8')
-                    ->header('Content-Disposition', 'attachment; filename="' . $slug . '.html"');
+                    ->header('Content-Disposition', 'attachment; filename="'.$slug.'.html"');
 
             case 'txt':
             case 'text':
                 $content = $this->exporter->exportPlainText($document);
+
                 return response($content)
                     ->header('Content-Type', 'text/plain; charset=UTF-8')
-                    ->header('Content-Disposition', 'attachment; filename="' . $slug . '.txt"');
+                    ->header('Content-Disposition', 'attachment; filename="'.$slug.'.txt"');
 
             case 'docx':
             case 'doc':
                 $content = $this->exporter->exportDocx($document);
+
                 return response($content)
                     ->header('Content-Type', 'application/vnd.ms-word; charset=UTF-8')
-                    ->header('Content-Disposition', 'attachment; filename="' . $slug . '.doc"');
+                    ->header('Content-Disposition', 'attachment; filename="'.$slug.'.doc"');
 
             case 'json':
             case 'ast':
                 $content = $this->exporter->exportJson($document);
+
                 return response($content)
                     ->header('Content-Type', 'application/json; charset=UTF-8')
-                    ->header('Content-Disposition', 'attachment; filename="' . $slug . '.json"');
+                    ->header('Content-Disposition', 'attachment; filename="'.$slug.'.json"');
 
             default:
                 abort(400, 'Unsupported export format.');

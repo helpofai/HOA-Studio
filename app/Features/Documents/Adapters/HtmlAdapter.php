@@ -35,11 +35,11 @@ class HtmlAdapter implements EditorAdapterInterface
         'doc', 'paragraph', 'heading', 'blockquote', 'code_block',
         'bullet_list', 'ordered_list', 'list_item', 'horizontal_rule',
         'image', 'link', 'table', 'table_row', 'table_cell', 'table_header',
-        'text', 'hard_break'
+        'text', 'hard_break',
     ];
 
     protected array $supportedMarkTypes = [
-        'bold', 'italic', 'strike', 'code', 'link', 'highlight'
+        'bold', 'italic', 'strike', 'code', 'link', 'highlight',
     ];
 
     public function toCanonical(string|array $content): array
@@ -50,8 +50,8 @@ class HtmlAdapter implements EditorAdapterInterface
         // Wrap in canonical document structure
         $canonical = CanonicalDocumentSchema::createDocument([
             CanonicalDocumentSchema::createNode('paragraph', [], [
-                CanonicalDocumentSchema::createTextNode($plainText)
-            ])
+                CanonicalDocumentSchema::createTextNode($plainText),
+            ]),
         ]);
 
         // Preserve original HTML in attrs for round-trip
@@ -72,6 +72,7 @@ class HtmlAdapter implements EditorAdapterInterface
     public function extractPlainText(string|array $editorContent): string
     {
         $html = is_array($editorContent) ? ($editorContent['html'] ?? '') : $editorContent;
+
         return strip_tags($html);
     }
 
@@ -103,6 +104,7 @@ class HtmlAdapter implements EditorAdapterInterface
     public function sanitize(string|array $editorContent): string|array
     {
         $html = is_array($editorContent) ? ($editorContent['html'] ?? '') : $editorContent;
+
         // Basic sanitization - in production use a proper HTML sanitizer
         return strip_tags($html, '<p><br><strong><em><u><s><code><a><h1><h2><h3><h4><h5><h6><ul><ol><li><blockquote><pre><img><table><tr><td><th>');
     }

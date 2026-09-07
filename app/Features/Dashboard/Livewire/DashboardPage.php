@@ -37,7 +37,9 @@ use Livewire\Component;
 class DashboardPage extends Component
 {
     public bool $readyToLoad = false;
+
     public int $graphTimeRange = 24; // 1, 5, 12, 24
+
     public string $graphStatusFilter = 'all'; // 'all', 'pass', 'info', 'warning', 'fail'
 
     public function mount(): void
@@ -55,7 +57,7 @@ class DashboardPage extends Component
     public function render(GetDashboardStats $statsAction)
     {
         $user = Auth::user();
-        
+
         $stats = $this->readyToLoad ? $statsAction->execute($user) : [
             'total_documents' => 0,
             'total_projects' => 0,

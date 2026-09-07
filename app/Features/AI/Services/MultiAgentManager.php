@@ -150,7 +150,7 @@ class MultiAgentManager
     {
         $agents = self::AGENTS;
         $totalAgents = count($agents);
-        
+
         return [
             'total_agents' => $totalAgents,
             'active_swarm' => true,

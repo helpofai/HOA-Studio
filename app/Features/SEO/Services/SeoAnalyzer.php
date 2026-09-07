@@ -21,7 +21,6 @@
 namespace App\Features\SEO\Services;
 
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Log;
 
 class SeoAnalyzer
 {
@@ -33,7 +32,7 @@ class SeoAnalyzer
         'guide', 'review', 'best', 'top', 'fast', 'easy', 'secret', 'definitive',
         'expert', 'advanced', 'strategy', 'blueprint', 'guaranteed', 'epic',
         'unleashed', 'framework', 'formula', 'insider', 'supercharged', 'step-by-step',
-        'revolutionary', 'groundbreaking', 'comprehensive', 'definitive', 'authoritative'
+        'revolutionary', 'groundbreaking', 'comprehensive', 'definitive', 'authoritative',
     ];
 
     /**
@@ -44,7 +43,7 @@ class SeoAnalyzer
         'is', 'are', 'was', 'were', 'been', 'be', 'have', 'has', 'had', 'do', 'does', 'did',
         'will', 'would', 'could', 'should', 'may', 'might', 'must', 'can', 'this', 'that',
         'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her',
-        'us', 'them', 'my', 'your', 'his', 'her', 'its', 'our', 'their', 'mine', 'yours'
+        'us', 'them', 'my', 'your', 'his', 'her', 'its', 'our', 'their', 'mine', 'yours',
     ];
 
     /**
@@ -52,29 +51,29 @@ class SeoAnalyzer
      */
     protected array $questionWords = [
         'who', 'what', 'when', 'where', 'why', 'how', 'is', 'are', 'can', 'will',
-        'would', 'should', 'could', 'does', 'did', 'has', 'have', 'was', 'were'
+        'would', 'should', 'could', 'does', 'did', 'has', 'have', 'was', 'were',
     ];
 
     /**
      * Analyze document content and calculate comprehensive SEO & Readability metrics
-     * 
-     * @param string $htmlContent HTML content to analyze
-     * @param string $title Document title
-     * @param ?string $targetKeyword Primary focus keyword
-     * @param array $secondaryKeywords Secondary/LSI keywords
-     * @param string $metaDescription Meta description
+     *
+     * @param  string  $htmlContent  HTML content to analyze
+     * @param  string  $title  Document title
+     * @param  ?string  $targetKeyword  Primary focus keyword
+     * @param  array  $secondaryKeywords  Secondary/LSI keywords
+     * @param  string  $metaDescription  Meta description
      * @return array Analysis results with scores and recommendations
      */
     public function analyze(string $htmlContent, string $title = '', ?string $targetKeyword = null, array $secondaryKeywords = [], string $metaDescription = ''): array
     {
         // Spaced HTML for accurate word and sentence segmentation
-        $spacedHtml = preg_replace('/<\/(h[1-6]|p|div|li|blockquote|section|article|td|th|tr)>/i', "$0. ", $htmlContent);
+        $spacedHtml = preg_replace('/<\/(h[1-6]|p|div|li|blockquote|section|article|td|th|tr)>/i', '$0. ', $htmlContent);
         $plainText = trim(preg_replace('/\s+/u', ' ', strip_tags($spacedHtml)));
-        $words = !empty($plainText) ? preg_split('/\s+/u', $plainText, -1, PREG_SPLIT_NO_EMPTY) : [];
+        $words = ! empty($plainText) ? preg_split('/\s+/u', $plainText, -1, PREG_SPLIT_NO_EMPTY) : [];
         $totalWords = count($words);
 
         // Sentences
-        $sentences = !empty($plainText) ? preg_split('/(?<=[.?!])\s+/u', $plainText, -1, PREG_SPLIT_NO_EMPTY) : [];
+        $sentences = ! empty($plainText) ? preg_split('/(?<=[.?!])\s+/u', $plainText, -1, PREG_SPLIT_NO_EMPTY) : [];
         $totalSentences = max(1, count($sentences));
 
         // Paragraphs extraction
@@ -97,13 +96,21 @@ class SeoAnalyzer
             $fleschScore = 206.835 - (1.015 * $wordsPerSentence) - (84.6 * $syllablesPerWord);
             $fleschScore = (int) round(max(0, min(100, $fleschScore)));
 
-            if ($fleschScore >= 90) $readingGrade = 'Very Easy (5th grade)';
-            elseif ($fleschScore >= 80) $readingGrade = 'Easy (6th grade)';
-            elseif ($fleschScore >= 70) $readingGrade = 'Fairly Easy (7th grade)';
-            elseif ($fleschScore >= 60) $readingGrade = 'Standard (8th-9th grade)';
-            elseif ($fleschScore >= 50) $readingGrade = 'Fairly Difficult (High school)';
-            elseif ($fleschScore >= 30) $readingGrade = 'Difficult (College level)';
-            else $readingGrade = 'Very Difficult (Academic/Graduate)';
+            if ($fleschScore >= 90) {
+                $readingGrade = 'Very Easy (5th grade)';
+            } elseif ($fleschScore >= 80) {
+                $readingGrade = 'Easy (6th grade)';
+            } elseif ($fleschScore >= 70) {
+                $readingGrade = 'Fairly Easy (7th grade)';
+            } elseif ($fleschScore >= 60) {
+                $readingGrade = 'Standard (8th-9th grade)';
+            } elseif ($fleschScore >= 50) {
+                $readingGrade = 'Fairly Difficult (High school)';
+            } elseif ($fleschScore >= 30) {
+                $readingGrade = 'Difficult (College level)';
+            } else {
+                $readingGrade = 'Very Difficult (Academic/Graduate)';
+            }
         }
 
         // Advanced Readability Scores
@@ -126,7 +133,7 @@ class SeoAnalyzer
         // Extract Links & Images
         preg_match_all('/<a\s+[^>]*href=["\']([^"\']*)["\']/si', $htmlContent, $linkMatches);
         preg_match_all('/<img\s+[^>]*alt=["\']([^"\']*)["\']/si', $htmlContent, $imgMatches);
-        
+
         $links = $linkMatches[1] ?? [];
         $imgAlts = $imgMatches[1] ?? [];
         $totalLinks = count($links);
@@ -199,20 +206,20 @@ class SeoAnalyzer
 
             $kwOccurrences = mb_substr_count($lowerText, $kw);
             $kwData['count'] = $kwOccurrences;
-            
+
             // Rank Math Keyword Density Formula: (Keyword Count * Words in Keyword / Total Words) * 100
             $kwData['density'] = round((($kwOccurrences * $kwWordsCount) / max(1, $totalWords)) * 100, 2);
-            
+
             // Keyword stuffing detection (> 3% density is risky)
             $kwData['keyword_stuffing_risk'] = $kwData['density'] > 3.0;
-            
+
             // Semantic variations detection (simple stem matching)
             $kwData['semantic_variations_found'] = $this->countSemanticVariations($lowerText, $kw);
 
             $kwData['in_title'] = mb_strpos($lowerTitle, $kw) !== false;
             $kwData['in_first_10_pct'] = mb_strpos($first10PctWords, $kw) !== false;
             $kwData['in_first_100_words'] = $kwData['in_first_10_pct'] || (mb_strpos(mb_strtolower(implode(' ', array_slice($words, 0, 100))), $kw) !== false);
-            $kwData['in_meta'] = !empty($metaDescription) && mb_strpos($lowerMeta, $kw) !== false;
+            $kwData['in_meta'] = ! empty($metaDescription) && mb_strpos($lowerMeta, $kw) !== false;
             $kwData['in_url'] = mb_strpos($lowerSlug, str_replace(' ', ' ', $kw)) !== false || mb_strpos(Str::slug($title), Str::slug($kw)) !== false;
             $kwData['in_h1'] = mb_strpos($lowerH1, $kw) !== false;
             $kwData['in_h2'] = mb_strpos(mb_strtolower(implode(' ', $h2List)), $kw) !== false;
@@ -227,7 +234,7 @@ class SeoAnalyzer
         $matchedPowerWord = '';
         $titleSentiment = $this->analyzeTitleSentiment($title);
 
-        if (!empty($title)) {
+        if (! empty($title)) {
             $lowerTitle = mb_strtolower($title);
             if ($kw && (mb_strpos($lowerTitle, $kw) === 0 || mb_strpos($lowerTitle, $kw) < 15)) {
                 $titleStartsWithKw = true;
@@ -270,25 +277,25 @@ class SeoAnalyzer
                 'weight' => 6,
                 'severity' => 'critical',
                 'current_val' => $kw ? ($kwData['in_title'] ? 'Found in title' : 'Missing from title') : 'No keyword set',
-                'goal_val' => "Include '" . ($targetKeyword ?: 'keyword') . "'",
-                'actionable_tip' => "Include your primary keyword '" . ($targetKeyword ?: 'keyword') . "' in the document title for core search indexing.",
+                'goal_val' => "Include '".($targetKeyword ?: 'keyword')."'",
+                'actionable_tip' => "Include your primary keyword '".($targetKeyword ?: 'keyword')."' in the document title for core search indexing.",
                 'target_canvas_id' => 'seo-loc-title',
                 'ai_prompt' => $kw ? "Rewrite the document title to naturally include the focus keyword '{$targetKeyword}'." : null,
-                'manual_prompt' => "Manually edit the title to include your target keyword."
+                'manual_prompt' => 'Manually edit the title to include your target keyword.',
             ],
             [
                 'id' => 'kw_in_meta',
                 'title' => 'Focus Keyword in Meta Description',
                 'desc' => 'Primary keyword appears in the meta description.',
-                'pass' => $kw ? $kwData['in_meta'] : (!empty($metaDescription)),
+                'pass' => $kw ? $kwData['in_meta'] : (! empty($metaDescription)),
                 'weight' => 5,
                 'severity' => 'warning',
-                'current_val' => !empty($metaDescription) ? ($kw && mb_strpos(mb_strtolower($metaDescription), $kw) !== false ? 'Found in meta' : 'Missing keyword') : 'Empty meta',
+                'current_val' => ! empty($metaDescription) ? ($kw && mb_strpos(mb_strtolower($metaDescription), $kw) !== false ? 'Found in meta' : 'Missing keyword') : 'Empty meta',
                 'goal_val' => '140-160 chars with keyword',
-                'actionable_tip' => "Write a 140-160 character meta description featuring '" . ($targetKeyword ?: 'keyword') . "' to improve click-through rates.",
+                'actionable_tip' => "Write a 140-160 character meta description featuring '".($targetKeyword ?: 'keyword')."' to improve click-through rates.",
                 'target_canvas_id' => 'seo-loc-meta',
                 'ai_prompt' => $kw ? "Write a compelling meta description that includes the focus keyword '{$targetKeyword}' and encourages clicks." : null,
-                'manual_prompt' => "Manually write a meta description including your target keyword."
+                'manual_prompt' => 'Manually write a meta description including your target keyword.',
             ],
             [
                 'id' => 'kw_in_url',
@@ -298,11 +305,11 @@ class SeoAnalyzer
                 'weight' => 4,
                 'severity' => 'warning',
                 'current_val' => $slug ?: 'untitled',
-                'goal_val' => "Clean slug with '" . ($targetKeyword ?: 'keyword') . "'",
-                'actionable_tip' => "Include your focus keyword in the URL permalink slug for clean hierarchy.",
+                'goal_val' => "Clean slug with '".($targetKeyword ?: 'keyword')."'",
+                'actionable_tip' => 'Include your focus keyword in the URL permalink slug for clean hierarchy.',
                 'target_canvas_id' => 'seo-loc-meta',
                 'ai_prompt' => null, // URL changes require manual intervention
-                'manual_prompt' => "Edit the URL slug to include your target keyword."
+                'manual_prompt' => 'Edit the URL slug to include your target keyword.',
             ],
             [
                 'id' => 'kw_in_intro',
@@ -313,24 +320,24 @@ class SeoAnalyzer
                 'severity' => 'critical',
                 'current_val' => $kwData['in_first_10_pct'] ? 'Present in hook' : 'Missing in first 10%',
                 'goal_val' => 'Within opening 100 words',
-                'actionable_tip' => "Mention '" . ($targetKeyword ?: 'keyword') . "' in your opening paragraph so search engines and readers instantly confirm topic relevance.",
+                'actionable_tip' => "Mention '".($targetKeyword ?: 'keyword')."' in your opening paragraph so search engines and readers instantly confirm topic relevance.",
                 'target_canvas_id' => 'seo-loc-kw_in_intro',
                 'ai_prompt' => $kw ? "Rewrite the introduction to naturally include the focus keyword '{$targetKeyword}' in the first 10% of content." : null,
-                'manual_prompt' => "Edit the opening paragraph to include your target keyword naturally."
+                'manual_prompt' => 'Edit the opening paragraph to include your target keyword naturally.',
             ],
             [
                 'id' => 'kw_in_body',
                 'title' => 'Focus Keyword in Content Body',
                 'desc' => 'Primary keyword is referenced across paragraphs naturally.',
-                'pass' => $kw ? ($kwData['count'] >= 2 && !$kwData['keyword_stuffing_risk']) : false,
+                'pass' => $kw ? ($kwData['count'] >= 2 && ! $kwData['keyword_stuffing_risk']) : false,
                 'weight' => 4,
                 'severity' => 'critical',
-                'current_val' => $kwData['count'] . ' mentions',
+                'current_val' => $kwData['count'].' mentions',
                 'goal_val' => '2+ natural mentions',
-                'actionable_tip' => "Refer to '" . ($targetKeyword ?: 'keyword') . "' at least twice throughout the body paragraphs to reinforce topic depth.",
+                'actionable_tip' => "Refer to '".($targetKeyword ?: 'keyword')."' at least twice throughout the body paragraphs to reinforce topic depth.",
                 'target_canvas_id' => 'seo-loc-kw_in_intro',
                 'ai_prompt' => $kw && $kwData['count'] < 2 ? "Increase natural usage of the focus keyword '{$targetKeyword}' throughout the content." : null,
-                'manual_prompt' => "Add more natural mentions of your target keyword throughout the content."
+                'manual_prompt' => 'Add more natural mentions of your target keyword throughout the content.',
             ],
             [
                 'id' => 'content_length',
@@ -339,9 +346,9 @@ class SeoAnalyzer
                 'pass' => $totalWords >= 1200,
                 'weight' => 2,
                 'severity' => 'warning',
-                'current_val' => $totalWords . ' words',
+                'current_val' => $totalWords.' words',
                 'goal_val' => '1,200+ words',
-                'actionable_tip' => $totalWords < 1200 ? "Add approximately " . (1200 - $totalWords) . " more words with sub-guides, examples, or tables to outrank competing articles." : "Comprehensive content length achieved.",
+                'actionable_tip' => $totalWords < 1200 ? 'Add approximately '.(1200 - $totalWords).' more words with sub-guides, examples, or tables to outrank competing articles.' : 'Comprehensive content length achieved.',
                 'target_canvas_id' => 'seo-loc-kw_in_intro',
             ],
         ];
@@ -349,7 +356,7 @@ class SeoAnalyzer
         // PILLAR 2: Additional SEO (20 Points Max)
         $densityValid = $kw ? ($kwData['density'] >= 0.8 && $kwData['density'] <= 2.5) : true;
         $urlLengthValid = strlen($slug) <= 75;
-        
+
         $additionalChecks = [
             [
                 'id' => 'kw_in_subheadings',
@@ -360,10 +367,10 @@ class SeoAnalyzer
                 'severity' => 'warning',
                 'current_val' => $kwData['in_subheadings'] ? 'Included in H2/H3' : 'Missing in headings',
                 'goal_val' => '1+ H2/H3 headings',
-                'actionable_tip' => "Add your focus keyword '" . ($targetKeyword ?: 'keyword') . "' to at least one prominent H2 subheading.",
+                'actionable_tip' => "Add your focus keyword '".($targetKeyword ?: 'keyword')."' to at least one prominent H2 subheading.",
                 'target_canvas_id' => 'seo-loc-kw_in_subheadings',
                 'ai_prompt' => $kw ? "Add H2 or H3 subheadings that include the focus keyword '{$targetKeyword}'." : null,
-                'manual_prompt' => "Create subheadings that include your target keyword."
+                'manual_prompt' => 'Create subheadings that include your target keyword.',
             ],
             [
                 'id' => 'kw_in_img_alt',
@@ -372,12 +379,12 @@ class SeoAnalyzer
                 'pass' => $kw ? $kwData['in_img_alt'] : ($totalImages > 0),
                 'weight' => 3,
                 'severity' => 'optimization',
-                'current_val' => $totalImages . ' images (' . ($kwData['in_img_alt'] ? 'Alt match' : 'No keyword in alt') . ')',
+                'current_val' => $totalImages.' images ('.($kwData['in_img_alt'] ? 'Alt match' : 'No keyword in alt').')',
                 'goal_val' => 'Descriptive alt with keyword',
-                'actionable_tip' => "Add an image with descriptive alt text containing '" . ($targetKeyword ?: 'keyword') . "'.",
+                'actionable_tip' => "Add an image with descriptive alt text containing '".($targetKeyword ?: 'keyword')."'.",
                 'target_canvas_id' => 'seo-loc-kw_in_subheadings',
                 'ai_prompt' => $kw ? "Add descriptive alt text to images that includes the focus keyword '{$targetKeyword}'." : null,
-                'manual_prompt' => "Add alt text to images describing the content and including your target keyword."
+                'manual_prompt' => 'Add alt text to images describing the content and including your target keyword.',
             ],
             [
                 'id' => 'keyword_density',
@@ -386,13 +393,13 @@ class SeoAnalyzer
                 'pass' => $densityValid && ($kw ? $kwData['count'] > 0 : true),
                 'weight' => 4,
                 'severity' => $kwData['keyword_stuffing_risk'] ? 'critical' : 'warning',
-                'current_val' => $kwData['density'] . '%',
+                'current_val' => $kwData['density'].'%',
                 'goal_val' => '0.8% - 2.5%',
-                'actionable_tip' => $kwData['density'] < 0.8 ? "Keyword density is low ({$kwData['density']}%). Weave '" . ($targetKeyword ?: 'keyword') . "' into 1-2 more sentences." : ($kwData['density'] > 2.5 ? "Density is high ({$kwData['density']}%). Reduce repetitive mentions to avoid over-optimization." : "Keyword density is balanced."),
+                'actionable_tip' => $kwData['density'] < 0.8 ? "Keyword density is low ({$kwData['density']}%). Weave '".($targetKeyword ?: 'keyword')."' into 1-2 more sentences." : ($kwData['density'] > 2.5 ? "Density is high ({$kwData['density']}%). Reduce repetitive mentions to avoid over-optimization." : 'Keyword density is balanced.'),
                 'target_canvas_id' => 'seo-loc-kw_in_intro',
-                'ai_prompt' => $kw && $kwData['density'] < 0.8 ? "Increase usage of the focus keyword '{$targetKeyword}' to reach optimal density." : 
-                            ($kw && $kwData['density'] > 2.5 ? "Reduce keyword usage to avoid stuffing while maintaining natural flow." : null),
-                'manual_prompt' => "Adjust keyword usage to maintain 0.8%-2.5% density range."
+                'ai_prompt' => $kw && $kwData['density'] < 0.8 ? "Increase usage of the focus keyword '{$targetKeyword}' to reach optimal density." :
+                            ($kw && $kwData['density'] > 2.5 ? 'Reduce keyword usage to avoid stuffing while maintaining natural flow.' : null),
+                'manual_prompt' => 'Adjust keyword usage to maintain 0.8%-2.5% density range.',
             ],
             [
                 'id' => 'url_length',
@@ -401,9 +408,9 @@ class SeoAnalyzer
                 'pass' => $urlLengthValid,
                 'weight' => 2,
                 'severity' => 'optimization',
-                'current_val' => strlen($slug) . ' chars',
+                'current_val' => strlen($slug).' chars',
                 'goal_val' => '< 75 chars',
-                'actionable_tip' => "Keep permalink slugs concise and focused under 75 characters for cleaner URL sharing.",
+                'actionable_tip' => 'Keep permalink slugs concise and focused under 75 characters for cleaner URL sharing.',
                 'target_canvas_id' => 'seo-loc-meta',
             ],
             [
@@ -413,12 +420,12 @@ class SeoAnalyzer
                 'pass' => $externalLinksCount >= 2,
                 'weight' => 3,
                 'severity' => 'warning',
-                'current_val' => $externalLinksCount . ' external links',
+                'current_val' => $externalLinksCount.' external links',
                 'goal_val' => '2+ authoritative links',
-                'actionable_tip' => "Add 2+ authoritative outbound links to reputable research, papers, or documentation to prove authenticity.",
+                'actionable_tip' => 'Add 2+ authoritative outbound links to reputable research, papers, or documentation to prove authenticity.',
                 'target_canvas_id' => 'seo-loc-external_links',
-                'ai_prompt' => $externalLinksCount < 2 ? "Add 2 authoritative external links to reputable sources in your niche." : null,
-                'manual_prompt' => "Add links to authoritative sources that support your content."
+                'ai_prompt' => $externalLinksCount < 2 ? 'Add 2 authoritative external links to reputable sources in your niche.' : null,
+                'manual_prompt' => 'Add links to authoritative sources that support your content.',
             ],
             [
                 'id' => 'internal_links',
@@ -427,12 +434,12 @@ class SeoAnalyzer
                 'pass' => $internalLinksCount >= 3,
                 'weight' => 2,
                 'severity' => 'warning',
-                'current_val' => $internalLinksCount . ' internal links',
+                'current_val' => $internalLinksCount.' internal links',
                 'goal_val' => '3+ internal links',
-                'actionable_tip' => "Add 3+ internal links to related guides or categories on your site to build topical clusters.",
+                'actionable_tip' => 'Add 3+ internal links to related guides or categories on your site to build topical clusters.',
                 'target_canvas_id' => 'seo-loc-external_links',
-                'ai_prompt' => $internalLinksCount < 3 ? "Add internal links to related content on your website." : null,
-                'manual_prompt' => "Link to other relevant pages on your website."
+                'ai_prompt' => $internalLinksCount < 3 ? 'Add internal links to related content on your website.' : null,
+                'manual_prompt' => 'Link to other relevant pages on your website.',
             ],
         ];
 
@@ -442,15 +449,15 @@ class SeoAnalyzer
                 'id' => 'kw_at_beginning_of_title',
                 'title' => 'Focus Keyword at Start of Title',
                 'desc' => 'Primary keyword is front-loaded in the first half of the title.',
-                'pass' => $kw ? $titleStartsWithKw : (!empty($title)),
+                'pass' => $kw ? $titleStartsWithKw : (! empty($title)),
                 'weight' => 5,
                 'severity' => 'warning',
                 'current_val' => $titleStartsWithKw ? 'Front-loaded' : 'Not at beginning',
                 'goal_val' => 'In first 3 words',
-                'actionable_tip' => "Place '" . ($targetKeyword ?: 'keyword') . "' near the beginning of your title so it is immediately visible on search result pages.",
+                'actionable_tip' => "Place '".($targetKeyword ?: 'keyword')."' near the beginning of your title so it is immediately visible on search result pages.",
                 'target_canvas_id' => 'seo-loc-title',
                 'ai_prompt' => $kw ? "Rewrite title to start with the focus keyword '{$targetKeyword}' for better SEO and CTR." : null,
-                'manual_prompt' => "Move your target keyword to the beginning of the title."
+                'manual_prompt' => 'Move your target keyword to the beginning of the title.',
             ],
             [
                 'id' => 'title_has_number',
@@ -464,7 +471,7 @@ class SeoAnalyzer
                 'actionable_tip' => "Include a number or year (e.g. '2026', '5 Steps') to increase Google click-through rates by up to 36%.",
                 'target_canvas_id' => 'seo-loc-title',
                 'ai_prompt' => null,
-                'manual_prompt' => "Add a relevant number to your title (e.g., '5 Ways', '10 Tips', '2024 Guide')."
+                'manual_prompt' => "Add a relevant number to your title (e.g., '5 Ways', '10 Tips', '2024 Guide').",
             ],
             [
                 'id' => 'title_has_power_word',
@@ -478,7 +485,7 @@ class SeoAnalyzer
                 'actionable_tip' => "Add an engaging power word like 'Ultimate', 'Proven', 'Complete', or 'Essential' to stimulate click motivation.",
                 'target_canvas_id' => 'seo-loc-title',
                 'ai_prompt' => $titleHasPowerWord ? null : "Add a power word like 'Ultimate', 'Proven', 'Essential', or 'Complete' to your title.",
-                'manual_prompt' => "Include an emotional/power word in your title."
+                'manual_prompt' => 'Include an emotional/power word in your title.',
             ],
             [
                 'id' => 'title_length_optimal',
@@ -487,13 +494,13 @@ class SeoAnalyzer
                 'pass' => strlen($title) >= 50 && strlen($title) <= 60,
                 'weight' => 2,
                 'severity' => 'optimization',
-                'current_val' => strlen($title) . ' characters',
+                'current_val' => strlen($title).' characters',
                 'goal_val' => '50 - 60 characters',
-                'actionable_tip' => strlen($title) < 50 ? "Title is short (" . strlen($title) . " chars). Aim for 50-60 chars to maximize pixel width in SERP." : "Title exceeds 60 chars (" . strlen($title) . "). Shorten to avoid SERP ellipsis truncation.",
+                'actionable_tip' => strlen($title) < 50 ? 'Title is short ('.strlen($title).' chars). Aim for 50-60 chars to maximize pixel width in SERP.' : 'Title exceeds 60 chars ('.strlen($title).'). Shorten to avoid SERP ellipsis truncation.',
                 'target_canvas_id' => 'seo-loc-title',
-                'ai_prompt' => strlen($title) < 50 ? "Extend title to 50-60 characters for better search visibility." : 
-                            (strlen($title) > 60 ? "Shorten title to 50-60 characters to avoid truncation in search results." : null),
-                'manual_prompt' => "Adjust title length to 50-60 characters."
+                'ai_prompt' => strlen($title) < 50 ? 'Extend title to 50-60 characters for better search visibility.' :
+                            (strlen($title) > 60 ? 'Shorten title to 50-60 characters to avoid truncation in search results.' : null),
+                'manual_prompt' => 'Adjust title length to 50-60 characters.',
             ],
             [
                 'id' => 'title_sentiment_positive',
@@ -504,10 +511,10 @@ class SeoAnalyzer
                 'severity' => 'optimization',
                 'current_val' => ucfirst($titleSentiment['label'] ?? 'neutral'),
                 'goal_val' => 'Positive & benefit-focused',
-                'actionable_tip' => "Use positive, value-driven language to emphasize the user benefit of reading.",
+                'actionable_tip' => 'Use positive, value-driven language to emphasize the user benefit of reading.',
                 'target_canvas_id' => 'seo-loc-title',
-                'ai_prompt' => $titleSentiment['label'] !== 'positive' ? "Rewrite title with more positive, benefit-oriented language." : null,
-                'manual_prompt' => "Make your title more positive and benefit-focused."
+                'ai_prompt' => $titleSentiment['label'] !== 'positive' ? 'Rewrite title with more positive, benefit-oriented language.' : null,
+                'manual_prompt' => 'Make your title more positive and benefit-focused.',
             ],
         ];
 
@@ -520,12 +527,12 @@ class SeoAnalyzer
                 'pass' => count($h2List) >= 2,
                 'weight' => 4,
                 'severity' => 'warning',
-                'current_val' => count($h2List) . ' H2 headings',
+                'current_val' => count($h2List).' H2 headings',
                 'goal_val' => '2+ H2 headings',
-                'actionable_tip' => "Break content into scannable subtopics using at least two H2 headings.",
+                'actionable_tip' => 'Break content into scannable subtopics using at least two H2 headings.',
                 'target_canvas_id' => 'seo-loc-kw_in_subheadings',
-                'ai_prompt' => count($h2List) < 2 ? "Add more H2 and H3 subheadings to improve content structure." : null,
-                'manual_prompt' => "Create a clear hierarchical structure with H2 and H3 headings."
+                'ai_prompt' => count($h2List) < 2 ? 'Add more H2 and H3 subheadings to improve content structure.' : null,
+                'manual_prompt' => 'Create a clear hierarchical structure with H2 and H3 headings.',
             ],
             [
                 'id' => 'short_paragraphs',
@@ -534,12 +541,12 @@ class SeoAnalyzer
                 'pass' => $longParagraphsCount === 0 && $totalParagraphs >= 3,
                 'weight' => 4,
                 'severity' => 'warning',
-                'current_val' => $longParagraphsCount . ' bulky paragraphs (>100 words)',
+                'current_val' => $longParagraphsCount.' bulky paragraphs (>100 words)',
                 'goal_val' => '0 bulky paragraphs',
-                'actionable_tip' => "Split long paragraphs into 2-3 sentence chunks to keep mobile readers engaged.",
+                'actionable_tip' => 'Split long paragraphs into 2-3 sentence chunks to keep mobile readers engaged.',
                 'target_canvas_id' => 'seo-loc-kw_in_intro',
-                'ai_prompt' => $longParagraphsCount > 0 ? "Break long paragraphs into shorter, more digestible chunks." : null,
-                'manual_prompt' => "Split long paragraphs into shorter ones (aim for 60-100 words each)."
+                'ai_prompt' => $longParagraphsCount > 0 ? 'Break long paragraphs into shorter, more digestible chunks.' : null,
+                'manual_prompt' => 'Split long paragraphs into shorter ones (aim for 60-100 words each).',
             ],
             [
                 'id' => 'sentence_length',
@@ -548,12 +555,12 @@ class SeoAnalyzer
                 'pass' => $longSentencesPct <= 15,
                 'weight' => 4,
                 'severity' => 'warning',
-                'current_val' => $longSentencesPct . '% sentences >20 words',
+                'current_val' => $longSentencesPct.'% sentences >20 words',
                 'goal_val' => '< 15% long sentences',
-                'actionable_tip' => "Split run-on sentences into shorter, punchy statements for higher readability scores.",
+                'actionable_tip' => 'Split run-on sentences into shorter, punchy statements for higher readability scores.',
                 'target_canvas_id' => 'seo-loc-kw_in_intro',
-                'ai_prompt' => $longSentencesPct > 15 ? "Break long sentences into shorter, clearer statements." : null,
-                'manual_prompt' => "Split long sentences into shorter ones for better readability."
+                'ai_prompt' => $longSentencesPct > 15 ? 'Break long sentences into shorter, clearer statements.' : null,
+                'manual_prompt' => 'Split long sentences into shorter ones for better readability.',
             ],
             [
                 'id' => 'rich_media',
@@ -562,13 +569,13 @@ class SeoAnalyzer
                 'pass' => $totalImages >= 2 || (strpos($htmlContent, '<table') !== false) || (strpos($htmlContent, '<video') !== false),
                 'weight' => 3,
                 'severity' => 'optimization',
-                'current_val' => $totalImages . ' images, ' . (strpos($htmlContent, '<table') !== false ? 'Table present' : 'No table'),
+                'current_val' => $totalImages.' images, '.(strpos($htmlContent, '<table') !== false ? 'Table present' : 'No table'),
                 'goal_val' => 'Images, table, or comparison card',
-                'actionable_tip' => "Add an informative comparison table, chart, or image to break up text and increase time-on-page.",
+                'actionable_tip' => 'Add an informative comparison table, chart, or image to break up text and increase time-on-page.',
                 'target_canvas_id' => 'seo-loc-kw_in_subheadings',
-                'ai_prompt' => $totalImages < 2 && !(strpos($htmlContent, '<table') !== false) && !(strpos($htmlContent, '<video') !== false) ? 
-                            "Add relevant images, tables, or videos to enhance engagement." : null,
-                'manual_prompt' => "Include images, videos, tables, or other media to break up text."
+                'ai_prompt' => $totalImages < 2 && ! (strpos($htmlContent, '<table') !== false) && ! (strpos($htmlContent, '<video') !== false) ?
+                            'Add relevant images, tables, or videos to enhance engagement.' : null,
+                'manual_prompt' => 'Include images, videos, tables, or other media to break up text.',
             ],
         ];
 
@@ -581,13 +588,13 @@ class SeoAnalyzer
                 'pass' => $eEatScore >= 70,
                 'weight' => 5,
                 'severity' => 'warning',
-                'current_val' => $eEatScore . '/100',
+                'current_val' => $eEatScore.'/100',
                 'goal_val' => '70+ E-E-A-T score',
-                'actionable_tip' => "Add first-hand experience observations, author bio, research data, and case study evidence.",
+                'actionable_tip' => 'Add first-hand experience observations, author bio, research data, and case study evidence.',
                 'target_canvas_id' => 'seo-loc-external_links',
-                'ai_prompt' => $eEatScore < 70 ? 
-                            "Add author credentials, cite authoritative sources, include case studies, and show transparency." : null,
-                'manual_prompt' => "Enprove E-E-A-T by adding author bios, credentials, citations, and transparent information."
+                'ai_prompt' => $eEatScore < 70 ?
+                            'Add author credentials, cite authoritative sources, include case studies, and show transparency.' : null,
+                'manual_prompt' => 'Enprove E-E-A-T by adding author bios, credentials, citations, and transparent information.',
             ],
             [
                 'id' => 'voice_search_optimized',
@@ -596,13 +603,13 @@ class SeoAnalyzer
                 'pass' => $voiceSearchScore >= 60,
                 'weight' => 4,
                 'severity' => 'optimization',
-                'current_val' => $voiceSearchScore . '%',
+                'current_val' => $voiceSearchScore.'%',
                 'goal_val' => '60%+ voice readiness',
-                'actionable_tip' => "Add an FAQ section with direct conversational answers to match voice assistant queries.",
+                'actionable_tip' => 'Add an FAQ section with direct conversational answers to match voice assistant queries.',
                 'target_canvas_id' => 'seo-loc-external_links',
-                'ai_prompt' => $voiceSearchScore < 60 ? 
-                            "Add FAQ sections, conversational language, and direct answers to common questions." : null,
-                'manual_prompt' => "Optimize for voice search by adding Q&A sections and natural language patterns."
+                'ai_prompt' => $voiceSearchScore < 60 ?
+                            'Add FAQ sections, conversational language, and direct answers to common questions.' : null,
+                'manual_prompt' => 'Optimize for voice search by adding Q&A sections and natural language patterns.',
             ],
             [
                 'id' => 'featured_snippet_potential',
@@ -611,13 +618,13 @@ class SeoAnalyzer
                 'pass' => $featuredSnippetScore >= 50,
                 'weight' => 3,
                 'severity' => 'optimization',
-                'current_val' => $featuredSnippetScore . '%',
+                'current_val' => $featuredSnippetScore.'%',
                 'goal_val' => '50%+ position-zero readiness',
                 'actionable_tip' => "Add a concise 40-50 word direct definition box or numbered list targeting Google's Position Zero.",
                 'target_canvas_id' => 'seo-loc-kw_in_intro',
-                'ai_prompt' => $featuredSnippetScore < 50 ? 
-                            "Add direct answers, lists, tables, or definitions that target featured snippet opportunities." : null,
-                'manual_prompt' => "Structure content to target featured snippets with clear, concise answers."
+                'ai_prompt' => $featuredSnippetScore < 50 ?
+                            'Add direct answers, lists, tables, or definitions that target featured snippet opportunities.' : null,
+                'manual_prompt' => 'Structure content to target featured snippets with clear, concise answers.',
             ],
             [
                 'id' => 'content_freshness',
@@ -626,19 +633,19 @@ class SeoAnalyzer
                 'pass' => $contentFreshness >= 60,
                 'weight' => 3,
                 'severity' => 'optimization',
-                'current_val' => $contentFreshness . '%',
+                'current_val' => $contentFreshness.'%',
                 'goal_val' => '60%+ freshness signals',
-                'actionable_tip' => "Include 2026 data points, recent case studies, or contemporary statistics.",
+                'actionable_tip' => 'Include 2026 data points, recent case studies, or contemporary statistics.',
                 'target_canvas_id' => 'seo-loc-external_links',
-                'ai_prompt' => $contentFreshness < 60 ? 
-                            "Update statistics, add recent examples, and refresh outdated information." : null,
-                'manual_prompt' => "Update content with recent data, examples, and current information."
+                'ai_prompt' => $contentFreshness < 60 ?
+                            'Update statistics, add recent examples, and refresh outdated information.' : null,
+                'manual_prompt' => 'Update content with recent data, examples, and current information.',
             ],
         ];
 
         // PILLAR 6: Google AI Overviews & GEO (Generative Engine Optimization) (15 Points Max)
         $geoMetrics = $this->calculateGeoMetrics($htmlContent, $h2List, $plainText, $words);
-        
+
         $geoChecks = [
             [
                 'id' => 'geo_direct_answer',
@@ -649,10 +656,10 @@ class SeoAnalyzer
                 'severity' => 'critical',
                 'current_val' => $geoMetrics['has_direct_answer'] ? 'Direct snippet present' : 'Missing direct definition',
                 'goal_val' => '40-60 word direct definition',
-                'actionable_tip' => "Place a concise 40-60 word direct answer or definition immediately below your first H2 question heading. Google AI Overviews (SGE) extract this exact structure.",
+                'actionable_tip' => 'Place a concise 40-60 word direct answer or definition immediately below your first H2 question heading. Google AI Overviews (SGE) extract this exact structure.',
                 'target_canvas_id' => 'seo-loc-geo_direct_answer',
-                'ai_prompt' => "Draft a concise 40-50 word direct definition answer box satisfying Google AI Overview snippet guidelines for the primary question.",
-                'manual_prompt' => "Add a 40-60 word direct definition or answer right below your first major H2 heading."
+                'ai_prompt' => 'Draft a concise 40-50 word direct definition answer box satisfying Google AI Overview snippet guidelines for the primary question.',
+                'manual_prompt' => 'Add a 40-60 word direct definition or answer right below your first major H2 heading.',
             ],
             [
                 'id' => 'geo_data_points',
@@ -661,12 +668,12 @@ class SeoAnalyzer
                 'pass' => $geoMetrics['data_point_count'] >= 3,
                 'weight' => 3,
                 'severity' => 'warning',
-                'current_val' => $geoMetrics['data_point_count'] . ' data points/metrics',
+                'current_val' => $geoMetrics['data_point_count'].' data points/metrics',
                 'goal_val' => '3+ statistics or metrics',
-                'actionable_tip' => "Include at least 3 verifiable metrics, statistics, percentages, or research benchmarks to prove unique information gain to AI crawlers.",
+                'actionable_tip' => 'Include at least 3 verifiable metrics, statistics, percentages, or research benchmarks to prove unique information gain to AI crawlers.',
                 'target_canvas_id' => 'seo-loc-kw_in_intro',
-                'ai_prompt' => "Add 2-3 credible statistics, benchmark percentages, or research data points into the content body.",
-                'manual_prompt' => "Incorporate specific statistics, percentages, and metrics to demonstrate original research."
+                'ai_prompt' => 'Add 2-3 credible statistics, benchmark percentages, or research data points into the content body.',
+                'manual_prompt' => 'Incorporate specific statistics, percentages, and metrics to demonstrate original research.',
             ],
             [
                 'id' => 'geo_structured_synthesis',
@@ -677,10 +684,10 @@ class SeoAnalyzer
                 'severity' => 'warning',
                 'current_val' => $geoMetrics['has_structured_table'] ? 'Table present' : 'No comparison table',
                 'goal_val' => '1+ comparison table',
-                'actionable_tip' => "Insert a comparison table or structured feature matrix. AI search engines (Gemini & Perplexity) heavily prioritize tables for answer snapshots.",
+                'actionable_tip' => 'Insert a comparison table or structured feature matrix. AI search engines (Gemini & Perplexity) heavily prioritize tables for answer snapshots.',
                 'target_canvas_id' => 'seo-loc-geo_structured_synthesis',
-                'ai_prompt' => "Generate a clean HTML comparison table summarizing the core features, options, or pros/cons discussed.",
-                'manual_prompt' => "Add an HTML table comparing features, options, or metrics."
+                'ai_prompt' => 'Generate a clean HTML comparison table summarizing the core features, options, or pros/cons discussed.',
+                'manual_prompt' => 'Add an HTML table comparing features, options, or metrics.',
             ],
             [
                 'id' => 'geo_paa_questions',
@@ -689,12 +696,12 @@ class SeoAnalyzer
                 'pass' => $geoMetrics['paa_question_count'] >= 2,
                 'weight' => 3,
                 'severity' => 'optimization',
-                'current_val' => $geoMetrics['paa_question_count'] . ' question headings',
+                'current_val' => $geoMetrics['paa_question_count'].' question headings',
                 'goal_val' => '2+ question headings',
                 'actionable_tip' => "Include at least 2 conversational question subheadings (e.g. 'How does...', 'What is the best...') to match Google People Also Ask queries.",
                 'target_canvas_id' => 'seo-loc-kw_in_subheadings',
-                'ai_prompt' => "Add 2 People Also Ask (PAA) question headings with direct answers.",
-                'manual_prompt' => "Structure subheadings as common search questions (e.g., 'How do I...', 'What is...')."
+                'ai_prompt' => 'Add 2 People Also Ask (PAA) question headings with direct answers.',
+                'manual_prompt' => "Structure subheadings as common search questions (e.g., 'How do I...', 'What is...').",
             ],
             [
                 'id' => 'geo_authoritative_quotes',
@@ -705,10 +712,10 @@ class SeoAnalyzer
                 'severity' => 'optimization',
                 'current_val' => $geoMetrics['has_expert_quote'] ? 'Attribution found' : '0 expert quotes',
                 'goal_val' => '1+ expert quote or study citation',
-                'actionable_tip' => "Include at least one authoritative quote, expert statement, or study citation in blockquote format to establish thought leadership.",
+                'actionable_tip' => 'Include at least one authoritative quote, expert statement, or study citation in blockquote format to establish thought leadership.',
                 'target_canvas_id' => 'seo-loc-external_links',
-                'ai_prompt' => "Add an authoritative quote or expert statement citing research or industry leaders.",
-                'manual_prompt' => "Add a blockquote containing an expert quote or industry authority insight."
+                'ai_prompt' => 'Add an authoritative quote or expert statement citing research or industry leaders.',
+                'manual_prompt' => 'Add a blockquote containing an expert quote or industry authority insight.',
             ],
         ];
 
@@ -724,13 +731,13 @@ class SeoAnalyzer
                 'pass' => $competitiveGap['score'] >= 70,
                 'weight' => 4,
                 'severity' => 'warning',
-                'current_val' => $competitiveGap['score'] . '% coverage',
+                'current_val' => $competitiveGap['score'].'% coverage',
                 'goal_val' => '70%+ depth score',
-                'actionable_tip' => !empty($competitiveGap['missing_topics']) ? "Cover competitor topic gaps: " . implode(', ', array_slice($competitiveGap['missing_topics'], 0, 3)) : "Cover key subtopics in your industry.",
+                'actionable_tip' => ! empty($competitiveGap['missing_topics']) ? 'Cover competitor topic gaps: '.implode(', ', array_slice($competitiveGap['missing_topics'], 0, 3)) : 'Cover key subtopics in your industry.',
                 'target_canvas_id' => 'seo-loc-kw_in_subheadings',
-                'ai_prompt' => $competitiveGap['score'] < 70 ? 
-                            "Cover missing subtopics: " . implode(', ', $competitiveGap['missing_topics']) : null,
-                'manual_prompt' => "Research top-ranking pages and cover subtopics they address that you missed."
+                'ai_prompt' => $competitiveGap['score'] < 70 ?
+                            'Cover missing subtopics: '.implode(', ', $competitiveGap['missing_topics']) : null,
+                'manual_prompt' => 'Research top-ranking pages and cover subtopics they address that you missed.',
             ],
             [
                 'id' => 'semantic_depth',
@@ -739,27 +746,27 @@ class SeoAnalyzer
                 'pass' => $kw ? $kwData['semantic_variations_found'] >= 5 : true,
                 'weight' => 3,
                 'severity' => 'optimization',
-                'current_val' => $kwData['semantic_variations_found'] . ' LSI variations',
+                'current_val' => $kwData['semantic_variations_found'].' LSI variations',
                 'goal_val' => '5+ semantic variations',
-                'actionable_tip' => "Include natural LSI synonyms and related semantic phrases throughout the document.",
+                'actionable_tip' => 'Include natural LSI synonyms and related semantic phrases throughout the document.',
                 'target_canvas_id' => 'seo-loc-kw_in_intro',
-                'ai_prompt' => $kw && $kwData['semantic_variations_found'] < 5 ? 
-                            "Use related terms and LSI keywords to enhance topical relevance." : null,
-                'manual_prompt' => "Include related terms, synonyms, and LSI keywords throughout your content."
+                'ai_prompt' => $kw && $kwData['semantic_variations_found'] < 5 ?
+                            'Use related terms and LSI keywords to enhance topical relevance.' : null,
+                'manual_prompt' => 'Include related terms, synonyms, and LSI keywords throughout your content.',
             ],
             [
                 'id' => 'schema_markup',
                 'title' => 'Schema Markup Readiness',
-                'desc' => $schemaData['validation']['is_valid'] ? 'Verified Schema.org JSON-LD generated (' . $schemaData['recommended_type'] . ').' : 'Content includes structured data (Schema.org) for rich snippets.',
+                'desc' => $schemaData['validation']['is_valid'] ? 'Verified Schema.org JSON-LD generated ('.$schemaData['recommended_type'].').' : 'Content includes structured data (Schema.org) for rich snippets.',
                 'pass' => $schemaData['validation']['is_valid'] || strpos($htmlContent, 'application/ld+json') !== false || strpos($htmlContent, 'schema.org') !== false,
                 'weight' => 3,
                 'severity' => 'optimization',
-                'current_val' => $schemaData['recommended_type'] . ' Ready',
+                'current_val' => $schemaData['recommended_type'].' Ready',
                 'goal_val' => 'Valid JSON-LD schema',
-                'actionable_tip' => "Open the Schema Studio to view, copy, or inject your auto-generated Schema.org JSON-LD markup.",
+                'actionable_tip' => 'Open the Schema Studio to view, copy, or inject your auto-generated Schema.org JSON-LD markup.',
                 'target_canvas_id' => 'seo-loc-meta',
                 'ai_prompt' => null,
-                'manual_prompt' => "Add or verify Schema.org JSON-LD markup for rich snippets."
+                'manual_prompt' => 'Add or verify Schema.org JSON-LD markup for rich snippets.',
             ],
         ];
 
@@ -782,14 +789,14 @@ class SeoAnalyzer
         $rawScore = $totalPossible > 0 ? ($totalEarned / $totalPossible) * 100 : 0;
 
         // Adjust score if no keyword provided (focus on general quality)
-        if (!$kw) {
+        if (! $kw) {
             $rawScore = max(30, min(85, round($rawScore * 0.85)));
         }
 
         $finalScore = (int) max(0, min(100, round($rawScore)));
 
         // Category pass counters
-        $countPassed = fn($arr) => count(array_filter($arr, fn($c) => $c['pass']));
+        $countPassed = fn ($arr) => count(array_filter($arr, fn ($c) => $c['pass']));
         $allRecommendations = $allChecks;
 
         // Generate offline color-coded SEO markup map with in-canvas recommendations
@@ -826,37 +833,37 @@ class SeoAnalyzer
             'rank_math' => [
                 'basic_seo' => [
                     'title' => 'Basic SEO',
-                    'score_label' => $countPassed($basicChecks) . '/' . count($basicChecks) . ' Passed',
+                    'score_label' => $countPassed($basicChecks).'/'.count($basicChecks).' Passed',
                     'checks' => $basicChecks,
                 ],
                 'additional_seo' => [
                     'title' => 'Additional SEO',
-                    'score_label' => $countPassed($additionalChecks) . '/' . count($additionalChecks) . ' Passed',
+                    'score_label' => $countPassed($additionalChecks).'/'.count($additionalChecks).' Passed',
                     'checks' => $additionalChecks,
                 ],
                 'title_readability' => [
                     'title' => 'Title Readability & CTR',
-                    'score_label' => $countPassed($titleChecks) . '/' . count($titleChecks) . ' Passed',
+                    'score_label' => $countPassed($titleChecks).'/'.count($titleChecks).' Passed',
                     'checks' => $titleChecks,
                 ],
                 'content_readability' => [
                     'title' => 'Content Readability',
-                    'score_label' => $countPassed($contentReadabilityChecks) . '/' . count($contentReadabilityChecks) . ' Passed',
+                    'score_label' => $countPassed($contentReadabilityChecks).'/'.count($contentReadabilityChecks).' Passed',
                     'checks' => $contentReadabilityChecks,
                 ],
                 'eeat_authority' => [
                     'title' => 'E-E-A-T & Authority',
-                    'score_label' => $countPassed($eatChecks) . '/' . count($eatChecks) . ' Passed',
+                    'score_label' => $countPassed($eatChecks).'/'.count($eatChecks).' Passed',
                     'checks' => $eatChecks,
                 ],
                 'geo_ai_search' => [
                     'title' => 'AI Overviews & GEO Readiness',
-                    'score_label' => $countPassed($geoChecks) . '/' . count($geoChecks) . ' Passed',
+                    'score_label' => $countPassed($geoChecks).'/'.count($geoChecks).' Passed',
                     'checks' => $geoChecks,
                 ],
                 'technical_competitive' => [
                     'title' => 'Technical & Competitive Edge',
-                    'score_label' => $countPassed($technicalChecks) . '/' . count($technicalChecks) . ' Passed',
+                    'score_label' => $countPassed($technicalChecks).'/'.count($technicalChecks).' Passed',
                     'checks' => $technicalChecks,
                 ],
             ],
@@ -892,10 +899,10 @@ class SeoAnalyzer
 
     /**
      * Calculate Gunning Fog Index
-     * 
-     * @param int $wordCount Total words
-     * @param int $sentenceCount Total sentences
-     * @param array $paragraphs Paragraph text array
+     *
+     * @param  int  $wordCount  Total words
+     * @param  int  $sentenceCount  Total sentences
+     * @param  array  $paragraphs  Paragraph text array
      * @return float Gunning Fog score (grade level)
      */
     protected function calculateGunningFog(int $wordCount, int $sentenceCount, array $paragraphs): float
@@ -905,7 +912,7 @@ class SeoAnalyzer
         }
 
         $wordsPerSentence = $wordCount / $sentenceCount;
-        
+
         // Count complex words (3+ syllables)
         $complexWords = 0;
         $words = preg_split('/\s+/u', implode(' ', $paragraphs), -1, PREG_SPLIT_NO_EMPTY);
@@ -914,17 +921,17 @@ class SeoAnalyzer
                 $complexWords++;
             }
         }
-        
+
         $complexWordRatio = ($complexWords / max(1, $wordCount)) * 100;
-        
+
         return 0.4 * ($wordsPerSentence + $complexWordRatio);
     }
 
     /**
      * Calculate SMOG Index
-     * 
-     * @param int $sentenceCount Total sentences
-     * @param array $paragraphs Paragraph text array
+     *
+     * @param  int  $sentenceCount  Total sentences
+     * @param  array  $paragraphs  Paragraph text array
      * @return float SMOG index (grade level)
      */
     protected function calculateSMOG(int $sentenceCount, array $paragraphs): float
@@ -937,7 +944,7 @@ class SeoAnalyzer
         $polysyllabicCount = 0;
         $fullText = implode(' ', $paragraphs);
         $words = preg_split('/\s+/u', $fullText, -1, PREG_SPLIT_NO_EMPTY);
-        
+
         foreach ($words as $word) {
             if ($this->countSyllables(preg_replace('/[^a-zA-Z]/', '', $word)) >= 3) {
                 $polysyllabicCount++;
@@ -946,16 +953,16 @@ class SeoAnalyzer
 
         // SMOG formula: 1.0430 * sqrt(polysyllabic_count * (30 / sentence_count)) + 3.1291
         $smog = 1.0430 * sqrt($polysyllabicCount * (30 / max(1, $sentenceCount))) + 3.1291;
-        
+
         return max(0, $smog);
     }
 
     /**
      * Calculate Automated Readability Index (ARI)
-     * 
-     * @param int $wordCount Total words
-     * @param int $sentenceCount Total sentences
-     * @param int $syllableCount Total syllables
+     *
+     * @param  int  $wordCount  Total words
+     * @param  int  $sentenceCount  Total sentences
+     * @param  int  $syllableCount  Total syllables
      * @return float ARI score (grade level)
      */
     protected function calculateARI(int $wordCount, int $sentenceCount, int $syllableCount): float
@@ -968,18 +975,18 @@ class SeoAnalyzer
         // Simplified: approximate characters from word count
         $avgCharsPerWord = 4.5; // Average English word length
         $totalCharacters = $wordCount * $avgCharsPerWord;
-        
+
         $ari = 4.71 * ($totalCharacters / $wordCount) + 0.5 * ($wordCount / $sentenceCount) - 21.43;
-        
+
         return max(0, $ari);
     }
 
     /**
      * Calculate Coleman-Liau Index
-     * 
-     * @param int $wordCount Total words
-     * @param int $sentenceCount Total sentences
-     * @param string $htmlContent HTML content
+     *
+     * @param  int  $wordCount  Total words
+     * @param  int  $sentenceCount  Total sentences
+     * @param  string  $htmlContent  HTML content
      * @return float Coleman-Liau index (grade level)
      */
     protected function calculateColemanLiau(int $wordCount, int $sentenceCount, string $htmlContent): float
@@ -991,19 +998,19 @@ class SeoAnalyzer
         // Count letters and sentences
         $letters = preg_match_all('/[a-zA-Z]/', $htmlContent, $matches) ? count($matches[0]) : 0;
         $sentences = preg_match_all('/[.!?]+/', $htmlContent, $matches) ? count($matches[0]) : 0;
-        
+
         $L = ($letters / max(1, $wordCount)) * 100; // Average letters per 100 words
         $S = ($sentences / max(1, $wordCount)) * 100; // Average sentences per 100 words
-        
+
         $cli = 0.0588 * $L - 0.296 * $S - 15.8;
-        
+
         return max(0, $cli);
     }
 
     /**
      * Count syllables in a word (simplified)
-     * 
-     * @param string $word Word to analyze
+     *
+     * @param  string  $word  Word to analyze
      * @return int Estimated syllable count
      */
 
@@ -1012,7 +1019,9 @@ class SeoAnalyzer
      */
     protected function generateMarkedHtml(string $htmlContent, ?string $targetKeyword, array $checks = [], array $kwData = [], array $metrics = []): string
     {
-        if (empty(trim($htmlContent))) return $htmlContent;
+        if (empty(trim($htmlContent))) {
+            return $htmlContent;
+        }
 
         $marked = $htmlContent;
 
@@ -1027,7 +1036,7 @@ class SeoAnalyzer
         // 1. Highlight Focus Keyword Matches (Green)
         if ($targetKeyword) {
             $kw = preg_quote(trim($targetKeyword), '/');
-            $marked = preg_replace("/\b({$kw})\b(?![^<]*>)/i", '<mark style="background-color: rgba(16, 185, 129, 0.35); border-bottom: 2px solid #10b981; color: inherit; padding: 1px 5px; border-radius: 4px; font-weight: 600;" title="Focus Keyword: ' . $kwClean . '">$1</mark>', $marked);
+            $marked = preg_replace("/\b({$kw})\b(?![^<]*>)/i", '<mark style="background-color: rgba(16, 185, 129, 0.35); border-bottom: 2px solid #10b981; color: inherit; padding: 1px 5px; border-radius: 4px; font-weight: 600;" title="Focus Keyword: '.$kwClean.'">$1</mark>', $marked);
         }
 
         // 2. Highlight E-E-A-T & Authority Signals (Blue)
@@ -1042,20 +1051,20 @@ class SeoAnalyzer
         foreach ($sentences as $s) {
             $sText = trim($s);
             $wordCount = count(preg_split('/\s+/u', $sText, -1, PREG_SPLIT_NO_EMPTY));
-            
+
             if ($wordCount > 25 && strlen($sText) > 70) {
                 $escaped = preg_quote($sText, '/');
-                $marked = preg_replace('/' . $escaped . '(?![^<]*>)/i', '<mark style="background-color: rgba(239, 68, 68, 0.22); border-bottom: 2px dashed #ef4444; color: inherit; padding: 1px 4px; border-radius: 4px;" title="Run-on Sentence (' . $wordCount . ' words) — Split into shorter sentences">$0</mark>', $marked, 1);
+                $marked = preg_replace('/'.$escaped.'(?![^<]*>)/i', '<mark style="background-color: rgba(239, 68, 68, 0.22); border-bottom: 2px dashed #ef4444; color: inherit; padding: 1px 4px; border-radius: 4px;" title="Run-on Sentence ('.$wordCount.' words) — Split into shorter sentences">$0</mark>', $marked, 1);
             }
         }
-        
+
         // 4. Highlight Long Paragraphs (Yellow/Amber left-border for > 100 words)
         if (preg_match_all('/<p[^>]*>(.*?)<\/p>/si', $marked, $pMatches)) {
             foreach ($pMatches[0] as $idx => $fullP) {
                 $pText = strip_tags($pMatches[1][$idx]);
                 $wordCount = count(preg_split('/\s+/u', trim($pText), -1, PREG_SPLIT_NO_EMPTY));
                 if ($wordCount > 100) {
-                    $markedP = str_replace('<p', '<p style="background-color: rgba(245, 158, 11, 0.12); border-left: 3px solid #f59e0b; padding-left: 12px; border-radius: 0 8px 8px 0; margin-bottom: 1rem;" title="Bulky Paragraph (' . $wordCount . ' words) — Split for better mobile scannability"', $fullP);
+                    $markedP = str_replace('<p', '<p style="background-color: rgba(245, 158, 11, 0.12); border-left: 3px solid #f59e0b; padding-left: 12px; border-radius: 0 8px 8px 0; margin-bottom: 1rem;" title="Bulky Paragraph ('.$wordCount.' words) — Split for better mobile scannability"', $fullP);
                     $marked = str_replace($fullP, $markedP, $marked);
                 }
             }
@@ -1063,52 +1072,52 @@ class SeoAnalyzer
 
         // 5. IN-CANVAS RECOMMENDATION BANNERS FOR MISSING ITEMS (Color-Coded Callouts)
         // A. Critical Issue: Focus Keyword Missing in Introduction Hook
-        $inIntro = !empty($kwData['in_first_10_pct']);
-        if ($targetKeyword && !$inIntro) {
-            $introCallout = '<div class="seo-canvas-callout seo-callout-critical" id="seo-loc-kw_in_intro" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); border-left: 5px solid #ef4444; border-radius: 10px; padding: 10px 14px; margin: 14px 0; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11.5px; color: #fca5a5; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.12);"><div style="display: flex; align-items: center; gap: 8px;"><span style="background: #ef4444; color: #ffffff; border-radius: 4px; padding: 2px 7px; font-size: 9px; font-weight: 800; letter-spacing: 0.5px; font-family: monospace;">🔴 CRITICAL SEO</span><span><strong>Focus Keyword Missing in Intro:</strong> Primary keyword <em>&ldquo;' . $kwClean . '&rdquo;</em> does not appear in the opening paragraph. Insert it within the first 1-2 sentences.</span></div><span style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 6px; font-size: 10px; font-family: monospace; white-space: nowrap; color: #fff;">Line 1 Hook</span></div>';
+        $inIntro = ! empty($kwData['in_first_10_pct']);
+        if ($targetKeyword && ! $inIntro) {
+            $introCallout = '<div class="seo-canvas-callout seo-callout-critical" id="seo-loc-kw_in_intro" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); border-left: 5px solid #ef4444; border-radius: 10px; padding: 10px 14px; margin: 14px 0; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11.5px; color: #fca5a5; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.12);"><div style="display: flex; align-items: center; gap: 8px;"><span style="background: #ef4444; color: #ffffff; border-radius: 4px; padding: 2px 7px; font-size: 9px; font-weight: 800; letter-spacing: 0.5px; font-family: monospace;">🔴 CRITICAL SEO</span><span><strong>Focus Keyword Missing in Intro:</strong> Primary keyword <em>&ldquo;'.$kwClean.'&rdquo;</em> does not appear in the opening paragraph. Insert it within the first 1-2 sentences.</span></div><span style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 6px; font-size: 10px; font-family: monospace; white-space: nowrap; color: #fff;">Line 1 Hook</span></div>';
 
             if (preg_match('/<p[^>]*>/i', $marked)) {
-                $marked = preg_replace('/(<p[^>]*>)/i', $introCallout . '$1', $marked, 1);
+                $marked = preg_replace('/(<p[^>]*>)/i', $introCallout.'$1', $marked, 1);
             } else {
-                $marked = $introCallout . $marked;
+                $marked = $introCallout.$marked;
             }
         }
 
         // B. Warning Issue: Focus Keyword Missing in Subheadings (H2, H3)
-        $inSubheadings = !empty($kwData['in_subheadings']);
-        if ($targetKeyword && !$inSubheadings) {
-            $headingCallout = '<div class="seo-canvas-callout seo-callout-warning" id="seo-loc-kw_in_subheadings" style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-left: 5px solid #f59e0b; border-radius: 10px; padding: 9px 14px; margin: 14px 0; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11.5px; color: #fcd34d; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.12);"><div style="display: flex; align-items: center; gap: 8px;"><span style="background: #f59e0b; color: #000000; border-radius: 4px; padding: 2px 7px; font-size: 9px; font-weight: 800; letter-spacing: 0.5px; font-family: monospace;">🟡 SUBHEADING TIP</span><span><strong>Missing Keyword in Headings:</strong> Include focus keyword <em>&ldquo;' . $kwClean . '&rdquo;</em> in at least one H2 or H3 heading for topical authority.</span></div><span style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 6px; font-size: 10px; font-family: monospace; white-space: nowrap; color: #fff;">H2 Structure</span></div>';
+        $inSubheadings = ! empty($kwData['in_subheadings']);
+        if ($targetKeyword && ! $inSubheadings) {
+            $headingCallout = '<div class="seo-canvas-callout seo-callout-warning" id="seo-loc-kw_in_subheadings" style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-left: 5px solid #f59e0b; border-radius: 10px; padding: 9px 14px; margin: 14px 0; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11.5px; color: #fcd34d; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.12);"><div style="display: flex; align-items: center; gap: 8px;"><span style="background: #f59e0b; color: #000000; border-radius: 4px; padding: 2px 7px; font-size: 9px; font-weight: 800; letter-spacing: 0.5px; font-family: monospace;">🟡 SUBHEADING TIP</span><span><strong>Missing Keyword in Headings:</strong> Include focus keyword <em>&ldquo;'.$kwClean.'&rdquo;</em> in at least one H2 or H3 heading for topical authority.</span></div><span style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 6px; font-size: 10px; font-family: monospace; white-space: nowrap; color: #fff;">H2 Structure</span></div>';
 
             if (preg_match('/<h2[^>]*>/i', $marked)) {
-                $marked = preg_replace('/(<h2[^>]*>)/i', $headingCallout . '$1', $marked, 1);
+                $marked = preg_replace('/(<h2[^>]*>)/i', $headingCallout.'$1', $marked, 1);
             }
         }
 
         // C. Warning Issue: Missing External Citations
         $extLinks = $metrics['external_links'] ?? 0;
         if ($extLinks < 2) {
-            $citationCallout = '<div class="seo-canvas-callout seo-callout-warning" id="seo-loc-external_links" style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.35); border-left: 5px solid #3b82f6; border-radius: 10px; padding: 9px 14px; margin: 14px 0; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11.5px; color: #93c5fd; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.12);"><div style="display: flex; align-items: center; gap: 8px;"><span style="background: #3b82f6; color: #ffffff; border-radius: 4px; padding: 2px 7px; font-size: 9px; font-weight: 800; letter-spacing: 0.5px; font-family: monospace;">🔵 AUTHORITY CITATION</span><span><strong>Outbound Citations Missing (' . $extLinks . '/2):</strong> Add 2+ authoritative external outbound links to reputable research, papers, or industry sources.</span></div><span style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 6px; font-size: 10px; font-family: monospace; white-space: nowrap; color: #fff;">E-E-A-T Signal</span></div>';
+            $citationCallout = '<div class="seo-canvas-callout seo-callout-warning" id="seo-loc-external_links" style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.35); border-left: 5px solid #3b82f6; border-radius: 10px; padding: 9px 14px; margin: 14px 0; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11.5px; color: #93c5fd; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.12);"><div style="display: flex; align-items: center; gap: 8px;"><span style="background: #3b82f6; color: #ffffff; border-radius: 4px; padding: 2px 7px; font-size: 9px; font-weight: 800; letter-spacing: 0.5px; font-family: monospace;">🔵 AUTHORITY CITATION</span><span><strong>Outbound Citations Missing ('.$extLinks.'/2):</strong> Add 2+ authoritative external outbound links to reputable research, papers, or industry sources.</span></div><span style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 6px; font-size: 10px; font-family: monospace; white-space: nowrap; color: #fff;">E-E-A-T Signal</span></div>';
 
             $lastPPos = strrpos($marked, '<p');
             if ($lastPPos !== false) {
-                $marked = substr_replace($marked, $citationCallout . '<p', $lastPPos, 2);
+                $marked = substr_replace($marked, $citationCallout.'<p', $lastPPos, 2);
             } else {
                 $marked .= $citationCallout;
             }
         }
 
         // D. Critical Issue: Missing Direct Answer Block for AI Overviews
-        if (isset($metrics['geo_direct_answer']) && !$metrics['geo_direct_answer']) {
+        if (isset($metrics['geo_direct_answer']) && ! $metrics['geo_direct_answer']) {
             $geoDirectCallout = '<div class="seo-canvas-callout seo-callout-critical" id="seo-loc-geo_direct_answer" style="background: rgba(168, 85, 247, 0.12); border: 1px solid rgba(168, 85, 247, 0.35); border-left: 5px solid #a855f7; border-radius: 10px; padding: 10px 14px; margin: 14px 0; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11.5px; color: #d8b4fe; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 4px 14px rgba(168, 85, 247, 0.12);"><div style="display: flex; align-items: center; gap: 8px;"><span style="background: #a855f7; color: #ffffff; border-radius: 4px; padding: 2px 7px; font-size: 9px; font-weight: 800; letter-spacing: 0.5px; font-family: monospace;">🟣 AI OVERVIEW</span><span><strong>Direct Answer Snippet Missing:</strong> Insert a 40-60 word definition or answer immediately below this heading for Google AI Overviews & Perplexity citation snippets.</span></div><span style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 6px; font-size: 10px; font-family: monospace; white-space: nowrap; color: #fff;">Position Zero</span></div>';
             if (preg_match('/<\/h2>/i', $marked)) {
-                $marked = preg_replace('/(<\/h2>)/i', '$1' . $geoDirectCallout, $marked, 1);
+                $marked = preg_replace('/(<\/h2>)/i', '$1'.$geoDirectCallout, $marked, 1);
             }
         }
 
         // E. Warning Issue: Missing Structured Table / Matrix
-        if (isset($metrics['geo_structured_synthesis']) && !$metrics['geo_structured_synthesis']) {
+        if (isset($metrics['geo_structured_synthesis']) && ! $metrics['geo_structured_synthesis']) {
             $geoTableCallout = '<div class="seo-canvas-callout seo-callout-warning" id="seo-loc-geo_structured_synthesis" style="background: rgba(168, 85, 247, 0.12); border: 1px solid rgba(168, 85, 247, 0.35); border-left: 5px solid #a855f7; border-radius: 10px; padding: 9px 14px; margin: 14px 0; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11.5px; color: #d8b4fe; display: flex; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 4px 14px rgba(168, 85, 247, 0.12);"><div style="display: flex; align-items: center; gap: 8px;"><span style="background: #a855f7; color: #ffffff; border-radius: 4px; padding: 2px 7px; font-size: 9px; font-weight: 800; letter-spacing: 0.5px; font-family: monospace;">📊 AI SYNTHESIS</span><span><strong>Comparison Table Gap:</strong> Insert an HTML comparison table or feature matrix. Google Gemini & Perplexity heavily prioritize structured tables for summary boxes.</span></div><span style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); padding: 2px 8px; border-radius: 6px; font-size: 10px; font-family: monospace; white-space: nowrap; color: #fff;">Comparison Table</span></div>';
-            
+
             // Insert after second h2 or before last paragraph
             if (preg_match_all('/<\/h2>/i', $marked, $h2m, PREG_OFFSET_CAPTURE) && count($h2m[0]) >= 2) {
                 $offset = $h2m[0][1][1] + strlen($h2m[0][1][0]);
@@ -1116,7 +1125,7 @@ class SeoAnalyzer
             } else {
                 $lastPPos = strrpos($marked, '<p');
                 if ($lastPPos !== false) {
-                    $marked = substr_replace($marked, $geoTableCallout . '<p', $lastPPos, 2);
+                    $marked = substr_replace($marked, $geoTableCallout.'<p', $lastPPos, 2);
                 } else {
                     $marked .= $geoTableCallout;
                 }
@@ -1125,20 +1134,20 @@ class SeoAnalyzer
 
         // 6. FLOATING IN-CANVAS COLOR SYSTEM LEGEND BAR (Fixed at the top of inspection mode)
         $legendBar = '<div class="seo-heatmap-legend-bar" style="background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 14px; padding: 10px 16px; margin-bottom: 20px; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.6); backdrop-filter: blur(16px);">'
-            . '<div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #ffffff;">'
-            . '<span style="font-size: 14px;">🎨</span>'
-            . '<span>In-Canvas SEO Inspection & Heatmap:</span>'
-            . '</div>'
-            . '<div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-size: 10.5px; font-weight: 600;">'
-            . '<span style="display: flex; align-items: center; gap: 5px; color: #fca5a5;"><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 6px #ef4444;"></span> 🔴 Critical Issue</span>'
-            . '<span style="display: flex; align-items: center; gap: 5px; color: #fcd34d;"><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 6px #f59e0b;"></span> 🟡 Warning / Structure</span>'
-            . '<span style="display: flex; align-items: center; gap: 5px; color: #93c5fd;"><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #3b82f6; box-shadow: 0 0 6px #3b82f6;"></span> 🔵 Authority & E-E-A-T</span>'
-            . '<span style="display: flex; align-items: center; gap: 5px; color: #d8b4fe;"><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #a855f7; box-shadow: 0 0 6px #a855f7;"></span> 🟣 AI Overview / GEO</span>'
-            . '<span style="display: flex; align-items: center; gap: 5px; color: #6ee7b7;"><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span> 🟢 Focus Keyword</span>'
-            . '</div>'
-            . '</div>';
+            .'<div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #ffffff;">'
+            .'<span style="font-size: 14px;">🎨</span>'
+            .'<span>In-Canvas SEO Inspection & Heatmap:</span>'
+            .'</div>'
+            .'<div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-size: 10.5px; font-weight: 600;">'
+            .'<span style="display: flex; align-items: center; gap: 5px; color: #fca5a5;"><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 6px #ef4444;"></span> 🔴 Critical Issue</span>'
+            .'<span style="display: flex; align-items: center; gap: 5px; color: #fcd34d;"><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 6px #f59e0b;"></span> 🟡 Warning / Structure</span>'
+            .'<span style="display: flex; align-items: center; gap: 5px; color: #93c5fd;"><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #3b82f6; box-shadow: 0 0 6px #3b82f6;"></span> 🔵 Authority & E-E-A-T</span>'
+            .'<span style="display: flex; align-items: center; gap: 5px; color: #d8b4fe;"><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #a855f7; box-shadow: 0 0 6px #a855f7;"></span> 🟣 AI Overview / GEO</span>'
+            .'<span style="display: flex; align-items: center; gap: 5px; color: #6ee7b7;"><span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span> 🟢 Focus Keyword</span>'
+            .'</div>'
+            .'</div>';
 
-        return $legendBar . $marked;
+        return $legendBar.$marked;
     }
 
     /**
@@ -1153,11 +1162,11 @@ class SeoAnalyzer
                 $snippetClean = trim(strip_tags($candidateSnippet));
                 $snippetWords = count(preg_split('/\s+/u', $snippetClean, -1, PREG_SPLIT_NO_EMPTY));
                 $lowerSnippet = mb_strtolower($snippetClean);
-                
+
                 // Disqualify conversational fluff
                 $isFluff = preg_match('/^(in this (article|guide|post|section)|welcome to|let\'s (dive|explore|take a look)|as we (know|see)|today we will)/i', $lowerSnippet);
-                
-                if ($snippetWords >= 28 && $snippetWords <= 75 && !$isFluff) {
+
+                if ($snippetWords >= 28 && $snippetWords <= 75 && ! $isFluff) {
                     $hasDirectAnswer = true;
                     break;
                 }
@@ -1171,7 +1180,7 @@ class SeoAnalyzer
         $dataPointCount = count($uniqueDataPoints);
 
         // 3. Structured comparison table or matrix
-        $hasStructuredTable = (strpos($htmlContent, '<table') !== false) || 
+        $hasStructuredTable = (strpos($htmlContent, '<table') !== false) ||
                               (strpos($htmlContent, 'class="hoa-comparison-table"') !== false) ||
                               (preg_match('/\|(.+)\|(.+)\|\n\|[-:\s|]+\|\n\|(.+)\|/m', $htmlContent) === 1);
 
@@ -1184,10 +1193,11 @@ class SeoAnalyzer
             $hLower = mb_strtolower($hClean);
             if (str_ends_with($hClean, '?')) {
                 $paaQuestionCount++;
+
                 continue;
             }
             foreach ($questionStarters as $starter) {
-                if (str_starts_with($hLower, $starter . ' ') || str_starts_with($hLower, $starter . '\'')) {
+                if (str_starts_with($hLower, $starter.' ') || str_starts_with($hLower, $starter.'\'')) {
                     $paaQuestionCount++;
                     break;
                 }
@@ -1218,7 +1228,7 @@ class SeoAnalyzer
         $totalWordsNorm = max(300, $totalWords);
 
         // 1. Target Primary Keyword
-        if (!empty($targetKeyword)) {
+        if (! empty($targetKeyword)) {
             $kwLower = mb_strtolower(trim($targetKeyword));
             $cnt = mb_substr_count($lowerText, $kwLower);
             $targetMin = max(2, (int) round(($totalWordsNorm / 350)));
@@ -1238,7 +1248,9 @@ class SeoAnalyzer
         // 2. User-Specified Secondary Keywords
         foreach ($secondaryKeywords as $secKw) {
             $secLower = mb_strtolower(trim($secKw));
-            if (empty($secLower) || isset($entities[$secLower])) continue;
+            if (empty($secLower) || isset($entities[$secLower])) {
+                continue;
+            }
             $cnt = mb_substr_count($lowerText, $secLower);
             $secMin = max(1, (int) round(($totalWordsNorm / 600)));
             $secMax = max(3, (int) round(($totalWordsNorm / 200)));
@@ -1256,7 +1268,7 @@ class SeoAnalyzer
 
         // 3. Automated NLP 2-Word and 3-Word Semantic Entity Extraction
         $skipList = array_merge($this->stopWords, $this->powerWords, [
-            'can', 'will', 'use', 'get', 'also', 'just', 'make', 'like', 'one', 'new', 'well', 'way', 'even', 'want'
+            'can', 'will', 'use', 'get', 'also', 'just', 'make', 'like', 'one', 'new', 'well', 'way', 'even', 'want',
         ]);
 
         $candidatePhrases = [];
@@ -1269,7 +1281,7 @@ class SeoAnalyzer
             if (strlen($w1) < 3 || strlen($w2) < 3 || in_array($w1, $skipList) || in_array($w2, $skipList)) {
                 continue;
             }
-            $phrase = $w1 . ' ' . $w2;
+            $phrase = $w1.' '.$w2;
             $candidatePhrases[$phrase] = ($candidatePhrases[$phrase] ?? 0) + 1;
         }
 
@@ -1281,7 +1293,7 @@ class SeoAnalyzer
             if (strlen($w1) < 3 || strlen($w3) < 3 || in_array($w1, $skipList) || in_array($w3, $skipList)) {
                 continue;
             }
-            $phrase = $w1 . ' ' . $w2 . ' ' . $w3;
+            $phrase = $w1.' '.$w2.' '.$w3;
             $candidatePhrases[$phrase] = ($candidatePhrases[$phrase] ?? 0) + 1;
         }
 
@@ -1291,9 +1303,13 @@ class SeoAnalyzer
         // Select top 8-12 prominent semantic entities
         $added = 0;
         foreach ($candidatePhrases as $phrase => $freq) {
-            if ($added >= 10) break;
-            if (isset($entities[$phrase]) || $freq < 1) continue;
-            
+            if ($added >= 10) {
+                break;
+            }
+            if (isset($entities[$phrase]) || $freq < 1) {
+                continue;
+            }
+
             $recMin = max(1, (int) round(($totalWordsNorm / 500)));
             $recMax = max(3, (int) round(($totalWordsNorm / 150)));
             $status = $freq < $recMin ? 'underused' : ($freq > $recMax ? 'overused' : 'optimal');
@@ -1329,51 +1345,51 @@ class SeoAnalyzer
 
     /**
      * Count semantic variations of keyword in text (simple stemming)
-     * 
-     * @param string $text Lowercase text to search
-     * @param string $keyword Lowercase keyword
+     *
+     * @param  string  $text  Lowercase text to search
+     * @param  string  $keyword  Lowercase keyword
      * @return int Number of semantic variations found
      */
     protected function countSemanticVariations(string $text, string $keyword): int
     {
-        if (!$keyword) {
+        if (! $keyword) {
             return 0;
         }
 
         $count = 0;
         $keywordLen = strlen($keyword);
-        
+
         // Check for exact match
         $count += mb_substr_count($text, $keyword);
-        
+
         // Check for common variations (plurals, verb forms)
         $variations = [
-            $keyword . 's',           // plural
-            $keyword . 'ing',         // present participle
-            $keyword . 'ed',          // past tense
-            $keyword . 'er',          // comparative agent
-            $keyword . 'est',         // superlative
+            $keyword.'s',           // plural
+            $keyword.'ing',         // present participle
+            $keyword.'ed',          // past tense
+            $keyword.'er',          // comparative agent
+            $keyword.'est',         // superlative
         ];
-        
+
         // Remove last character and add common endings
         if ($keywordLen > 3) {
             $stem = substr($keyword, 0, -1);
-            $variations[] = $stem . 'ing';
-            $variations[] = $stem . 'ed';
-            $variations[] = $stem . 's';
+            $variations[] = $stem.'ing';
+            $variations[] = $stem.'ed';
+            $variations[] = $stem.'s';
         }
-        
+
         foreach ($variations as $variation) {
             $count += mb_substr_count($text, $variation);
         }
-        
+
         return $count;
     }
 
     /**
      * Analyze title sentiment (simplified)
-     * 
-     * @param string $title Title to analyze
+     *
+     * @param  string  $title  Title to analyze
      * @return array Sentiment analysis
      */
     protected function analyzeTitleSentiment(string $title): array
@@ -1386,13 +1402,13 @@ class SeoAnalyzer
             'best', 'great', 'excellent', 'amazing', 'fantastic', 'wonderful', 'perfect',
             'ultimate', 'proven', 'essential', 'effective', 'successful', 'beneficial',
             'valuable', 'helpful', 'useful', 'powerful', 'strong', 'smart', 'clever',
-            'easy', 'simple', 'fast', 'quick', 'efficient', 'productive', 'profitable'
+            'easy', 'simple', 'fast', 'quick', 'efficient', 'productive', 'profitable',
         ];
 
         $negativeWords = [
             'worst', 'bad', 'terrible', 'awful', 'horrible', 'disastrous', 'failed',
             'ineffective', 'useless', 'pointless', 'waste', 'difficult', 'hard',
-            'complicated', 'complex', 'confusing', 'slow', 'expensive', 'costly'
+            'complicated', 'complex', 'confusing', 'slow', 'expensive', 'costly',
         ];
 
         $lowerTitle = mb_strtolower($title);
@@ -1424,10 +1440,10 @@ class SeoAnalyzer
 
     /**
      * Calculate E-E-A-T score based on content signals
-     * 
-     * @param string $htmlContent HTML content
-     * @param string $title Title
-     * @param ?string $targetKeyword Target keyword
+     *
+     * @param  string  $htmlContent  HTML content
+     * @param  string  $title  Title
+     * @param  ?string  $targetKeyword  Target keyword
      * @return int E-E-A-T score (0-100)
      */
     protected function calculateEEATScore(string $htmlContent, string $title, ?string $targetKeyword): int
@@ -1440,9 +1456,9 @@ class SeoAnalyzer
         $experienceIndicators = [
             'years of experience', 'decade', 'expert', 'specialist', 'professional',
             'certified', 'licensed', 'accredited', 'qualified', 'skilled', 'veteran',
-            'seasoned', 'experienced', 'knowledgeable', 'proven track record'
+            'seasoned', 'experienced', 'knowledgeable', 'proven track record',
         ];
-        
+
         foreach ($experienceIndicators as $indicator) {
             if (stripos($htmlContent, $indicator) !== false) {
                 $experienceScore += 3;
@@ -1455,9 +1471,9 @@ class SeoAnalyzer
         $expertiseIndicators = [
             'study', 'research', 'data shows', 'according to', 'statistics', 'report',
             'analysis', 'findings', 'conclusion', 'evidence', 'proof', 'demonstrates',
-            'shows', 'indicates', 'suggests', 'reveals', 'indicates', 'indicates'
+            'shows', 'indicates', 'suggests', 'reveals', 'indicates', 'indicates',
         ];
-        
+
         foreach ($expertiseIndicators as $indicator) {
             if (stripos($htmlContent, $indicator) !== false) {
                 $expertiseScore += 3;
@@ -1471,9 +1487,9 @@ class SeoAnalyzer
             'source:', 'reference:', 'cite:', 'references:', 'bibliography',
             'according to', 'as stated by', 'reported by', 'published in',
             'journal', 'study', 'research paper', 'official', 'government',
-            'university', 'institution', 'organization', 'association'
+            'university', 'institution', 'organization', 'association',
         ];
-        
+
         foreach ($authorityIndicators as $indicator) {
             if (stripos($htmlContent, $indicator) !== false) {
                 $authorityScore += 3;
@@ -1488,9 +1504,9 @@ class SeoAnalyzer
             'about us', 'our team', 'meet the team', 'biography', 'bio',
             'credentials', 'qualifications', 'certifications', 'awards',
             'recognition', 'testimonial', 'review', 'feedback', 'guarantee',
-            'warranty', 'money back', 'secure', 'encrypted', 'https'
+            'warranty', 'money back', 'secure', 'encrypted', 'https',
         ];
-        
+
         foreach ($trustIndicators as $indicator) {
             if (stripos($htmlContent, $indicator) !== false) {
                 $trustScore += 3;
@@ -1503,10 +1519,10 @@ class SeoAnalyzer
 
     /**
      * Calculate voice search optimization score
-     * 
-     * @param string $htmlContent HTML content
-     * @param string $title Title
-     * @param ?string $targetKeyword Target keyword
+     *
+     * @param  string  $htmlContent  HTML content
+     * @param  string  $title  Title
+     * @param  ?string  $targetKeyword  Target keyword
      * @return int Voice search score (0-100)
      */
     protected function calculateVoiceSearchScore(string $htmlContent, string $title, ?string $targetKeyword): int
@@ -1518,7 +1534,7 @@ class SeoAnalyzer
         $questionScore = 0;
         preg_match_all('/[.!?]\s*/', $htmlContent, $sentenceMatches);
         $sentences = $sentenceMatches[0] ?? [];
-        
+
         $questionCount = 0;
         foreach ($sentences as $sentence) {
             $trimmed = trim($sentence);
@@ -1527,8 +1543,8 @@ class SeoAnalyzer
                 $questionCount++;
             }
         }
-        
-        if (!empty($sentences)) {
+
+        if (! empty($sentences)) {
             $questionScore = min(30, ($questionCount / count($sentences)) * 100);
         }
 
@@ -1546,14 +1562,14 @@ class SeoAnalyzer
         $conciseScore = 0;
         $shortSentences = 0;
         $totalSentences = count($sentences);
-        
+
         foreach ($sentences as $sentence) {
             $wordCount = str_word_count(trim($sentence));
             if ($wordCount > 0 && $wordCount <= 20) {
                 $shortSentences++;
             }
         }
-        
+
         if ($totalSentences > 0) {
             $conciseScore = min(25, ($shortSentences / $totalSentences) * 100);
         }
@@ -1563,9 +1579,9 @@ class SeoAnalyzer
         $localIndicators = [
             'near me', 'nearby', 'local', 'in my area', 'close to', 'around',
             'today', 'tonight', 'this week', 'this month', 'hours', 'price',
-            'cost', 'free', 'cheap', 'affordable', 'best', 'top', 'review'
+            'cost', 'free', 'cheap', 'affordable', 'best', 'top', 'review',
         ];
-        
+
         foreach ($localIndicators as $indicator) {
             if (stripos($htmlContent, $indicator) !== false) {
                 $localScore += 2;
@@ -1578,9 +1594,9 @@ class SeoAnalyzer
 
     /**
      * Calculate featured snippet potential
-     * 
-     * @param string $htmlContent HTML content
-     * @param ?string $targetKeyword Target keyword
+     *
+     * @param  string  $htmlContent  HTML content
+     * @param  ?string  $targetKeyword  Target keyword
      * @return int Featured snippet score (0-100)
      */
     protected function calculateFeaturedSnippetPotential(string $htmlContent, ?string $targetKeyword): int
@@ -1597,7 +1613,7 @@ class SeoAnalyzer
             '/^\s*[\d]+\.\s+/m',      // Numbered lists
             '/^\s*[-*•]\s+/m',        // Bullet points
         ];
-        
+
         foreach ($listPatterns as $pattern) {
             if (preg_match($pattern, $htmlContent)) {
                 $listScore += 10;
@@ -1613,9 +1629,9 @@ class SeoAnalyzer
             '/refers\s+to\s+/i',
             '/defined\s+as\s+/i',
             '/means\s+/i',
-            '/:\s*/i'  // Colon definitions
+            '/:\s*/i',  // Colon definitions
         ];
-        
+
         foreach ($defPatterns as $pattern) {
             if (preg_match($pattern, $htmlContent)) {
                 $defScore += 5;
@@ -1636,9 +1652,9 @@ class SeoAnalyzer
             '/first[,:]|second[,:]|third[,:]|finally[,:]/i',
             '/how\s+to\s+/i',
             '/tutorial\s+/i',
-            '/guide\s+/i'
+            '/guide\s+/i',
         ];
-        
+
         foreach ($stepsPatterns as $pattern) {
             if (preg_match($pattern, $htmlContent)) {
                 $stepsScore += 5;
@@ -1657,8 +1673,8 @@ class SeoAnalyzer
 
     /**
      * Calculate content freshness indicators
-     * 
-     * @param string $htmlContent HTML content
+     *
+     * @param  string  $htmlContent  HTML content
      * @return int Freshness score (0-100)
      */
     protected function calculateContentFreshness(string $htmlContent): int
@@ -1670,16 +1686,16 @@ class SeoAnalyzer
         $dateScore = 0;
         $currentYear = (int) date('Y');
         $recentYears = range($currentYear - 2, $currentYear);
-        
+
         foreach ($recentYears as $year) {
             if (strpos($htmlContent, (string) $year) !== false) {
                 $dateScore += 10;
             }
         }
-        
+
         // Check for month names
         $months = ['January', 'February', 'March', 'April', 'May', 'June',
-                  'July', 'August', 'September', 'October', 'November', 'December'];
+            'July', 'August', 'September', 'October', 'November', 'December'];
         foreach ($months as $month) {
             if (stripos($htmlContent, $month) !== false) {
                 $dateScore += 3;
@@ -1692,9 +1708,9 @@ class SeoAnalyzer
         $timeIndicators = [
             'latest', 'newest', 'recent', 'current', 'today', 'now',
             'this year', 'this month', 'this week', 'updated', 'revised',
-            'modified', 'changed', 'improved', 'enhanced'
+            'modified', 'changed', 'improved', 'enhanced',
         ];
-        
+
         foreach ($timeIndicators as $indicator) {
             if (stripos($htmlContent, $indicator) !== false) {
                 $timeScore += 3;
@@ -1708,9 +1724,9 @@ class SeoAnalyzer
             'ai', 'artificial intelligence', 'machine learning', 'blockchain',
             'cryptocurrency', 'vr', 'virtual reality', 'ar', 'augmented reality',
             'iot', 'internet of things', '5g', 'cloud computing', 'saas',
-            'api', 'framework', 'library', 'update', 'version'
+            'api', 'framework', 'library', 'update', 'version',
         ];
-        
+
         foreach ($techIndicators as $indicator) {
             if (stripos($htmlContent, $indicator) !== false) {
                 $techScore += 2;
@@ -1723,9 +1739,9 @@ class SeoAnalyzer
         $outdatedIndicators = [
             'floppy disk', 'dial-up', 'pager', 'fax machine', 'vcr',
             'cassette tape', 'vinyl record', 'film camera', 'blackberry',
-            'myspace', 'friendster', 'yelp (early)', 'ask jeeves'
+            'myspace', 'friendster', 'yelp (early)', 'ask jeeves',
         ];
-        
+
         foreach ($outdatedIndicators as $indicator) {
             if (stripos($htmlContent, $indicator) !== false) {
                 $outdatedPenalty += 5;
@@ -1738,9 +1754,9 @@ class SeoAnalyzer
 
     /**
      * Simulate competitive gap analysis
-     * 
-     * @param ?string $targetKeyword Target keyword
-     * @param string $htmlContent HTML content
+     *
+     * @param  ?string  $targetKeyword  Target keyword
+     * @param  string  $htmlContent  HTML content
      * @return array Competitive gap analysis
      */
     protected function simulateCompetitiveGapAnalysis(?string $targetKeyword, string $htmlContent): array
@@ -1751,65 +1767,65 @@ class SeoAnalyzer
             'health' => ['symptoms', 'causes', 'treatment', 'prevention', 'diagnosis', 'risk factors', 'statistics', 'when to see doctor'],
             'business' => ['strategy', 'marketing', 'finance', 'operations', 'leadership', 'innovation', 'case studies', 'best practices'],
             'education' => ['curriculum', 'teaching methods', 'assessment', 'technology', 'funding', 'policy', 'outcomes', 'resources'],
-            'default' => ['introduction', 'overview', 'definition', 'history', 'benefits', 'drawbacks', 'how it works', 'examples', 'case studies', 'best practices', 'tips', 'common mistakes', 'future outlook']
+            'default' => ['introduction', 'overview', 'definition', 'history', 'benefits', 'drawbacks', 'how it works', 'examples', 'case studies', 'best practices', 'tips', 'common mistakes', 'future outlook'],
         ];
 
         // Determine likely niche from keyword or content
         $niche = 'default';
         $lowerContent = mb_strtolower($htmlContent);
         $lowerKeyword = $targetKeyword ? mb_strtolower($targetKeyword) : '';
-        
+
         $techKeywords = ['ai', 'artificial intelligence', 'machine learning', 'software', 'programming', 'code', 'algorithm', 'data', 'cloud', 'vr', 'ar', 'iot', 'blockchain'];
         $healthKeywords = ['health', 'medical', 'medicine', 'disease', 'symptom', 'treatment', 'healthcare', 'wellness', 'fitness', 'nutrition'];
         $businessKeywords = ['business', 'marketing', 'sales', 'finance', 'management', 'entrepreneur', 'startup', 'company', 'industry', 'market'];
         $educationKeywords = ['education', 'school', 'university', 'college', 'learning', 'teaching', 'student', 'curriculum', 'academic'];
-        
+
         $techScore = 0;
         $healthScore = 0;
         $businessScore = 0;
         $educationScore = 0;
-        
+
         foreach ($techKeywords as $kw) {
             if (strpos($lowerContent, $kw) !== false || ($lowerKeyword && strpos($lowerKeyword, $kw) !== false)) {
                 $techScore++;
             }
         }
-        
+
         foreach ($healthKeywords as $kw) {
             if (strpos($lowerContent, $kw) !== false || ($lowerKeyword && strpos($lowerKeyword, $kw) !== false)) {
                 $healthScore++;
             }
         }
-        
+
         foreach ($businessKeywords as $kw) {
             if (strpos($lowerContent, $kw) !== false || ($lowerKeyword && strpos($lowerKeyword, $kw) !== false)) {
                 $businessScore++;
             }
         }
-        
+
         foreach ($educationKeywords as $kw) {
             if (strpos($lowerContent, $kw) !== false || ($lowerKeyword && strpos($lowerKeyword, $kw) !== false)) {
                 $educationScore++;
             }
         }
-        
+
         $scores = [
             'technology' => $techScore,
             'health' => $healthScore,
             'business' => $businessScore,
             'education' => $educationScore,
         ];
-        
+
         arsort($scores);
         $topNiche = key($scores);
         $niche = $topNiche && $scores[$topNiche] > 0 ? $topNiche : 'default';
-        
+
         $expectedSubtopics = $commonSubtopicsByNiche[$niche] ?? $commonSubtopicsByNiche['default'];
-        
+
         // Check which subtopics are covered in content
         $coveredSubtopics = [];
         $missingSubtopics = [];
-        
+
         foreach ($expectedSubtopics as $subtopic) {
             if (stripos($htmlContent, $subtopic) !== false) {
                 $coveredSubtopics[] = $subtopic;
@@ -1817,11 +1833,11 @@ class SeoAnalyzer
                 $missingSubtopics[] = $subtopic;
             }
         }
-        
-        $coveragePercentage = count($expectedSubtopics) > 0 
-            ? round((count($coveredSubtopics) / count($expectedSubtopics)) * 100) 
+
+        $coveragePercentage = count($expectedSubtopics) > 0
+            ? round((count($coveredSubtopics) / count($expectedSubtopics)) * 100)
             : 100;
-        
+
         return [
             'score' => $coveragePercentage,
             'covered_topics' => $coveredSubtopics,
@@ -1833,14 +1849,15 @@ class SeoAnalyzer
 
     /**
      * Split HTML content into words (simplified)
-     * 
-     * @param string $htmlContent HTML content
-     * @param string $dummy Unused parameter for compatibility
+     *
+     * @param  string  $htmlContent  HTML content
+     * @param  string  $dummy  Unused parameter for compatibility
      * @return array Words array
      */
     protected function splitIntoWordsFromHtml(string $htmlContent, string $dummy): array
     {
         $plainText = trim(preg_replace('/\s+/u', ' ', strip_tags($htmlContent)));
-        return !empty($plainText) ? preg_split('/\s+/u', $plainText, -1, PREG_SPLIT_NO_EMPTY) : [];
+
+        return ! empty($plainText) ? preg_split('/\s+/u', $plainText, -1, PREG_SPLIT_NO_EMPTY) : [];
     }
 }

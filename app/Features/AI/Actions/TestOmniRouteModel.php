@@ -60,7 +60,7 @@ class TestOmniRouteModel
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
                 'X-OmniRoute-Session-Id' => (string) Str::uuid(),
-                'X-Request-Id' => 'diag_' . (string) Str::uuid(),
+                'X-Request-Id' => 'diag_'.(string) Str::uuid(),
                 'X-OmniRoute-No-Cache' => 'true',
             ]);
 
@@ -71,7 +71,7 @@ class TestOmniRouteModel
             $httpReq = $httpReq->withOptions($options);
 
             $response = $httpReq
-                ->connectTimeout(!empty($endpoints['is_remote']) ? 4 : 2)
+                ->connectTimeout(! empty($endpoints['is_remote']) ? 4 : 2)
                 ->timeout(12)
                 ->post($endpoints['chat_completions_endpoint'], [
                     'model' => $modelId,
@@ -108,25 +108,25 @@ class TestOmniRouteModel
             }
 
             // If direct provider model lacks explicit credentials, attempt OmniRoute Auto Smart Router
-            if (!$response->successful() && $modelId !== 'auto') {
+            if (! $response->successful() && $modelId !== 'auto') {
                 try {
                     $autoResponse = Http::withHeaders([
                         'Authorization' => "Bearer {$apiKey}",
                         'Content-Type' => 'application/json',
                         'Accept' => 'application/json',
                         'X-OmniRoute-Session-Id' => (string) Str::uuid(),
-                        'X-Request-Id' => 'diag_auto_' . (string) Str::uuid(),
+                        'X-Request-Id' => 'diag_auto_'.(string) Str::uuid(),
                         'X-OmniRoute-No-Cache' => 'true',
                     ])
-                    ->withOptions(['force_ip_resolve' => 'v4'])
-                    ->connectTimeout(1.5)
-                    ->timeout(5)
-                    ->post($endpoints['chat_completions_endpoint'], [
-                        'model' => 'auto',
-                        'messages' => [['role' => 'user', 'content' => 'Hi']],
-                        'max_tokens' => 5,
-                        'temperature' => 0.0,
-                    ]);
+                        ->withOptions(['force_ip_resolve' => 'v4'])
+                        ->connectTimeout(1.5)
+                        ->timeout(5)
+                        ->post($endpoints['chat_completions_endpoint'], [
+                            'model' => 'auto',
+                            'messages' => [['role' => 'user', 'content' => 'Hi']],
+                            'max_tokens' => 5,
+                            'temperature' => 0.0,
+                        ]);
 
                     if ($autoResponse->successful()) {
                         $data = $autoResponse->json();
@@ -156,7 +156,7 @@ class TestOmniRouteModel
             }
 
             // Failure handling
-            $errorMsg = $response->json('error.message') ?? $response->json('message') ?? ("HTTP {$response->status()}: " . Str::limit($response->body(), 120));
+            $errorMsg = $response->json('error.message') ?? $response->json('message') ?? ("HTTP {$response->status()}: ".Str::limit($response->body(), 120));
 
             if ($aiModel) {
                 $aiModel->last_tested_at = now();

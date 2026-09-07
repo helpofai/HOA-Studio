@@ -108,10 +108,10 @@ class WordPressPluginFeatureTest extends TestCase
         ];
 
         foreach ($requiredFiles as $file) {
-            $this->assertFileExists($pluginDir . '/' . $file, "Required plugin file [{$file}] is missing.");
+            $this->assertFileExists($pluginDir.'/'.$file, "Required plugin file [{$file}] is missing.");
         }
 
-        $mainFileContent = file_get_contents($pluginDir . '/hoa-studio-wordpress.php');
+        $mainFileContent = file_get_contents($pluginDir.'/hoa-studio-wordpress.php');
         $this->assertStringContainsString('Plugin Name:       HOA-Studio AI Editor & Content Suite', $mainFileContent);
         $this->assertStringContainsString("define('HOA_STUDIO_VERSION', '2.6.0')", $mainFileContent);
         $this->assertStringContainsString('HelpOfAi (HOA)', $mainFileContent);

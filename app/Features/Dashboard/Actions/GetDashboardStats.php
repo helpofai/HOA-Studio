@@ -39,7 +39,7 @@ class GetDashboardStats
         $totalWords = Document::where('user_id', $user->id)->sum('word_count');
 
         $remainingQuota = max(0, $user->monthly_word_quota - $user->used_word_quota);
-        $quotaPercentage = $user->monthly_word_quota > 0 
+        $quotaPercentage = $user->monthly_word_quota > 0
             ? min(100, round(($user->used_word_quota / $user->monthly_word_quota) * 100))
             : 0;
 

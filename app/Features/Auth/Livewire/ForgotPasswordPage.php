@@ -25,7 +25,6 @@
 
 namespace App\Features\Auth\Livewire;
 
-use Illuminate\Support\Facades\Password;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -35,6 +34,7 @@ use Livewire\Component;
 class ForgotPasswordPage extends Component
 {
     public string $email = '';
+
     public ?string $status = null;
 
     protected array $rules = [

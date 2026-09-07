@@ -25,7 +25,15 @@
 
 namespace App\Features\Auth\Actions;
 
+use App\Features\Admin\Mail\TemplateMailable;
+use App\Features\Admin\Models\AuthSecurityLog;
+use App\Features\Admin\Models\BlockedIp;
+use App\Features\Admin\Notifications\SecurityAlertNotification;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -38,7 +46,7 @@ class LoginUser
         $ip = request()->ip() ?? '127.0.0.1';
 
         // Load dynamic throttle settings from database (with sensible defaults)
-        $settings = \Illuminate\Support\Facades\DB::table('settings')->whereIn('key', [
+        $settings = DB::table('settings')->whereIn('key', [
             'auth_max_ip_attempts',
             'auth_max_account_attempts',
             'auth_lockout_minutes',
@@ -54,9 +62,9 @@ class LoginUser
 
         // 1. Dual Throttling Keys:
         // Key A: IP-specific rate limiter
-        $ipThrottleKey = 'login:ip:' . $ip;
+        $ipThrottleKey = 'login:ip:'.$ip;
         // Key B: Specific Account + IP rate limiter
-        $accountThrottleKey = 'login:account:' . Str::transliterate($normalizedEmail . '|' . $ip);
+        $accountThrottleKey = 'login:account:'.Str::transliterate($normalizedEmail.'|'.$ip);
 
         // Check global IP throttle (defense against distributed dictionary attacks from single source)
         if (RateLimiter::tooManyAttempts($ipThrottleKey, $maxIpAttempts)) {
@@ -86,7 +94,7 @@ class LoginUser
             $accountAttempts = RateLimiter::hit($accountThrottleKey, $lockoutMinutes * 60); // Lock for configured minutes if limit hit
 
             // Log security failure
-            \App\Features\Admin\Models\AuthSecurityLog::create([
+            AuthSecurityLog::create([
                 'ip_address' => $ip,
                 'email' => $normalizedEmail,
                 'event_type' => 'failed_login',
@@ -96,23 +104,23 @@ class LoginUser
             ]);
 
             // Auto-block IP if exceeding configured threshold (Auto IP Blocker)
-            if ($ipAttempts >= $autoBlockThreshold && !\App\Features\Admin\Models\BlockedIp::where('ip_address', $ip)->exists()) {
-                \App\Features\Admin\Models\BlockedIp::create([
+            if ($ipAttempts >= $autoBlockThreshold && ! BlockedIp::where('ip_address', $ip)->exists()) {
+                BlockedIp::create([
                     'ip_address' => $ip,
-                    'reason' => 'Automated block: Exceeded maximum failed login attempts (' . $ipAttempts . ' attempts)',
+                    'reason' => 'Automated block: Exceeded maximum failed login attempts ('.$ipAttempts.' attempts)',
                     'blocked_by' => 'system',
                     'blocked_until' => now()->addHours($autoBlockHours),
                 ]);
 
                 // Dispatch notification to admins
                 try {
-                    $admins = \App\Models\User::where('role', 'admin')->get();
-                    $alert = new \App\Features\Admin\Notifications\SecurityAlertNotification(
-                        title: "Malicious IP Auto-Blocked",
+                    $admins = User::where('role', 'admin')->get();
+                    $alert = new SecurityAlertNotification(
+                        title: 'Malicious IP Auto-Blocked',
                         description: "Network IP {$ip} has been automatically blacklisted for {$autoBlockHours} hours after {$ipAttempts} failed login attempts.",
-                        severity: "critical",
+                        severity: 'critical',
                         actionUrl: url('/admin/auth-settings'),
-                        actionText: "Manage IP Blacklist",
+                        actionText: 'Manage IP Blacklist',
                         metadata: [
                             'ip' => $ip,
                             'timestamp' => now()->toIso8601String(),
@@ -125,7 +133,7 @@ class LoginUser
                     }
                 } catch (\Throwable $e) {
                     // Silently log failure to prevent breaking authentication flow
-                    \Illuminate\Support\Facades\Log::warning('Failed to dispatch auto-block security notification', ['error' => $e->getMessage()]);
+                    Log::warning('Failed to dispatch auto-block security notification', ['error' => $e->getMessage()]);
                 }
             }
 
@@ -138,7 +146,7 @@ class LoginUser
         RateLimiter::clear($ipThrottleKey);
         RateLimiter::clear($accountThrottleKey);
 
-        \App\Features\Admin\Models\AuthSecurityLog::create([
+        AuthSecurityLog::create([
             'ip_address' => $ip,
             'email' => $normalizedEmail,
             'event_type' => 'successful_login',
@@ -150,8 +158,8 @@ class LoginUser
         try {
             $user = Auth::user();
             if ($user && $user->role === 'admin') {
-                \Illuminate\Support\Facades\Mail::to($user->email)->send(
-                    new \App\Features\Admin\Mail\TemplateMailable('login_detected', [
+                Mail::to($user->email)->send(
+                    new TemplateMailable('login_detected', [
                         '{user_name}' => $user->name,
                         '{user_email}' => $user->email,
                         '{ip_address}' => $ip,
@@ -161,8 +169,9 @@ class LoginUser
                     ])
                 );
             }
-        } catch (\Throwable $e) {}
-        
+        } catch (\Throwable $e) {
+        }
+
         // Prevent Session Fixation attacks: regenerate session ID on login
         if (request()->hasSession()) {
             request()->session()->regenerate();

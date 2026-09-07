@@ -28,9 +28,13 @@ use Livewire\Component;
 class AdminSystemInfoPage extends Component
 {
     public array $diagnostics = [];
+
     public array $docs = [];
+
     public array $versionMeta = [];
+
     public string $activeTab = 'server'; // 'server', 'readme', 'changelog', 'documents', 'others'
+
     public string $otherDocKey = 'production';
 
     public function mount(SystemInfoService $infoService, CoreUpdateService $updateService)

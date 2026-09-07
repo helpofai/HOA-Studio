@@ -5,7 +5,6 @@ namespace App\Core\Exceptions;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 
 class AiException extends Exception
 {

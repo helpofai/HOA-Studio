@@ -39,9 +39,13 @@ use Livewire\Component;
 class ProjectsPage extends Component
 {
     public string $name = '';
+
     public string $description = '';
+
     public string $color = '#6366f1';
+
     public ?int $editingProjectId = null;
+
     public bool $showModal = false;
 
     protected array $rules = [

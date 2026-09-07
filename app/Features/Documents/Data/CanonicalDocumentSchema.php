@@ -27,76 +27,76 @@ namespace App\Features\Documents\Data;
 
 /**
  * Canonical Document Schema - Universal Content AST
- * 
+ *
  * This represents the single source of truth for document content across
  * all editor engines (Tiptap, Gutenberg, Notion, Markdown, HTML, PlainText).
- * 
+ *
  * The schema follows a ProseMirror-inspired structure but is editor-agnostic.
  * All editor adapters MUST convert to/from this canonical format.
- * 
+ *
  * Version: 1.0
  * Schema Evolution: Use 'schema_version' field for migrations.
  */
 class CanonicalDocumentSchema
 {
     public const SCHEMA_VERSION = 1;
-    
+
     // Node Types - Universal block/inline node taxonomy
     public const NODE_TYPES = [
         // Document structure
-        'doc'           => 'Root document node',
-        'paragraph'     => 'Text paragraph',
-        'heading'       => 'Heading (level 1-6)',
-        'blockquote'    => 'Block quote',
-        'code_block'    => 'Fenced code block',
+        'doc' => 'Root document node',
+        'paragraph' => 'Text paragraph',
+        'heading' => 'Heading (level 1-6)',
+        'blockquote' => 'Block quote',
+        'code_block' => 'Fenced code block',
         'horizontal_rule' => 'Horizontal rule (hr)',
-        
+
         // Lists
-        'bullet_list'   => 'Unordered list',
-        'ordered_list'  => 'Ordered list',
-        'list_item'     => 'List item',
-        'task_list'     => 'Task list (checkbox items)',
-        'task_item'     => 'Task list item',
-        
+        'bullet_list' => 'Unordered list',
+        'ordered_list' => 'Ordered list',
+        'list_item' => 'List item',
+        'task_list' => 'Task list (checkbox items)',
+        'task_item' => 'Task list item',
+
         // Media & Embeds
-        'image'         => 'Image with metadata',
-        'video'         => 'Video embed',
-        'audio'         => 'Audio embed',
-        'embed'         => 'Generic embed (iframe, oEmbed)',
-        'link'          => 'Hyperlink (inline)',
-        
+        'image' => 'Image with metadata',
+        'video' => 'Video embed',
+        'audio' => 'Audio embed',
+        'embed' => 'Generic embed (iframe, oEmbed)',
+        'link' => 'Hyperlink (inline)',
+
         // Tables
-        'table'         => 'Table container',
-        'table_row'     => 'Table row',
-        'table_cell'    => 'Table cell',
-        'table_header'  => 'Table header cell',
-        
+        'table' => 'Table container',
+        'table_row' => 'Table row',
+        'table_cell' => 'Table cell',
+        'table_header' => 'Table header cell',
+
         // Text formatting (inline marks)
-        'text'          => 'Plain text node',
-        'hard_break'    => 'Hard line break',
-        
+        'text' => 'Plain text node',
+        'hard_break' => 'Hard line break',
+
         // Custom/Extension nodes
-        'callout'       => 'Callout/alert box',
-        'divider'       => 'Visual divider',
-        'toc'           => 'Table of contents placeholder',
-        'mention'       => '@mention',
-        'placeholder'   => 'Placeholder text',
+        'callout' => 'Callout/alert box',
+        'divider' => 'Visual divider',
+        'toc' => 'Table of contents placeholder',
+        'mention' => '@mention',
+        'placeholder' => 'Placeholder text',
     ];
 
     // Marks (Inline formatting) - Applied to text nodes
     public const MARK_TYPES = [
-        'bold'          => 'Strong emphasis',
-        'italic'        => 'Emphasis',
-        'strike'        => 'Strikethrough',
-        'underline'     => 'Underline',
-        'code'          => 'Inline code',
-        'link'          => 'Hyperlink mark',
-        'highlight'     => 'Highlight/background color',
-        'subscript'     => 'Subscript',
-        'superscript'   => 'Superscript',
-        'font_size'     => 'Custom font size',
-        'text_color'    => 'Text color',
-        'font_family'   => 'Font family',
+        'bold' => 'Strong emphasis',
+        'italic' => 'Emphasis',
+        'strike' => 'Strikethrough',
+        'underline' => 'Underline',
+        'code' => 'Inline code',
+        'link' => 'Hyperlink mark',
+        'highlight' => 'Highlight/background color',
+        'subscript' => 'Subscript',
+        'superscript' => 'Superscript',
+        'font_size' => 'Custom font size',
+        'text_color' => 'Text color',
+        'font_family' => 'Font family',
     ];
 
     // Heading levels
@@ -107,8 +107,6 @@ class CanonicalDocumentSchema
 
     /**
      * Get the default empty document structure.
-     * 
-     * @return array
      */
     public static function getEmptyDocument(): array
     {
@@ -137,21 +135,18 @@ class CanonicalDocumentSchema
 
     /**
      * Validate a canonical document structure.
-     * 
-     * @param array $document
-     * @return bool
      */
     public static function validate(array $document): bool
     {
-        if (!isset($document['type']) || $document['type'] !== 'doc') {
+        if (! isset($document['type']) || $document['type'] !== 'doc') {
             return false;
         }
 
-        if (!isset($document['attrs']['schema_version'])) {
+        if (! isset($document['attrs']['schema_version'])) {
             return false;
         }
 
-        if (!isset($document['content']) || !is_array($document['content'])) {
+        if (! isset($document['content']) || ! is_array($document['content'])) {
             return false;
         }
 
@@ -164,20 +159,20 @@ class CanonicalDocumentSchema
     protected static function validateNodes(array $nodes): bool
     {
         foreach ($nodes as $node) {
-            if (!isset($node['type']) || !isset(self::NODE_TYPES[$node['type']])) {
+            if (! isset($node['type']) || ! isset(self::NODE_TYPES[$node['type']])) {
                 // Allow unknown types for forward compatibility but log warning
                 continue;
             }
 
             if (isset($node['content']) && is_array($node['content'])) {
-                if (!self::validateNodes($node['content'])) {
+                if (! self::validateNodes($node['content'])) {
                     return false;
                 }
             }
 
             if (isset($node['marks']) && is_array($node['marks'])) {
                 foreach ($node['marks'] as $mark) {
-                    if (!isset($mark['type']) || !isset(self::MARK_TYPES[$mark['type']])) {
+                    if (! isset($mark['type']) || ! isset(self::MARK_TYPES[$mark['type']])) {
                         // Unknown mark - allow but could warn
                     }
                 }
@@ -189,8 +184,6 @@ class CanonicalDocumentSchema
 
     /**
      * Get schema metadata for editor registration.
-     * 
-     * @return array
      */
     public static function getSchemaMetadata(): array
     {
@@ -221,12 +214,6 @@ class CanonicalDocumentSchema
 
     /**
      * Create a node of a specific type with attributes.
-     * 
-     * @param string $type
-     * @param array $attrs
-     * @param array|null $content
-     * @param array|null $marks
-     * @return array
      */
     public static function createNode(
         string $type,
@@ -252,10 +239,6 @@ class CanonicalDocumentSchema
 
     /**
      * Create a text node with marks.
-     * 
-     * @param string $text
-     * @param array $marks
-     * @return array
      */
     public static function createTextNode(string $text, array $marks = []): array
     {
@@ -264,7 +247,7 @@ class CanonicalDocumentSchema
             'text' => $text,
         ];
 
-        if (!empty($marks)) {
+        if (! empty($marks)) {
             $node['marks'] = $marks;
         }
 
@@ -273,10 +256,6 @@ class CanonicalDocumentSchema
 
     /**
      * Create a mark.
-     * 
-     * @param string $type
-     * @param array $attrs
-     * @return array
      */
     public static function createMark(string $type, array $attrs = []): array
     {
@@ -288,14 +267,11 @@ class CanonicalDocumentSchema
 
     /**
      * Extract plain text from canonical document.
-     * 
-     * @param array $document
-     * @return string
      */
     public static function extractPlainText(array $document): string
     {
         $text = '';
-        
+
         if (isset($document['content'])) {
             $text = self::extractTextFromNodes($document['content']);
         }
@@ -306,7 +282,7 @@ class CanonicalDocumentSchema
     protected static function extractTextFromNodes(array $nodes): string
     {
         $text = '';
-        
+
         foreach ($nodes as $node) {
             if ($node['type'] === 'text' && isset($node['text'])) {
                 $text .= $node['text'];
@@ -326,6 +302,7 @@ class CanonicalDocumentSchema
     public static function calculateWordCount(array $document): int
     {
         $text = self::extractPlainText($document);
+
         return str_word_count($text);
     }
 
@@ -343,6 +320,7 @@ class CanonicalDocumentSchema
     public static function estimateReadingTime(array $document): int
     {
         $words = self::calculateWordCount($document);
-        return max(1, (int)ceil($words / 200));
+
+        return max(1, (int) ceil($words / 200));
     }
 }

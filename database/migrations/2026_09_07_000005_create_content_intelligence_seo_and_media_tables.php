@@ -26,7 +26,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('content_seo_metadatas')) {
+        if (! Schema::hasTable('content_seo_metadatas')) {
             Schema::create('content_seo_metadatas', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('workflow_run_id')->constrained('workflow_runs')->cascadeOnDelete();
@@ -44,7 +44,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('content_media_assets')) {
+        if (! Schema::hasTable('content_media_assets')) {
             Schema::create('content_media_assets', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('workflow_run_id')->constrained('workflow_runs')->cascadeOnDelete();

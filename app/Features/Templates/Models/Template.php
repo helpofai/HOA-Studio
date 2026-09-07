@@ -81,7 +81,7 @@ class Template extends Model
             if (is_array($val)) {
                 $val = implode(', ', $val);
             }
-            $rendered = str_replace(["{{" . $key . "}}", "{{" . $key . " }}", "{{ " . $key . "}}", "{{ " . $key . " }}"], (string) $val, $rendered);
+            $rendered = str_replace(['{{'.$key.'}}', '{{'.$key.' }}', '{{ '.$key.'}}', '{{ '.$key.' }}'], (string) $val, $rendered);
         }
 
         return $rendered;
@@ -92,10 +92,10 @@ class Template extends Model
      */
     public function compileSystemPrompt(?BrandProfile $brandVoice = null): string
     {
-        $prompt = $this->system_instructions ?: "You are an expert AI copywriter and content strategist. Produce exceptionally engaging, structured, and high-impact content.";
+        $prompt = $this->system_instructions ?: 'You are an expert AI copywriter and content strategist. Produce exceptionally engaging, structured, and high-impact content.';
 
         if ($brandVoice) {
-            $prompt .= "\n\n" . $brandVoice->toSystemPromptSnippet();
+            $prompt .= "\n\n".$brandVoice->toSystemPromptSnippet();
         }
 
         return $prompt;

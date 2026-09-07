@@ -30,6 +30,16 @@ use App\Features\AI\Models\AiProvider;
 use App\Features\Blog\Actions\PublishDocumentToBlog;
 use App\Features\Blog\Actions\UnpublishDocumentFromBlog;
 use App\Features\Blog\Models\BlogPost;
+use App\Features\ContentIntelligence\Enums\ProblemCategory;
+use App\Features\ContentIntelligence\Models\ContentGenome;
+use App\Features\ContentIntelligence\Models\ContentLineageNode;
+use App\Features\ContentIntelligence\Models\UserStylePreference;
+use App\Features\ContentIntelligence\Services\ContentGenomeService;
+use App\Features\ContentIntelligence\Services\ContentLineageService;
+use App\Features\ContentIntelligence\Services\MicroRepairService;
+use App\Features\ContentIntelligence\Services\QualityEngineService;
+use App\Features\ContentIntelligence\Services\SiteTopicStrategyService;
+use App\Features\ContentIntelligence\Services\UserFeedbackIntelligenceService;
 use App\Features\Documents\Actions\CreateDocumentShare;
 use App\Features\Documents\Actions\RestoreDocumentVersion;
 use App\Features\Documents\Actions\RevokeDocumentShare;
@@ -38,13 +48,13 @@ use App\Features\Documents\Contracts\EditorRegistry;
 use App\Features\Documents\Models\Document;
 use App\Features\Documents\Models\DocumentShare;
 use App\Features\Documents\Models\DocumentVersion;
+use App\Features\Documents\Services\DocumentImporter;
+use App\Features\Documents\Services\DocumentTextAnalyzer;
+use App\Features\Documents\Services\UniversalDocumentExtractor;
 use App\Features\Projects\Models\Project;
 use App\Features\SEO\Actions\GenerateSeoMetadata;
 use App\Features\SEO\Models\SeoAnalysis;
 use App\Features\SEO\Services\SeoAnalyzer;
-use App\Features\Documents\Services\DocumentImporter;
-use App\Features\Documents\Services\DocumentTextAnalyzer;
-use App\Features\Documents\Services\UniversalDocumentExtractor;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -193,6 +203,37 @@ class DocumentEditor extends Component
 
     public int $blogViewsCount = 0;
 
+    // 🧠 Content Intelligence & Neuro-Brain State
+    public string $brainActiveSubTab = 'lineage'; // 'lineage', 'health', 'style', 'cannibalization', 'genome'
+
+    public ?int $selectedLineageNodeId = null;
+
+    public array $brainLineageNodes = [];
+
+    public ?array $brainSelectedTrace = null;
+
+    public int $brainStaleNodesCount = 0;
+
+    public int $brainHealthScore = 88;
+
+    public string $brainHealthGrade = 'B+';
+
+    public array $brainHealthDimensions = [];
+
+    public array $brainHealthRecommendations = [];
+
+    public array $brainStyleRules = [];
+
+    public array $brainCannibalization = [];
+
+    public array $brainInternalLinks = [];
+
+    public ?array $brainGenomeSnapshot = null;
+
+    public string $brainStatusMessage = '';
+
+    public bool $isBrainLoading = false;
+
     public function mount(int $id, SeoAnalyzer $analyzer)
     {
         $document = Document::with(['content', 'project'])
@@ -231,6 +272,7 @@ class DocumentEditor extends Component
         $this->generateQualityAudit();
         $this->loadBlogState();
         $this->loadShareState();
+        $this->loadBrainState();
     }
 
     #[On('autosave')]
@@ -248,12 +290,27 @@ class DocumentEditor extends Component
         $this->characterCount = mb_strlen($plain);
         $this->readingTimeMinutes = max(1, (int) ceil($this->wordCount / 200));
 
+        $oldPlain = $document->content->content_plain ?? null;
+
         if ($document->content) {
             $document->content->update([
                 'content_html' => $html,
                 'content_json' => $json,
                 'content_plain' => $plain,
             ]);
+        }
+
+        // Continual background learning from manual user prose modifications
+        if ($oldPlain && $plain && $oldPlain !== $plain && abs(strlen($plain) - strlen($oldPlain)) > 15) {
+            try {
+                app(UserFeedbackIntelligenceService::class)->analyzeDiffAndRecordPreference(
+                    userId: $user->id,
+                    originalText: $oldPlain,
+                    editedText: $plain
+                );
+            } catch (\Throwable $e) {
+                // Defensive suppression to protect autosave stability
+            }
         }
 
         $safeTitle = mb_substr(trim(preg_replace('/\s+/u', ' ', strip_tags($this->title ?: 'Untitled Document'))), 0, 190);
@@ -1072,14 +1129,14 @@ class DocumentEditor extends Component
         try {
             $seoFileName = $this->generateSeoFriendlyImageName();
             $path = $this->featuredImageUpload->storeAs('featured-images', $seoFileName, 'public');
-            $this->blogFeaturedImage = asset('storage/' . $path);
+            $this->blogFeaturedImage = asset('storage/'.$path);
             if ($this->blogPostId) {
                 BlogPost::where('id', $this->blogPostId)->update(['featured_image' => $this->blogFeaturedImage]);
             }
             $this->hasUnsavedChanges = true;
             session()->flash('blog_status', 'Featured image uploaded successfully!');
         } catch (\Throwable $e) {
-            $this->addError('featuredImageUpload', 'Failed to upload image: ' . $e->getMessage());
+            $this->addError('featuredImageUpload', 'Failed to upload image: '.$e->getMessage());
         } finally {
             $this->featuredImageUpload = null;
         }
@@ -1110,9 +1167,9 @@ class DocumentEditor extends Component
 
         // 3. Assemble clean semantic name
         if (! empty($slugBase)) {
-            $baseName = Str::limit($slugBase, 60, '') . '-featured-image';
+            $baseName = Str::limit($slugBase, 60, '').'-featured-image';
         } elseif (! empty($originalSlug) && ! $isGeneric) {
-            $baseName = Str::limit($originalSlug, 60, '') . '-featured-image';
+            $baseName = Str::limit($originalSlug, 60, '').'-featured-image';
         } else {
             $baseName = 'featured-image';
         }
@@ -1250,7 +1307,7 @@ class DocumentEditor extends Component
 
             $this->importSuccessMessage = 'Document extracted and analyzed successfully.';
         } catch (Exception $e) {
-            $this->importErrorMessage = 'Extraction Error: ' . $e->getMessage();
+            $this->importErrorMessage = 'Extraction Error: '.$e->getMessage();
             $this->extractedDocument = null;
         } finally {
             $this->isExtracting = false;
@@ -1261,6 +1318,7 @@ class DocumentEditor extends Component
     {
         if (! $this->extractedDocument || empty($this->extractedDocument['html'])) {
             $this->importErrorMessage = 'No valid extracted content found to import.';
+
             return;
         }
 
@@ -1273,7 +1331,7 @@ class DocumentEditor extends Component
             $user = Auth::user();
             $newDoc = $importer->importFromText(
                 $user,
-                $title ?: 'Imported ' . strtoupper($this->extractedDocument['format']) . ' Document',
+                $title ?: 'Imported '.strtoupper($this->extractedDocument['format']).' Document',
                 $this->extractedDocument['plain_text'],
                 'html',
                 $this->projectId
@@ -1290,6 +1348,7 @@ class DocumentEditor extends Component
             $this->showImportModal = false;
             $this->resetImportState();
             $this->redirectRoute('documents.editor', ['id' => $newDoc->id]);
+
             return;
         }
 
@@ -1318,6 +1377,203 @@ class DocumentEditor extends Component
         $version = DocumentVersion::where('document_id', $this->documentId)->find($id);
 
         return $version?->content_html ?? '';
+    }
+
+    /**
+     * Load comprehensive Neuro-Brain & Content Intelligence state.
+     */
+    public function loadBrainState(): void
+    {
+        $this->isBrainLoading = true;
+        $user = Auth::user();
+        if (! $user) {
+            $this->isBrainLoading = false;
+
+            return;
+        }
+
+        $document = Document::with('content')->where('user_id', $user->id)->find($this->documentId);
+        if (! $document) {
+            $this->isBrainLoading = false;
+
+            return;
+        }
+
+        // 1. 7-Tier Sentence Lineage & Stale Alerts
+        $lineageService = app(ContentLineageService::class);
+        $nodes = ContentLineageNode::where('document_id', $this->documentId)
+            ->orderBy('section_index')
+            ->orderBy('paragraph_index')
+            ->orderBy('sentence_index')
+            ->get();
+
+        if ($nodes->isEmpty()) {
+            $lineageService->extractAndRecordDocumentLineage($document);
+            $nodes = ContentLineageNode::where('document_id', $this->documentId)
+                ->orderBy('section_index')
+                ->orderBy('paragraph_index')
+                ->orderBy('sentence_index')
+                ->get();
+        }
+
+        $this->brainStaleNodesCount = $nodes->where('is_stale', true)->count();
+        $this->brainLineageNodes = $nodes->map(fn (ContentLineageNode $n) => [
+            'id' => $n->id,
+            'sentence_text' => $n->sentence_text,
+            'is_stale' => $n->is_stale,
+            'invalidation_reason' => $n->invalidation_reason,
+            'claim_id' => $n->claim_id,
+            'source_id' => $n->source_id,
+            'section_index' => $n->section_index,
+            'sentence_index' => $n->sentence_index,
+        ])->toArray();
+
+        if ($this->selectedLineageNodeId) {
+            $this->selectLineageNode($this->selectedLineageNodeId);
+        } elseif (! empty($this->brainLineageNodes)) {
+            $this->selectLineageNode($this->brainLineageNodes[0]['id']);
+        }
+
+        // 2. 15-Dimension Content Health Audit
+        $qualityService = app(QualityEngineService::class);
+        $plainText = strip_tags($this->contentHtml);
+        $auditDto = $qualityService->auditDirectText($plainText, [
+            'title' => $this->title,
+            'keyword' => $this->targetKeyword,
+        ]);
+        $this->brainHealthScore = $auditDto->overallScore;
+        $this->brainHealthGrade = $auditDto->grade;
+        $this->brainHealthDimensions = $auditDto->toArray()['dimensions'] ?? [];
+        $this->brainHealthRecommendations = $auditDto->recommendations;
+
+        // 3. Continuous Author Style Rules
+        $styleService = app(UserFeedbackIntelligenceService::class);
+        $this->brainStyleRules = $styleService->getActivePreferences($user->id)->map(fn (UserStylePreference $p) => [
+            'id' => $p->id,
+            'key' => $p->preference_key,
+            'description' => $p->rule_description,
+            'confidence' => (int) round($p->confidence * 100),
+            'diff_count' => $p->observed_diff_count,
+            'is_active' => $p->is_active,
+        ])->toArray();
+
+        // 4. Site-Level Cannibalization Shield & Linking Matrix
+        $topicService = app(SiteTopicStrategyService::class);
+        $clusters = $topicService->analyzeTopicClusters($user->id, $this->projectId);
+        $cannibalization = [];
+        $links = [];
+        foreach ($clusters as $c) {
+            if (! empty($c->cannibalization_risks)) {
+                $cannibalization = array_merge($cannibalization, $c->cannibalization_risks);
+            }
+            if (! empty($c->internal_link_matrix)) {
+                $links = array_merge($links, $c->internal_link_matrix);
+            }
+        }
+        $this->brainCannibalization = array_slice($cannibalization, 0, 5);
+        $this->brainInternalLinks = array_slice($links, 0, 5);
+
+        // 5. Content Genome Snapshot
+        $latestGenome = ContentGenome::where('document_id', $this->documentId)->latest('id')->first();
+        if ($latestGenome) {
+            $this->brainGenomeSnapshot = [
+                'id' => $latestGenome->id,
+                'signature' => substr($latestGenome->genome_signature, 0, 12).'...',
+                'title' => $latestGenome->title,
+                'verified_claims_count' => count($latestGenome->claims_dna ?? []),
+                'facts_count' => count($latestGenome->facts_dna ?? []),
+                'entities_count' => count($latestGenome->entities_dna ?? []),
+                'quality_grade' => $latestGenome->quality_dna['grade'] ?? 'B+',
+                'updated_at' => $latestGenome->updated_at->toFormattedDateString(),
+            ];
+        }
+
+        $this->isBrainLoading = false;
+    }
+
+    public function selectLineageNode(int $nodeId): void
+    {
+        $this->selectedLineageNodeId = $nodeId;
+        $trace = app(ContentLineageService::class)->traceSentenceLineage($nodeId);
+        $this->brainSelectedTrace = $trace ? $trace->toArray() : null;
+    }
+
+    public function repairStaleSentence(int $nodeId): void
+    {
+        $node = ContentLineageNode::find($nodeId);
+        if (! $node) {
+            return;
+        }
+
+        $original = $node->sentence_text;
+        $repaired = app(MicroRepairService::class)->repairProseUnit($original, ProblemCategory::FACTUAL_ERROR);
+
+        // Update lineage node
+        app(ContentLineageService::class)->resolveStaleNode($nodeId, $repaired);
+
+        // Update HTML content in memory and DB
+        if (str_contains($this->contentHtml, $original)) {
+            $this->contentHtml = str_replace($original, $repaired, $this->contentHtml);
+
+            $doc = Document::where('user_id', Auth::id())->find($this->documentId);
+            if ($doc && $doc->content) {
+                $doc->content->update([
+                    'content_html' => $this->contentHtml,
+                    'content_plain' => strip_tags($this->contentHtml),
+                ]);
+            }
+
+            $this->dispatch('editor:setContent', html: $this->contentHtml);
+        }
+
+        $this->brainStatusMessage = "Sentence #{$nodeId} surgically repaired & grounded!";
+        $this->loadBrainState();
+    }
+
+    public function markNodeStale(int $nodeId, string $reason = 'Fact requires citation grounding'): void
+    {
+        $node = ContentLineageNode::find($nodeId);
+        if ($node) {
+            $node->update([
+                'is_stale' => true,
+                'invalidation_reason' => $reason,
+            ]);
+            $this->brainStatusMessage = "Sentence #{$nodeId} flagged as stale.";
+            $this->loadBrainState();
+        }
+    }
+
+    public function synthesizeGenomeForCurrentDocument(): void
+    {
+        $doc = Document::with('content')->where('user_id', Auth::id())->findOrFail($this->documentId);
+        $genome = app(ContentGenomeService::class)->synthesizeDocumentGenome($doc, [
+            'quality_score' => $this->brainHealthScore,
+            'quality_grade' => $this->brainHealthGrade,
+        ]);
+
+        $this->brainGenomeSnapshot = [
+            'id' => $genome->id,
+            'signature' => substr($genome->genome_signature, 0, 12).'...',
+            'title' => $genome->title,
+            'verified_claims_count' => count($genome->claims_dna ?? []),
+            'facts_count' => count($genome->facts_dna ?? []),
+            'entities_count' => count($genome->entities_dna ?? []),
+            'quality_grade' => $genome->quality_dna['grade'] ?? 'B+',
+            'updated_at' => $genome->updated_at->toFormattedDateString(),
+        ];
+
+        $this->brainStatusMessage = 'Content Genome snapshot successfully synthesized!';
+    }
+
+    public function toggleBrainStyleRule(int $ruleId, bool $isActive): void
+    {
+        app(UserFeedbackIntelligenceService::class)->togglePreference($ruleId, $isActive);
+        $this->loadBrainState();
+    }
+
+    public function setBrainSubTab(string $tab): void
+    {
+        $this->brainActiveSubTab = $tab;
     }
 
     public function render()

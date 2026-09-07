@@ -38,8 +38,8 @@ class DocumentImporter
         protected ?UniversalDocumentExtractor $extractor = null,
         protected ?DocumentTextAnalyzer $analyzer = null
     ) {
-        $this->extractor = $extractor ?? new UniversalDocumentExtractor();
-        $this->analyzer = $analyzer ?? new DocumentTextAnalyzer();
+        $this->extractor = $extractor ?? new UniversalDocumentExtractor;
+        $this->analyzer = $analyzer ?? new DocumentTextAnalyzer;
     }
 
     /**
@@ -51,7 +51,7 @@ class DocumentImporter
         $analysis = $this->analyzer->analyze($extracted['plain_text'], $extracted['html']);
 
         $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-        $title = $options['title'] ?? (!empty($filename) ? Str::headline($filename) : ($extracted['title'] ?: 'Imported Document'));
+        $title = $options['title'] ?? (! empty($filename) ? Str::headline($filename) : ($extracted['title'] ?: 'Imported Document'));
         $htmlContent = $extracted['html'];
         $plainText = $extracted['plain_text'];
 
@@ -63,7 +63,7 @@ class DocumentImporter
             'user_id' => $user->id,
             'project_id' => $projectId,
             'title' => $title,
-            'slug' => Str::slug($title) . '-' . Str::random(6),
+            'slug' => Str::slug($title).'-'.Str::random(6),
             'status' => 'draft',
             'word_count' => $wordCount,
             'character_count' => $charCount,
@@ -83,7 +83,7 @@ class DocumentImporter
             'title' => $title,
             'content_html' => $htmlContent,
             'operation_type' => 'import',
-            'summary' => 'Initial document import (' . strtoupper($extracted['format']) . ')',
+            'summary' => 'Initial document import ('.strtoupper($extracted['format']).')',
             'word_count' => $wordCount,
             'created_by' => $user->id,
         ]);
@@ -109,7 +109,7 @@ class DocumentImporter
             'user_id' => $user->id,
             'project_id' => $projectId,
             'title' => $title,
-            'slug' => Str::slug($title) . '-' . Str::random(6),
+            'slug' => Str::slug($title).'-'.Str::random(6),
             'status' => 'draft',
             'word_count' => $wordCount,
             'character_count' => $charCount,
@@ -129,7 +129,7 @@ class DocumentImporter
             'title' => $title,
             'content_html' => $htmlContent,
             'operation_type' => 'import',
-            'summary' => 'Initial document import (' . strtoupper($format) . ')',
+            'summary' => 'Initial document import ('.strtoupper($format).')',
             'word_count' => $wordCount,
             'created_by' => $user->id,
         ]);
@@ -149,11 +149,11 @@ class DocumentImporter
         if ($format === 'text') {
             $paragraphs = array_filter(array_map('trim', explode("\n\n", $content)));
             if (empty($paragraphs)) {
-                return '<p>' . nl2br(htmlspecialchars($content, ENT_QUOTES, 'UTF-8')) . '</p>';
+                return '<p>'.nl2br(htmlspecialchars($content, ENT_QUOTES, 'UTF-8')).'</p>';
             }
 
             return implode('', array_map(function ($p) {
-                return '<p>' . nl2br(htmlspecialchars($p, ENT_QUOTES, 'UTF-8')) . '</p>';
+                return '<p>'.nl2br(htmlspecialchars($p, ENT_QUOTES, 'UTF-8')).'</p>';
             }, $paragraphs));
         }
 
@@ -170,6 +170,7 @@ class DocumentImporter
                     $html .= "</ul>\n";
                     $inList = false;
                 }
+
                 continue;
             }
 
@@ -182,7 +183,7 @@ class DocumentImporter
                 $headingText = htmlspecialchars($m[1], ENT_QUOTES, 'UTF-8');
                 $html .= "<h{$level}>{$headingText}</h{$level}>\n";
             } elseif (preg_match('/^[-*+]\s+(.*)$/', $trimmed, $m)) {
-                if (!$inList) {
+                if (! $inList) {
                     $html .= "<ul>\n";
                     $inList = true;
                 }

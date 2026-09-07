@@ -34,7 +34,7 @@ class CreateProject
     public function execute(User $user, array $data): Project
     {
         $name = trim($data['name']);
-        $slug = Str::slug($name) . '-' . Str::lower(Str::random(5));
+        $slug = Str::slug($name).'-'.Str::lower(Str::random(5));
 
         return Project::create([
             'user_id' => $user->id,

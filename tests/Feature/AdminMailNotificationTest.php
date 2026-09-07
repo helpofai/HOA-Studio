@@ -21,6 +21,7 @@ use App\Features\Admin\Livewire\AdminMailNotificationPage;
 use App\Features\Admin\Livewire\NotificationBell;
 use App\Features\Admin\Notifications\GeneralSystemNotification;
 use App\Features\Admin\Notifications\SecurityAlertNotification;
+use App\Features\Admin\Services\MailTemplateService;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -103,9 +104,9 @@ class AdminMailNotificationTest extends TestCase
         $user = User::factory()->create(['role' => 'user']);
 
         $user->notify(new GeneralSystemNotification(
-            title: "Test In-App Alert",
-            description: "Testing notification bell component",
-            type: "info"
+            title: 'Test In-App Alert',
+            description: 'Testing notification bell component',
+            type: 'info'
         ));
 
         $this->assertEquals(1, $user->unreadNotifications()->count());
@@ -131,14 +132,14 @@ class AdminMailNotificationTest extends TestCase
     {
         Mail::fake();
 
-        $admin = User::factory()->create(['role' => 'admin', 'email' => 'admin_' . uniqid() . '@helpofai.com']);
+        $admin = User::factory()->create(['role' => 'admin', 'email' => 'admin_'.uniqid().'@helpofai.com']);
 
         $alert = new SecurityAlertNotification(
-            title: "Brute Force Attack Blocked",
-            description: "Aggressive IP automatically blocked.",
-            severity: "critical",
+            title: 'Brute Force Attack Blocked',
+            description: 'Aggressive IP automatically blocked.',
+            severity: 'critical',
             actionUrl: url('/admin/auth-settings'),
-            actionText: "Manage IP Blacklist",
+            actionText: 'Manage IP Blacklist',
             metadata: ['ip' => '198.51.100.99', 'timestamp' => now()->toIso8601String()]
         );
 
@@ -171,10 +172,10 @@ class AdminMailNotificationTest extends TestCase
         ]);
 
         // Test Template Compilation & Rendering
-        $compiled = \App\Features\Admin\Services\MailTemplateService::getCompiledTemplate('welcome_registration');
+        $compiled = MailTemplateService::getCompiledTemplate('welcome_registration');
         $this->assertEquals('Custom VIP Welcome to {app_name}', $compiled['subject']);
 
-        $rendered = \App\Features\Admin\Services\MailTemplateService::render($compiled['subject'], [
+        $rendered = MailTemplateService::render($compiled['subject'], [
             '{app_name}' => 'HelpOfAi Studio',
         ]);
         $this->assertEquals('Custom VIP Welcome to HelpOfAi Studio', $rendered);

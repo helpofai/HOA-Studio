@@ -1,4 +1,5 @@
 <?php
+
 /*
 |--------------------------------------------------------------------------
 | HelpOfAi (HOA) Professional Software - WordPress Plugin REST API
@@ -21,7 +22,7 @@ use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
 
-if (!defined('ABSPATH')) {
+if (! defined('ABSPATH')) {
     exit;
 }
 
@@ -32,14 +33,13 @@ class HOA_Rest_Api
     public static function instance(): HOA_Rest_Api
     {
         if (self::$instance === null) {
-            self::$instance = new self();
+            self::$instance = new self;
         }
+
         return self::$instance;
     }
 
-    private function __construct()
-    {
-    }
+    private function __construct() {}
 
     public function register_routes(): void
     {
@@ -73,7 +73,7 @@ class HOA_Rest_Api
     public function check_api_permission(WP_REST_Request $request): bool
     {
         $authHeader = $request->get_header('Authorization');
-        if (empty($authHeader) || !str_starts_with($authHeader, 'Bearer ')) {
+        if (empty($authHeader) || ! str_starts_with($authHeader, 'Bearer ')) {
             return false;
         }
 
@@ -153,7 +153,7 @@ class HOA_Rest_Api
             'success' => true,
             'post_id' => $postId,
             'permalink' => get_permalink($postId),
-            'edit_url' => admin_url('admin.php?page=hoa-studio-editor&post_id=' . $postId),
+            'edit_url' => admin_url('admin.php?page=hoa-studio-editor&post_id='.$postId),
             'status' => get_post_status($postId),
         ], 200);
     }
