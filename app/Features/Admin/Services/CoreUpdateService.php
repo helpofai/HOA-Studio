@@ -930,6 +930,7 @@ class CoreUpdateService
                 // Pure-PHP MySQL simple table backup
                 $tables = DB::select('SHOW TABLES');
                 $sql = "-- HOA Database Backup\n-- Date: ".date('Y-m-d H:i:s')."\n\n";
+                $sql .= "SET FOREIGN_KEY_CHECKS=0;\n\n";
                 foreach ($tables as $table) {
                     $tableArray = (array) $table;
                     $tableName = reset($tableArray);
@@ -954,6 +955,7 @@ class CoreUpdateService
                         }
                     }
                 }
+                $sql .= "\nSET FOREIGN_KEY_CHECKS=1;\n";
                 File::put($filePath, $sql);
             }
         } catch (\Throwable $e) {
@@ -975,7 +977,9 @@ class CoreUpdateService
         } elseif (File::exists($filePath)) {
             $sql = File::get($filePath);
             if (! empty($sql)) {
+                DB::statement('SET FOREIGN_KEY_CHECKS=0;');
                 DB::unprepared($sql);
+                DB::statement('SET FOREIGN_KEY_CHECKS=1;');
             }
         }
     }
