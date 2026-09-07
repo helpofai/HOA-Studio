@@ -1054,4 +1054,22 @@ class ContentIntelligenceTest extends TestCase
         $response->assertSee(route('content-intelligence.index'));
         $response->assertSee('Content Intelligence');
     }
+
+    public function test_content_intelligence_page_renders_clean_pagination_without_raw_php_snippets(): void
+    {
+        $action = new CreateContentMission;
+        for ($i = 1; $i <= 12; $i++) {
+            $action->execute($this->regularUser, [
+                'topic' => "Mission Number {$i}",
+                'primary_objective' => 'Objective for pagination testing',
+            ]);
+        }
+
+        $response = $this->actingAs($this->regularUser)->get(route('content-intelligence.index'));
+        $response->assertStatus(200);
+        $response->assertDontSee('scrollIntoViewJsSnippet');
+        $response->assertDontSee('php if (! isset($scrollTo))');
+        $response->assertDontSee('<?php');
+        $response->assertSee('Next');
+    }
 }

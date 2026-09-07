@@ -36,12 +36,16 @@ use Livewire\Component;
 class LoginPage extends Component
 {
     public string $email = '';
+
     public string $password = '';
+
     public bool $remember = false;
 
     // Security & Anti-Bot Properties
     public string $honeypot = ''; // Hidden anti-bot trap field
+
     public ?int $formLoadedAt = null;
+
     public ?string $turnstileToken = null;
 
     public function mount()
@@ -78,8 +82,8 @@ class LoginPage extends Component
 
     public function render()
     {
-        $siteKey = \App\Features\Auth\Services\AuthSecurityService::getTurnstileSiteKey();
-        $isEnabled = \App\Features\Auth\Services\AuthSecurityService::isTurnstileEnabled();
+        $siteKey = AuthSecurityService::getTurnstileSiteKey();
+        $isEnabled = AuthSecurityService::isTurnstileEnabled();
 
         return view('auth.login', [
             'turnstileSiteKey' => $isEnabled ? $siteKey : '',

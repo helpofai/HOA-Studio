@@ -21,12 +21,12 @@ error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
 $baseDir = dirname(__DIR__);
-$envFile = $baseDir . '/.env';
-$backupDir = $baseDir . '/storage/app/updates/backups';
-$manifestFile = $baseDir . '/storage/app/updates/restore-manifests.json';
+$envFile = $baseDir.'/.env';
+$backupDir = $baseDir.'/storage/app/updates/backups';
+$manifestFile = $baseDir.'/storage/app/updates/restore-manifests.json';
 
 // Simple authentication token lookup from .env or default secret
-$rescueKey = 'hoa_rescue_' . md5($baseDir);
+$rescueKey = 'hoa_rescue_'.md5($baseDir);
 if (file_exists($envFile)) {
     $envContent = file_get_contents($envFile);
     if (preg_match('/^RESCUE_SECRET=(.*)$/m', $envContent, $matches)) {
@@ -35,15 +35,15 @@ if (file_exists($envFile)) {
 }
 
 $providedKey = $_GET['key'] ?? $_POST['key'] ?? '';
-$isAuthorized = !empty($providedKey) && hash_equals($rescueKey, $providedKey);
+$isAuthorized = ! empty($providedKey) && hash_equals($rescueKey, $providedKey);
 
 $action = $_POST['action'] ?? '';
 $message = '';
 $messageType = 'info';
 
-if ($isAuthorized && !empty($action)) {
+if ($isAuthorized && ! empty($action)) {
     if ($action === 'disable_maintenance') {
-        $downFile = $baseDir . '/storage/framework/down';
+        $downFile = $baseDir.'/storage/framework/down';
         if (file_exists($downFile)) {
             @unlink($downFile);
             $message = 'Maintenance mode disabled successfully. Website is now accessible.';
@@ -53,12 +53,12 @@ if ($isAuthorized && !empty($action)) {
             $messageType = 'info';
         }
     } elseif ($action === 'flush_cache') {
-        $viewPath = $baseDir . '/storage/framework/views';
-        $cachePath = $baseDir . '/storage/framework/cache/data';
-        $configPath = $baseDir . '/bootstrap/cache/config.php';
-        $routesPath = $baseDir . '/bootstrap/cache/routes-v7.php';
-        $servicesPath = $baseDir . '/bootstrap/cache/services.php';
-        $packagesPath = $baseDir . '/bootstrap/cache/packages.php';
+        $viewPath = $baseDir.'/storage/framework/views';
+        $cachePath = $baseDir.'/storage/framework/cache/data';
+        $configPath = $baseDir.'/bootstrap/cache/config.php';
+        $routesPath = $baseDir.'/bootstrap/cache/routes-v7.php';
+        $servicesPath = $baseDir.'/bootstrap/cache/services.php';
+        $packagesPath = $baseDir.'/bootstrap/cache/packages.php';
 
         @unlink($configPath);
         @unlink($routesPath);
@@ -66,9 +66,11 @@ if ($isAuthorized && !empty($action)) {
         @unlink($packagesPath);
 
         if (is_dir($viewPath)) {
-            $files = glob($viewPath . '/*');
+            $files = glob($viewPath.'/*');
             foreach ($files as $file) {
-                if (is_file($file)) @unlink($file);
+                if (is_file($file)) {
+                    @unlink($file);
+                }
             }
         }
         $message = 'Emergency view, routes, services, and configuration cache flushed successfully.';
@@ -93,35 +95,35 @@ if ($isAuthorized && !empty($action)) {
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_TIMEOUT => 5,
                 ]);
-                $stmt = $pdo->query("SHOW TABLES");
+                $stmt = $pdo->query('SHOW TABLES');
                 $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
-                $message = "Database Connected Successfully! Found " . count($tables) . " tables in [{$db}].";
+                $message = 'Database Connected Successfully! Found '.count($tables)." tables in [{$db}].";
                 $messageType = 'success';
             } else {
-                $message = ".env file not found.";
+                $message = '.env file not found.';
                 $messageType = 'error';
             }
-        } catch (\Throwable $e) {
-            $message = "Database Connection Failed: " . $e->getMessage();
+        } catch (Throwable $e) {
+            $message = 'Database Connection Failed: '.$e->getMessage();
             $messageType = 'error';
         }
-    } elseif ($action === 'restore_backup' && !empty($_POST['backup_file'])) {
+    } elseif ($action === 'restore_backup' && ! empty($_POST['backup_file'])) {
         $targetFile = basename($_POST['backup_file']);
-        $fullPath = $backupDir . '/' . $targetFile;
+        $fullPath = $backupDir.'/'.$targetFile;
 
         if (file_exists($fullPath) && class_exists('ZipArchive')) {
-            $zip = new ZipArchive();
+            $zip = new ZipArchive;
             if ($zip->open($fullPath) === true) {
                 $zip->extractTo($baseDir);
                 $zip->close();
-                
+
                 // Restore Database if matching dump exists
                 $snapshotId = str_replace(['backup_', '.zip'], '', $targetFile);
-                $dbSqlite = $backupDir . '/db_' . $snapshotId . '.sql.sqlite';
-                $dbSql = $backupDir . '/db_' . $snapshotId . '.sql';
+                $dbSqlite = $backupDir.'/db_'.$snapshotId.'.sql.sqlite';
+                $dbSql = $backupDir.'/db_'.$snapshotId.'.sql';
 
                 if (file_exists($dbSqlite)) {
-                    $sqliteDest = $baseDir . '/database/database.sqlite';
+                    $sqliteDest = $baseDir.'/database/database.sqlite';
                     @copy($dbSqlite, $sqliteDest);
                 } elseif (file_exists($dbSql)) {
                     // Execute SQL dump via native PDO if db credentials in .env
@@ -140,7 +142,7 @@ if ($isAuthorized && !empty($action)) {
                             $user = trim($u[1] ?? '', "\"' ");
                             $pass = trim($pw[1] ?? '', "\"' ");
 
-                            if (!empty($db)) {
+                            if (! empty($db)) {
                                 $pdo = new PDO("mysql:host={$host};port={$port};dbname={$db}", $user, $pass, [
                                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                                 ]);
@@ -148,13 +150,14 @@ if ($isAuthorized && !empty($action)) {
                                 $pdo->exec($sql);
                             }
                         }
-                    } catch (\Throwable $e) {}
+                    } catch (Throwable $e) {
+                    }
                 }
 
                 // Flush caches after restore
-                @unlink($baseDir . '/bootstrap/cache/config.php');
-                @unlink($baseDir . '/bootstrap/cache/routes-v7.php');
-                @unlink($baseDir . '/storage/framework/down');
+                @unlink($baseDir.'/bootstrap/cache/config.php');
+                @unlink($baseDir.'/bootstrap/cache/routes-v7.php');
+                @unlink($baseDir.'/storage/framework/down');
 
                 $message = "Codebase & Database state successfully restored from snapshot [{$targetFile}].";
                 $messageType = 'success';
@@ -173,7 +176,9 @@ if ($isAuthorized && !empty($action)) {
 $restorePoints = [];
 if (file_exists($manifestFile)) {
     $manifestData = json_decode(file_get_contents($manifestFile), true);
-    if (is_array($manifestData)) $restorePoints = $manifestData;
+    if (is_array($manifestData)) {
+        $restorePoints = $manifestData;
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -201,7 +206,7 @@ if (file_exists($manifestFile)) {
             </span>
         </div>
 
-        <?php if (!$isAuthorized): ?>
+        <?php if (! $isAuthorized) { ?>
             <form method="GET" class="space-y-4">
                 <div class="p-4 rounded-xl bg-slate-950 border border-white/10 text-xs text-slate-300">
                     Please enter the emergency rescue key to authenticate. Your default rescue key is:
@@ -215,12 +220,12 @@ if (file_exists($manifestFile)) {
                     Authenticate Rescue Console &rarr;
                 </button>
             </form>
-        <?php else: ?>
-            <?php if (!empty($message)): ?>
+        <?php } else { ?>
+            <?php if (! empty($message)) { ?>
                 <div class="p-4 rounded-xl border text-xs font-semibold <?= $messageType === 'success' ? 'bg-emerald-950/80 border-emerald-500/40 text-emerald-300' : 'bg-rose-950/80 border-rose-500/40 text-rose-300' ?>">
                     <?= htmlspecialchars($message) ?>
                 </div>
-            <?php endif; ?>
+            <?php } ?>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <form method="POST" class="p-4 rounded-xl bg-slate-950 border border-white/10 space-y-3">
@@ -269,24 +274,24 @@ if (file_exists($manifestFile)) {
                     <span>📋 Recent Server Error Log (storage/logs/laravel.log)</span>
                 </div>
                 <?php
-                    $logFile = $baseDir . '/storage/logs/laravel.log';
-                    $logContent = 'Log file is clean / no errors recorded.';
-                    if (file_exists($logFile) && filesize($logFile) > 0) {
-                        $lines = file($logFile);
-                        $lastLines = array_slice($lines, -15);
-                        $logContent = htmlspecialchars(implode("", $lastLines));
-                    }
-                ?>
+                    $logFile = $baseDir.'/storage/logs/laravel.log';
+            $logContent = 'Log file is clean / no errors recorded.';
+            if (file_exists($logFile) && filesize($logFile) > 0) {
+                $lines = file($logFile);
+                $lastLines = array_slice($lines, -15);
+                $logContent = htmlspecialchars(implode('', $lastLines));
+            }
+            ?>
                 <pre class="p-3 rounded-lg bg-black text-[11px] font-mono text-slate-300 overflow-x-auto max-h-48 border border-white/5"><?= $logContent ?></pre>
             </div>
 
             <div class="space-y-3 pt-2">
                 <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Available Restore Snapshots</h3>
-                <?php if (empty($restorePoints)): ?>
+                <?php if (empty($restorePoints)) { ?>
                     <p class="text-xs text-slate-500 font-mono">No restore manifests found in storage directory.</p>
-                <?php else: ?>
+                <?php } else { ?>
                     <div class="space-y-2">
-                        <?php foreach ($restorePoints as $rp): ?>
+                        <?php foreach ($restorePoints as $rp) { ?>
                             <form method="POST" class="p-3 rounded-xl bg-slate-950 border border-white/10 flex items-center justify-between gap-4">
                                 <input type="hidden" name="key" value="<?= htmlspecialchars($providedKey) ?>">
                                 <input type="hidden" name="action" value="restore_backup">
@@ -299,11 +304,11 @@ if (file_exists($manifestFile)) {
                                     Restore
                                 </button>
                             </form>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </div>
-                <?php endif; ?>
+                <?php } ?>
             </div>
-        <?php endif; ?>
+        <?php } ?>
     </div>
 </body>
 </html>

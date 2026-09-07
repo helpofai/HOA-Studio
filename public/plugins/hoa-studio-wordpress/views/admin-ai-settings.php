@@ -16,7 +16,7 @@
 
 use HOA_Studio\Core\HOA_Settings;
 
-if (!defined('ABSPATH')) {
+if (! defined('ABSPATH')) {
     exit;
 }
 
@@ -56,11 +56,11 @@ $brandVoices = HOA_Settings::getBrandVoices();
                             <option value="auto" <?php selected($defaultModel, 'auto'); ?>>
                                 ⚡ <?php esc_html_e('Auto (OmniRoute Smart Gateway Router)', 'hoa-studio'); ?>
                             </option>
-                            <?php foreach ($models as $m): ?>
+                            <?php foreach ($models as $m) { ?>
                                 <option value="<?php echo esc_attr($m['model_id']); ?>" <?php selected($defaultModel, $m['model_id']); ?>>
                                     <?php echo esc_html($m['name'] ?? $m['model_id']); ?> (<?php echo esc_html($m['provider'] ?? 'OmniRoute'); ?>)
                                 </option>
-                            <?php endforeach; ?>
+                            <?php } ?>
                         </select>
                         <p class="hoa-form-help">
                             <?php esc_html_e('Auto routing dynamically selects the best, most cost-effective model based on the prompt complexity.', 'hoa-studio'); ?>
@@ -74,12 +74,12 @@ $brandVoices = HOA_Settings::getBrandVoices();
                         <select id="hoa_studio_default_tone" name="hoa_studio_default_tone" class="hoa-select">
                             <?php
                             $tones = ['Professional', 'Authoritative', 'Conversational', 'Engaging', 'Journalistic', 'Technical', 'Casual'];
-                            foreach ($tones as $t):
-                            ?>
+foreach ($tones as $t) {
+    ?>
                                 <option value="<?php echo esc_attr($t); ?>" <?php selected($defaultTone, $t); ?>>
                                     <?php echo esc_html($t); ?>
                                 </option>
-                            <?php endforeach; ?>
+                            <?php } ?>
                         </select>
                     </div>
 
@@ -98,9 +98,9 @@ $brandVoices = HOA_Settings::getBrandVoices();
                 <span class="hoa-pill-counter"><?php echo count($brandVoices); ?></span>
             </div>
             <div class="hoa-card-body">
-                <?php if (!empty($brandVoices)): ?>
+                <?php if (! empty($brandVoices)) { ?>
                     <div class="hoa-voice-list">
-                        <?php foreach ($brandVoices as $v): ?>
+                        <?php foreach ($brandVoices as $v) { ?>
                             <div class="hoa-voice-item">
                                 <div class="hoa-voice-icon">🎙️</div>
                                 <div class="hoa-voice-details">
@@ -111,13 +111,13 @@ $brandVoices = HOA_Settings::getBrandVoices();
                                     </p>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </div>
-                <?php else: ?>
+                <?php } else { ?>
                     <div class="hoa-empty-box">
                         <p><?php esc_html_e('No brand voices synchronized yet. Create custom Brand Voices inside HOA Studio to maintain consistency across all WordPress articles.', 'hoa-studio'); ?></p>
                     </div>
-                <?php endif; ?>
+                <?php } ?>
             </div>
         </div>
     </div>

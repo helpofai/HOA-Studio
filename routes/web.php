@@ -23,23 +23,41 @@
 |--------------------------------------------------------------------------
 */
 
+use App\Features\Admin\Controllers\AdminTerminalLogsController;
+use App\Features\Admin\Livewire\AdminAiSettingsPage;
+use App\Features\Admin\Livewire\AdminAuthSettingsPage;
 use App\Features\Admin\Livewire\AdminDashboardPage;
+use App\Features\Admin\Livewire\AdminMailNotificationPage;
+use App\Features\Admin\Livewire\AdminOmniRouteSetupPage;
 use App\Features\Admin\Livewire\AdminSettingsPage;
+use App\Features\Admin\Livewire\AdminSystemInfoPage;
+use App\Features\Admin\Livewire\AdminUpdatesPage;
 use App\Features\Admin\Livewire\AdminUsageLogsPage;
 use App\Features\Admin\Livewire\AdminUsersPage;
-use App\Features\AI\Http\Controllers\AiStreamController;
 use App\Features\AI\Http\Controllers\AiProviderController;
+use App\Features\AI\Http\Controllers\AiStreamController;
+use App\Features\AI\Livewire\UserAiModelsPage;
+use App\Features\AI\Livewire\UserOmniRouteSetupPage;
 use App\Features\Auth\Livewire\ForgotPasswordPage;
 use App\Features\Auth\Livewire\LoginPage;
 use App\Features\Auth\Livewire\ProfilePage;
 use App\Features\Auth\Livewire\RegisterPage;
+use App\Features\Blog\Livewire\BlogIndexPage;
+use App\Features\Blog\Livewire\BlogManagerPage;
+use App\Features\Blog\Livewire\BlogPostPage;
+use App\Features\BrandVoice\Livewire\BrandVoicePage;
+use App\Features\ContentIntelligence\Livewire\ContentIntelligencePage;
 use App\Features\Dashboard\Livewire\DashboardPage;
+use App\Features\Documents\Http\Controllers\ExportDocumentController;
+use App\Features\Documents\Http\Controllers\OpenEditorController;
 use App\Features\Documents\Livewire\DocumentEditor;
 use App\Features\Documents\Livewire\DocumentsPage;
-use App\Features\Blog\Livewire\BlogIndexPage;
-use App\Features\Blog\Livewire\BlogPostPage;
-use App\Features\Blog\Livewire\BlogManagerPage;
+use App\Features\Documents\Livewire\PublicDocumentPage;
+use App\Features\KnowledgeBase\Livewire\KnowledgeBasePage;
 use App\Features\Projects\Livewire\ProjectsPage;
+use App\Features\Templates\Livewire\TemplatesHubPage;
+use App\Features\Usage\Livewire\UserUsagePage;
+use App\Features\WordPress\Http\Controllers\WordPressBridgeController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -59,28 +77,20 @@ Route::middleware('guest')->group(function () {
     Route::get('/forgot-password', ForgotPasswordPage::class)->name('password.request');
 });
 
-use App\Features\BrandVoice\Livewire\BrandVoicePage;
-use App\Features\Documents\Http\Controllers\ExportDocumentController;
-use App\Features\Documents\Livewire\PublicDocumentPage;
-use App\Features\ContentIntelligence\Livewire\ContentIntelligencePage;
-use App\Features\KnowledgeBase\Livewire\KnowledgeBasePage;
-use App\Features\Templates\Livewire\TemplatesHubPage;
-use App\Features\Usage\Livewire\UserUsagePage;
-
 // Authenticated User Workspace Routes (/dashboard/*)
 Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::get('/', DashboardPage::class)->name('dashboard');
     Route::get('/content-intelligence', ContentIntelligencePage::class)->name('content-intelligence.index');
-    Route::get('/editor', \App\Features\Documents\Http\Controllers\OpenEditorController::class)->name('editor');
+    Route::get('/editor', OpenEditorController::class)->name('editor');
     Route::get('/documents', DocumentsPage::class)->name('documents.index');
     Route::get('/documents/{id}', DocumentEditor::class)->name('documents.editor');
     Route::get('/blog', BlogManagerPage::class)->name('dashboard.blog');
     Route::get('/templates', TemplatesHubPage::class)->name('templates.index');
     Route::get('/brand-voices', BrandVoicePage::class)->name('brand-voices.index');
     Route::get('/knowledge-base', KnowledgeBasePage::class)->name('knowledge-base.index');
-    Route::get('/ai-models', \App\Features\AI\Livewire\UserAiModelsPage::class)->name('ai-models.index');
-    Route::get('/ai-models/omniroute', \App\Features\AI\Livewire\UserOmniRouteSetupPage::class)->name('ai-models.omniroute');
-    Route::get('/ai-settings/omniroute', \App\Features\AI\Livewire\UserOmniRouteSetupPage::class)->name('ai-settings.omniroute');
+    Route::get('/ai-models', UserAiModelsPage::class)->name('ai-models.index');
+    Route::get('/ai-models/omniroute', UserOmniRouteSetupPage::class)->name('ai-models.omniroute');
+    Route::get('/ai-settings/omniroute', UserOmniRouteSetupPage::class)->name('ai-settings.omniroute');
     Route::get('/usage', UserUsagePage::class)->name('usage.index');
     Route::get('/projects', ProjectsPage::class)->name('projects.index');
     Route::get('/profile', ProfilePage::class)->name('profile');
@@ -98,8 +108,6 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
 });
 
 // WordPress & Studio Connect REST API (Authenticated via Studio Connect Token Bearer)
-use App\Features\WordPress\Http\Controllers\WordPressBridgeController;
-
 Route::prefix('api/v1/wordpress')->middleware('auth.studio')->group(function () {
     Route::post('/connect', [WordPressBridgeController::class, 'connect'])->name('api.wordpress.connect');
     Route::post('/stream', [WordPressBridgeController::class, 'stream'])->name('api.wordpress.stream');
@@ -129,13 +137,6 @@ Route::middleware('auth')->group(function () {
     })->name('logout');
 });
 
-use App\Features\Admin\Livewire\AdminAiSettingsPage;
-use App\Features\Admin\Livewire\AdminAuthSettingsPage;
-use App\Features\Admin\Livewire\AdminMailNotificationPage;
-use App\Features\Admin\Livewire\AdminOmniRouteSetupPage;
-use App\Features\Admin\Livewire\AdminSystemInfoPage;
-use App\Features\Admin\Livewire\AdminUpdatesPage;
-
 // Admin Control Center Routes (Role: Admin) (/admin/*)
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', AdminDashboardPage::class)->name('dashboard');
@@ -148,16 +149,15 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/settings', AdminSettingsPage::class)->name('settings');
     Route::get('/system-info', AdminSystemInfoPage::class)->name('system-info');
     Route::get('/updates', AdminUpdatesPage::class)->name('updates');
-    Route::get('/api/terminal-logs', \App\Features\Admin\Controllers\AdminTerminalLogsController::class)->name('api.terminal-logs');
+    Route::get('/api/terminal-logs', AdminTerminalLogsController::class)->name('api.terminal-logs');
 });
 
 // Direct public storage fallback route (Guarantees 200 OK for uploaded assets across all shared hosting/cPanel & Windows environments)
 Route::get('/storage/{path}', function (string $path) {
-    $fullPath = storage_path('app/public/' . $path);
+    $fullPath = storage_path('app/public/'.$path);
     if (! file_exists($fullPath) || is_dir($fullPath)) {
         abort(404);
     }
+
     return response()->file($fullPath);
 })->where('path', '.*')->name('public.storage.fallback');
-
-

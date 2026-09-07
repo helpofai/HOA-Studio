@@ -43,7 +43,7 @@ class BlockedIp extends Model
     public static function isIpBlocked(string $ip): bool
     {
         $blocked = static::where('ip_address', $ip)->first();
-        if (!$blocked) {
+        if (! $blocked) {
             return false;
         }
 
@@ -54,6 +54,7 @@ class BlockedIp extends Model
 
         // Auto-prune expired blocks
         $blocked->delete();
+
         return false;
     }
 }

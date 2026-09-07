@@ -41,19 +41,27 @@ use Livewire\Component;
 class TemplatesHubPage extends Component
 {
     public string $selectedCategory = 'all';
+
     public string $search = '';
 
     // Template Execution Modal State
     public bool $showRunnerModal = false;
+
     public ?int $activeTemplateId = null;
+
     public array $formInputs = [];
+
     public ?int $selectedBrandVoiceId = null;
+
     public string $selectedModel = 'auto';
 
     // Generation State
     public bool $isGenerating = false;
+
     public ?string $generatedContent = null;
+
     public ?array $generationTelemetry = null;
+
     public string $errorMessage = '';
 
     public function mount()
@@ -73,7 +81,7 @@ class TemplatesHubPage extends Component
         $this->generationTelemetry = null;
         $this->errorMessage = '';
 
-        if (!empty($template->inputs_schema)) {
+        if (! empty($template->inputs_schema)) {
             foreach ($template->inputs_schema as $field) {
                 $this->formInputs[$field['name']] = '';
             }
@@ -87,9 +95,9 @@ class TemplatesHubPage extends Component
         $template = Template::findOrFail($this->activeTemplateId);
 
         $rules = [];
-        if (!empty($template->inputs_schema)) {
+        if (! empty($template->inputs_schema)) {
             foreach ($template->inputs_schema as $field) {
-                if (!empty($field['required'])) {
+                if (! empty($field['required'])) {
                     $rules["formInputs.{$field['name']}"] = 'required|string';
                 }
             }
@@ -100,8 +108,8 @@ class TemplatesHubPage extends Component
         $this->errorMessage = '';
 
         try {
-            $brandVoice = $this->selectedBrandVoiceId 
-                ? BrandProfile::where('user_id', Auth::id())->find($this->selectedBrandVoiceId) 
+            $brandVoice = $this->selectedBrandVoiceId
+                ? BrandProfile::where('user_id', Auth::id())->find($this->selectedBrandVoiceId)
                 : null;
 
             $result = $generateAction->execute(
@@ -128,10 +136,10 @@ class TemplatesHubPage extends Component
         }
 
         $template = Template::find($this->activeTemplateId);
-        $title = ($template ? $template->name : 'Generated Copy') . ' — ' . now()->format('M j, Y');
+        $title = ($template ? $template->name : 'Generated Copy').' — '.now()->format('M j, Y');
 
         // Convert simple markdown newlines to basic HTML for Tiptap
-        $html = '<p>' . nl2br(e($this->generatedContent)) . '</p>';
+        $html = '<p>'.nl2br(e($this->generatedContent)).'</p>';
 
         $document = $createDocAction->execute(Auth::user(), [
             'title' => $title,
@@ -163,10 +171,10 @@ class TemplatesHubPage extends Component
             });
         }
 
-        if (!empty($this->search)) {
+        if (! empty($this->search)) {
             $query->where(function ($q) {
-                $q->where('name', 'like', '%' . $this->search . '%')
-                  ->orWhere('description', 'like', '%' . $this->search . '%');
+                $q->where('name', 'like', '%'.$this->search.'%')
+                    ->orWhere('description', 'like', '%'.$this->search.'%');
             });
         }
 

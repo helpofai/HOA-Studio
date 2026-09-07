@@ -44,22 +44,33 @@ use Livewire\Component;
 class KnowledgeBasePage extends Component
 {
     public bool $showIngestModal = false;
+
     public string $activeTab = 'text'; // 'text', 'markdown', 'url'
 
     // Form fields
     public string $title = '';
+
     public string $content = '';
+
     public string $category = 'general_docs'; // 'brand_voice', 'product_specs', 'competitor_research', 'faq', 'general_docs'
+
     public string $urlInput = '';
+
     public ?int $projectId = null;
+
     public bool $isIngesting = false;
+
     public string $ingestErrorMessage = '';
 
     // Semantic Vector Search Playground
     public string $searchQuery = '';
+
     public string $searchCategory = 'all';
+
     public array $searchResults = [];
+
     public bool $isSearching = false;
+
     public ?string $previewSnippet = null;
 
     // Vector Cache Preferences
@@ -99,7 +110,7 @@ class KnowledgeBasePage extends Component
     public function toggleSourceActive(int $sourceId)
     {
         $source = KnowledgeSource::where('user_id', Auth::id())->findOrFail($sourceId);
-        $source->is_active = !$source->is_active;
+        $source->is_active = ! $source->is_active;
         $source->save();
 
         $statusText = $source->is_active ? 'Activated' : 'Deactivated';
@@ -117,8 +128,8 @@ class KnowledgeBasePage extends Component
 
         try {
             $response = Http::withOptions(['force_ip_resolve' => 'v4', 'timeout' => 15])->get($this->urlInput);
-            if (!$response->successful()) {
-                throw new Exception("Unable to fetch URL. HTTP status: " . $response->status());
+            if (! $response->successful()) {
+                throw new Exception('Unable to fetch URL. HTTP status: '.$response->status());
             }
 
             $html = $response->body();
@@ -129,10 +140,10 @@ class KnowledgeBasePage extends Component
 
             $this->content = $cleanText;
             if (empty($this->title)) {
-                $this->title = 'Imported from ' . parse_url($this->urlInput, PHP_URL_HOST);
+                $this->title = 'Imported from '.parse_url($this->urlInput, PHP_URL_HOST);
             }
         } catch (Exception $e) {
-            $this->ingestErrorMessage = 'URL Import Failed: ' . $e->getMessage();
+            $this->ingestErrorMessage = 'URL Import Failed: '.$e->getMessage();
         } finally {
             $this->isIngesting = false;
         }
@@ -188,6 +199,7 @@ class KnowledgeBasePage extends Component
         if (empty(trim($this->searchQuery))) {
             $this->searchResults = [];
             $this->previewSnippet = null;
+
             return;
         }
 

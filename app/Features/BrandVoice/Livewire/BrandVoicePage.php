@@ -39,16 +39,24 @@ use Livewire\Component;
 class BrandVoicePage extends Component
 {
     public bool $showCreateModal = false;
+
     public bool $showEditModal = false;
+
     public ?int $editingId = null;
 
     // Form fields
     public string $name = '';
+
     public string $tone_description = '';
+
     public string $target_audience = '';
+
     public string $guidelines = '';
+
     public string $forbidden_words_input = '';
+
     public string $sample_content = '';
+
     public bool $is_default = false;
 
     // Quick Tone Presets

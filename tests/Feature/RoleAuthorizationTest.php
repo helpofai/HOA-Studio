@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Features\Auth\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;

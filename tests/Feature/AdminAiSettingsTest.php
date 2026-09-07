@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Features\Admin\Actions\SeedDefaultAiProviders;
 use App\Features\Admin\Livewire\AdminAiSettingsPage;
 use App\Features\Admin\Livewire\AdminOmniRouteSetupPage;
 use App\Features\AI\Models\AiModel;
 use App\Features\AI\Models\AiProvider;
+use App\Features\AI\Services\OmniRouteUrlResolver;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -19,7 +21,7 @@ class AdminAiSettingsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        app(\App\Features\Admin\Actions\SeedDefaultAiProviders::class)->execute();
+        app(SeedDefaultAiProviders::class)->execute();
     }
 
     public function test_admin_can_view_ai_settings_hub(): void
@@ -196,7 +198,7 @@ class AdminAiSettingsTest extends TestCase
     public function test_url_resolver_supports_both_127_0_0_1_and_localhost_with_and_without_v1(): void
     {
         // 1. Without /v1 and with localhost
-        $r1 = \App\Features\AI\Services\OmniRouteUrlResolver::resolve('http://localhost:20128');
+        $r1 = OmniRouteUrlResolver::resolve('http://localhost:20128');
         $this->assertEquals('http://localhost:20128/v1', $r1['openai_base']);
         $this->assertEquals('http://localhost:20128', $r1['root_url']);
         $this->assertEquals('http://127.0.0.1:20128/v1/chat/completions', $r1['chat_completions_endpoint']);
@@ -204,13 +206,13 @@ class AdminAiSettingsTest extends TestCase
         $this->assertEquals('http://127.0.0.1:20128/api/combos', $r1['combos_endpoint']);
 
         // 2. With 127.0.0.1 and /v1
-        $r2 = \App\Features\AI\Services\OmniRouteUrlResolver::resolve('http://127.0.0.1:20128/v1');
+        $r2 = OmniRouteUrlResolver::resolve('http://127.0.0.1:20128/v1');
         $this->assertEquals('http://127.0.0.1:20128/v1', $r2['openai_base']);
         $this->assertEquals('http://127.0.0.1:20128', $r2['root_url']);
         $this->assertEquals('http://127.0.0.1:20128/v1/models', $r2['models_endpoint']);
 
         // 3. With trailing slash http://localhost:20128/v1/
-        $r3 = \App\Features\AI\Services\OmniRouteUrlResolver::resolve('http://localhost:20128/v1/');
+        $r3 = OmniRouteUrlResolver::resolve('http://localhost:20128/v1/');
         $this->assertEquals('http://localhost:20128/v1', $r3['openai_base']);
         $this->assertEquals('http://localhost:20128', $r3['root_url']);
     }

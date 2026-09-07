@@ -71,7 +71,7 @@ class UsageAnalyticsService
             $totalCost += $cost;
             $totalSavings += $savings;
 
-            if (!isset($modelBreakdown[$model])) {
+            if (! isset($modelBreakdown[$model])) {
                 $modelBreakdown[$model] = [
                     'model' => $model,
                     'words' => 0,

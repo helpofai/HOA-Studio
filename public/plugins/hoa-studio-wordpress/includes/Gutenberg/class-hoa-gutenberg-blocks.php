@@ -1,4 +1,5 @@
 <?php
+
 /*
 |--------------------------------------------------------------------------
 | HelpOfAi (HOA) Professional Software - WordPress Gutenberg Integration
@@ -18,7 +19,7 @@ namespace HOA_Studio\Gutenberg;
 
 use HOA_Studio\Core\HOA_Settings;
 
-if (!defined('ABSPATH')) {
+if (! defined('ABSPATH')) {
     exit;
 }
 
@@ -29,14 +30,13 @@ class HOA_Gutenberg_Blocks
     public static function instance(): HOA_Gutenberg_Blocks
     {
         if (self::$instance === null) {
-            self::$instance = new self();
+            self::$instance = new self;
         }
+
         return self::$instance;
     }
 
-    private function __construct()
-    {
-    }
+    private function __construct() {}
 
     public function register_hooks(): void
     {
@@ -48,9 +48,9 @@ class HOA_Gutenberg_Blocks
     {
         return array_merge($categories, [
             [
-                'slug'  => 'hoa-studio',
+                'slug' => 'hoa-studio',
                 'title' => __('HOA Studio AI & Editorial', 'hoa-studio'),
-                'icon'  => 'star-filled',
+                'icon' => 'star-filled',
             ],
         ]);
     }
@@ -59,7 +59,7 @@ class HOA_Gutenberg_Blocks
     {
         wp_enqueue_script(
             'hoa-gutenberg-js',
-            HOA_STUDIO_URL . 'assets/js/hoa-gutenberg.js',
+            HOA_STUDIO_URL.'assets/js/hoa-gutenberg.js',
             ['wp-plugins', 'wp-edit-post', 'wp-element', 'wp-components', 'wp-data', 'wp-compose'],
             HOA_STUDIO_VERSION,
             true
@@ -67,7 +67,7 @@ class HOA_Gutenberg_Blocks
 
         wp_enqueue_style(
             'hoa-studio-css',
-            HOA_STUDIO_URL . 'assets/css/hoa-studio.css',
+            HOA_STUDIO_URL.'assets/css/hoa-studio.css',
             [],
             HOA_STUDIO_VERSION
         );

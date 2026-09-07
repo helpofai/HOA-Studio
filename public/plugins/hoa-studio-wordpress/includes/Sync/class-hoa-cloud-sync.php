@@ -1,4 +1,5 @@
 <?php
+
 /*
 |--------------------------------------------------------------------------
 | HelpOfAi (HOA) Professional Software - WordPress Cloud Sync Engine
@@ -19,7 +20,7 @@ namespace HOA_Studio\Sync;
 use HOA_Studio\Core\HOA_Settings;
 use WP_Post;
 
-if (!defined('ABSPATH')) {
+if (! defined('ABSPATH')) {
     exit;
 }
 
@@ -30,14 +31,13 @@ class HOA_Cloud_Sync
     public static function instance(): HOA_Cloud_Sync
     {
         if (self::$instance === null) {
-            self::$instance = new self();
+            self::$instance = new self;
         }
+
         return self::$instance;
     }
 
-    private function __construct()
-    {
-    }
+    private function __construct() {}
 
     public function register_hooks(): void
     {
@@ -48,7 +48,7 @@ class HOA_Cloud_Sync
 
     public function handle_post_transition(string $newStatus, string $oldStatus, WP_Post $post): void
     {
-        if (!HOA_Settings::isPostTypeEnabled($post->post_type)) {
+        if (! HOA_Settings::isPostTypeEnabled($post->post_type)) {
             return;
         }
 
@@ -79,22 +79,23 @@ class HOA_Cloud_Sync
             'document_id' => $syncedDocId > 0 ? $syncedDocId : null,
         ];
 
-        $response = wp_remote_post($endpoint . '/api/v1/wordpress/sync-document', [
+        $response = wp_remote_post($endpoint.'/api/v1/wordpress/sync-document', [
             'timeout' => 20,
             'headers' => [
-                'Authorization' => 'Bearer ' . $apiKey,
+                'Authorization' => 'Bearer '.$apiKey,
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
-                'User-Agent' => 'HOA-Studio-WordPress/' . HOA_STUDIO_VERSION,
+                'User-Agent' => 'HOA-Studio-WordPress/'.HOA_STUDIO_VERSION,
             ],
             'body' => json_encode($payload),
         ]);
 
-        if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
+        if (! is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
             $data = json_decode(wp_remote_retrieve_body($response), true);
-            if (!empty($data['document']['id'])) {
+            if (! empty($data['document']['id'])) {
                 update_post_meta($post->ID, '_hoa_synced_document_id', $data['document']['id']);
                 update_post_meta($post->ID, '_hoa_last_synced_at', current_time('mysql'));
+
                 return true;
             }
         }

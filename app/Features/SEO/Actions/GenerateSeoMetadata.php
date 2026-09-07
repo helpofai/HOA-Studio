@@ -28,9 +28,9 @@ namespace App\Features\SEO\Actions;
 use App\Features\AI\Actions\RecordGenerationUsage;
 use App\Features\AI\Services\OmniRouteClient;
 use App\Models\User;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Log;
 use Exception;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class GenerateSeoMetadata
 {
@@ -47,8 +47,8 @@ class GenerateSeoMetadata
     {
         if ($user->hasQuota(1)) {
             try {
-                $systemPrompt = "You are an elite SEO copywriter. Generate exactly 3 compelling, high-CTR meta descriptions (strictly between 145 and 160 characters each). Each meta description must include the target keyword naturally and end with a clear call to action. Return ONLY valid JSON formatted as: [\"desc1\", \"desc2\", \"desc3\"].";
-                $prompt = "Target Keyword: " . ($keyword ?: 'General') . "\n\nContent Excerpt:\n" . mb_substr($documentText, 0, 1500);
+                $systemPrompt = 'You are an elite SEO copywriter. Generate exactly 3 compelling, high-CTR meta descriptions (strictly between 145 and 160 characters each). Each meta description must include the target keyword naturally and end with a clear call to action. Return ONLY valid JSON formatted as: ["desc1", "desc2", "desc3"].';
+                $prompt = 'Target Keyword: '.($keyword ?: 'General')."\n\nContent Excerpt:\n".mb_substr($documentText, 0, 1500);
 
                 $response = $this->client->chatCompletion([
                     ['role' => 'system', 'content' => $systemPrompt],
@@ -69,7 +69,7 @@ class GenerateSeoMetadata
                     return array_slice($decoded, 0, 3);
                 }
             } catch (Exception $e) {
-                Log::warning('GenerateSeoMetadata: AI meta generation failed, falling back to local algorithm: ' . $e->getMessage());
+                Log::warning('GenerateSeoMetadata: AI meta generation failed, falling back to local algorithm: '.$e->getMessage());
             }
         }
 
@@ -84,8 +84,8 @@ class GenerateSeoMetadata
     {
         if ($user->hasQuota(1)) {
             try {
-                $systemPrompt = "You are a master SEO title copywriter. Generate 3 click-magnet, search-optimized title tags (between 50 and 60 characters). Front-load the primary keyword. Return ONLY valid JSON formatted as: [\"title1\", \"title2\", \"title3\"].";
-                $prompt = "Target Keyword: " . ($keyword ?: 'General') . "\n\nContent Excerpt:\n" . mb_substr($documentText, 0, 1500);
+                $systemPrompt = 'You are a master SEO title copywriter. Generate 3 click-magnet, search-optimized title tags (between 50 and 60 characters). Front-load the primary keyword. Return ONLY valid JSON formatted as: ["title1", "title2", "title3"].';
+                $prompt = 'Target Keyword: '.($keyword ?: 'General')."\n\nContent Excerpt:\n".mb_substr($documentText, 0, 1500);
 
                 $response = $this->client->chatCompletion([
                     ['role' => 'system', 'content' => $systemPrompt],
@@ -106,7 +106,7 @@ class GenerateSeoMetadata
                     return array_slice($decoded, 0, 3);
                 }
             } catch (Exception $e) {
-                Log::warning('GenerateSeoMetadata: AI title generation failed, falling back to local algorithm: ' . $e->getMessage());
+                Log::warning('GenerateSeoMetadata: AI title generation failed, falling back to local algorithm: '.$e->getMessage());
             }
         }
 
@@ -121,8 +121,8 @@ class GenerateSeoMetadata
     {
         if ($user->hasQuota(1)) {
             try {
-                $systemPrompt = "You are an SEO semantic search expert. Analyze the topic and primary keyword, and return a list of 8 high-relevance semantic entities, synonyms, and secondary keywords (LSI keywords) to improve topical authority. Return ONLY valid JSON formatted as: [\"keyword1\", \"keyword2\", ...].";
-                $prompt = "Primary Keyword: " . ($primaryKeyword ?: 'General') . "\n\nContent Excerpt:\n" . mb_substr($documentText, 0, 1500);
+                $systemPrompt = 'You are an SEO semantic search expert. Analyze the topic and primary keyword, and return a list of 8 high-relevance semantic entities, synonyms, and secondary keywords (LSI keywords) to improve topical authority. Return ONLY valid JSON formatted as: ["keyword1", "keyword2", ...].';
+                $prompt = 'Primary Keyword: '.($primaryKeyword ?: 'General')."\n\nContent Excerpt:\n".mb_substr($documentText, 0, 1500);
 
                 $response = $this->client->chatCompletion([
                     ['role' => 'system', 'content' => $systemPrompt],
@@ -143,7 +143,7 @@ class GenerateSeoMetadata
                     return array_slice($decoded, 0, 8);
                 }
             } catch (Exception $e) {
-                Log::warning('GenerateSeoMetadata: AI keyword suggestion failed, falling back to local algorithm: ' . $e->getMessage());
+                Log::warning('GenerateSeoMetadata: AI keyword suggestion failed, falling back to local algorithm: '.$e->getMessage());
             }
         }
 
@@ -158,8 +158,8 @@ class GenerateSeoMetadata
     {
         if ($user->hasQuota(1)) {
             try {
-                $systemPrompt = "You are an SEO structured data expert. Analyze the content and generate 4 high-value, highly searched FAQ pairs. Return ONLY valid JSON formatted as: [{\"question\": \"...\", \"answer\": \"...\"}, ...].";
-                $prompt = "Target Topic / Keyword: " . ($keyword ?: 'General') . "\n\nContent Excerpt:\n" . mb_substr($documentText, 0, 1500);
+                $systemPrompt = 'You are an SEO structured data expert. Analyze the content and generate 4 high-value, highly searched FAQ pairs. Return ONLY valid JSON formatted as: [{"question": "...", "answer": "..."}, ...].';
+                $prompt = 'Target Topic / Keyword: '.($keyword ?: 'General')."\n\nContent Excerpt:\n".mb_substr($documentText, 0, 1500);
 
                 $response = $this->client->chatCompletion([
                     ['role' => 'system', 'content' => $systemPrompt],
@@ -180,7 +180,7 @@ class GenerateSeoMetadata
                     return array_slice($decoded, 0, 4);
                 }
             } catch (Exception $e) {
-                Log::warning('GenerateSeoMetadata: AI FAQ generation failed, falling back to local algorithm: ' . $e->getMessage());
+                Log::warning('GenerateSeoMetadata: AI FAQ generation failed, falling back to local algorithm: '.$e->getMessage());
             }
         }
 
@@ -196,7 +196,7 @@ class GenerateSeoMetadata
         if ($user->hasQuota(1)) {
             try {
                 $systemPrompt = "You are an SEO intent optimization expert. Generate a concise, 2-3 sentence 'Quick Answer / Summary' box addressing the primary search intent. Output clean HTML with <strong> and concise bullet points if needed. Do not wrap in markdown code blocks.";
-                $prompt = "Target Keyword: " . ($keyword ?: 'General') . "\n\nContent Excerpt:\n" . mb_substr($documentText, 0, 1500);
+                $prompt = 'Target Keyword: '.($keyword ?: 'General')."\n\nContent Excerpt:\n".mb_substr($documentText, 0, 1500);
 
                 $response = $this->client->chatCompletion([
                     ['role' => 'system', 'content' => $systemPrompt],
@@ -212,11 +212,11 @@ class GenerateSeoMetadata
                     'model_slug' => $response['model'] ?? 'omniroute',
                 ]);
 
-                if (!empty($content)) {
+                if (! empty($content)) {
                     return $content;
                 }
             } catch (Exception $e) {
-                Log::warning('GenerateSeoMetadata: AI Quick Answer generation failed, falling back to local algorithm: ' . $e->getMessage());
+                Log::warning('GenerateSeoMetadata: AI Quick Answer generation failed, falling back to local algorithm: '.$e->getMessage());
             }
         }
 
@@ -231,8 +231,8 @@ class GenerateSeoMetadata
     {
         if ($user->hasQuota(1)) {
             try {
-                $systemPrompt = "You are a senior SEO content strategist. Analyze the content and return 4 critical missing subtopics or questions required to outperform top-ranking competitors. Return ONLY valid JSON formatted as: [{\"topic\": \"...\", \"reason\": \"...\", \"suggested_h2\": \"...\"}, ...].";
-                $prompt = "Primary Keyword: " . ($keyword ?: 'General') . "\n\nContent Excerpt:\n" . mb_substr($documentText, 0, 1500);
+                $systemPrompt = 'You are a senior SEO content strategist. Analyze the content and return 4 critical missing subtopics or questions required to outperform top-ranking competitors. Return ONLY valid JSON formatted as: [{"topic": "...", "reason": "...", "suggested_h2": "..."}, ...].';
+                $prompt = 'Primary Keyword: '.($keyword ?: 'General')."\n\nContent Excerpt:\n".mb_substr($documentText, 0, 1500);
 
                 $response = $this->client->chatCompletion([
                     ['role' => 'system', 'content' => $systemPrompt],
@@ -253,7 +253,7 @@ class GenerateSeoMetadata
                     return array_slice($decoded, 0, 4);
                 }
             } catch (Exception $e) {
-                Log::warning('GenerateSeoMetadata: AI Content Gaps failed, falling back to local algorithm: ' . $e->getMessage());
+                Log::warning('GenerateSeoMetadata: AI Content Gaps failed, falling back to local algorithm: '.$e->getMessage());
             }
         }
 
@@ -269,7 +269,7 @@ class GenerateSeoMetadata
      */
     public function generateTitlesAlgorithmic(string $documentText, ?string $keyword = null): array
     {
-        $kw = !empty($keyword) ? trim($keyword) : $this->extractPrimaryTopic($documentText);
+        $kw = ! empty($keyword) ? trim($keyword) : $this->extractPrimaryTopic($documentText);
         $capKw = Str::headline($kw);
         $year = date('Y');
 
@@ -284,7 +284,9 @@ class GenerateSeoMetadata
         $results = [];
         foreach ($templates as $t) {
             $results[] = mb_strlen($t) > 65 ? Str::limit($t, 60, '') : $t;
-            if (count($results) >= 3) break;
+            if (count($results) >= 3) {
+                break;
+            }
         }
 
         return $results;
@@ -295,23 +297,24 @@ class GenerateSeoMetadata
      */
     public function generateMetaDescriptionsAlgorithmic(string $documentText, ?string $keyword = null): array
     {
-        $kw = !empty($keyword) ? trim($keyword) : $this->extractPrimaryTopic($documentText);
+        $kw = ! empty($keyword) ? trim($keyword) : $this->extractPrimaryTopic($documentText);
         $capKw = Str::headline($kw);
         $year = date('Y');
 
         $cleanText = trim(strip_tags($documentText));
         $sentences = preg_split('/(?<=[.?!])\s+/u', $cleanText, -1, PREG_SPLIT_NO_EMPTY);
-        $introExcerpt = !empty($sentences[0]) ? Str::limit(trim($sentences[0]), 80, '') : "Discover key insights and proven methodologies for {$kw}.";
+        $introExcerpt = ! empty($sentences[0]) ? Str::limit(trim($sentences[0]), 80, '') : "Discover key insights and proven methodologies for {$kw}.";
 
         $desc1 = "Discover everything you need to know about {$capKw} in {$year}. Explore expert strategies, actionable advice, and key takeaways in this complete guide. Read now.";
         $desc2 = "Looking to optimize {$kw}? {$introExcerpt} Learn practical steps and best practices to achieve top results quickly. Get the full breakdown now.";
         $desc3 = "Master {$capKw} with our in-depth analysis. We break down core concepts, practical tips, and data-backed recommendations for top performance.";
 
-        $format = function(string $text) {
+        $format = function (string $text) {
             $text = trim(preg_replace('/\s+/', ' ', $text));
             if (mb_strlen($text) > 158) {
                 $text = Str::limit($text, 155, '...');
             }
+
             return $text;
         };
 
@@ -327,15 +330,15 @@ class GenerateSeoMetadata
      */
     public function suggestKeywordsAlgorithmic(string $documentText, ?string $primaryKeyword = null): array
     {
-        $kw = !empty($primaryKeyword) ? trim(mb_strtolower($primaryKeyword)) : '';
+        $kw = ! empty($primaryKeyword) ? trim(mb_strtolower($primaryKeyword)) : '';
         $clean = strtolower(strip_tags($documentText));
         $clean = preg_replace('/[^\p{L}\p{N}\s]/u', ' ', $clean);
-        $words = array_values(array_filter(preg_split('/\s+/u', $clean), fn($w) => mb_strlen($w) > 3));
+        $words = array_values(array_filter(preg_split('/\s+/u', $clean), fn ($w) => mb_strlen($w) > 3));
 
         $stopWords = [
             'this', 'that', 'with', 'from', 'have', 'more', 'about', 'your', 'will', 'what',
             'which', 'their', 'there', 'they', 'when', 'where', 'been', 'would', 'could',
-            'should', 'these', 'those', 'also', 'into', 'just', 'some', 'than', 'them'
+            'should', 'these', 'those', 'also', 'into', 'just', 'some', 'than', 'them',
         ];
 
         $phraseCounts = [];
@@ -343,7 +346,7 @@ class GenerateSeoMetadata
         for ($i = 0; $i < $totalWords - 1; $i++) {
             $w1 = $words[$i];
             $w2 = $words[$i + 1];
-            if (!in_array($w1, $stopWords) && !in_array($w2, $stopWords)) {
+            if (! in_array($w1, $stopWords) && ! in_array($w2, $stopWords)) {
                 $bi = "{$w1} {$w2}";
                 if ($bi !== $kw) {
                     $phraseCounts[$bi] = ($phraseCounts[$bi] ?? 0) + 1;
@@ -351,7 +354,7 @@ class GenerateSeoMetadata
             }
             if ($i < $totalWords - 2) {
                 $w3 = $words[$i + 2];
-                if (!in_array($w1, $stopWords) && !in_array($w3, $stopWords)) {
+                if (! in_array($w1, $stopWords) && ! in_array($w3, $stopWords)) {
                     $tri = "{$w1} {$w2} {$w3}";
                     if ($tri !== $kw) {
                         $phraseCounts[$tri] = ($phraseCounts[$tri] ?? 0) + 2;
@@ -365,9 +368,11 @@ class GenerateSeoMetadata
 
         $semanticModifiers = ['best practices', 'strategy', 'optimization', 'guide', 'framework', 'tools', 'examples', 'metrics'];
         foreach ($semanticModifiers as $mod) {
-            if (count($topPhrases) >= 8) break;
+            if (count($topPhrases) >= 8) {
+                break;
+            }
             $candidate = $kw ? "{$kw} {$mod}" : $mod;
-            if (!in_array($candidate, $topPhrases)) {
+            if (! in_array($candidate, $topPhrases)) {
                 $topPhrases[] = $candidate;
             }
         }
@@ -380,26 +385,26 @@ class GenerateSeoMetadata
      */
     public function generateFaqsAlgorithmic(string $documentText, ?string $keyword = null): array
     {
-        $kw = !empty($keyword) ? trim($keyword) : $this->extractPrimaryTopic($documentText);
+        $kw = ! empty($keyword) ? trim($keyword) : $this->extractPrimaryTopic($documentText);
         $capKw = Str::headline($kw);
 
         return [
             [
                 'question' => "What is {$capKw} and why is it important?",
-                'answer' => "{$capKw} provides a structured framework and actionable strategies to maximize efficiency, quality, and measurable search outcomes."
+                'answer' => "{$capKw} provides a structured framework and actionable strategies to maximize efficiency, quality, and measurable search outcomes.",
             ],
             [
                 'question' => "How can you implement {$capKw} effectively?",
-                'answer' => "Follow a structured approach: establish foundational baselines, align core structural parameters, and iterate continuously based on empirical data."
+                'answer' => 'Follow a structured approach: establish foundational baselines, align core structural parameters, and iterate continuously based on empirical data.',
             ],
             [
                 'question' => "What are the primary benefits of {$capKw}?",
-                'answer' => "Key benefits include improved audience engagement, higher organic authority, streamlined scannability, and scalable publishing consistency."
+                'answer' => 'Key benefits include improved audience engagement, higher organic authority, streamlined scannability, and scalable publishing consistency.',
             ],
             [
-                'question' => "What common mistakes should be avoided?",
-                'answer' => "Avoid overlooking direct intent answers, neglecting comprehensive formatting, creating bulky paragraphs without subheadings, and lacking citation evidence."
-            ]
+                'question' => 'What common mistakes should be avoided?',
+                'answer' => 'Avoid overlooking direct intent answers, neglecting comprehensive formatting, creating bulky paragraphs without subheadings, and lacking citation evidence.',
+            ],
         ];
     }
 
@@ -408,41 +413,41 @@ class GenerateSeoMetadata
      */
     public function generateContentGapsAlgorithmic(string $documentText, ?string $keyword = null): array
     {
-        $kw = !empty($keyword) ? trim($keyword) : $this->extractPrimaryTopic($documentText);
+        $kw = ! empty($keyword) ? trim($keyword) : $this->extractPrimaryTopic($documentText);
         $capKw = Str::headline($kw);
         $lower = mb_strtolower($documentText);
 
         $gaps = [];
 
-        if (!str_contains($lower, 'step') && !str_contains($lower, 'guide') && !str_contains($lower, 'how to')) {
+        if (! str_contains($lower, 'step') && ! str_contains($lower, 'guide') && ! str_contains($lower, 'how to')) {
             $gaps[] = [
                 'topic' => 'Step-by-Step Implementation Framework',
                 'reason' => 'High-ranking search results provide structured execution instructions for readers.',
-                'suggested_h2' => "How to Implement {$capKw}: Step-by-Step"
+                'suggested_h2' => "How to Implement {$capKw}: Step-by-Step",
             ];
         }
 
-        if (!str_contains($lower, 'vs') && !str_contains($lower, 'comparison') && !str_contains($lower, 'table') && !str_contains($lower, 'benchmark')) {
+        if (! str_contains($lower, 'vs') && ! str_contains($lower, 'comparison') && ! str_contains($lower, 'table') && ! str_contains($lower, 'benchmark')) {
             $gaps[] = [
                 'topic' => 'Comparative Analysis & Benchmarks',
                 'reason' => 'Searchers frequently compare solutions and evaluate metrics before making decisions.',
-                'suggested_h2' => "{$capKw} Comparison & Performance Benchmarks"
+                'suggested_h2' => "{$capKw} Comparison & Performance Benchmarks",
             ];
         }
 
-        if (!str_contains($lower, 'mistake') && !str_contains($lower, 'pitfall') && !str_contains($lower, 'avoid') && !str_contains($lower, 'troubleshoot')) {
+        if (! str_contains($lower, 'mistake') && ! str_contains($lower, 'pitfall') && ! str_contains($lower, 'avoid') && ! str_contains($lower, 'troubleshoot')) {
             $gaps[] = [
                 'topic' => 'Common Mistakes & Troubleshooting',
                 'reason' => 'Highlighting pitfalls builds trust and captures high-intent troubleshooting queries.',
-                'suggested_h2' => "Critical Mistakes to Avoid with {$capKw}"
+                'suggested_h2' => "Critical Mistakes to Avoid with {$capKw}",
             ];
         }
 
-        if (!str_contains($lower, 'trend') && !str_contains($lower, 'future') && !str_contains($lower, 'evolution')) {
+        if (! str_contains($lower, 'trend') && ! str_contains($lower, 'future') && ! str_contains($lower, 'evolution')) {
             $gaps[] = [
                 'topic' => 'Future Trends & Key Developments',
                 'reason' => 'Forward-looking analysis establishes topical authority and keeps content current.',
-                'suggested_h2' => "The Future of {$capKw}: Trends to Watch"
+                'suggested_h2' => "The Future of {$capKw}: Trends to Watch",
             ];
         }
 
@@ -454,12 +459,12 @@ class GenerateSeoMetadata
      */
     public function generateQuickAnswerAlgorithmic(string $documentText, ?string $keyword = null): string
     {
-        $kw = !empty($keyword) ? trim($keyword) : $this->extractPrimaryTopic($documentText);
+        $kw = ! empty($keyword) ? trim($keyword) : $this->extractPrimaryTopic($documentText);
         $capKw = Str::headline($kw);
 
-        return "<div class=\"geo-direct-answer my-3 p-3.5 rounded-xl bg-purple-950/20 border border-purple-500/30 text-slate-200 text-xs leading-relaxed\">"
-            . "<strong>Quick Answer: </strong>{$capKw} is an essential discipline designed to achieve optimal performance through systematic implementation, empirical validation, and user-centric best practices. Focus on clear execution and continuous metric tracking."
-            . "</div>";
+        return '<div class="geo-direct-answer my-3 p-3.5 rounded-xl bg-purple-950/20 border border-purple-500/30 text-slate-200 text-xs leading-relaxed">'
+            ."<strong>Quick Answer: </strong>{$capKw} is an essential discipline designed to achieve optimal performance through systematic implementation, empirical validation, and user-centric best practices. Focus on clear execution and continuous metric tracking."
+            .'</div>';
     }
 
     /**
@@ -469,12 +474,15 @@ class GenerateSeoMetadata
     {
         if (preg_match('/<h1[^>]*>(.*?)<\/h1>/i', $text, $m)) {
             $topic = trim(strip_tags($m[1]));
-            if (!empty($topic)) return Str::limit($topic, 30, '');
+            if (! empty($topic)) {
+                return Str::limit($topic, 30, '');
+            }
         }
         $words = preg_split('/\s+/u', trim(strip_tags($text)), -1, PREG_SPLIT_NO_EMPTY);
-        if (!empty($words)) {
+        if (! empty($words)) {
             return implode(' ', array_slice($words, 0, min(3, count($words))));
         }
+
         return 'Content Strategy';
     }
 }

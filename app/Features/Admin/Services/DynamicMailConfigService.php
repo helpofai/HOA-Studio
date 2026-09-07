@@ -43,19 +43,19 @@ class DynamicMailConfigService
             Config::set('mail.default', $driver);
 
             // Configure From Address
-            if (!empty($settings['mail_from_address'])) {
+            if (! empty($settings['mail_from_address'])) {
                 Config::set('mail.from.address', $settings['mail_from_address']);
             }
-            if (!empty($settings['mail_from_name'])) {
+            if (! empty($settings['mail_from_name'])) {
                 Config::set('mail.from.name', $settings['mail_from_name']);
             }
 
             // Configure SMTP details
             if ($driver === 'smtp') {
-                if (!empty($settings['mail_host'])) {
+                if (! empty($settings['mail_host'])) {
                     Config::set('mail.mailers.smtp.host', $settings['mail_host']);
                 }
-                if (!empty($settings['mail_port'])) {
+                if (! empty($settings['mail_port'])) {
                     Config::set('mail.mailers.smtp.port', (int) $settings['mail_port']);
                 }
                 if (isset($settings['mail_encryption'])) {
@@ -71,37 +71,37 @@ class DynamicMailConfigService
             }
 
             // Configure Resend details
-            if ($driver === 'resend' && !empty($settings['mail_resend_api_key'])) {
+            if ($driver === 'resend' && ! empty($settings['mail_resend_api_key'])) {
                 Config::set('services.resend.key', $settings['mail_resend_api_key']);
             }
 
             // Configure Mailgun details
             if ($driver === 'mailgun') {
-                if (!empty($settings['mail_mailgun_domain'])) {
+                if (! empty($settings['mail_mailgun_domain'])) {
                     Config::set('services.mailgun.domain', $settings['mail_mailgun_domain']);
                 }
-                if (!empty($settings['mail_mailgun_secret'])) {
+                if (! empty($settings['mail_mailgun_secret'])) {
                     Config::set('services.mailgun.secret', $settings['mail_mailgun_secret']);
                 }
-                if (!empty($settings['mail_mailgun_endpoint'])) {
+                if (! empty($settings['mail_mailgun_endpoint'])) {
                     Config::set('services.mailgun.endpoint', $settings['mail_mailgun_endpoint']);
                 }
             }
 
             // Configure Postmark details
-            if ($driver === 'postmark' && !empty($settings['mail_postmark_token'])) {
+            if ($driver === 'postmark' && ! empty($settings['mail_postmark_token'])) {
                 Config::set('services.postmark.token', $settings['mail_postmark_token']);
             }
 
             // Configure Amazon SES details
             if ($driver === 'ses') {
-                if (!empty($settings['mail_ses_key'])) {
+                if (! empty($settings['mail_ses_key'])) {
                     Config::set('services.ses.key', $settings['mail_ses_key']);
                 }
-                if (!empty($settings['mail_ses_secret'])) {
+                if (! empty($settings['mail_ses_secret'])) {
                     Config::set('services.ses.secret', $settings['mail_ses_secret']);
                 }
-                if (!empty($settings['mail_ses_region'])) {
+                if (! empty($settings['mail_ses_region'])) {
                     Config::set('services.ses.region', $settings['mail_ses_region']);
                 }
             }
@@ -114,7 +114,6 @@ class DynamicMailConfigService
     /**
      * Send a live test email and return status diagnosis.
      *
-     * @param string $recipientEmail
      * @return array{success: bool, message: string}
      */
     public function sendTestEmail(string $recipientEmail): array
@@ -125,9 +124,9 @@ class DynamicMailConfigService
             $siteName = config('app.name', 'HelpOfAi Studio');
             $mailer = config('mail.default', 'smtp');
 
-            Mail::raw("Hello,\n\nThis is a test email sent from {$siteName} Mail Engine using [{$mailer}] transport.\n\nAll email delivery systems, credentials, and notification pipelines are operational.\n\nTimestamp: " . now()->toIso8601String(), function ($message) use ($recipientEmail, $siteName, $mailer) {
+            Mail::raw("Hello,\n\nThis is a test email sent from {$siteName} Mail Engine using [{$mailer}] transport.\n\nAll email delivery systems, credentials, and notification pipelines are operational.\n\nTimestamp: ".now()->toIso8601String(), function ($message) use ($recipientEmail, $siteName, $mailer) {
                 $message->to($recipientEmail)
-                        ->subject("✓ [{$siteName}] Mail Delivery Test — Transport: " . strtoupper($mailer));
+                    ->subject("✓ [{$siteName}] Mail Delivery Test — Transport: ".strtoupper($mailer));
             });
 
             return [
@@ -142,7 +141,7 @@ class DynamicMailConfigService
 
             return [
                 'success' => false,
-                'message' => "Mail delivery error: " . $e->getMessage(),
+                'message' => 'Mail delivery error: '.$e->getMessage(),
             ];
         }
     }

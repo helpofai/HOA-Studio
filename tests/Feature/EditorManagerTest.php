@@ -25,8 +25,13 @@
 
 namespace Tests\Feature;
 
-use App\Features\Documents\Services\EditorManager;
+use App\Features\Documents\Adapters\GutenbergAdapter;
+use App\Features\Documents\Adapters\HtmlAdapter;
+use App\Features\Documents\Adapters\MarkdownAdapter;
+use App\Features\Documents\Adapters\NotionAdapter;
+use App\Features\Documents\Adapters\TiptapAdapter;
 use App\Features\Documents\Data\CanonicalDocumentSchema;
+use App\Features\Documents\Services\EditorManager;
 use Tests\TestCase;
 
 class EditorManagerTest extends TestCase
@@ -44,16 +49,16 @@ class EditorManagerTest extends TestCase
                     'type' => 'heading',
                     'attrs' => ['level' => 1],
                     'content' => [
-                        ['type' => 'text', 'text' => 'Hello World']
-                    ]
+                        ['type' => 'text', 'text' => 'Hello World'],
+                    ],
                 ],
                 [
                     'type' => 'paragraph',
                     'content' => [
-                        ['type' => 'text', 'text' => 'Test paragraph']
-                    ]
-                ]
-            ]
+                        ['type' => 'text', 'text' => 'Test paragraph'],
+                    ],
+                ],
+            ],
         ];
         $canonical = $adapter->toCanonical($tiptapJson);
 
@@ -74,10 +79,10 @@ class EditorManagerTest extends TestCase
         // Assert against Canonical AST structure
         $this->assertEquals('doc', $canonical['type']);
         $this->assertArrayHasKey('content', $canonical);
-        
+
         // Find text node recursively since structure may vary
         $textNode = $this->findTextNode($canonical['content']);
-        $this->assertNotNull($textNode, 'Could not find text node in AST: ' . json_encode($canonical));
+        $this->assertNotNull($textNode, 'Could not find text node in AST: '.json_encode($canonical));
         $this->assertStringContainsString('Welcome', $textNode);
     }
 
@@ -86,7 +91,7 @@ class EditorManagerTest extends TestCase
         $manager = app(EditorManager::class);
         $adapter = $manager->adapter('plain_text');
 
-        $text = "Hello Plain Text";
+        $text = 'Hello Plain Text';
         $canonical = $adapter->toCanonical($text);
 
         // Assert against Canonical AST structure
@@ -108,19 +113,19 @@ class EditorManagerTest extends TestCase
         $this->assertNotNull($manager->adapter('plain_text'));
 
         $tiptap = $manager->adapter('tiptap');
-        $this->assertInstanceOf(\App\Features\Documents\Adapters\TiptapAdapter::class, $tiptap);
+        $this->assertInstanceOf(TiptapAdapter::class, $tiptap);
 
         $gutenberg = $manager->adapter('gutenberg');
-        $this->assertInstanceOf(\App\Features\Documents\Adapters\GutenbergAdapter::class, $gutenberg);
+        $this->assertInstanceOf(GutenbergAdapter::class, $gutenberg);
 
         $markdown = $manager->adapter('markdown');
-        $this->assertInstanceOf(\App\Features\Documents\Adapters\MarkdownAdapter::class, $markdown);
+        $this->assertInstanceOf(MarkdownAdapter::class, $markdown);
 
         $notion = $manager->adapter('block_editor');
-        $this->assertInstanceOf(\App\Features\Documents\Adapters\NotionAdapter::class, $notion);
+        $this->assertInstanceOf(NotionAdapter::class, $notion);
 
         $html = $manager->adapter('html');
-        $this->assertInstanceOf(\App\Features\Documents\Adapters\HtmlAdapter::class, $html);
+        $this->assertInstanceOf(HtmlAdapter::class, $html);
     }
 
     public function test_adapter_interface_methods_exist(): void
@@ -149,8 +154,8 @@ class EditorManagerTest extends TestCase
     {
         $validDoc = CanonicalDocumentSchema::createDocument([
             CanonicalDocumentSchema::createNode('paragraph', [], [
-                CanonicalDocumentSchema::createTextNode('Test content')
-            ])
+                CanonicalDocumentSchema::createTextNode('Test content'),
+            ]),
         ]);
 
         $this->assertTrue(CanonicalDocumentSchema::validate($validDoc));
@@ -171,9 +176,12 @@ class EditorManagerTest extends TestCase
             }
             if (isset($node['content']) && is_array($node['content'])) {
                 $found = $this->findTextNode($node['content']);
-                if ($found) return $found;
+                if ($found) {
+                    return $found;
+                }
             }
         }
+
         return null;
     }
 }

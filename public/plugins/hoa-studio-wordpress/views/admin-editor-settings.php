@@ -16,7 +16,7 @@
 
 use HOA_Studio\Core\HOA_Settings;
 
-if (!defined('ABSPATH')) {
+if (! defined('ABSPATH')) {
     exit;
 }
 
@@ -49,8 +49,10 @@ $allPostTypes = get_post_types(['public' => true], 'objects');
                 <div class="hoa-form-group">
                     <label class="hoa-form-label"><?php esc_html_e('Enable HOA Studio Metabox & TipTap on:', 'hoa-studio'); ?></label>
                     <div class="hoa-checkbox-list">
-                        <?php foreach ($allPostTypes as $pt): ?>
-                            <?php if ($pt->name === 'attachment') continue; ?>
+                        <?php foreach ($allPostTypes as $pt) { ?>
+                            <?php if ($pt->name === 'attachment') {
+                                continue;
+                            } ?>
                             <label class="hoa-checkbox-item">
                                 <input 
                                     type="checkbox" 
@@ -60,7 +62,7 @@ $allPostTypes = get_post_types(['public' => true], 'objects');
                                 />
                                 <span class="hoa-checkbox-label"><?php echo esc_html($pt->label); ?> (<code><?php echo esc_html($pt->name); ?></code>)</span>
                             </label>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </div>
                 </div>
 

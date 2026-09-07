@@ -16,7 +16,7 @@
 
 use HOA_Studio\Core\HOA_Settings;
 
-if (!defined('ABSPATH')) {
+if (! defined('ABSPATH')) {
     exit;
 }
 

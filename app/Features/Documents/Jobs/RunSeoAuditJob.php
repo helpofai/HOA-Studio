@@ -2,8 +2,8 @@
 
 namespace App\Features\Documents\Jobs;
 
-use App\Models\Document;
 use App\Features\Documents\Actions\AnalyzeDocumentSeo;
+use App\Models\Document;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;

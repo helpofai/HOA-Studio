@@ -46,12 +46,12 @@ class DocumentExporter
         $html = preg_replace('/<h4[^>]*>(.*?)<\/h4>/si', "#### $1\n\n", $html);
 
         // Replace bold & italic
-        $html = preg_replace('/<(strong|b)[^>]*>(.*?)<\/(strong|b)>/si', "**$2**", $html);
-        $html = preg_replace('/<(em|i)[^>]*>(.*?)<\/(em|i)>/si', "*$2*", $html);
+        $html = preg_replace('/<(strong|b)[^>]*>(.*?)<\/(strong|b)>/si', '**$2**', $html);
+        $html = preg_replace('/<(em|i)[^>]*>(.*?)<\/(em|i)>/si', '*$2*', $html);
 
         // Replace code & code blocks
         $html = preg_replace('/<pre><code>(.*?)<\/code><\/pre>/si', "```\n$1\n```\n\n", $html);
-        $html = preg_replace('/<code[^>]*>(.*?)<\/code>/si', "`$1`", $html);
+        $html = preg_replace('/<code[^>]*>(.*?)<\/code>/si', '`$1`', $html);
 
         // Replace blockquotes
         $html = preg_replace('/<blockquote[^>]*>(.*?)<\/blockquote>/si', "> $1\n\n", $html);
@@ -65,13 +65,13 @@ class DocumentExporter
         $html = preg_replace('/<br\s*\/?>/si', "\n", $html);
 
         // Replace links
-        $html = preg_replace('/<a\s+[^>]*href=["\']([^"\']*)["\'][^>]*>(.*?)<\/a>/si', "[$2]($1)", $html);
+        $html = preg_replace('/<a\s+[^>]*href=["\']([^"\']*)["\'][^>]*>(.*?)<\/a>/si', '[$2]($1)', $html);
 
         // Strip remaining HTML tags
         $cleanMd = trim(strip_tags($html));
         $cleanMd = html_entity_decode($cleanMd, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
-        return $md . $cleanMd . "\n";
+        return $md.$cleanMd."\n";
     }
 
     /**
@@ -222,7 +222,7 @@ HTML;
         $plain = trim(strip_tags($spacedHtml));
         $plain = html_entity_decode($plain, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
-        return "{$title}\n" . str_repeat('=', mb_strlen($title)) . "\n\n" . $plain . "\n";
+        return "{$title}\n".str_repeat('=', mb_strlen($title))."\n\n".$plain."\n";
     }
 
     /**
@@ -268,7 +268,7 @@ XML;
         $readingTime = $document->reading_time_minutes;
 
         $ast = null;
-        if (!empty($json)) {
+        if (! empty($json)) {
             $ast = is_string($json) ? json_decode($json, true) : $json;
         }
 
@@ -292,6 +292,6 @@ XML;
             'plain_text' => $document->content->content_plain ?? '',
         ];
 
-        return json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n";
+        return json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)."\n";
     }
 }

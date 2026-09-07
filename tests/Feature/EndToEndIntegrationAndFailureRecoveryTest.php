@@ -18,6 +18,7 @@ use App\Features\Templates\Actions\GenerateFromTemplate;
 use App\Features\Templates\Models\Template;
 use App\Features\Templates\Models\TemplateCategory;
 use App\Models\User;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
@@ -29,16 +30,17 @@ class EndToEndIntegrationAndFailureRecoveryTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected User $admin;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+        $this->withoutMiddleware(ValidateCsrfToken::class);
 
         $this->user = User::factory()->create([
-            'email' => 'creator_' . uniqid() . '@helpofai.com',
+            'email' => 'creator_'.uniqid().'@helpofai.com',
             'role' => 'user',
             'plan' => 'pro',
             'monthly_word_quota' => 50000,
@@ -47,7 +49,7 @@ class EndToEndIntegrationAndFailureRecoveryTest extends TestCase
         ]);
 
         $this->admin = User::factory()->create([
-            'email' => 'admin_' . uniqid() . '@helpofai.com',
+            'email' => 'admin_'.uniqid().'@helpofai.com',
             'role' => 'admin',
             'plan' => 'enterprise',
             'is_active' => true,

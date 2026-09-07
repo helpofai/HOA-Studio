@@ -79,7 +79,7 @@ class AuthSecurityProtectionTest extends TestCase
 
     public function test_login_brute_force_rate_limiter_triggers_after_failed_attempts()
     {
-        $targetEmail = 'victim_rl_' . uniqid() . '@example.com';
+        $targetEmail = 'victim_rl_'.uniqid().'@example.com';
         RateLimiter::clear("login:account:{$targetEmail}|127.0.0.1");
 
         $user = User::factory()->create([
@@ -91,7 +91,7 @@ class AuthSecurityProtectionTest extends TestCase
         for ($i = 0; $i < 5; $i++) {
             Livewire::test(LoginPage::class)
                 ->set('email', $targetEmail)
-                ->set('password', 'WrongPassword' . $i)
+                ->set('password', 'WrongPassword'.$i)
                 ->call('login')
                 ->assertHasErrors(['email']);
         }

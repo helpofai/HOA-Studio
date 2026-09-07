@@ -50,45 +50,61 @@ class ProfilePage extends Component
 
     // Profile State
     public string $name = '';
+
     public string $email = '';
+
     public string $current_password = '';
+
     public string $new_password = '';
+
     public string $new_password_confirmation = '';
+
     public ?string $statusMessage = null;
+
     public ?string $errorMessage = null;
 
     // AI & Studio Preferences
     public string $default_model = 'OmniRoute: DeepSeek-V3';
+
     public int $embedding_cache_days = 7;
+
     public string $default_editor_engine = 'tiptap';
+
     public bool $auto_seo_audit = true;
+
     public bool $email_notifications = true;
 
     // Content Management Filter State
     public string $contentSearch = '';
+
     public string $contentStatusFilter = 'all';
+
     public string $contentSortBy = 'updated_at';
 
     // BYOK Key Management
     public string $byok_provider = 'openai';
+
     public string $byok_api_key = '';
+
     public string $byok_custom_url = '';
+
     public array $visibleKeys = [];
 
     // Studio Connect Key (WordPress / External API) State
     public string $newTokenName = 'WordPress Production Site';
+
     public ?string $generatedPlainTextToken = null;
 
     public function mount()
     {
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return;
         }
 
         $this->name = $user->name ?? '';
         $this->email = $user->email ?? '';
-        
+
         $prefs = $user->preferences ?? [];
         $this->default_model = $prefs['default_model'] ?? 'OmniRoute: DeepSeek-V3';
         $this->embedding_cache_days = (int) ($prefs['embedding_cache_days'] ?? 7);
@@ -111,7 +127,7 @@ class ProfilePage extends Component
 
         $this->validate([
             'name' => 'required|string|min:2|max:100',
-            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'email' => 'required|email|max:255|unique:users,email,'.$user->id,
             'new_password' => 'nullable|string|min:8|confirmed',
         ]);
 
@@ -128,7 +144,7 @@ class ProfilePage extends Component
             'preferences' => $prefs,
         ];
 
-        if (!empty($this->new_password)) {
+        if (! empty($this->new_password)) {
             $data['password'] = $this->new_password;
         }
 
@@ -160,8 +176,9 @@ class ProfilePage extends Component
         $user = Auth::user();
 
         $provider = AiProvider::where('slug', $this->byok_provider)->first();
-        if ($provider && (!$provider->allow_user_key || !$provider->is_active)) {
+        if ($provider && (! $provider->allow_user_key || ! $provider->is_active)) {
             $this->errorMessage = "Administrator has disabled custom BYOK keys for provider '{$this->byok_provider}'.";
+
             return;
         }
 
@@ -178,13 +195,13 @@ class ProfilePage extends Component
             ],
             [
                 'api_key' => $this->byok_api_key,
-                'custom_base_url' => !empty($this->byok_custom_url) ? $this->byok_custom_url : null,
+                'custom_base_url' => ! empty($this->byok_custom_url) ? $this->byok_custom_url : null,
                 'is_active' => true,
             ]
         );
 
         $this->reset(['byok_api_key', 'byok_custom_url']);
-        $this->statusMessage = "API Key for '" . strtoupper($this->byok_provider) . "' saved securely (AES-256-GCM encrypted).";
+        $this->statusMessage = "API Key for '".strtoupper($this->byok_provider)."' saved securely (AES-256-GCM encrypted).";
     }
 
     public function toggleKeyVisibility(int $keyId)
@@ -206,8 +223,9 @@ class ProfilePage extends Component
     public function generateStudioToken()
     {
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             $this->errorMessage = 'Session expired. Please log in again.';
+
             return;
         }
 
@@ -222,7 +240,7 @@ class ProfilePage extends Component
             $this->statusMessage = "Studio Connect Key '{$this->newTokenName}' created successfully! Copy your key now — it won't be shown again in full.";
             $this->newTokenName = 'WordPress Integration';
         } catch (\Throwable $e) {
-            $this->errorMessage = 'Failed to generate token: ' . $e->getMessage();
+            $this->errorMessage = 'Failed to generate token: '.$e->getMessage();
         }
     }
 
@@ -257,7 +275,7 @@ class ProfilePage extends Component
         $documentsQuery = Document::where('user_id', $user->id)
             ->with(['project'])
             ->when($this->contentSearch, function ($q) {
-                $q->where('title', 'like', '%' . $this->contentSearch . '%');
+                $q->where('title', 'like', '%'.$this->contentSearch.'%');
             })
             ->when($this->contentStatusFilter !== 'all', function ($q) {
                 $q->where('status', $this->contentStatusFilter);

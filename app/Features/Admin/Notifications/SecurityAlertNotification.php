@@ -52,14 +52,14 @@ class SecurityAlertNotification extends Notification
             ->greeting("Hello {$notifiable->name},")
             ->line($this->description);
 
-        if (!empty($this->metadata['ip'])) {
-            $mail->line("**Origin IP Address:** " . $this->metadata['ip']);
+        if (! empty($this->metadata['ip'])) {
+            $mail->line('**Origin IP Address:** '.$this->metadata['ip']);
         }
-        if (!empty($this->metadata['location'])) {
-            $mail->line("**Detected Location / Network:** " . $this->metadata['location']);
+        if (! empty($this->metadata['location'])) {
+            $mail->line('**Detected Location / Network:** '.$this->metadata['location']);
         }
-        if (!empty($this->metadata['timestamp'])) {
-            $mail->line("**Incident Time:** " . $this->metadata['timestamp']);
+        if (! empty($this->metadata['timestamp'])) {
+            $mail->line('**Incident Time:** '.$this->metadata['timestamp']);
         }
 
         if ($this->actionUrl && $this->actionText) {

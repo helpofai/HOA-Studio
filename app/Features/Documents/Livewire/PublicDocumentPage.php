@@ -35,8 +35,11 @@ use Livewire\Component;
 class PublicDocumentPage extends Component
 {
     public string $token;
+
     public string $passwordInput = '';
+
     public bool $isUnlocked = false;
+
     public ?string $errorMessage = null;
 
     public function mount(string $token)
@@ -47,11 +50,11 @@ class PublicDocumentPage extends Component
             ->where('is_active', true)
             ->first();
 
-        if (!$share || $share->isExpired()) {
+        if (! $share || $share->isExpired()) {
             abort(404, 'Shared document not found or expired.');
         }
 
-        if (!$share->isPasswordProtected()) {
+        if (! $share->isPasswordProtected()) {
             $this->isUnlocked = true;
             $share->incrementViews();
         }

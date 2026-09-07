@@ -17,18 +17,19 @@
 
 namespace Tests\Feature;
 
+use App\Features\Admin\Livewire\AdminUsageLogsPage;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Tests\TestCase;
-use App\Features\Admin\Livewire\AdminUsageLogsPage;
 
 class AdminUsageLogsTest extends TestCase
 {
     use RefreshDatabase;
 
     protected User $admin;
+
     protected User $regularUser;
 
     protected function setUp(): void

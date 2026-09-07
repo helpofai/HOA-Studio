@@ -1,4 +1,5 @@
 <?php
+
 /*
 |--------------------------------------------------------------------------
 | HelpOfAi (HOA) Professional Software - WordPress Plugin Core Orchestrator
@@ -24,7 +25,7 @@ use HOA_Studio\Editor\HOA_Studio_Editor;
 use HOA_Studio\Gutenberg\HOA_Gutenberg_Blocks;
 use HOA_Studio\Sync\HOA_Cloud_Sync;
 
-if (!defined('ABSPATH')) {
+if (! defined('ABSPATH')) {
     exit;
 }
 
@@ -35,19 +36,18 @@ class HOA_Plugin
     public static function instance(): HOA_Plugin
     {
         if (self::$instance === null) {
-            self::$instance = new self();
+            self::$instance = new self;
         }
+
         return self::$instance;
     }
 
-    private function __construct()
-    {
-    }
+    private function __construct() {}
 
     public function init(): void
     {
         // 1. Text Domain
-        load_plugin_textdomain('hoa-studio', false, dirname(HOA_STUDIO_BASENAME) . '/languages');
+        load_plugin_textdomain('hoa-studio', false, dirname(HOA_STUDIO_BASENAME).'/languages');
 
         // 2. Initialize AJAX Endpoints (Both Admin & Public proxy)
         HOA_Ajax_Handler::instance()->register_hooks();

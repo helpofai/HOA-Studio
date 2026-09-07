@@ -18,8 +18,8 @@
 namespace App\Features\Admin\Livewire;
 
 use App\Features\Admin\Notifications\GeneralSystemNotification;
-use App\Features\Admin\Notifications\SecurityAlertNotification;
 use App\Features\Admin\Services\DynamicMailConfigService;
+use App\Features\Admin\Services\MailTemplateService;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -36,51 +36,82 @@ class AdminMailNotificationPage extends Component
 
     // Mail Templates State & Editor
     public string $selectedTemplateKey = 'welcome_registration';
+
     public string $template_subject = '';
+
     public string $template_heading = '';
+
     public string $template_body = '';
+
     public string $template_action_text = '';
+
     public string $template_action_url = '';
+
     public bool $showPreviewModal = false;
+
     public string $previewHtml = '';
 
     // Mail Server Gateway State
     public string $mail_mailer = 'smtp'; // 'smtp', 'resend', 'mailgun', 'postmark', 'ses', 'log'
+
     public string $mail_host = 'smtp.mailtrap.io';
+
     public int $mail_port = 587;
+
     public string $mail_username = '';
+
     public string $mail_password = '';
+
     public string $mail_encryption = 'tls'; // 'tls', 'ssl', 'none'
+
     public string $mail_from_address = 'support@helpofai.com';
+
     public string $mail_from_name = 'HelpOfAi Studio';
 
     // API-Based Mailer Secrets
     public string $mail_resend_api_key = '';
+
     public string $mail_mailgun_domain = '';
+
     public string $mail_mailgun_secret = '';
+
     public string $mail_mailgun_endpoint = 'api.mailgun.net';
+
     public string $mail_postmark_token = '';
+
     public string $mail_ses_key = '';
+
     public string $mail_ses_secret = '';
+
     public string $mail_ses_region = 'us-east-1';
 
     // Notification Triggers & Channels Matrix
     public bool $notify_on_failed_login = true;
+
     public bool $notify_on_ip_autoblock = true;
+
     public bool $notify_on_user_registered = true;
+
     public bool $notify_on_quota_low = true;
+
     public string $admin_alert_email = '';
 
     // Broadcast Announcement State
     public string $broadcast_title = '';
+
     public string $broadcast_message = '';
+
     public string $broadcast_type = 'announcement'; // 'announcement', 'info', 'warning', 'success'
+
     public string $broadcast_target = 'all'; // 'all', 'admin', 'pro_users'
+
     public bool $broadcast_send_email = false;
 
     // Test Delivery State
     public string $test_recipient_email = '';
+
     public ?array $test_result = null;
+
     public bool $is_testing = false;
 
     public function mount()
@@ -125,7 +156,7 @@ class AdminMailNotificationPage extends Component
     public function selectTemplate(string $key)
     {
         $this->selectedTemplateKey = $key;
-        $compiled = \App\Features\Admin\Services\MailTemplateService::getCompiledTemplate($key);
+        $compiled = MailTemplateService::getCompiledTemplate($key);
 
         $this->template_subject = $compiled['subject'];
         $this->template_heading = $compiled['heading'];
@@ -185,7 +216,7 @@ class AdminMailNotificationPage extends Component
         $location = 'Kolkata, West Bengal, India';
         $userAgent = request()->userAgent() ?: 'Chrome 132 on macOS Sequoia (Desktop)';
         $resetUrl = url('/password/reset/7c9b8e1f0a2d3e4b5c6d7e8f9a0b1c2d');
-        $verifyUrl = url('/email/verify/' . ($user?->id ?? 1) . '/3f8a9b2c1d?expires=1780000000&signature=9a8b7c6d5e4f3a2b1c');
+        $verifyUrl = url('/email/verify/'.($user?->id ?? 1).'/3f8a9b2c1d?expires=1780000000&signature=9a8b7c6d5e4f3a2b1c');
 
         $sampleVariables = [
             '{user_name}' => $user?->name ?? 'Alex Morgan',
@@ -217,11 +248,11 @@ class AdminMailNotificationPage extends Component
             '{timestamp}' => now()->format('Y-m-d H:i:s T'),
         ];
 
-        $renderedSubject = \App\Features\Admin\Services\MailTemplateService::render($this->template_subject, $sampleVariables);
-        $renderedHeading = \App\Features\Admin\Services\MailTemplateService::render($this->template_heading, $sampleVariables);
-        $renderedBody = \App\Features\Admin\Services\MailTemplateService::render($this->template_body, $sampleVariables);
-        $renderedActionText = \App\Features\Admin\Services\MailTemplateService::render($this->template_action_text, $sampleVariables);
-        $renderedActionUrl = \App\Features\Admin\Services\MailTemplateService::render($this->template_action_url, $sampleVariables);
+        $renderedSubject = MailTemplateService::render($this->template_subject, $sampleVariables);
+        $renderedHeading = MailTemplateService::render($this->template_heading, $sampleVariables);
+        $renderedBody = MailTemplateService::render($this->template_body, $sampleVariables);
+        $renderedActionText = MailTemplateService::render($this->template_action_text, $sampleVariables);
+        $renderedActionUrl = MailTemplateService::render($this->template_action_url, $sampleVariables);
 
         $this->previewHtml = view('emails.templated-system-mail', [
             'renderedSubject' => $renderedSubject,

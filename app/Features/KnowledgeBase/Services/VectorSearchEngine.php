@@ -28,7 +28,6 @@ namespace App\Features\KnowledgeBase\Services;
 use App\Features\AI\Services\OmniRouteClient;
 use App\Features\KnowledgeBase\Models\KnowledgeChunk;
 use App\Models\User;
-use Exception;
 use Throwable;
 
 class VectorSearchEngine
@@ -59,8 +58,9 @@ class VectorSearchEngine
         // 2. Call OmniRoute Embedding Gateway
         try {
             $embedding = $this->client->createEmbedding($cleanText, $model);
-            if (!empty($embedding) && is_array($embedding)) {
+            if (! empty($embedding) && is_array($embedding)) {
                 $this->cacheManager->storeVector($cleanText, $model, $embedding, $user);
+
                 return $embedding;
             }
         } catch (Throwable $e) {
@@ -102,6 +102,7 @@ class VectorSearchEngine
         }
 
         $similarity = $dotProduct / (sqrt($normA) * sqrt($normB));
+
         return max(0.0, min(1.0, (float) $similarity));
     }
 
@@ -132,8 +133,8 @@ class VectorSearchEngine
             ->with('source')
             ->whereHas('source', function ($q) use ($user, $projectId, $category) {
                 $q->where('user_id', $user->id)
-                  ->where('status', 'ready')
-                  ->where('is_active', true);
+                    ->where('status', 'ready')
+                    ->where('is_active', true);
 
                 if ($projectId !== null) {
                     $q->where(function ($sub) use ($projectId) {
@@ -141,7 +142,7 @@ class VectorSearchEngine
                     });
                 }
 
-                if (!empty($category) && $category !== 'all') {
+                if (! empty($category) && $category !== 'all') {
                     $q->where('category', $category);
                 }
             });
@@ -155,7 +156,7 @@ class VectorSearchEngine
         $vectorRankings = [];
         foreach ($allChunks as $chunk) {
             $chunkVector = $chunk->embedding_vector ?? $chunk->embedding ?? null;
-            if (!empty($chunkVector) && is_array($chunkVector)) {
+            if (! empty($chunkVector) && is_array($chunkVector)) {
                 $sim = $this->cosineSimilarity($queryEmbedding, $chunkVector);
                 if ($sim >= $minSimilarity) {
                     $vectorRankings[$chunk->id] = [
@@ -167,7 +168,7 @@ class VectorSearchEngine
         }
 
         // Sort dense vector rankings
-        uasort($vectorRankings, fn($a, $b) => $b['vector_score'] <=> $a['vector_score']);
+        uasort($vectorRankings, fn ($a, $b) => $b['vector_score'] <=> $a['vector_score']);
 
         // 4. Sparse Keyword BM25 / Token Overlap Pass
         $queryTokens = array_unique(array_filter(explode(' ', mb_strtolower(preg_replace('/[^\p{L}\p{N}\s]/u', '', $queryText)))));
@@ -191,7 +192,7 @@ class VectorSearchEngine
             }
         }
 
-        uasort($sparseRankings, fn($a, $b) => $b['sparse_score'] <=> $a['sparse_score']);
+        uasort($sparseRankings, fn ($a, $b) => $b['sparse_score'] <=> $a['sparse_score']);
 
         // 5. Reciprocal Rank Fusion (RRF with k=60)
         $k = 60;
@@ -217,14 +218,16 @@ class VectorSearchEngine
 
         foreach (array_slice($rrfScores, 0, $topK, true) as $id => $rrfScore) {
             $chunk = $chunkMap->get($id);
-            if (!$chunk) continue;
+            if (! $chunk) {
+                continue;
+            }
 
             $vectorScore = $vectorRankings[$id]['vector_score'] ?? 0.0;
             $sparseScore = $sparseRankings[$id]['sparse_score'] ?? 0.0;
 
             // Normalized composite confidence (0.0 to 1.0)
-            $confidence = $vectorScore > 0 
-                ? round(($vectorScore * 0.7) + ($sparseScore * 0.3), 3) 
+            $confidence = $vectorScore > 0
+                ? round(($vectorScore * 0.7) + ($sparseScore * 0.3), 3)
                 : round($sparseScore, 3);
 
             $results[] = [

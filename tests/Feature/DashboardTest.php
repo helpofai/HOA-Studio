@@ -21,10 +21,10 @@ class DashboardTest extends TestCase
             'used_word_quota' => 5000,
         ]);
 
-        $projectAction = new CreateProject();
+        $projectAction = new CreateProject;
         $project = $projectAction->execute($user, ['name' => 'Tech Blog']);
 
-        $docAction = new CreateDocument();
+        $docAction = new CreateDocument;
         $docAction->execute($user, [
             'title' => 'Article One',
             'project_id' => $project->id,
@@ -36,7 +36,7 @@ class DashboardTest extends TestCase
         Livewire::test(DashboardPage::class)
             ->call('loadDashboard')
             ->assertStatus(200)
-            ->assertSee('Welcome back, ' . $user->name)
+            ->assertSee('Welcome back, '.$user->name)
             ->assertSee('Tech Blog')
             ->assertSee('Article One')
             ->assertSee('20,000'); // remaining quota

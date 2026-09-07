@@ -30,9 +30,6 @@ class SemanticChunker
     /**
      * Chunk document text semantically by headers, paragraphs, and token windows
      *
-     * @param string $text
-     * @param int $targetChunkTokens
-     * @param int $overlapTokens
      * @return array<int, array{chunk_index: int, content: string, token_count: int}>
      */
     public function chunk(string $text, int $targetChunkTokens = 350, int $overlapTokens = 50): array
@@ -52,13 +49,15 @@ class SemanticChunker
 
         foreach ($sections as $section) {
             $secText = trim($section);
-            if (empty($secText)) continue;
+            if (empty($secText)) {
+                continue;
+            }
 
             $secTokens = $this->estimateTokens($secText);
 
             // If a single section is larger than the target chunk, split it by sentences
             if ($secTokens > $targetChunkTokens) {
-                if (!empty($currentChunk)) {
+                if (! empty($currentChunk)) {
                     $chunks[] = [
                         'chunk_index' => $chunkIndex++,
                         'content' => trim($currentChunk),
@@ -74,7 +73,7 @@ class SemanticChunker
 
                 foreach ($sentences as $s) {
                     $sTokens = $this->estimateTokens($s);
-                    if ($subTokens + $sTokens > $targetChunkTokens && !empty($subChunk)) {
+                    if ($subTokens + $sTokens > $targetChunkTokens && ! empty($subChunk)) {
                         $chunks[] = [
                             'chunk_index' => $chunkIndex++,
                             'content' => trim($subChunk),
@@ -83,15 +82,15 @@ class SemanticChunker
 
                         // Keep overlap
                         $overlapText = $this->extractOverlap($subChunk, $overlapTokens);
-                        $subChunk = $overlapText . ' ' . $s;
+                        $subChunk = $overlapText.' '.$s;
                         $subTokens = $this->estimateTokens($subChunk);
                     } else {
-                        $subChunk .= (empty($subChunk) ? '' : ' ') . $s;
+                        $subChunk .= (empty($subChunk) ? '' : ' ').$s;
                         $subTokens += $sTokens;
                     }
                 }
 
-                if (!empty(trim($subChunk))) {
+                if (! empty(trim($subChunk))) {
                     $chunks[] = [
                         'chunk_index' => $chunkIndex++,
                         'content' => trim($subChunk),
@@ -99,7 +98,7 @@ class SemanticChunker
                     ];
                 }
             } else {
-                if ($currentTokens + $secTokens > $targetChunkTokens && !empty($currentChunk)) {
+                if ($currentTokens + $secTokens > $targetChunkTokens && ! empty($currentChunk)) {
                     $chunks[] = [
                         'chunk_index' => $chunkIndex++,
                         'content' => trim($currentChunk),
@@ -107,16 +106,16 @@ class SemanticChunker
                     ];
 
                     $overlapText = $this->extractOverlap($currentChunk, $overlapTokens);
-                    $currentChunk = $overlapText . "\n\n" . $secText;
+                    $currentChunk = $overlapText."\n\n".$secText;
                     $currentTokens = $this->estimateTokens($currentChunk);
                 } else {
-                    $currentChunk .= (empty($currentChunk) ? '' : "\n\n") . $secText;
+                    $currentChunk .= (empty($currentChunk) ? '' : "\n\n").$secText;
                     $currentTokens += $secTokens;
                 }
             }
         }
 
-        if (!empty(trim($currentChunk))) {
+        if (! empty(trim($currentChunk))) {
             $chunks[] = [
                 'chunk_index' => $chunkIndex++,
                 'content' => trim($currentChunk),
@@ -150,6 +149,7 @@ class SemanticChunker
         }
 
         $slice = array_slice($words, -$overlapTokens);
+
         return implode(' ', $slice);
     }
 }

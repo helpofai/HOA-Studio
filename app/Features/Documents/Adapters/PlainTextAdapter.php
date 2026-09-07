@@ -32,6 +32,7 @@ use App\Features\Documents\Data\ConversionRiskAssessment;
 class PlainTextAdapter implements EditorAdapterInterface
 {
     protected array $supportedNodeTypes = ['doc', 'paragraph', 'text'];
+
     protected array $supportedMarkTypes = [];
 
     public function toCanonical(string|array $content): array
@@ -41,8 +42,8 @@ class PlainTextAdapter implements EditorAdapterInterface
 
         return CanonicalDocumentSchema::createDocument([
             CanonicalDocumentSchema::createNode('paragraph', [], [
-                CanonicalDocumentSchema::createTextNode($sanitized)
-            ])
+                CanonicalDocumentSchema::createTextNode($sanitized),
+            ]),
         ]);
     }
 
@@ -57,11 +58,13 @@ class PlainTextAdapter implements EditorAdapterInterface
             $text = $editorContent['text'] ?? '';
             if (isset($editorContent['content']) && is_array($editorContent['content'])) {
                 foreach ($editorContent['content'] as $child) {
-                    $text .= ' ' . $this->extractPlainText($child);
+                    $text .= ' '.$this->extractPlainText($child);
                 }
             }
+
             return trim($text);
         }
+
         return strip_tags($editorContent);
     }
 

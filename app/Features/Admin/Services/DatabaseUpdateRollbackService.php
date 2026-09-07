@@ -30,7 +30,7 @@ class DatabaseUpdateRollbackService
     public function __construct()
     {
         $this->backupDirectory = storage_path('app/updates/db-snapshots');
-        if (!File::exists($this->backupDirectory)) {
+        if (! File::exists($this->backupDirectory)) {
             File::makeDirectory($this->backupDirectory, 0755, true, true);
         }
     }
@@ -51,7 +51,8 @@ class DatabaseUpdateRollbackService
             } else {
                 $tableCount = count(DB::select('SHOW TABLES'));
             }
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         return [
             'driver' => strtoupper($driver),
@@ -68,7 +69,7 @@ class DatabaseUpdateRollbackService
      */
     public function createDatabaseSnapshot(string $label = 'DB Snapshot'): array
     {
-        $id = 'dbsnap_' . date('Ymd_His') . '_' . substr(md5(uniqid()), 0, 6);
+        $id = 'dbsnap_'.date('Ymd_His').'_'.substr(md5(uniqid()), 0, 6);
         $timestamp = date('Y-m-d H:i:s');
         $driver = DB::connection()->getDriverName();
 
@@ -101,11 +102,11 @@ class DatabaseUpdateRollbackService
                 $tableName = reset($tableArray);
 
                 $createTable = DB::select("SHOW CREATE TABLE `{$tableName}`");
-                if (!empty($createTable)) {
+                if (! empty($createTable)) {
                     $createArr = (array) $createTable[0];
                     $sql .= "\n-- Table structure for `{$tableName}`\n";
                     $sql .= "DROP TABLE IF EXISTS `{$tableName}`;\n";
-                    $sql .= ($createArr['Create Table'] ?? '') . ";\n\n";
+                    $sql .= ($createArr['Create Table'] ?? '').";\n\n";
                 }
 
                 $rows = DB::table($tableName)->get();
@@ -113,12 +114,12 @@ class DatabaseUpdateRollbackService
                     $sql .= "-- Dumping data for `{$tableName}`\n";
                     foreach ($rows as $row) {
                         $rowArr = (array) $row;
-                        $keys = array_map(fn($k) => "`{$k}`", array_keys($rowArr));
-                        $vals = array_map(function($v) {
+                        $keys = array_map(fn ($k) => "`{$k}`", array_keys($rowArr));
+                        $vals = array_map(function ($v) {
                             return is_null($v) ? 'NULL' : DB::getPdo()->quote($v);
                         }, array_values($rowArr));
 
-                        $sql .= "INSERT INTO `{$tableName}` (" . implode(', ', $keys) . ") VALUES (" . implode(', ', $vals) . ");\n";
+                        $sql .= "INSERT INTO `{$tableName}` (".implode(', ', $keys).') VALUES ('.implode(', ', $vals).");\n";
                     }
                     $sql .= "\n";
                 }
@@ -150,7 +151,7 @@ class DatabaseUpdateRollbackService
         if (count($manifest) > 15) {
             $pruned = array_slice($manifest, 15);
             foreach ($pruned as $p) {
-                if (!empty($p['path']) && File::exists($p['path'])) {
+                if (! empty($p['path']) && File::exists($p['path'])) {
                     @unlink($p['path']);
                 }
             }
@@ -170,8 +171,10 @@ class DatabaseUpdateRollbackService
         $manifestFile = "{$this->backupDirectory}/snapshots-manifest.json";
         if (File::exists($manifestFile)) {
             $manifest = json_decode(File::get($manifestFile), true);
+
             return is_array($manifest) ? $manifest : [];
         }
+
         return [];
     }
 
@@ -216,11 +219,12 @@ class DatabaseUpdateRollbackService
                     }
                 }
             }
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         $all = array_values($migrationFiles);
-        $pending = array_filter($all, fn($m) => !$m['applied']);
-        $applied = array_filter($all, fn($m) => $m['applied']);
+        $pending = array_filter($all, fn ($m) => ! $m['applied']);
+        $applied = array_filter($all, fn ($m) => $m['applied']);
 
         return [
             'all' => $all,
@@ -240,7 +244,7 @@ class DatabaseUpdateRollbackService
     public function runMigrations(): array
     {
         $logs = [];
-        $log = function(string $type, string $message) use (&$logs) {
+        $log = function (string $type, string $message) use (&$logs) {
             $logs[] = [
                 'time' => date('H:i:s'),
                 'type' => $type,
@@ -253,11 +257,13 @@ class DatabaseUpdateRollbackService
             Artisan::call('migrate', ['--force' => true]);
             $output = trim(Artisan::output());
 
-            $lines = array_filter(explode("\n", str_replace("\r", "", $output)));
-            if (!empty($lines)) {
+            $lines = array_filter(explode("\n", str_replace("\r", '', $output)));
+            if (! empty($lines)) {
                 foreach ($lines as $line) {
                     $cleanLine = trim($line);
-                    if (empty($cleanLine)) continue;
+                    if (empty($cleanLine)) {
+                        continue;
+                    }
                     if (str_contains($cleanLine, 'Running') || str_contains($cleanLine, 'Migrating')) {
                         $log('info', $cleanLine);
                     } elseif (str_contains($cleanLine, 'Migrated') || str_contains($cleanLine, 'DONE')) {
@@ -274,12 +280,13 @@ class DatabaseUpdateRollbackService
 
             return [
                 'success' => true,
-                'output' => !empty($output) ? $output : 'No pending migrations. Schema is up to date.',
+                'output' => ! empty($output) ? $output : 'No pending migrations. Schema is up to date.',
                 'logs' => $logs,
             ];
         } catch (\Throwable $e) {
             Log::error("Database migration error: {$e->getMessage()}");
             $log('error', "MIGRATION FAILED: {$e->getMessage()}");
+
             return [
                 'success' => false,
                 'output' => "Migration failed: {$e->getMessage()}",
@@ -296,7 +303,7 @@ class DatabaseUpdateRollbackService
     public function rollbackLastMigrationBatch(int $step = 1): array
     {
         $logs = [];
-        $log = function(string $type, string $message) use (&$logs) {
+        $log = function (string $type, string $message) use (&$logs) {
             $logs[] = [
                 'time' => date('H:i:s'),
                 'type' => $type,
@@ -312,11 +319,13 @@ class DatabaseUpdateRollbackService
             ]);
             $output = trim(Artisan::output());
 
-            $lines = array_filter(explode("\n", str_replace("\r", "", $output)));
-            if (!empty($lines)) {
+            $lines = array_filter(explode("\n", str_replace("\r", '', $output)));
+            if (! empty($lines)) {
                 foreach ($lines as $line) {
                     $cleanLine = trim($line);
-                    if (empty($cleanLine)) continue;
+                    if (empty($cleanLine)) {
+                        continue;
+                    }
                     if (str_contains($cleanLine, 'Rolling back')) {
                         $log('warning', $cleanLine);
                     } elseif (str_contains($cleanLine, 'Rolled back')) {
@@ -333,12 +342,13 @@ class DatabaseUpdateRollbackService
 
             return [
                 'success' => true,
-                'output' => !empty($output) ? $output : "Rolled back {$step} migration step(s).",
+                'output' => ! empty($output) ? $output : "Rolled back {$step} migration step(s).",
                 'logs' => $logs,
             ];
         } catch (\Throwable $e) {
             Log::error("Migration rollback error: {$e->getMessage()}");
             $log('error', "ROLLBACK FAILED: {$e->getMessage()}");
+
             return [
                 'success' => false,
                 'output' => "Rollback failed: {$e->getMessage()}",
@@ -364,11 +374,11 @@ class DatabaseUpdateRollbackService
             }
         }
 
-        if ($targetIndex === null || !$target) {
+        if ($targetIndex === null || ! $target) {
             throw new Exception("Database snapshot [{$snapshotId}] not found.");
         }
 
-        if (!empty($target['path']) && File::exists($target['path'])) {
+        if (! empty($target['path']) && File::exists($target['path'])) {
             @unlink($target['path']);
         }
 
@@ -393,7 +403,7 @@ class DatabaseUpdateRollbackService
             }
         }
 
-        if (!$target || empty($target['path']) || !File::exists($target['path'])) {
+        if (! $target || empty($target['path']) || ! File::exists($target['path'])) {
             throw new Exception("Database snapshot [{$snapshotId}] file not found.");
         }
 
@@ -405,7 +415,7 @@ class DatabaseUpdateRollbackService
             }
         } else {
             $sql = File::get($target['path']);
-            if (!empty($sql)) {
+            if (! empty($sql)) {
                 DB::unprepared($sql);
             }
         }

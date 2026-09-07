@@ -26,10 +26,8 @@
 namespace Tests\Feature;
 
 use App\Features\Admin\Actions\SeedDefaultAiProviders;
-use App\Features\AI\Models\AiModel;
-use App\Features\AI\Models\AiProvider;
-use App\Models\User;
 use App\Features\Auth\Models\UserApiKey;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;

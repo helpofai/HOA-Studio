@@ -28,8 +28,11 @@ use ZipArchive;
 class CoreUpdateService
 {
     protected string $githubRepo = 'helpofai/HOA-Studio';
+
     protected string $backupDir;
+
     protected string $manifestFile;
+
     protected HealthProberService $healthProber;
 
     public function __construct(HealthProberService $healthProber)
@@ -38,7 +41,7 @@ class CoreUpdateService
         $this->backupDir = storage_path('app/updates/backups');
         $this->manifestFile = storage_path('app/updates/restore-manifests.json');
 
-        if (!File::exists($this->backupDir)) {
+        if (! File::exists($this->backupDir)) {
             File::makeDirectory($this->backupDir, 0755, true, true);
         }
     }
@@ -51,8 +54,10 @@ class CoreUpdateService
         $versionFile = base_path('version.json');
         if (File::exists($versionFile)) {
             $data = json_decode(File::get($versionFile), true);
+
             return $data['version'] ?? '2.5.0';
         }
+
         return '2.5.0';
     }
 
@@ -68,6 +73,7 @@ class CoreUpdateService
                 return $data;
             }
         }
+
         return [
             'name' => 'HelpOfAi Studio (HOA-Studio)',
             'version' => '2.5.0',
@@ -126,7 +132,7 @@ class CoreUpdateService
             if ($remoteVersionResp->successful()) {
                 $remoteVersionData = $remoteVersionResp->json() ?: [];
             } else {
-                $connectionError = "Unable to fetch version.json from GitHub (HTTP " . $remoteVersionResp->status() . ")";
+                $connectionError = 'Unable to fetch version.json from GitHub (HTTP '.$remoteVersionResp->status().')';
             }
 
             $remoteVersion = $remoteVersionData['version'] ?? $currentVersion;
@@ -160,7 +166,7 @@ class CoreUpdateService
             $recentCommits = [];
             $changedFiles = [];
 
-            if (!empty($currentSha) && !empty($latestSha) && $currentSha !== $latestSha) {
+            if (! empty($currentSha) && ! empty($latestSha) && $currentSha !== $latestSha) {
                 try {
                     $compareResp = Http::timeout(10)
                         ->withHeaders([
@@ -172,7 +178,7 @@ class CoreUpdateService
                     if ($compareResp->successful()) {
                         $compareData = $compareResp->json();
                         $commitsBehind = (int) ($compareData['ahead_by'] ?? 0);
-                        
+
                         foreach (($compareData['commits'] ?? []) as $c) {
                             $recentCommits[] = [
                                 'sha' => substr($c['sha'] ?? '', 0, 8),
@@ -203,11 +209,11 @@ class CoreUpdateService
             // - OR remote commit SHA differs from local commit SHA (when current SHA exists)
             $hasUpdate = ($remoteVersionCode > $currentVersionCode)
                 || (version_compare($remoteVersion, $currentVersion, '>'))
-                || (!empty($remoteBuildNumber) && !empty($currentBuildNumber) && $remoteBuildNumber !== $currentBuildNumber)
-                || (!empty($latestSha) && !empty($currentSha) && $latestSha !== $currentSha);
+                || (! empty($remoteBuildNumber) && ! empty($currentBuildNumber) && $remoteBuildNumber !== $currentBuildNumber)
+                || (! empty($latestSha) && ! empty($currentSha) && $latestSha !== $currentSha);
 
             $displayLatestVersion = $remoteVersion;
-            if ($displayLatestVersion === $currentVersion && !empty($latestSha) && $latestSha !== $currentSha) {
+            if ($displayLatestVersion === $currentVersion && ! empty($latestSha) && $latestSha !== $currentSha) {
                 $displayLatestVersion = "{$currentVersion} (build {$latestSha})";
             }
 
@@ -224,7 +230,7 @@ class CoreUpdateService
                 'release_notes' => $commitMessage,
                 'published_at' => $commitDate,
                 'download_url' => "https://github.com/{$this->githubRepo}/archive/refs/heads/main.zip",
-                'remote_version_meta' => !empty($remoteVersionData) ? $remoteVersionData : $currentVersionMeta,
+                'remote_version_meta' => ! empty($remoteVersionData) ? $remoteVersionData : $currentVersionMeta,
                 'connection_error' => $connectionError,
             ];
         } catch (\Throwable $e) {
@@ -242,7 +248,7 @@ class CoreUpdateService
      */
     public function createRestorePoint(string $label = 'Full Snapshot'): array
     {
-        $id = 'rp_' . date('Ymd_His') . '_' . substr(md5(uniqid()), 0, 6);
+        $id = 'rp_'.date('Ymd_His').'_'.substr(md5(uniqid()), 0, 6);
         $version = $this->getCurrentVersion();
         $gitSha = $this->getCurrentGitSha();
         $timestamp = date('Y-m-d H:i:s');
@@ -250,7 +256,7 @@ class CoreUpdateService
         // 1. Create Comprehensive Codebase Zip (app, bootstrap, config, database, public, resources, routes, build assets, root configs)
         $zipFileName = "backup_{$id}.zip";
         $zipFilePath = "{$this->backupDir}/{$zipFileName}";
-        
+
         $this->createCodebaseZip($zipFilePath);
 
         // 2. Create Database Dump (MySQL schema + records or SQLite file)
@@ -285,12 +291,16 @@ class CoreUpdateService
         if (count($manifests) > 20) {
             $pruned = array_slice($manifests, 20);
             foreach ($pruned as $oldRp) {
-                if (!empty($oldRp['file_backup']) && File::exists($oldRp['file_backup'])) {
+                if (! empty($oldRp['file_backup']) && File::exists($oldRp['file_backup'])) {
                     @unlink($oldRp['file_backup']);
                 }
-                if (!empty($oldRp['db_backup'])) {
-                    if (File::exists($oldRp['db_backup'])) @unlink($oldRp['db_backup']);
-                    if (File::exists("{$oldRp['db_backup']}.sqlite")) @unlink("{$oldRp['db_backup']}.sqlite");
+                if (! empty($oldRp['db_backup'])) {
+                    if (File::exists($oldRp['db_backup'])) {
+                        @unlink($oldRp['db_backup']);
+                    }
+                    if (File::exists("{$oldRp['db_backup']}.sqlite")) {
+                        @unlink("{$oldRp['db_backup']}.sqlite");
+                    }
                 }
             }
             $manifests = array_slice($manifests, 0, 20);
@@ -318,19 +328,23 @@ class CoreUpdateService
             }
         }
 
-        if ($targetIndex === null || !$target) {
+        if ($targetIndex === null || ! $target) {
             throw new Exception("Snapshot [{$restorePointId}] not found.");
         }
 
         // Delete underlying zip file
-        if (!empty($target['file_backup']) && File::exists($target['file_backup'])) {
+        if (! empty($target['file_backup']) && File::exists($target['file_backup'])) {
             @unlink($target['file_backup']);
         }
 
         // Delete underlying database file
-        if (!empty($target['db_backup'])) {
-            if (File::exists($target['db_backup'])) @unlink($target['db_backup']);
-            if (File::exists("{$target['db_backup']}.sqlite")) @unlink("{$target['db_backup']}.sqlite");
+        if (! empty($target['db_backup'])) {
+            if (File::exists($target['db_backup'])) {
+                @unlink($target['db_backup']);
+            }
+            if (File::exists("{$target['db_backup']}.sqlite")) {
+                @unlink("{$target['db_backup']}.sqlite");
+            }
         }
 
         // Remove from manifest and persist
@@ -343,7 +357,7 @@ class CoreUpdateService
     /**
      * Bulk delete multiple snapshot restore points and their backup archives.
      *
-     * @param array<string> $restorePointIds
+     * @param  array<string>  $restorePointIds
      * @return int Number of deleted snapshots
      */
     public function deleteRestorePoints(array $restorePointIds): int
@@ -357,16 +371,22 @@ class CoreUpdateService
 
         $manifests = array_values(array_filter($manifests, function ($rp) use ($restorePointIds, &$deletedCount) {
             if (in_array($rp['id'], $restorePointIds, true)) {
-                if (!empty($rp['file_backup']) && File::exists($rp['file_backup'])) {
+                if (! empty($rp['file_backup']) && File::exists($rp['file_backup'])) {
                     @unlink($rp['file_backup']);
                 }
-                if (!empty($rp['db_backup'])) {
-                    if (File::exists($rp['db_backup'])) @unlink($rp['db_backup']);
-                    if (File::exists("{$rp['db_backup']}.sqlite")) @unlink("{$rp['db_backup']}.sqlite");
+                if (! empty($rp['db_backup'])) {
+                    if (File::exists($rp['db_backup'])) {
+                        @unlink($rp['db_backup']);
+                    }
+                    if (File::exists("{$rp['db_backup']}.sqlite")) {
+                        @unlink("{$rp['db_backup']}.sqlite");
+                    }
                 }
                 $deletedCount++;
+
                 return false;
             }
+
             return true;
         }));
 
@@ -378,7 +398,7 @@ class CoreUpdateService
     /**
      * Bundle multiple snapshot archives into a single ZIP for bulk download.
      *
-     * @param array<string> $restorePointIds
+     * @param  array<string>  $restorePointIds
      * @return string|null Path to created bundle zip file
      */
     public function bundleRestorePoints(array $restorePointIds): ?string
@@ -395,33 +415,34 @@ class CoreUpdateService
             return null;
         }
 
-        if (count($targets) === 1 && !empty($targets[0]['file_backup']) && File::exists($targets[0]['file_backup'])) {
+        if (count($targets) === 1 && ! empty($targets[0]['file_backup']) && File::exists($targets[0]['file_backup'])) {
             return $targets[0]['file_backup'];
         }
 
         $tempDir = storage_path('app/updates/temp');
-        if (!File::exists($tempDir)) {
+        if (! File::exists($tempDir)) {
             File::makeDirectory($tempDir, 0755, true, true);
         }
 
-        $bundleName = 'snapshots_bundle_' . date('Ymd_His') . '.zip';
+        $bundleName = 'snapshots_bundle_'.date('Ymd_His').'.zip';
         $bundlePath = "{$tempDir}/{$bundleName}";
 
         if (class_exists('ZipArchive')) {
-            $zip = new \ZipArchive();
-            if ($zip->open($bundlePath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === true) {
+            $zip = new ZipArchive;
+            if ($zip->open($bundlePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
                 foreach ($targets as $rp) {
-                    if (!empty($rp['file_backup']) && File::exists($rp['file_backup'])) {
+                    if (! empty($rp['file_backup']) && File::exists($rp['file_backup'])) {
                         $zip->addFile($rp['file_backup'], basename($rp['file_backup']));
                     }
-                    if (!empty($rp['db_backup']) && File::exists($rp['db_backup'])) {
+                    if (! empty($rp['db_backup']) && File::exists($rp['db_backup'])) {
                         $zip->addFile($rp['db_backup'], basename($rp['db_backup']));
                     }
-                    if (!empty($rp['db_backup']) && File::exists("{$rp['db_backup']}.sqlite")) {
+                    if (! empty($rp['db_backup']) && File::exists("{$rp['db_backup']}.sqlite")) {
                         $zip->addFile("{$rp['db_backup']}.sqlite", basename("{$rp['db_backup']}.sqlite"));
                     }
                 }
                 $zip->close();
+
                 return $bundlePath;
             }
         }
@@ -432,7 +453,6 @@ class CoreUpdateService
     /**
      * Prune older snapshots, keeping only the latest $keep snapshots.
      *
-     * @param int $keep
      * @return int Number of pruned snapshots
      */
     public function pruneOlderRestorePoints(int $keep = 3): int
@@ -455,8 +475,10 @@ class CoreUpdateService
     {
         if (File::exists($this->manifestFile)) {
             $data = json_decode(File::get($this->manifestFile), true);
+
             return is_array($data) ? $data : [];
         }
+
         return [];
     }
 
@@ -470,7 +492,7 @@ class CoreUpdateService
         $logMessages = [];
         $restorePoint = null;
 
-        $log = function(string $type, string $message) use (&$logMessages) {
+        $log = function (string $type, string $message) use (&$logMessages) {
             $time = date('H:i:s');
             $logMessages[] = [
                 'time' => $time,
@@ -481,7 +503,7 @@ class CoreUpdateService
 
         try {
             $log('info', 'Initializing Core Update Sequence...');
-            $log('info', 'Target Repository: https://github.com/' . $this->githubRepo);
+            $log('info', 'Target Repository: https://github.com/'.$this->githubRepo);
 
             // Step 1: Pre-Flight Backup Snapshot
             $log('command', 'Creating pre-flight immutable full website snapshot...');
@@ -507,8 +529,8 @@ class CoreUpdateService
             // Step 4: Synchronize New .env Environment Variables (Preserve Production Keys)
             $log('command', 'Analyzing .env.example for new environment variable specifications...');
             $newEnvKeys = $this->syncEnvVariables();
-            if (!empty($newEnvKeys)) {
-                $log('success', 'Synchronized new environment variables into .env: ' . implode(', ', $newEnvKeys));
+            if (! empty($newEnvKeys)) {
+                $log('success', 'Synchronized new environment variables into .env: '.implode(', ', $newEnvKeys));
             } else {
                 $log('info', 'Environment variables in .env are up to date.');
             }
@@ -517,7 +539,7 @@ class CoreUpdateService
             $log('command', 'Executing schema migrations: php artisan migrate --force');
             Artisan::call('migrate', ['--force' => true]);
             $migrateOutput = trim(Artisan::output());
-            $log('success', !empty($migrateOutput) ? $migrateOutput : 'Database schema verified. All tables up to date.');
+            $log('success', ! empty($migrateOutput) ? $migrateOutput : 'Database schema verified. All tables up to date.');
 
             // Step 6: Clear and Recompile Caches
             $log('command', 'Synchronizing application caches: php artisan optimize:clear');
@@ -527,13 +549,13 @@ class CoreUpdateService
             // Step 7: Post-Update Synthetic Health Prober
             $log('command', 'Executing post-update synthetic health probe diagnostics...');
             $health = $this->healthProber->probeSystem();
-            
+
             foreach ($health['checks'] as $check) {
                 $statusType = $check['status'] === 'pass' ? 'success' : ($check['status'] === 'fail' ? 'error' : 'warning');
                 $log($statusType, "[{$check['name']}] {$check['message']} ({$check['duration_ms']}ms)");
             }
 
-            if (!$health['passed']) {
+            if (! $health['passed']) {
                 throw new Exception('Post-update health checks failed. Triggering automatic self-healing rollback.');
             }
 
@@ -559,7 +581,7 @@ class CoreUpdateService
                     $log('warning', "Initiating emergency self-healing rollback to pre-update snapshot [{$restorePoint['id']}]...");
                     $this->rollbackToPoint($restorePoint['id']);
                     $rollbackSuccess = true;
-                    $log('success', "AUTO-ROLLBACK COMPLETE: Codebase and database reverted to previous working state.");
+                    $log('success', 'AUTO-ROLLBACK COMPLETE: Codebase and database reverted to previous working state.');
                 } catch (\Throwable $rollbackError) {
                     $log('error', "CRITICAL ROLLBACK FAILURE: {$rollbackError->getMessage()}");
                 }
@@ -569,7 +591,7 @@ class CoreUpdateService
 
             return [
                 'success' => false,
-                'message' => "Update failed: {$e->getMessage()}" . ($rollbackSuccess ? ' (System automatically rolled back to working state).' : ''),
+                'message' => "Update failed: {$e->getMessage()}".($rollbackSuccess ? ' (System automatically rolled back to working state).' : ''),
                 'rolled_back' => $rollbackSuccess,
                 'health' => $this->healthProber->probeSystem(),
                 'logs' => $logMessages,
@@ -591,7 +613,7 @@ class CoreUpdateService
             }
         }
 
-        if (!$target) {
+        if (! $target) {
             throw new Exception("Restore point [{$restorePointId}] not found.");
         }
 
@@ -599,18 +621,18 @@ class CoreUpdateService
         $this->putSiteInMaintenance();
 
         // 2. Restore Codebase Files from Zip
-        if (!empty($target['file_backup']) && File::exists($target['file_backup'])) {
-            $zip = new ZipArchive();
+        if (! empty($target['file_backup']) && File::exists($target['file_backup'])) {
+            $zip = new ZipArchive;
             if ($zip->open($target['file_backup']) === true) {
                 $zip->extractTo(base_path());
                 $zip->close();
             }
-        } elseif (!empty($target['git_sha']) && $this->isGitAvailable()) {
+        } elseif (! empty($target['git_sha']) && $this->isGitAvailable()) {
             @exec("git reset --hard {$target['git_sha']}");
         }
 
         // 3. Restore Database Dump
-        if (!empty($target['db_backup']) && File::exists($target['db_backup'])) {
+        if (! empty($target['db_backup']) && File::exists($target['db_backup'])) {
             $this->restoreDatabaseDump($target['db_backup']);
         }
 
@@ -628,7 +650,7 @@ class CoreUpdateService
      */
     public function isGitAvailable(): bool
     {
-        if (!function_exists('exec') || !function_exists('shell_exec')) {
+        if (! function_exists('exec') || ! function_exists('shell_exec')) {
             return false;
         }
 
@@ -636,7 +658,8 @@ class CoreUpdateService
             $output = [];
             $returnVar = 0;
             @exec('git --version 2>&1', $output, $returnVar);
-            return $returnVar === 0 && !empty($output);
+
+            return $returnVar === 0 && ! empty($output);
         } catch (\Throwable $e) {
             return false;
         }
@@ -649,7 +672,7 @@ class CoreUpdateService
     {
         if ($this->isGitAvailable()) {
             $sha = @trim(shell_exec('git rev-parse --short HEAD 2>&1'));
-            if (!empty($sha) && strlen($sha) >= 4 && strlen($sha) <= 40 && !str_contains($sha, 'fatal')) {
+            if (! empty($sha) && strlen($sha) >= 4 && strlen($sha) <= 40 && ! str_contains($sha, 'fatal')) {
                 return $sha;
             }
         }
@@ -658,7 +681,7 @@ class CoreUpdateService
         if (File::exists($headFile)) {
             $head = trim(File::get($headFile));
             if (str_starts_with($head, 'ref:')) {
-                $refPath = base_path('.git/' . trim(substr($head, 4)));
+                $refPath = base_path('.git/'.trim(substr($head, 4)));
                 if (File::exists($refPath)) {
                     return substr(trim(File::get($refPath)), 0, 8);
                 }
@@ -682,7 +705,7 @@ class CoreUpdateService
             // Fallback to git pull
             @exec('git pull origin main 2>&1', $output, $returnVar);
             if ($returnVar !== 0) {
-                throw new Exception("Git pull/reset failed: " . implode("\n", $output));
+                throw new Exception('Git pull/reset failed: '.implode("\n", $output));
             }
         }
     }
@@ -698,14 +721,14 @@ class CoreUpdateService
 
         // Download Archive
         $response = Http::timeout(60)->sink($tempZip)->get($downloadUrl);
-        if (!$response->successful() || !File::exists($tempZip)) {
-            throw new Exception("Failed to download update package from GitHub.");
+        if (! $response->successful() || ! File::exists($tempZip)) {
+            throw new Exception('Failed to download update package from GitHub.');
         }
 
         // Unpack Archive
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         if ($zip->open($tempZip) !== true) {
-            throw new Exception("Failed to open downloaded update zip archive.");
+            throw new Exception('Failed to open downloaded update zip archive.');
         }
 
         File::deleteDirectory($tempExtractDir);
@@ -716,7 +739,7 @@ class CoreUpdateService
 
         // Find root folder inside zip
         $extractedDirs = File::directories($tempExtractDir);
-        $sourceDir = !empty($extractedDirs) ? $extractedDirs[0] : $tempExtractDir;
+        $sourceDir = ! empty($extractedDirs) ? $extractedDirs[0] : $tempExtractDir;
 
         // Safely Copy files over base_path, preserving user configuration and runtime data
         $this->syncDirectories($sourceDir, base_path(), [
@@ -737,7 +760,7 @@ class CoreUpdateService
         $items = File::allFiles($source, true);
         foreach ($items as $item) {
             $relativePath = $item->getRelativePathname();
-            
+
             // Check exclusion rules
             $isExcluded = false;
             foreach ($excludes as $exclude) {
@@ -753,7 +776,7 @@ class CoreUpdateService
 
             $targetPath = "{$destination}/{$relativePath}";
             $targetDir = dirname($targetPath);
-            if (!File::exists($targetDir)) {
+            if (! File::exists($targetDir)) {
                 File::makeDirectory($targetDir, 0755, true, true);
             }
 
@@ -771,7 +794,7 @@ class CoreUpdateService
         $envPath = base_path('.env');
         $examplePath = base_path('.env.example');
 
-        if (!File::exists($envPath) || !File::exists($examplePath)) {
+        if (! File::exists($envPath) || ! File::exists($examplePath)) {
             return [];
         }
 
@@ -787,11 +810,11 @@ class CoreUpdateService
         $missingKeys = array_diff($exampleKeys, $currentKeys);
         $appendedKeys = [];
 
-        if (!empty($missingKeys)) {
-            $appendContent = "\n# --- Auto-Added by HOA Core Update System (" . date('Y-m-d H:i:s') . ") ---\n";
+        if (! empty($missingKeys)) {
+            $appendContent = "\n# --- Auto-Added by HOA Core Update System (".date('Y-m-d H:i:s').") ---\n";
             foreach ($missingKeys as $key) {
-                if (preg_match('/^(' . preg_quote($key, '/') . '=.*)$/m', $exampleEnv, $lineMatch)) {
-                    $appendContent .= $lineMatch[1] . "\n";
+                if (preg_match('/^('.preg_quote($key, '/').'=.*)$/m', $exampleEnv, $lineMatch)) {
+                    $appendContent .= $lineMatch[1]."\n";
                     $appendedKeys[] = $key;
                 }
             }
@@ -807,11 +830,11 @@ class CoreUpdateService
     protected function createCodebaseZip(string $zipFilePath): void
     {
         $targetDir = dirname($zipFilePath);
-        if (!File::exists($targetDir)) {
+        if (! File::exists($targetDir)) {
             File::makeDirectory($targetDir, 0755, true, true);
         }
 
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         if ($zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
             return;
         }
@@ -821,11 +844,12 @@ class CoreUpdateService
             $zip->addFromString('version.json', (string) @file_get_contents(base_path('version.json')));
             $zip->addFromString('test_marker.txt', 'Automated Test Snapshot');
             $zip->close();
+
             return;
         }
 
         $basePath = base_path();
-        
+
         // 1. All Primary & Auxiliary Application Directories
         $directoriesToInclude = [
             'app',
@@ -848,7 +872,7 @@ class CoreUpdateService
             if (File::exists($fullDir)) {
                 $files = File::allFiles($fullDir, true);
                 foreach ($files as $file) {
-                    $relative = "{$dir}/" . $file->getRelativePathname();
+                    $relative = "{$dir}/".$file->getRelativePathname();
                     $normalizedRelative = str_replace('\\', '/', $relative);
 
                     $zip->addFile($file->getRealPath(), $normalizedRelative);
@@ -905,28 +929,28 @@ class CoreUpdateService
             } else {
                 // Pure-PHP MySQL simple table backup
                 $tables = DB::select('SHOW TABLES');
-                $sql = "-- HOA Database Backup\n-- Date: " . date('Y-m-d H:i:s') . "\n\n";
+                $sql = "-- HOA Database Backup\n-- Date: ".date('Y-m-d H:i:s')."\n\n";
                 foreach ($tables as $table) {
                     $tableArray = (array) $table;
                     $tableName = reset($tableArray);
-                    
+
                     $create = DB::select("SHOW CREATE TABLE `{$tableName}`");
-                    if (!empty($create)) {
+                    if (! empty($create)) {
                         $createArr = (array) $create[0];
                         $sql .= "\nDROP TABLE IF EXISTS `{$tableName}`;\n";
-                        $sql .= ($createArr['Create Table'] ?? '') . ";\n\n";
+                        $sql .= ($createArr['Create Table'] ?? '').";\n\n";
                     }
 
                     $rows = DB::table($tableName)->get();
                     foreach ($rows as $row) {
                         $rowArr = (array) $row;
-                        $keys = array_map(fn($k) => "`{$k}`", array_keys($rowArr));
-                        $vals = array_map(function($v) {
+                        $keys = array_map(fn ($k) => "`{$k}`", array_keys($rowArr));
+                        $vals = array_map(function ($v) {
                             return is_null($v) ? 'NULL' : DB::getPdo()->quote($v);
                         }, array_values($rowArr));
-                        
-                        if (!empty($keys)) {
-                            $sql .= "INSERT INTO `{$tableName}` (" . implode(', ', $keys) . ") VALUES (" . implode(', ', $vals) . ");\n";
+
+                        if (! empty($keys)) {
+                            $sql .= "INSERT INTO `{$tableName}` (".implode(', ', $keys).') VALUES ('.implode(', ', $vals).");\n";
                         }
                     }
                 }
@@ -950,7 +974,7 @@ class CoreUpdateService
             }
         } elseif (File::exists($filePath)) {
             $sql = File::get($filePath);
-            if (!empty($sql)) {
+            if (! empty($sql)) {
                 DB::unprepared($sql);
             }
         }

@@ -63,7 +63,7 @@ class HealthProberService
             $checks['database'] = [
                 'name' => 'Database Schema & Tables Integrity',
                 'status' => 'fail',
-                'message' => 'Database connection failed: ' . $e->getMessage(),
+                'message' => 'Database connection failed: '.$e->getMessage(),
                 'duration_ms' => round((microtime(true) - $dbStart) * 1000, 2),
             ];
         }
@@ -83,7 +83,7 @@ class HealthProberService
             $checks['auth_model'] = [
                 'name' => 'User Entity Query Verification',
                 'status' => 'fail',
-                'message' => 'Querying User model failed: ' . $e->getMessage(),
+                'message' => 'Querying User model failed: '.$e->getMessage(),
                 'duration_ms' => round((microtime(true) - $userStart) * 1000, 2),
             ];
         }
@@ -93,7 +93,7 @@ class HealthProberService
         $manifestPath = public_path('build/manifest.json');
         if (file_exists($manifestPath) && is_readable($manifestPath)) {
             $manifestData = json_decode(file_get_contents($manifestPath), true);
-            if (is_array($manifestData) && !empty($manifestData)) {
+            if (is_array($manifestData) && ! empty($manifestData)) {
                 $checks['assets'] = [
                     'name' => 'Vite Production Manifest Integrity',
                     'status' => 'pass',
@@ -146,7 +146,7 @@ class HealthProberService
             $checks['storage_write'] = [
                 'name' => 'Storage Directory Write Permissions',
                 'status' => 'fail',
-                'message' => 'Storage directory write test failed: ' . $e->getMessage(),
+                'message' => 'Storage directory write test failed: '.$e->getMessage(),
                 'duration_ms' => round((microtime(true) - $fsStart) * 1000, 2),
             ];
         }
@@ -161,8 +161,8 @@ class HealthProberService
             $checks['omniroute_gateway'] = [
                 'name' => 'OmniRoute AI Gateway Connection',
                 'status' => $isOnline ? 'pass' : 'info',
-                'message' => $isOnline 
-                    ? 'OmniRoute Gateway responds normally (' . round((microtime(true) - $gwStart) * 1000) . 'ms).' 
+                'message' => $isOnline
+                    ? 'OmniRoute Gateway responds normally ('.round((microtime(true) - $gwStart) * 1000).'ms).'
                     : 'OmniRoute gateway is in Standalone Mode.',
                 'duration_ms' => round((microtime(true) - $gwStart) * 1000, 2),
             ];

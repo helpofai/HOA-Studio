@@ -32,7 +32,7 @@ return new class extends Migration
     public function up(): void
     {
         // 1. Persistent Vector Embeddings Cache (L2 Storage)
-        if (!Schema::hasTable('vector_embeddings_cache')) {
+        if (! Schema::hasTable('vector_embeddings_cache')) {
             Schema::create('vector_embeddings_cache', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
@@ -50,13 +50,13 @@ return new class extends Migration
         // 2. Enhance knowledge_sources table with Brain categories and collection tags
         if (Schema::hasTable('knowledge_sources')) {
             Schema::table('knowledge_sources', function (Blueprint $table) {
-                if (!Schema::hasColumn('knowledge_sources', 'category')) {
+                if (! Schema::hasColumn('knowledge_sources', 'category')) {
                     $table->string('category', 64)->default('general_docs')->after('source_type');
                 }
-                if (!Schema::hasColumn('knowledge_sources', 'is_active')) {
+                if (! Schema::hasColumn('knowledge_sources', 'is_active')) {
                     $table->boolean('is_active')->default(true)->after('status');
                 }
-                if (!Schema::hasColumn('knowledge_sources', 'metadata')) {
+                if (! Schema::hasColumn('knowledge_sources', 'metadata')) {
                     $table->json('metadata')->nullable()->after('is_active');
                 }
             });

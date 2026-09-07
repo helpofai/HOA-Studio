@@ -1,4 +1,5 @@
 <?php
+
 /*
 |--------------------------------------------------------------------------
 | HelpOfAi (HOA) Professional Software - WordPress Plugin AJAX Handler
@@ -18,7 +19,7 @@ namespace HOA_Studio\Api;
 
 use HOA_Studio\Core\HOA_Settings;
 
-if (!defined('ABSPATH')) {
+if (! defined('ABSPATH')) {
     exit;
 }
 
@@ -29,14 +30,13 @@ class HOA_Ajax_Handler
     public static function instance(): HOA_Ajax_Handler
     {
         if (self::$instance === null) {
-            self::$instance = new self();
+            self::$instance = new self;
         }
+
         return self::$instance;
     }
 
-    private function __construct()
-    {
-    }
+    private function __construct() {}
 
     public function register_hooks(): void
     {
@@ -55,7 +55,7 @@ class HOA_Ajax_Handler
     {
         check_ajax_referer('hoa_studio_editor_nonce', 'nonce');
 
-        if (!current_user_can('edit_posts')) {
+        if (! current_user_can('edit_posts')) {
             wp_send_json_error(['message' => __('Unauthorized permission level.', 'hoa-studio')], 403);
         }
 
@@ -68,14 +68,14 @@ class HOA_Ajax_Handler
             wp_send_json_error(['message' => __('Endpoint URL and Studio Connect Token cannot be empty.', 'hoa-studio')], 400);
         }
 
-        $connectUrl = $endpoint . '/api/v1/wordpress/connect';
+        $connectUrl = $endpoint.'/api/v1/wordpress/connect';
 
         $response = wp_remote_post($connectUrl, [
             'timeout' => 20,
             'headers' => [
-                'Authorization' => 'Bearer ' . $key,
+                'Authorization' => 'Bearer '.$key,
                 'Accept' => 'application/json',
-                'User-Agent' => 'HOA-Studio-WordPress/' . HOA_STUDIO_VERSION,
+                'User-Agent' => 'HOA-Studio-WordPress/'.HOA_STUDIO_VERSION,
             ],
         ]);
 
@@ -89,7 +89,7 @@ class HOA_Ajax_Handler
         $body = wp_remote_retrieve_body($response);
         $data = json_decode($body, true);
 
-        if ($code !== 200 || !is_array($data) || empty($data['success'])) {
+        if ($code !== 200 || ! is_array($data) || empty($data['success'])) {
             $msg = $data['message'] ?? $data['error'] ?? sprintf(__('Invalid response from HOA Studio (HTTP %d).', 'hoa-studio'), $code);
             wp_send_json_error(['message' => $msg], 400);
         }
@@ -101,13 +101,13 @@ class HOA_Ajax_Handler
         }
 
         update_option(HOA_Settings::OPTION_STATUS, 'connected');
-        if (!empty($data['user'])) {
+        if (! empty($data['user'])) {
             update_option(HOA_Settings::OPTION_USER_DATA, $data['user']);
         }
-        if (!empty($data['available_models'])) {
+        if (! empty($data['available_models'])) {
             update_option(HOA_Settings::OPTION_MODELS, $data['available_models']);
         }
-        if (!empty($data['brand_voices'])) {
+        if (! empty($data['brand_voices'])) {
             update_option(HOA_Settings::OPTION_BRAND_VOICES, $data['brand_voices']);
         }
 
@@ -121,9 +121,9 @@ class HOA_Ajax_Handler
     {
         check_ajax_referer('hoa_studio_editor_nonce', 'nonce');
 
-        if (!current_user_can('edit_posts')) {
+        if (! current_user_can('edit_posts')) {
             status_header(403);
-            echo "data: " . json_encode(['error' => __('Unauthorized permission.', 'hoa-studio'), 'done' => true]) . "\n\n";
+            echo 'data: '.json_encode(['error' => __('Unauthorized permission.', 'hoa-studio'), 'done' => true])."\n\n";
             exit;
         }
 
@@ -132,7 +132,7 @@ class HOA_Ajax_Handler
 
         if (empty($endpoint) || empty($apiKey)) {
             status_header(400);
-            echo "data: " . json_encode(['error' => __('HOA Studio is not connected. Please connect in Settings.', 'hoa-studio'), 'done' => true]) . "\n\n";
+            echo 'data: '.json_encode(['error' => __('HOA Studio is not connected. Please connect in Settings.', 'hoa-studio'), 'done' => true])."\n\n";
             exit;
         }
 
@@ -142,7 +142,7 @@ class HOA_Ajax_Handler
         $customInstruction = isset($_POST['custom_instruction']) ? wp_unslash($_POST['custom_instruction']) : '';
         $brandVoiceId = isset($_POST['brand_voice_id']) ? intval($_POST['brand_voice_id']) : 0;
 
-        $streamUrl = $endpoint . '/api/v1/wordpress/stream';
+        $streamUrl = $endpoint.'/api/v1/wordpress/stream';
 
         // Prepare raw stream proxy headers
         if (function_exists('apache_setenv')) {
@@ -176,9 +176,9 @@ class HOA_Ajax_Handler
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: Bearer ' . $apiKey,
+            'Authorization: Bearer '.$apiKey,
             'Accept: text/event-stream',
-            'User-Agent: HOA-Studio-WordPress/' . HOA_STUDIO_VERSION,
+            'User-Agent: HOA-Studio-WordPress/'.HOA_STUDIO_VERSION,
         ]);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, false);
         curl_setopt($ch, CURLOPT_TIMEOUT, 60);
@@ -188,6 +188,7 @@ class HOA_Ajax_Handler
                 @ob_flush();
             }
             flush();
+
             return strlen($data);
         });
 
@@ -196,7 +197,7 @@ class HOA_Ajax_Handler
         curl_close($ch);
 
         if ($curlError) {
-            echo "data: " . json_encode(['error' => 'Gateway communication error: ' . $curlError, 'done' => true]) . "\n\n";
+            echo 'data: '.json_encode(['error' => 'Gateway communication error: '.$curlError, 'done' => true])."\n\n";
             flush();
         }
 
@@ -210,7 +211,7 @@ class HOA_Ajax_Handler
     {
         check_ajax_referer('hoa_studio_editor_nonce', 'nonce');
 
-        if (!current_user_can('edit_posts')) {
+        if (! current_user_can('edit_posts')) {
             wp_send_json_error(['message' => __('Unauthorized permission level.', 'hoa-studio')], 403);
         }
 
@@ -226,15 +227,15 @@ class HOA_Ajax_Handler
         $model = isset($_POST['model']) ? sanitize_text_field(wp_unslash($_POST['model'])) : HOA_Settings::getDefaultModel();
         $customInstruction = isset($_POST['custom_instruction']) ? wp_unslash($_POST['custom_instruction']) : '';
 
-        $transformUrl = $endpoint . '/api/v1/wordpress/transform';
+        $transformUrl = $endpoint.'/api/v1/wordpress/transform';
 
         $response = wp_remote_post($transformUrl, [
             'timeout' => 30,
             'headers' => [
-                'Authorization' => 'Bearer ' . $apiKey,
+                'Authorization' => 'Bearer '.$apiKey,
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/x-www-form-urlencoded',
-                'User-Agent' => 'HOA-Studio-WordPress/' . HOA_STUDIO_VERSION,
+                'User-Agent' => 'HOA-Studio-WordPress/'.HOA_STUDIO_VERSION,
             ],
             'body' => [
                 'text' => $text,
@@ -265,7 +266,7 @@ class HOA_Ajax_Handler
     {
         check_ajax_referer('hoa_studio_editor_nonce', 'nonce');
 
-        if (!current_user_can('edit_posts')) {
+        if (! current_user_can('edit_posts')) {
             wp_send_json_error(['message' => __('Unauthorized permission level.', 'hoa-studio')], 403);
         }
 
@@ -285,7 +286,7 @@ class HOA_Ajax_Handler
         }
 
         $allowedStatuses = ['draft', 'publish', 'pending', 'future', 'private'];
-        if (!in_array($status, $allowedStatuses, true)) {
+        if (! in_array($status, $allowedStatuses, true)) {
             $status = 'draft';
         }
 
@@ -296,7 +297,7 @@ class HOA_Ajax_Handler
             'post_type' => 'post',
         ];
 
-        if (!empty($slug)) {
+        if (! empty($slug)) {
             $postData['post_name'] = $slug;
         }
 
@@ -314,10 +315,10 @@ class HOA_Ajax_Handler
         $postId = (int) $updatedId;
 
         // Categories & Tags
-        if (!empty($categories)) {
+        if (! empty($categories)) {
             wp_set_post_categories($postId, $categories);
         }
-        if (!empty($tags)) {
+        if (! empty($tags)) {
             wp_set_post_tags($postId, $tags);
         }
 
@@ -333,17 +334,17 @@ class HOA_Ajax_Handler
         update_post_meta($postId, '_hoa_last_saved', current_time('mysql'));
 
         // RankMath & Yoast SEO Interoperability
-        if (!empty($targetKeyword)) {
+        if (! empty($targetKeyword)) {
             update_post_meta($postId, 'rank_math_focus_keyword', $targetKeyword);
             update_post_meta($postId, '_yoast_wpseo_focuskw', $targetKeyword);
         }
-        if (!empty($metaDescription)) {
+        if (! empty($metaDescription)) {
             update_post_meta($postId, 'rank_math_description', $metaDescription);
             update_post_meta($postId, '_yoast_wpseo_metadesc', $metaDescription);
         }
 
         $permalink = get_permalink($postId);
-        $editUrl = admin_url('admin.php?page=hoa-studio-editor&post_id=' . $postId);
+        $editUrl = admin_url('admin.php?page=hoa-studio-editor&post_id='.$postId);
 
         wp_send_json_success([
             'post_id' => $postId,
@@ -361,7 +362,7 @@ class HOA_Ajax_Handler
     {
         check_ajax_referer('hoa_studio_editor_nonce', 'nonce');
 
-        if (!current_user_can('edit_posts')) {
+        if (! current_user_can('edit_posts')) {
             wp_send_json_error(['message' => __('Unauthorized permission level.', 'hoa-studio')], 403);
         }
 
@@ -382,7 +383,7 @@ class HOA_Ajax_Handler
 
         $syncedDocId = $postId > 0 ? (int) get_post_meta($postId, '_hoa_synced_document_id', true) : null;
 
-        $syncUrl = $endpoint . '/api/v1/wordpress/sync-document';
+        $syncUrl = $endpoint.'/api/v1/wordpress/sync-document';
 
         $payload = [
             'title' => $title,
@@ -394,10 +395,10 @@ class HOA_Ajax_Handler
         $response = wp_remote_post($syncUrl, [
             'timeout' => 25,
             'headers' => [
-                'Authorization' => 'Bearer ' . $apiKey,
+                'Authorization' => 'Bearer '.$apiKey,
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
-                'User-Agent' => 'HOA-Studio-WordPress/' . HOA_STUDIO_VERSION,
+                'User-Agent' => 'HOA-Studio-WordPress/'.HOA_STUDIO_VERSION,
             ],
             'body' => json_encode($payload),
         ]);
@@ -432,7 +433,7 @@ class HOA_Ajax_Handler
     {
         check_ajax_referer('hoa_studio_editor_nonce', 'nonce');
 
-        if (!current_user_can('edit_posts')) {
+        if (! current_user_can('edit_posts')) {
             wp_send_json_error(['message' => __('Unauthorized permission level.', 'hoa-studio')], 403);
         }
 
@@ -446,19 +447,19 @@ class HOA_Ajax_Handler
 4. 'key_takeaways': An array of 3 bullet takeaways.
 
 Title: {$title}
-Excerpt: " . substr($content, 0, 1500) . "
+Excerpt: ".substr($content, 0, 1500).'
 
-Return ONLY valid JSON.";
+Return ONLY valid JSON.';
 
         $endpoint = HOA_Settings::getEndpoint();
         $apiKey = HOA_Settings::getApiKey();
 
-        $transformUrl = $endpoint . '/api/v1/wordpress/transform';
+        $transformUrl = $endpoint.'/api/v1/wordpress/transform';
 
         $response = wp_remote_post($transformUrl, [
             'timeout' => 30,
             'headers' => [
-                'Authorization' => 'Bearer ' . $apiKey,
+                'Authorization' => 'Bearer '.$apiKey,
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Accept' => 'application/json',
             ],
@@ -476,7 +477,7 @@ Return ONLY valid JSON.";
         $body = wp_remote_retrieve_body($response);
         $data = json_decode($body, true);
 
-        if (!empty($data['result'])) {
+        if (! empty($data['result'])) {
             // Clean markdown code blocks if wrapped in ```json
             $cleanJson = preg_replace('/^```(?:json)?\s*|\s*```$/i', '', trim($data['result']));
             $parsed = json_decode($cleanJson, true);

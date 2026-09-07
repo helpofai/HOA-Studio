@@ -34,7 +34,7 @@ class UpdateProject
     {
         if (! empty($data['name']) && $data['name'] !== $project->name) {
             $project->name = trim($data['name']);
-            $project->slug = Str::slug($project->name) . '-' . Str::lower(Str::random(5));
+            $project->slug = Str::slug($project->name).'-'.Str::lower(Str::random(5));
         }
 
         if (array_key_exists('description', $data)) {

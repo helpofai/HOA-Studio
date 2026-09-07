@@ -1,4 +1,5 @@
 <?php
+
 /*
 |--------------------------------------------------------------------------
 | HelpOfAi (HOA) Professional Software - Document Import System Test
@@ -19,7 +20,6 @@ namespace Tests\Feature;
 use App\Features\Documents\Livewire\DocumentEditor;
 use App\Features\Documents\Models\Document;
 use App\Features\Documents\Models\DocumentContent;
-use App\Features\Documents\Services\DocumentImporter;
 use App\Features\Documents\Services\DocumentTextAnalyzer;
 use App\Features\Documents\Services\UniversalDocumentExtractor;
 use App\Models\User;
@@ -33,6 +33,7 @@ class DocumentImportSystemTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Document $document;
 
     protected function setUp(): void
@@ -40,14 +41,14 @@ class DocumentImportSystemTest extends TestCase
         parent::setUp();
 
         $this->user = User::factory()->create([
-            'email' => 'editor_user_' . uniqid() . '@example.com',
+            'email' => 'editor_user_'.uniqid().'@example.com',
             'role' => 'user',
         ]);
 
         $this->document = Document::create([
             'user_id' => $this->user->id,
             'title' => 'Untitled Document',
-            'slug' => 'untitled-document-' . uniqid(),
+            'slug' => 'untitled-document-'.uniqid(),
             'status' => 'draft',
             'word_count' => 0,
             'character_count' => 0,
@@ -63,7 +64,7 @@ class DocumentImportSystemTest extends TestCase
 
     public function test_extractor_parses_markdown_correctly()
     {
-        $extractor = new UniversalDocumentExtractor();
+        $extractor = new UniversalDocumentExtractor;
         $md = "# Next-Gen AI Workflows\n\nArtificial intelligence revolutionizes content creation.\n\n- Streamlined publishing\n- Real-time optimization\n\n| Feature | Status |\n| --- | --- |\n| Neural | Active |";
         $file = UploadedFile::fake()->createWithContent('article.md', $md);
 
@@ -84,7 +85,7 @@ class DocumentImportSystemTest extends TestCase
 
     public function test_extractor_parses_csv_into_html_table()
     {
-        $extractor = new UniversalDocumentExtractor();
+        $extractor = new UniversalDocumentExtractor;
         $csv = "Name,Role,Efficiency\nClaude 3.7,Reasoning,99%\nDeepSeek V3,Coding,98%\nGPT-4o,Multimodal,97%";
         $file = UploadedFile::fake()->createWithContent('ai-matrix.csv', $csv);
 
@@ -100,7 +101,7 @@ class DocumentImportSystemTest extends TestCase
 
     public function test_extractor_parses_html_cleanly_and_sanitizes_xss()
     {
-        $extractor = new UniversalDocumentExtractor();
+        $extractor = new UniversalDocumentExtractor;
         $html = "<!DOCTYPE html><html><head><title>Clean Architecture Guide</title></head><body><h1>Clean Architecture</h1><p>Maintain loose coupling.<script>alert('hack');</script></p></body></html>";
         $file = UploadedFile::fake()->createWithContent('guide.html', $html);
 
@@ -115,7 +116,7 @@ class DocumentImportSystemTest extends TestCase
 
     public function test_extractor_parses_plain_text_with_paragraph_detection()
     {
-        $extractor = new UniversalDocumentExtractor();
+        $extractor = new UniversalDocumentExtractor;
         $text = "First paragraph discussing modern web engineering and reactive frameworks.\n\nSecond paragraph covering database optimization and indexing strategies.";
         $file = UploadedFile::fake()->createWithContent('notes.txt', $text);
 
@@ -128,17 +129,17 @@ class DocumentImportSystemTest extends TestCase
 
     public function test_extractor_parses_json_structure()
     {
-        $extractor = new UniversalDocumentExtractor();
+        $extractor = new UniversalDocumentExtractor;
         $json = json_encode([
             'type' => 'doc',
             'content' => [
                 [
                     'type' => 'paragraph',
                     'content' => [
-                        ['type' => 'text', 'text' => 'TipTap AST document content loaded cleanly.']
-                    ]
-                ]
-            ]
+                        ['type' => 'text', 'text' => 'TipTap AST document content loaded cleanly.'],
+                    ],
+                ],
+            ],
         ]);
         $file = UploadedFile::fake()->createWithContent('state.json', $json);
 
@@ -150,9 +151,9 @@ class DocumentImportSystemTest extends TestCase
 
     public function test_text_analyzer_computes_deep_metrics_readability_and_tone()
     {
-        $analyzer = new DocumentTextAnalyzer();
-        $sampleText = "Artificial intelligence and machine learning architectures require robust software engineering practices. Distributed systems handle massive data throughput with low latency and high availability. Neural networks optimize predictive accuracy through algorithmic gradient descent.";
-        $sampleHtml = "<p>" . $sampleText . "</p>";
+        $analyzer = new DocumentTextAnalyzer;
+        $sampleText = 'Artificial intelligence and machine learning architectures require robust software engineering practices. Distributed systems handle massive data throughput with low latency and high availability. Neural networks optimize predictive accuracy through algorithmic gradient descent.';
+        $sampleHtml = '<p>'.$sampleText.'</p>';
 
         $analysis = $analyzer->analyze($sampleText, $sampleHtml);
 

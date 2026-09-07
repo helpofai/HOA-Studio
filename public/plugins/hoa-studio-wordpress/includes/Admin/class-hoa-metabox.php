@@ -1,4 +1,5 @@
 <?php
+
 /*
 |--------------------------------------------------------------------------
 | HelpOfAi (HOA) Professional Software - WordPress Editor Metabox
@@ -19,7 +20,7 @@ namespace HOA_Studio\Admin;
 use HOA_Studio\Core\HOA_Settings;
 use WP_Post;
 
-if (!defined('ABSPATH')) {
+if (! defined('ABSPATH')) {
     exit;
 }
 
@@ -30,14 +31,13 @@ class HOA_Metabox
     public static function instance(): HOA_Metabox
     {
         if (self::$instance === null) {
-            self::$instance = new self();
+            self::$instance = new self;
         }
+
         return self::$instance;
     }
 
-    private function __construct()
-    {
-    }
+    private function __construct() {}
 
     public function register_hooks(): void
     {
@@ -65,7 +65,7 @@ class HOA_Metabox
     {
         wp_nonce_field('hoa_save_metabox_nonce', 'hoa_metabox_nonce');
 
-        $editorUrl = admin_url('admin.php?page=hoa-studio-editor&post_id=' . $post->ID);
+        $editorUrl = admin_url('admin.php?page=hoa-studio-editor&post_id='.$post->ID);
         $isConnected = HOA_Settings::isConnected();
         $targetKeyword = get_post_meta($post->ID, '_hoa_target_keyword', true);
         $metaDesc = get_post_meta($post->ID, '_hoa_meta_description', true);
@@ -73,12 +73,12 @@ class HOA_Metabox
         $lastSyncedAt = get_post_meta($post->ID, '_hoa_last_synced_at', true);
         $userData = HOA_Settings::getUserData();
 
-        require HOA_STUDIO_DIR . 'views/metabox-post-sidebar.php';
+        require HOA_STUDIO_DIR.'views/metabox-post-sidebar.php';
     }
 
     public function save_post_meta(int $postId, WP_Post $post): void
     {
-        if (!isset($_POST['hoa_metabox_nonce']) || !wp_verify_nonce($_POST['hoa_metabox_nonce'], 'hoa_save_metabox_nonce')) {
+        if (! isset($_POST['hoa_metabox_nonce']) || ! wp_verify_nonce($_POST['hoa_metabox_nonce'], 'hoa_save_metabox_nonce')) {
             return;
         }
 
@@ -86,7 +86,7 @@ class HOA_Metabox
             return;
         }
 
-        if (!current_user_can('edit_post', $postId)) {
+        if (! current_user_can('edit_post', $postId)) {
             return;
         }
 

@@ -32,7 +32,7 @@ class AuthenticateStudioToken
     {
         $tokenString = $request->bearerToken() ?: $request->header('X-HOA-Connect-Key');
 
-        if (!$tokenString && $request->has('api_token')) {
+        if (! $tokenString && $request->has('api_token')) {
             $tokenString = $request->input('api_token');
         }
 
@@ -45,7 +45,7 @@ class AuthenticateStudioToken
 
         $studioToken = UserStudioToken::findToken($tokenString);
 
-        if (!$studioToken || !$studioToken->user || !$studioToken->user->is_active) {
+        if (! $studioToken || ! $studioToken->user || ! $studioToken->user->is_active) {
             return response()->json([
                 'success' => false,
                 'error' => 'Invalid, expired, or revoked Studio Connect Key. Please generate a new key in HOA Studio Settings.',

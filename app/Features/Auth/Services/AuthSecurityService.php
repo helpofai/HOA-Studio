@@ -19,6 +19,7 @@ namespace App\Features\Auth\Services;
 
 use App\Features\Admin\Models\AuthSecurityLog;
 use App\Features\Admin\Models\BlockedIp;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -51,8 +52,8 @@ class AuthSecurityService
      * Verify invisible honeypot field.
      * Real users will leave the honeypot field empty; bots/scrapers auto-fill all inputs.
      *
-     * @param string|null $honeypotValue
-     * @param int|null $formLoadedAt Timestamp when form was loaded in frontend
+     * @param  int|null  $formLoadedAt  Timestamp when form was loaded in frontend
+     *
      * @throws ValidationException
      */
     public function verifyHoneypot(?string $honeypotValue, ?int $formLoadedAt = null): void
@@ -60,7 +61,7 @@ class AuthSecurityService
         $ip = request()->ip() ?? '127.0.0.1';
 
         // 1. If honeypot is populated, it's definitely an automated bot/scraper
-        if (!empty($honeypotValue)) {
+        if (! empty($honeypotValue)) {
             Log::warning('Honeypot bot trigger detected on authentication form', [
                 'ip' => $ip,
                 'user_agent' => request()->userAgent(),
@@ -80,7 +81,7 @@ class AuthSecurityService
         }
 
         // 2. Timing attack / Instant submission check (human takes > 1.0s to fill form in production)
-        if ($formLoadedAt !== null && !app()->runningUnitTests()) {
+        if ($formLoadedAt !== null && ! app()->runningUnitTests()) {
             $elapsedSeconds = time() - $formLoadedAt;
             // If submitted faster than 1 second, it's an automated headless bot script
             if ($elapsedSeconds < 1) {
@@ -99,14 +100,13 @@ class AuthSecurityService
     /**
      * Verify Cloudflare Turnstile token if configured and enabled.
      *
-     * @param string|null $token
      * @throws ValidationException
      */
     public function verifyTurnstile(?string $token): void
     {
         // 1. Check if Turnstile is explicitly enabled in settings or env
         $isEnabled = static::isTurnstileEnabled();
-        if (!$isEnabled) {
+        if (! $isEnabled) {
             return;
         }
 
@@ -133,7 +133,7 @@ class AuthSecurityService
 
             $result = $response->json();
 
-            if (!($result['success'] ?? false)) {
+            if (! ($result['success'] ?? false)) {
                 Log::warning('Cloudflare Turnstile verification failed', [
                     'ip' => request()->ip(),
                     'errors' => $result['error-codes'] ?? [],
@@ -146,7 +146,7 @@ class AuthSecurityService
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Throwable $e) {
-            Log::error('Cloudflare Turnstile verification error: ' . $e->getMessage());
+            Log::error('Cloudflare Turnstile verification error: '.$e->getMessage());
             if (config('services.turnstile.strict', false)) {
                 throw ValidationException::withMessages([
                     'turnstile' => __('Unable to verify security challenge at this time.'),
@@ -161,13 +161,14 @@ class AuthSecurityService
     public static function isTurnstileEnabled(): bool
     {
         try {
-            $dbSetting = \Illuminate\Support\Facades\DB::table('settings')->where('key', 'turnstile_enabled')->value('value');
+            $dbSetting = DB::table('settings')->where('key', 'turnstile_enabled')->value('value');
             if ($dbSetting !== null) {
                 return (bool) $dbSetting;
             }
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
-        return !empty(static::getTurnstileSiteKey()) && !empty(static::getTurnstileSecretKey());
+        return ! empty(static::getTurnstileSiteKey()) && ! empty(static::getTurnstileSecretKey());
     }
 
     /**
@@ -176,11 +177,12 @@ class AuthSecurityService
     public static function getTurnstileSiteKey(): string
     {
         try {
-            $dbVal = \Illuminate\Support\Facades\DB::table('settings')->where('key', 'turnstile_site_key')->value('value');
-            if (!empty($dbVal)) {
+            $dbVal = DB::table('settings')->where('key', 'turnstile_site_key')->value('value');
+            if (! empty($dbVal)) {
                 return trim($dbVal);
             }
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         return trim(config('services.turnstile.site_key') ?? '');
     }
@@ -191,11 +193,12 @@ class AuthSecurityService
     public static function getTurnstileSecretKey(): string
     {
         try {
-            $dbVal = \Illuminate\Support\Facades\DB::table('settings')->where('key', 'turnstile_secret_key')->value('value');
-            if (!empty($dbVal)) {
+            $dbVal = DB::table('settings')->where('key', 'turnstile_secret_key')->value('value');
+            if (! empty($dbVal)) {
                 return trim($dbVal);
             }
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         return trim(config('services.turnstile.secret_key') ?? '');
     }

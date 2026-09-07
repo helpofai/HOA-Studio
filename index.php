@@ -1,4 +1,5 @@
 <?php
+
 /**
 |--------------------------------------------------------------------------
 | HelpOfAi (HOA) Professional Software - Advanced Smart Router & Controller
@@ -15,18 +16,19 @@
 */
 
 declare(strict_types=1);
+use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
 
 // ── 1. Environment & Subdirectory Detection ──────────────────────────────────
 $subPath = '';
-$envFile = __DIR__ . '/.env';
+$envFile = __DIR__.'/.env';
 if (is_readable($envFile)) {
     foreach (file($envFile) as $line) {
         $line = trim($line);
         if (str_starts_with($line, 'APP_URL=')) {
-            $rawUrl  = trim(substr($line, 8), " \t\n\r\0\x0B\"'");
-            $subPath = rtrim((string)(parse_url($rawUrl, PHP_URL_PATH) ?? ''), '/');
+            $rawUrl = trim(substr($line, 8), " \t\n\r\0\x0B\"'");
+            $subPath = rtrim((string) (parse_url($rawUrl, PHP_URL_PATH) ?? ''), '/');
             break;
         }
     }
@@ -39,16 +41,16 @@ $_SERVER['HTTP_X_FORWARDED_SSL'] = 'on';
 
 // ── 3. Path Normalization ───────────────────────────────────────────────────
 $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
-$uri        = strtok($requestUri, '?');
-$query      = ltrim(substr($requestUri, strlen($uri)), '?');
+$uri = strtok($requestUri, '?');
+$query = ltrim(substr($requestUri, strlen($uri)), '?');
 
 if ($subPath !== '' && $subPath !== '/') {
-    if (str_starts_with($uri, $subPath . '/')) {
+    if (str_starts_with($uri, $subPath.'/')) {
         $uri = substr($uri, strlen($subPath));
-        $_SERVER['REQUEST_URI'] = $uri . ($query !== '' ? '?' . $query : '');
-    } elseif ($uri === $subPath || $uri === $subPath . '/') {
+        $_SERVER['REQUEST_URI'] = $uri.($query !== '' ? '?'.$query : '');
+    } elseif ($uri === $subPath || $uri === $subPath.'/') {
         $uri = '/';
-        $_SERVER['REQUEST_URI'] = '/' . ($query !== '' ? '?' . $query : '');
+        $_SERVER['REQUEST_URI'] = '/'.($query !== '' ? '?'.$query : '');
     }
 
     foreach (['SCRIPT_NAME', 'PHP_SELF', 'ORIG_SCRIPT_NAME'] as $key) {
@@ -62,7 +64,7 @@ $uri = $uri ?: '/';
 
 // ── 4. Asset Serving (Public Folder Bridge) ──────────────────────────────────
 if ($uri !== '/') {
-    $candidate = __DIR__ . '/public' . $uri;
+    $candidate = __DIR__.'/public'.$uri;
 
     if (file_exists($candidate) && is_file($candidate)) {
         $ext = strtolower(pathinfo($candidate, PATHINFO_EXTENSION));
@@ -75,32 +77,34 @@ if ($uri !== '/') {
 
         // Serve static assets with correct MIME types
         $mimeMap = [
-            'css'   => 'text/css; charset=utf-8',
-            'js'    => 'application/javascript; charset=utf-8',
-            'mjs'   => 'application/javascript; charset=utf-8',
-            'json'  => 'application/json; charset=utf-8',
-            'png'   => 'image/png',
-            'jpg'   => 'image/jpeg',
-            'jpeg'  => 'image/jpeg',
-            'gif'   => 'image/gif',
-            'svg'   => 'image/svg+xml',
-            'webp'  => 'image/webp',
-            'ico'   => 'image/x-icon',
-            'woff'  => 'font/woff',
+            'css' => 'text/css; charset=utf-8',
+            'js' => 'application/javascript; charset=utf-8',
+            'mjs' => 'application/javascript; charset=utf-8',
+            'json' => 'application/json; charset=utf-8',
+            'png' => 'image/png',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'gif' => 'image/gif',
+            'svg' => 'image/svg+xml',
+            'webp' => 'image/webp',
+            'ico' => 'image/x-icon',
+            'woff' => 'font/woff',
             'woff2' => 'font/woff2',
-            'ttf'   => 'font/ttf',
-            'pdf'   => 'application/pdf',
-            'txt'   => 'text/plain; charset=utf-8',
-            'xml'   => 'application/xml',
+            'ttf' => 'font/ttf',
+            'pdf' => 'application/pdf',
+            'txt' => 'text/plain; charset=utf-8',
+            'xml' => 'application/xml',
         ];
 
         $mime = $mimeMap[$ext] ?? 'application/octet-stream';
-        
-        header('Content-Type: ' . $mime);
+
+        header('Content-Type: '.$mime);
         header('Cache-Control: public, max-age=3600');
         header('X-Content-Type-Options: nosniff');
-        
-        if (ob_get_level()) ob_end_clean();
+
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
         readfile($candidate);
         exit;
     }
@@ -117,4 +121,4 @@ require __DIR__.'/vendor/autoload.php';
 // Bootstrap Laravel and handle the request...
 $app = require_once __DIR__.'/bootstrap/app.php';
 
-$app->handleRequest(Illuminate\Http\Request::capture());
+$app->handleRequest(Request::capture());

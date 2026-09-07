@@ -30,9 +30,13 @@ class TemplateMailable extends Mailable
     use Queueable, SerializesModels;
 
     public string $renderedSubject;
+
     public string $renderedHeading;
+
     public string $renderedBody;
+
     public string $renderedActionText;
+
     public string $renderedActionUrl;
 
     public function __construct(

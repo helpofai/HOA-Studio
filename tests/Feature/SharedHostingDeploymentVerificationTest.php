@@ -9,6 +9,7 @@ use Tests\TestCase;
 class SharedHostingDeploymentVerificationTest extends TestCase
 {
     use RefreshDatabase;
+
     public function test_root_htaccess_file_exists_with_proper_redirection_and_security_rules()
     {
         $path = base_path('.htaccess');

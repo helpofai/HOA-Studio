@@ -22,6 +22,7 @@ use App\Features\ContentIntelligence\DTOs\AdaptiveOutlineDTO;
 use App\Features\ContentIntelligence\DTOs\ContentMissionDTO;
 use App\Features\ContentIntelligence\DTOs\KnowledgeFabricDTO;
 use App\Features\ContentIntelligence\DTOs\WorkflowNodeResultDTO;
+use App\Features\ContentIntelligence\Memory\MemoryManager;
 use App\Features\ContentIntelligence\Models\SectionDraft;
 use App\Features\ContentIntelligence\Models\WorkflowRun;
 use App\Features\ContentIntelligence\Services\CriticAgentService;
@@ -122,6 +123,28 @@ class SectionWriterNode implements WorkflowNodeInterface
                 'critic' => $criticScore->toArray(),
                 'fact_gate' => $factGateResult->toArray(),
             ];
+
+            // 6. Record Episodic Event into Cognitive Memory OS
+            try {
+                if (class_exists(MemoryManager::class)) {
+                    app(MemoryManager::class)->recordEpisode(
+                        userId: (int) $run->user_id,
+                        eventType: 'section_draft_completed',
+                        missionId: $run->mission_id,
+                        context: [
+                            'section_id' => $sectionNode->sectionId,
+                            'heading' => $sectionNode->heading,
+                            'critic_score' => $criticScore->overallScore,
+                            'iterations' => $iteration,
+                        ],
+                        actionTaken: 'Executed Section Draftsman and Critic Reflection Gate',
+                        outcomeScore: round($criticScore->overallScore / 100, 4),
+                        lessonsLearned: $criticScore->passed ? 'Prose passed standards with zero critical flaws.' : 'Critic required surgical self-correction.'
+                    );
+                }
+            } catch (\Throwable) {
+                // Graceful fallback
+            }
 
             $totalWords += $draft->wordCount;
             $criticScoresSum += $criticScore->overallScore;

@@ -19,6 +19,7 @@ namespace Tests\Feature;
 
 use App\Features\Auth\Models\UserStudioToken;
 use App\Models\User;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -46,7 +47,7 @@ class WordPressBridgeApiTest extends TestCase
         $rawToken = $tokenResult['plainTextToken'];
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $rawToken,
+            'Authorization' => 'Bearer '.$rawToken,
         ])->postJson(route('api.wordpress.connect'));
 
         $response->assertStatus(200);
@@ -69,7 +70,7 @@ class WordPressBridgeApiTest extends TestCase
         $tokenResult = UserStudioToken::createTokenForUser($user, 'Sync Site');
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $tokenResult['plainTextToken'],
+            'Authorization' => 'Bearer '.$tokenResult['plainTextToken'],
         ])->postJson(route('api.wordpress.sync-document'), [
             'title' => 'Article Synced From WordPress',
             'content_html' => '<h2>Heading</h2><p>This is a synced post body.</p>',
@@ -89,9 +90,9 @@ class WordPressBridgeApiTest extends TestCase
         $user = User::factory()->create();
         $tokenResult = UserStudioToken::createTokenForUser($user, 'CSRF Exemption Test Site');
 
-        $response = $this->withMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class)
+        $response = $this->withMiddleware(ValidateCsrfToken::class)
             ->withHeaders([
-                'Authorization' => 'Bearer ' . $tokenResult['plainTextToken'],
+                'Authorization' => 'Bearer '.$tokenResult['plainTextToken'],
                 'Accept' => 'application/json',
             ])
             ->post('/api/v1/wordpress/connect');
@@ -110,7 +111,7 @@ class WordPressBridgeApiTest extends TestCase
         $tokenResult = UserStudioToken::createTokenForUser($user, 'Stream Test Site');
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $tokenResult['plainTextToken'],
+            'Authorization' => 'Bearer '.$tokenResult['plainTextToken'],
             'Accept' => 'text/event-stream',
         ])->post('/api/v1/wordpress/stream', [
             'text' => 'Testing AI Stream for WordPress TipTap',
@@ -132,7 +133,7 @@ class WordPressBridgeApiTest extends TestCase
         $tokenResult = UserStudioToken::createTokenForUser($user, 'Stream Fallback Site');
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $tokenResult['plainTextToken'],
+            'Authorization' => 'Bearer '.$tokenResult['plainTextToken'],
             'Accept' => 'text/event-stream',
         ])->post('/api/v1/wordpress/stream', [
             'text' => '',
@@ -153,7 +154,7 @@ class WordPressBridgeApiTest extends TestCase
         $tokenResult = UserStudioToken::createTokenForUser($user, 'Stream Empty Site');
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $tokenResult['plainTextToken'],
+            'Authorization' => 'Bearer '.$tokenResult['plainTextToken'],
             'Accept' => 'text/event-stream',
         ])->post('/api/v1/wordpress/stream', [
             'text' => '',
@@ -179,7 +180,7 @@ class WordPressBridgeApiTest extends TestCase
         $tokenResult = UserStudioToken::createTokenForUser($user, 'Stream Quota Exhausted Site');
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $tokenResult['plainTextToken'],
+            'Authorization' => 'Bearer '.$tokenResult['plainTextToken'],
             'Accept' => 'text/event-stream',
         ])->post('/api/v1/wordpress/stream', [
             'text' => 'Some text',

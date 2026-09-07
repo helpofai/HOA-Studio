@@ -41,8 +41,8 @@ class GenerateFromTemplate
 
     public function execute(User $user, Template $template, array $inputs, ?BrandProfile $brandVoice = null, array $options = []): array
     {
-        if (!$user->hasQuota(1)) {
-            throw new Exception("Monthly word quota exceeded. Please upgrade your plan or wait for the next billing cycle.");
+        if (! $user->hasQuota(1)) {
+            throw new Exception('Monthly word quota exceeded. Please upgrade your plan or wait for the next billing cycle.');
         }
 
         $prompt = $template->renderPrompt($inputs);

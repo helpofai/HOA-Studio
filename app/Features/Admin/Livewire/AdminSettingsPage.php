@@ -36,13 +36,21 @@ use Livewire\Component;
 class AdminSettingsPage extends Component
 {
     public string $site_name = 'HelpOfAi Studio';
+
     public string $gateway_url = 'http://127.0.0.1:20128';
+
     public string $gateway_api_key = 'omniroute-default-key';
+
     public string $default_model = 'deepseek/deepseek-chat';
+
     public string $compression_mode = 'default';
+
     public int $starter_quota = 15000;
+
     public int $pro_quota = 100000;
+
     public int $enterprise_quota = 500000;
+
     public bool $allow_registration = true;
 
     public function mount()

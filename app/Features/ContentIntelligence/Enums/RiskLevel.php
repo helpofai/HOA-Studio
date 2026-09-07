@@ -22,14 +22,15 @@ enum RiskLevel: string
     case LOW = 'low';
     case MEDIUM = 'medium';
     case HIGH = 'high';
+    case CRITICAL = 'critical';
 
     public function requiresPrimarySources(): bool
     {
-        return $this === self::HIGH;
+        return $this === self::HIGH || $this === self::CRITICAL;
     }
 
     public function requiresHumanSignoff(): bool
     {
-        return $this === self::HIGH;
+        return $this === self::HIGH || $this === self::CRITICAL;
     }
 }

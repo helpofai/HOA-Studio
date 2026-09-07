@@ -27,6 +27,7 @@ namespace App\Features\AI\Actions;
 
 use App\Features\AI\Models\AiModel;
 use App\Features\AI\Models\AiProvider;
+use App\Features\AI\Models\OmniRouteCombo;
 use App\Features\AI\Services\OmniRouteUrlResolver;
 use Exception;
 use Illuminate\Support\Facades\Http;
@@ -79,7 +80,7 @@ class SyncOmniRouteGateway
         $parsedUrl = parse_url($endpoints['models_endpoint']);
         $scheme = $parsedUrl['scheme'] ?? 'http';
         $host = $parsedUrl['host'] ?? '127.0.0.1';
-        $isRemote = !in_array($host, ['localhost', '127.0.0.1']) || !empty($endpoints['is_remote']);
+        $isRemote = ! in_array($host, ['localhost', '127.0.0.1']) || ! empty($endpoints['is_remote']);
         $port = $parsedUrl['port'] ?? ($scheme === 'https' ? 443 : 20128);
 
         $isPortOpen = false;
@@ -108,7 +109,7 @@ class SyncOmniRouteGateway
                 ]);
 
                 $options = ['verify' => config('omniroute.ssl_verify', false)];
-                if (!$isRemote) {
+                if (! $isRemote) {
                     $options['force_ip_resolve'] = 'v4';
                 }
                 $httpReq = $httpReq->withOptions($options);
@@ -120,9 +121,9 @@ class SyncOmniRouteGateway
 
                 if ($modelsResponse->successful()) {
                     $modelsData = $modelsResponse->json('data') ?? [];
-                    $fetchSuccess = !empty($modelsData);
+                    $fetchSuccess = ! empty($modelsData);
                 } else {
-                    $lastError = "HTTP {$modelsResponse->status()}: " . substr($modelsResponse->body(), 0, 150);
+                    $lastError = "HTTP {$modelsResponse->status()}: ".substr($modelsResponse->body(), 0, 150);
                 }
             } catch (Exception $e) {
                 $lastError = $e->getMessage();
@@ -132,11 +133,11 @@ class SyncOmniRouteGateway
         $latencyMs = max(1, (int) round((microtime(true) - $start) * 1000));
 
         // If gateway is offline or unreachable, fallback to standard catalog
-        if (!$fetchSuccess || empty($modelsData)) {
+        if (! $fetchSuccess || empty($modelsData)) {
             $isOfflineFallback = true;
             $offlineNotice = "OmniRoute Gateway on {$endpoints['display_url']} is currently unreachable. Loaded built-in standard catalog & combos.";
-            Log::info("[SyncOmniRouteGateway] {$offlineNotice}" . ($lastError ? " Error: {$lastError}" : ""));
-            
+            Log::info("[SyncOmniRouteGateway] {$offlineNotice}".($lastError ? " Error: {$lastError}" : ''));
+
             $modelsData = [
                 ['id' => 'deepseek/deepseek-chat', 'name' => 'DeepSeek V3 (OmniRoute Auto)', 'context_length' => 128000, 'owned_by' => 'deepseek'],
                 ['id' => 'deepseek/deepseek-reasoner', 'name' => 'DeepSeek R1 (Reasoning)', 'context_length' => 128000, 'owned_by' => 'deepseek'],
@@ -156,18 +157,18 @@ class SyncOmniRouteGateway
 
         // 2. Fetch /api/combos if available (OmniRoute specific)
         $combosData = [];
-        if (!$isOfflineFallback) {
+        if (! $isOfflineFallback) {
             try {
                 $combosRes = Http::withHeaders([
                     'Authorization' => "Bearer {$apiKey}",
                     'Accept' => 'application/json',
                 ])
-                ->withOptions([
-                    'force_ip_resolve' => 'v4',
-                ])
-                ->connectTimeout(1.5)
-                ->timeout(3)
-                ->get($endpoints['combos_endpoint']);
+                    ->withOptions([
+                        'force_ip_resolve' => 'v4',
+                    ])
+                    ->connectTimeout(1.5)
+                    ->timeout(3)
+                    ->get($endpoints['combos_endpoint']);
 
                 if ($combosRes->successful()) {
                     $combosData = $combosRes->json('data') ?? $combosRes->json() ?? [];
@@ -184,14 +185,13 @@ class SyncOmniRouteGateway
      * Ingest models and combos catalog directly (supports Server Sync & Browser Bridge Sync)
      */
     public function ingestData(
-        array $modelsData, 
-        array $combosData = [], 
-        int $latencyMs = 5, 
-        ?string $targetUrl = null, 
-        bool $isOfflineFallback = false, 
+        array $modelsData,
+        array $combosData = [],
+        int $latencyMs = 5,
+        ?string $targetUrl = null,
+        bool $isOfflineFallback = false,
         ?string $offlineNotice = null
-    ): array
-    {
+    ): array {
         $endpoints = OmniRouteUrlResolver::resolve($targetUrl);
         $provider = AiProvider::firstOrCreate(['slug' => 'omniroute'], [
             'name' => 'OmniRoute Gateway',
@@ -211,7 +211,7 @@ class SyncOmniRouteGateway
         // Process standard models
         foreach ($modelsData as $m) {
             $modelId = $m['id'] ?? null;
-            if (!$modelId) {
+            if (! $modelId) {
                 continue;
             }
 
@@ -258,9 +258,15 @@ class SyncOmniRouteGateway
             );
 
             $totalSynced++;
-            if ($isCombo) $combosCount++;
-            if ($isFreeTier) $freeTierCount++;
-            if ($supportsReasoning) $reasoningCount++;
+            if ($isCombo) {
+                $combosCount++;
+            }
+            if ($isFreeTier) {
+                $freeTierCount++;
+            }
+            if ($supportsReasoning) {
+                $reasoningCount++;
+            }
         }
 
         // Ingest official OmniRoute Auto-Combo variants (v3.8.50)
@@ -295,8 +301,12 @@ class SyncOmniRouteGateway
             );
 
             $totalSynced++;
-            if ($am['free'] ?? false) $freeTierCount++;
-            if ($am['reasoning'] ?? false) $reasoningCount++;
+            if ($am['free'] ?? false) {
+                $freeTierCount++;
+            }
+            if ($am['reasoning'] ?? false) {
+                $reasoningCount++;
+            }
         }
 
         // Ingest known model combos into both ai_models and omniroute_combos
@@ -353,11 +363,11 @@ class SyncOmniRouteGateway
             );
 
             // Sync to omniroute_combos governance table
-            \App\Features\AI\Models\OmniRouteCombo::updateOrCreate(
+            OmniRouteCombo::updateOrCreate(
                 ['combo_key' => $kc['id']],
                 [
                     'name' => $kc['name'],
-                    'description' => "Cascade chain containing " . count($kc['cascade']) . " multi-provider models with automatic failover.",
+                    'description' => 'Cascade chain containing '.count($kc['cascade']).' multi-provider models with automatic failover.',
                     'cascade_models' => $kc['cascade'],
                     'fallback_strategy' => 'sequential',
                     'is_active' => true,
@@ -366,13 +376,17 @@ class SyncOmniRouteGateway
 
             $totalSynced++;
             $combosCount++;
-            if ($kc['free'] ?? false) $freeTierCount++;
-            if ($kc['reasoning'] ?? false) $reasoningCount++;
+            if ($kc['free'] ?? false) {
+                $freeTierCount++;
+            }
+            if ($kc['reasoning'] ?? false) {
+                $reasoningCount++;
+            }
         }
 
         // Dynamically purge stale models that are no longer present in OmniRoute Gateway
         $prunedCount = 0;
-        if (!empty($syncedModelIds)) {
+        if (! empty($syncedModelIds)) {
             $prunedCount = AiModel::where('ai_provider_id', $provider->id)
                 ->whereNotIn('model_id', $syncedModelIds)
                 ->delete();
@@ -403,15 +417,25 @@ class SyncOmniRouteGateway
     {
         $parts = explode('/', $modelId);
         $raw = end($parts);
+
         return ucwords(str_replace(['-', '_', '.'], ' ', $raw));
     }
 
     protected function inferContextWindow(string $modelId): int
     {
-        if (str_contains($modelId, 'gemini-2.5-pro')) return 2000000;
-        if (str_contains($modelId, 'gemini-2.5-flash')) return 1000000;
-        if (str_contains($modelId, 'claude-3-7') || str_contains($modelId, 'claude-3-5') || str_contains($modelId, 'claude-sonnet')) return 200000;
-        if (str_contains($modelId, 'o3-mini') || str_contains($modelId, 'o1')) return 200000;
+        if (str_contains($modelId, 'gemini-2.5-pro')) {
+            return 2000000;
+        }
+        if (str_contains($modelId, 'gemini-2.5-flash')) {
+            return 1000000;
+        }
+        if (str_contains($modelId, 'claude-3-7') || str_contains($modelId, 'claude-3-5') || str_contains($modelId, 'claude-sonnet')) {
+            return 200000;
+        }
+        if (str_contains($modelId, 'o3-mini') || str_contains($modelId, 'o1')) {
+            return 200000;
+        }
+
         return 128000;
     }
 
@@ -423,12 +447,14 @@ class SyncOmniRouteGateway
                 return true;
             }
         }
+
         return str_contains($low, 'free') || str_contains($low, 'flash') || str_contains($low, 'lite');
     }
 
     protected function checkSupportsReasoning(string $modelId): bool
     {
         $low = strtolower($modelId);
+
         return str_contains($low, 'reason') ||
                str_contains($low, 'r1') ||
                str_contains($low, 'o1') ||
@@ -444,6 +470,7 @@ class SyncOmniRouteGateway
         if (str_contains($modelId, '/')) {
             return explode('/', $modelId)[0];
         }
+
         return 'omniroute';
     }
 }

@@ -40,19 +40,21 @@ class OmniRouteUrlResolver
             // Priority 1: Check dynamic settings table
             try {
                 $dbUrl = DB::table('settings')->where('key', 'omniroute_base_url')->value('value');
-                if (!empty($dbUrl)) {
+                if (! empty($dbUrl)) {
                     $rawUrl = $dbUrl;
                 }
-            } catch (\Throwable $e) {}
+            } catch (\Throwable $e) {
+            }
 
             // Priority 2: Check ai_providers table
             if (empty($rawUrl)) {
                 try {
                     $providerUrl = DB::table('ai_providers')->where('slug', 'omniroute')->value('base_url');
-                    if (!empty($providerUrl)) {
+                    if (! empty($providerUrl)) {
                         $rawUrl = $providerUrl;
                     }
-                } catch (\Throwable $e) {}
+                } catch (\Throwable $e) {
+                }
             }
 
             // Priority 3: Check config or default
@@ -76,7 +78,7 @@ class OmniRouteUrlResolver
         }
 
         // Determine if target is a remote host (Cloudflare Tunnel, custom domain, VPS)
-        $isRemote = !str_contains($openAiBase, 'localhost') && !str_contains($openAiBase, '127.0.0.1');
+        $isRemote = ! str_contains($openAiBase, 'localhost') && ! str_contains($openAiBase, '127.0.0.1');
 
         // Generate IPv4-safe URL for Windows cURL if running locally
         $curlOpenAiBase = $isRemote ? $openAiBase : str_replace('://localhost', '://127.0.0.1', $openAiBase);

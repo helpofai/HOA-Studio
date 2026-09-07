@@ -1,4 +1,9 @@
 <?php
+
+use HOA_Studio\Core\HOA_Activator;
+use HOA_Studio\Core\HOA_Deactivator;
+use HOA_Studio\Core\HOA_Plugin;
+
 /*
 |--------------------------------------------------------------------------
 | HelpOfAi (HOA) Professional Software - WordPress Plugin Main Bootstrap
@@ -26,7 +31,7 @@
 |--------------------------------------------------------------------------
 */
 
-if (!defined('ABSPATH')) {
+if (! defined('ABSPATH')) {
     exit;
 }
 
@@ -44,7 +49,7 @@ define('HOA_STUDIO_BASENAME', plugin_basename(__FILE__));
  */
 spl_autoload_register(function ($class) {
     $prefix = 'HOA_Studio\\';
-    $baseDir = HOA_STUDIO_DIR . 'includes/';
+    $baseDir = HOA_STUDIO_DIR.'includes/';
 
     $len = strlen($prefix);
     if (strncmp($prefix, $class, $len) !== 0) {
@@ -54,10 +59,10 @@ spl_autoload_register(function ($class) {
     $relativeClass = substr($class, $len);
     $parts = explode('\\', $relativeClass);
     $className = array_pop($parts);
-    $subDir = !empty($parts) ? implode('/', $parts) . '/' : '';
+    $subDir = ! empty($parts) ? implode('/', $parts).'/' : '';
 
-    $fileName = 'class-' . strtolower(str_replace('_', '-', $className)) . '.php';
-    $filePath = $baseDir . $subDir . $fileName;
+    $fileName = 'class-'.strtolower(str_replace('_', '-', $className)).'.php';
+    $filePath = $baseDir.$subDir.$fileName;
 
     if (file_exists($filePath)) {
         require_once $filePath;
@@ -71,26 +76,28 @@ function hoa_studio_check_compatibility(): bool
 {
     if (version_compare(PHP_VERSION, HOA_STUDIO_MIN_PHP, '<')) {
         add_action('admin_notices', function () {
-            echo '<div class="notice notice-error"><p>' .
+            echo '<div class="notice notice-error"><p>'.
                 sprintf(
                     esc_html__('HOA-Studio requires PHP version %s or higher. Your server is running PHP %s.', 'hoa-studio'),
                     HOA_STUDIO_MIN_PHP,
                     PHP_VERSION
-                ) . '</p></div>';
+                ).'</p></div>';
         });
+
         return false;
     }
 
     global $wp_version;
     if (version_compare($wp_version, HOA_STUDIO_MIN_WP, '<')) {
         add_action('admin_notices', function () use ($wp_version) {
-            echo '<div class="notice notice-error"><p>' .
+            echo '<div class="notice notice-error"><p>'.
                 sprintf(
                     esc_html__('HOA-Studio requires WordPress version %s or higher. Your site is running WordPress %s.', 'hoa-studio'),
                     HOA_STUDIO_MIN_WP,
                     $wp_version
-                ) . '</p></div>';
+                ).'</p></div>';
         });
+
         return false;
     }
 
@@ -102,13 +109,13 @@ function hoa_studio_check_compatibility(): bool
  */
 register_activation_hook(__FILE__, function () {
     if (class_exists('HOA_Studio\\Core\\HOA_Activator')) {
-        \HOA_Studio\Core\HOA_Activator::activate();
+        HOA_Activator::activate();
     }
 });
 
 register_deactivation_hook(__FILE__, function () {
     if (class_exists('HOA_Studio\\Core\\HOA_Deactivator')) {
-        \HOA_Studio\Core\HOA_Deactivator::deactivate();
+        HOA_Deactivator::deactivate();
     }
 });
 
@@ -118,7 +125,7 @@ register_deactivation_hook(__FILE__, function () {
 add_action('plugins_loaded', function () {
     if (hoa_studio_check_compatibility()) {
         if (class_exists('HOA_Studio\\Core\\HOA_Plugin')) {
-            \HOA_Studio\Core\HOA_Plugin::instance()->init();
+            HOA_Plugin::instance()->init();
         }
     }
 });

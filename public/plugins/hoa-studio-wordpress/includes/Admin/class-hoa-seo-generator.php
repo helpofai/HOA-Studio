@@ -1,4 +1,5 @@
 <?php
+
 /*
 |--------------------------------------------------------------------------
 | HelpOfAi (HOA) Professional Software - WordPress SEO Generator
@@ -16,7 +17,7 @@
 
 namespace HOA_Studio\Admin;
 
-if (!defined('ABSPATH')) {
+if (! defined('ABSPATH')) {
     exit;
 }
 
@@ -33,8 +34,8 @@ class HOA_Seo_Generator
 
         $kwCount = 0;
         $kwDensity = 0.0;
-        if (!empty($targetKeyword) && $words > 0) {
-            $kwPattern = '/' . preg_quote($targetKeyword, '/') . '/i';
+        if (! empty($targetKeyword) && $words > 0) {
+            $kwPattern = '/'.preg_quote($targetKeyword, '/').'/i';
             $kwCount = preg_match_all($kwPattern, $plainText);
             $kwWords = max(1, str_word_count($targetKeyword));
             $kwDensity = round(($kwCount * $kwWords / $words) * 100, 2);
@@ -51,12 +52,24 @@ class HOA_Seo_Generator
 
         // Compute Score (0 - 100)
         $score = 50;
-        if ($words >= 300) $score += 10;
-        if ($words >= 800) $score += 10;
-        if ($headingCounts['h2'] >= 2) $score += 10;
-        if ($imageCount >= 1) $score += 5;
-        if ($linkCount >= 1) $score += 5;
-        if (!empty($targetKeyword) && $kwDensity >= 0.5 && $kwDensity <= 2.5) $score += 10;
+        if ($words >= 300) {
+            $score += 10;
+        }
+        if ($words >= 800) {
+            $score += 10;
+        }
+        if ($headingCounts['h2'] >= 2) {
+            $score += 10;
+        }
+        if ($imageCount >= 1) {
+            $score += 5;
+        }
+        if ($linkCount >= 1) {
+            $score += 5;
+        }
+        if (! empty($targetKeyword) && $kwDensity >= 0.5 && $kwDensity <= 2.5) {
+            $score += 10;
+        }
 
         return [
             'score' => min(100, $score),

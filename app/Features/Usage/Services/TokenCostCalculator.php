@@ -66,11 +66,6 @@ class TokenCostCalculator
 
     /**
      * Calculate cost in USD for a given completion
-     *
-     * @param string $modelSlug
-     * @param int $inputTokens
-     * @param int $outputTokens
-     * @return float
      */
     public function calculateCost(string $modelSlug, int $inputTokens, int $outputTokens = 0): float
     {

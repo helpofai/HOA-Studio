@@ -28,10 +28,10 @@ return new class extends Migration
     {
         if (Schema::hasTable('user_studio_tokens')) {
             Schema::table('user_studio_tokens', function (Blueprint $table) {
-                if (!Schema::hasColumn('user_studio_tokens', 'connected_domain')) {
+                if (! Schema::hasColumn('user_studio_tokens', 'connected_domain')) {
                     $table->string('connected_domain')->nullable()->after('name');
                 }
-                if (!Schema::hasColumn('user_studio_tokens', 'last_ip')) {
+                if (! Schema::hasColumn('user_studio_tokens', 'last_ip')) {
                     $table->string('last_ip', 45)->nullable()->after('connected_domain');
                 }
             });

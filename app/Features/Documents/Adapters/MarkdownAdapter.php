@@ -28,21 +28,26 @@ namespace App\Features\Documents\Adapters;
 use App\Features\Documents\Contracts\EditorAdapterInterface;
 use App\Features\Documents\Data\CanonicalDocumentSchema;
 use App\Features\Documents\Data\ConversionRiskAssessment;
-use League\CommonMark\GithubFlavoredMarkdownConverter;
 use League\CommonMark\Environment\Environment;
+use League\CommonMark\Extension\CommonMark\Node\Block\BlockQuote;
+use League\CommonMark\Extension\CommonMark\Node\Block\FencedCode;
 use League\CommonMark\Extension\CommonMark\Node\Block\Heading;
-use League\CommonMark\Extension\CommonMark\Node\Block\Paragraph;
-use League\CommonMark\Extension\CommonMark\Node\Block\ListItem;
+use League\CommonMark\Extension\CommonMark\Node\Block\IndentedCode;
 use League\CommonMark\Extension\CommonMark\Node\Block\ListBlock;
-use League\CommonMark\Node\Inline\Text;
-use League\CommonMark\Extension\CommonMark\Node\Inline\Strong;
-use League\CommonMark\Extension\CommonMark\Node\Inline\Emphasis;
-use League\CommonMark\Extension\CommonMark\Node\Inline\Code;
-use League\CommonMark\Extension\CommonMark\Node\Inline\Link;
+use League\CommonMark\Extension\CommonMark\Node\Block\ListItem;
+use League\CommonMark\Extension\CommonMark\Node\Block\Paragraph;
+use League\CommonMark\Extension\CommonMark\Node\Block\ThematicBreak;
+use League\CommonMark\Extension\CommonMark\Node\Inline\HardBreak;
 use League\CommonMark\Extension\CommonMark\Node\Inline\Image;
+use League\CommonMark\Extension\CommonMark\Node\Inline\Link;
+use League\CommonMark\Extension\CommonMark\Node\Inline\SoftBreak;
 use League\CommonMark\Extension\Table\Node\Table;
-use League\CommonMark\Extension\Table\Node\TableRow;
 use League\CommonMark\Extension\Table\Node\TableCell;
+use League\CommonMark\Extension\Table\Node\TableRow;
+use League\CommonMark\Extension\Table\TableExtension;
+use League\CommonMark\Extension\TaskList\TaskListExtension;
+use League\CommonMark\GithubFlavoredMarkdownConverter;
+use League\CommonMark\Node\Inline\Text;
 use League\CommonMark\Node\Node;
 
 /**
@@ -55,6 +60,7 @@ use League\CommonMark\Node\Node;
 class MarkdownAdapter implements EditorAdapterInterface
 {
     protected GithubFlavoredMarkdownConverter $converter;
+
     protected Environment $environment;
 
     // Markdown supports a subset of Canonical nodes
@@ -62,20 +68,20 @@ class MarkdownAdapter implements EditorAdapterInterface
         'doc', 'paragraph', 'heading', 'blockquote', 'code_block',
         'horizontal_rule', 'bullet_list', 'ordered_list', 'list_item',
         'image', 'link', 'table', 'table_row', 'table_cell', 'table_header',
-        'text', 'hard_break', 'task_list', 'task_item'
+        'text', 'hard_break', 'task_list', 'task_item',
     ];
 
     protected array $supportedMarkTypes = [
-        'bold', 'italic', 'strike', 'code', 'link', 'highlight'
+        'bold', 'italic', 'strike', 'code', 'link', 'highlight',
     ];
 
     public function __construct()
     {
         $this->environment = Environment::createCommonMarkEnvironment();
         // Add table extension
-        $this->environment->addExtension(new \League\CommonMark\Extension\Table\TableExtension());
+        $this->environment->addExtension(new TableExtension);
         // Add task list extension
-        $this->environment->addExtension(new \League\CommonMark\Extension\TaskList\TaskListExtension());
+        $this->environment->addExtension(new TaskListExtension);
 
         $this->converter = new GithubFlavoredMarkdownConverter([
             'html_input' => 'strip',
@@ -107,7 +113,7 @@ class MarkdownAdapter implements EditorAdapterInterface
             'content' => $canonicalContent,
         ];
 
-        if (!CanonicalDocumentSchema::validate($canonical)) {
+        if (! CanonicalDocumentSchema::validate($canonical)) {
             return CanonicalDocumentSchema::getEmptyDocument();
         }
 
@@ -116,7 +122,7 @@ class MarkdownAdapter implements EditorAdapterInterface
 
     public function fromCanonical(array $canonicalAst): string|array
     {
-        if (!CanonicalDocumentSchema::validate($canonicalAst)) {
+        if (! CanonicalDocumentSchema::validate($canonicalAst)) {
             return '';
         }
 
@@ -139,6 +145,7 @@ class MarkdownAdapter implements EditorAdapterInterface
         }
 
         $document = $this->converter->convert($markdown)->getDocument();
+
         return $this->extractTextFromDocument($document);
     }
 
@@ -172,7 +179,7 @@ class MarkdownAdapter implements EditorAdapterInterface
 
         foreach ($allNodes as $node) {
             $type = $node['type'] ?? '';
-            if ($type && !in_array($type, $this->supportedNodeTypes)) {
+            if ($type && ! in_array($type, $this->supportedNodeTypes)) {
                 $unsupportedNodes[] = $type;
                 $riskLevel = ConversionRiskAssessment::RISK_MEDIUM;
                 $warnings[] = "Unsupported node type: $type";
@@ -221,11 +228,12 @@ class MarkdownAdapter implements EditorAdapterInterface
     {
         $type = $this->getNodeType($node);
 
-        if (!$type) {
+        if (! $type) {
             // If it's a text node that wasn't mapped, it might be a raw text node
             if ($node instanceof Text) {
                 return ['type' => 'text', 'text' => $node->getContent()];
             }
+
             return null;
         }
 
@@ -244,7 +252,7 @@ class MarkdownAdapter implements EditorAdapterInterface
             }
         }
 
-        if (!empty($childNodes)) {
+        if (! empty($childNodes)) {
             $canonical['content'] = $childNodes;
         }
 
@@ -262,7 +270,7 @@ class MarkdownAdapter implements EditorAdapterInterface
                     $textContents[] = ['type' => 'text', 'text' => $child->getLiteral()];
                 }
             }
-            if (!empty($textContents)) {
+            if (! empty($textContents)) {
                 $canonical['content'] = $textContents;
             }
         }
@@ -280,10 +288,10 @@ class MarkdownAdapter implements EditorAdapterInterface
         $map = [
             Heading::class => 'heading',
             Paragraph::class => 'paragraph',
-            \League\CommonMark\Extension\CommonMark\Node\Block\BlockQuote::class => 'blockquote',
-            \League\CommonMark\Extension\CommonMark\Node\Block\FencedCode::class => 'code_block',
-            \League\CommonMark\Extension\CommonMark\Node\Block\IndentedCode::class => 'code_block',
-            \League\CommonMark\Extension\CommonMark\Node\Block\ThematicBreak::class => 'horizontal_rule',
+            BlockQuote::class => 'blockquote',
+            FencedCode::class => 'code_block',
+            IndentedCode::class => 'code_block',
+            ThematicBreak::class => 'horizontal_rule',
             ListBlock::class => 'bullet_list',
             ListItem::class => 'list_item',
             Image::class => 'image',
@@ -292,8 +300,8 @@ class MarkdownAdapter implements EditorAdapterInterface
             TableRow::class => 'table_row',
             TableCell::class => 'table_cell',
             Text::class => 'text',
-            \League\CommonMark\Extension\CommonMark\Node\Inline\SoftBreak::class => 'hard_break',
-            \League\CommonMark\Extension\CommonMark\Node\Inline\HardBreak::class => 'hard_break',
+            SoftBreak::class => 'hard_break',
+            HardBreak::class => 'hard_break',
         ];
 
         // Check for ordered list
@@ -353,25 +361,25 @@ class MarkdownAdapter implements EditorAdapterInterface
         $indent = str_repeat('  ', $depth);
 
         return match ($type) {
-            'heading' => $indent . str_repeat('#', $attrs['level'] ?? 2) . ' ' . $this->renderInlineContent($content, $marks, $text),
-            'paragraph' => $indent . $this->renderInlineContent($content, $marks, $text),
-            'blockquote' => $indent . '> ' . $this->renderInlineContent($content, $marks, $text),
-            'code_block' => $indent . "```\n" . $indent . $text . "\n" . $indent . "```",
-            'horizontal_rule' => $indent . '---',
+            'heading' => $indent.str_repeat('#', $attrs['level'] ?? 2).' '.$this->renderInlineContent($content, $marks, $text),
+            'paragraph' => $indent.$this->renderInlineContent($content, $marks, $text),
+            'blockquote' => $indent.'> '.$this->renderInlineContent($content, $marks, $text),
+            'code_block' => $indent."```\n".$indent.$text."\n".$indent.'```',
+            'horizontal_rule' => $indent.'---',
             'bullet_list' => $this->renderList($content, false, $depth),
             'ordered_list' => $this->renderList($content, true, $depth),
-            'list_item' => $indent . '- ' . $this->renderInlineContent($content, $marks, $text),
-            'image' => $indent . '![' . ($attrs['alt'] ?? '') . '](' . ($attrs['src'] ?? '') . ')',
-            'link' => $indent . '[' . $this->renderInlineContent($content, $marks, $text) . '](' . ($attrs['href'] ?? '') . ')',
+            'list_item' => $indent.'- '.$this->renderInlineContent($content, $marks, $text),
+            'image' => $indent.'!['.($attrs['alt'] ?? '').']('.($attrs['src'] ?? '').')',
+            'link' => $indent.'['.$this->renderInlineContent($content, $marks, $text).']('.($attrs['href'] ?? '').')',
             'table' => $this->renderTable($content),
             'table_row' => $this->renderTableRow($content),
             'table_cell' => $this->renderInlineContent($content, $marks, $text),
-            'table_header' => '**' . $this->renderInlineContent($content, $marks, $text) . '**',
+            'table_header' => '**'.$this->renderInlineContent($content, $marks, $text).'**',
             'text' => $this->applyMarks($text, $marks),
             'hard_break' => "\n",
             'task_list' => $this->renderList($content, false, $depth),
-            'task_item' => $indent . '- [ ] ' . $this->renderInlineContent($content, $marks, $text),
-            default => $indent . $text,
+            'task_item' => $indent.'- [ ] '.$this->renderInlineContent($content, $marks, $text),
+            default => $indent.$text,
         };
     }
 
@@ -380,11 +388,12 @@ class MarkdownAdapter implements EditorAdapterInterface
      */
     protected function renderInlineContent(array $content, array $marks, string $text): string
     {
-        if (!empty($content)) {
-            return implode('', array_map(function($child) {
+        if (! empty($content)) {
+            return implode('', array_map(function ($child) {
                 return $this->nodeToMarkdown($child);
             }, $content));
         }
+
         return $this->applyMarks($text, $marks);
     }
 
@@ -396,22 +405,23 @@ class MarkdownAdapter implements EditorAdapterInterface
         foreach ($marks as $mark) {
             switch ($mark['type'] ?? '') {
                 case 'bold':
-                    $text = '**' . $text . '**';
+                    $text = '**'.$text.'**';
                     break;
                 case 'italic':
-                    $text = '*' . $text . '*';
+                    $text = '*'.$text.'*';
                     break;
                 case 'strike':
-                    $text = '~~' . $text . '~~';
+                    $text = '~~'.$text.'~~';
                     break;
                 case 'code':
-                    $text = '`' . $text . '`';
+                    $text = '`'.$text.'`';
                     break;
                 case 'link':
-                    $text = '[' . $text . '](' . ($mark['attrs']['href'] ?? '') . ')';
+                    $text = '['.$text.']('.($mark['attrs']['href'] ?? '').')';
                     break;
             }
         }
+
         return $text;
     }
 
@@ -424,8 +434,8 @@ class MarkdownAdapter implements EditorAdapterInterface
         $counter = $ordered ? 1 : 0;
 
         foreach ($items as $item) {
-            $prefix = $ordered ? $counter++ . '. ' : '- ';
-            $lines[] = str_repeat('  ', $depth) . $prefix . $this->renderInlineContent($item['content'] ?? [], $item['marks'] ?? [], $item['text'] ?? '');
+            $prefix = $ordered ? $counter++.'. ' : '- ';
+            $lines[] = str_repeat('  ', $depth).$prefix.$this->renderInlineContent($item['content'] ?? [], $item['marks'] ?? [], $item['text'] ?? '');
         }
 
         return implode("\n", $lines);
@@ -443,11 +453,11 @@ class MarkdownAdapter implements EditorAdapterInterface
             foreach ($row['content'] ?? [] as $cell) {
                 $cells[] = $this->nodeToMarkdown($cell);
             }
-            $lines[] = '| ' . implode(' | ', $cells) . ' |';
+            $lines[] = '| '.implode(' | ', $cells).' |';
 
             // Add header separator after first row
             if ($i === 0) {
-                $lines[] = '| ' . implode(' | ', array_fill(0, count($cells), '---')) . ' |';
+                $lines[] = '| '.implode(' | ', array_fill(0, count($cells), '---')).' |';
             }
         }
 
@@ -459,9 +469,9 @@ class MarkdownAdapter implements EditorAdapterInterface
      */
     protected function renderTableRow(array $cells): string
     {
-        return '| ' . implode(' | ', array_map(function($cell) {
+        return '| '.implode(' | ', array_map(function ($cell) {
             return $this->nodeToMarkdown($cell);
-        }, $cells)) . ' |';
+        }, $cells)).' |';
     }
 
     /**

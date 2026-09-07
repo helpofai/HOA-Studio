@@ -18,7 +18,6 @@
 namespace Tests\Feature;
 
 use App\Features\Admin\Livewire\AdminAuthSettingsPage;
-use App\Features\Admin\Models\AuthSecurityLog;
 use App\Features\Admin\Models\BlockedIp;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;

@@ -28,15 +28,15 @@ class SyncWordPressDocument
      */
     public function execute(User $user, array $data): Document
     {
-        if (!empty($data['document_id'])) {
+        if (! empty($data['document_id'])) {
             $doc = Document::where('id', $data['document_id'])
                 ->where('user_id', $user->id)
                 ->firstOrFail();
         } else {
-            $doc = new Document();
+            $doc = new Document;
             $doc->user_id = $user->id;
             $doc->status = 'draft';
-            $doc->slug = Str::slug($data['title']) . '-' . Str::random(6);
+            $doc->slug = Str::slug($data['title']).'-'.Str::random(6);
         }
 
         $plain = strip_tags($data['content_html']);

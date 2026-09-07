@@ -71,7 +71,7 @@ class UserApiKey extends Model
      */
     public function getRawKeyForOwner(User $requestingUser): ?string
     {
-        if ($this->user_id !== $requestingUser->id && !$requestingUser->isAdmin()) {
+        if ($this->user_id !== $requestingUser->id && ! $requestingUser->isAdmin()) {
             return null;
         }
 
@@ -87,7 +87,7 @@ class UserApiKey extends Model
             return false;
         }
 
-        return str_contains($this->custom_base_url, '127.0.0.1') 
+        return str_contains($this->custom_base_url, '127.0.0.1')
             || str_contains($this->custom_base_url, 'localhost')
             || str_contains($this->custom_base_url, '192.168.');
     }

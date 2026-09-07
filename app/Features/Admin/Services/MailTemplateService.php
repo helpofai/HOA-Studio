@@ -286,7 +286,6 @@ class MailTemplateService
     /**
      * Get compiled template by key with database overrides merged.
      *
-     * @param string $templateKey
      * @return array{
      *     subject: string,
      *     heading: string,
@@ -299,7 +298,7 @@ class MailTemplateService
     {
         $templates = self::getTemplates();
         $default = $templates[$templateKey] ?? [
-            'default_subject' => 'Notification from ' . config('app.name'),
+            'default_subject' => 'Notification from '.config('app.name'),
             'default_heading' => 'System Notification',
             'default_body' => 'You have received a new notification.',
             'default_action_text' => 'Open Application',
@@ -322,9 +321,7 @@ class MailTemplateService
     /**
      * Render template string with variable replacements.
      *
-     * @param string $content
-     * @param array<string, string> $variables
-     * @return string
+     * @param  array<string, string>  $variables
      */
     public static function render(string $content, array $variables = []): string
     {

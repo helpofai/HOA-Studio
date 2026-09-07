@@ -23,6 +23,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Schema;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -36,34 +37,50 @@ class AdminAuthSettingsPage extends Component
 
     // Filter & Tab state
     public string $activeTab = 'overview'; // 'overview', 'security_logs', 'blocked_ips', 'banned_users', 'online_users', 'config'
+
     public string $searchLog = '';
+
     public string $eventFilter = '';
+
     public string $searchIp = '';
+
     public string $searchUser = '';
 
     // Manual IP Block Modal
     public bool $showBlockIpModal = false;
+
     public string $new_block_ip = '';
+
     public string $new_block_reason = '';
+
     public string $new_block_duration = '24_hours'; // '1_hour', '24_hours', '7_days', 'permanent'
 
     // Auth & Rate Limiting Config settings
     public int $maxLoginAttemptsPerIp = 10;
+
     public int $maxAccountAttempts = 5;
+
     public int $lockoutDurationMinutes = 5;
+
     public int $autoBlockThreshold = 15;
+
     public int $autoBlockHours = 24;
+
     public int $maxRegistrationsPerHour = 3;
+
     public bool $enableHoneypot = true;
+
     public bool $enableTurnstile = false;
+
     public string $turnstileSiteKey = '';
+
     public string $turnstileSecretKey = '';
 
     public function mount()
     {
         $settings = DB::table('settings')->pluck('value', 'key')->toArray();
 
-        $this->enableTurnstile = isset($settings['turnstile_enabled']) ? (bool) $settings['turnstile_enabled'] : (!empty(config('services.turnstile.site_key')) && !empty(config('services.turnstile.secret_key')));
+        $this->enableTurnstile = isset($settings['turnstile_enabled']) ? (bool) $settings['turnstile_enabled'] : (! empty(config('services.turnstile.site_key')) && ! empty(config('services.turnstile.secret_key')));
         $this->turnstileSiteKey = $settings['turnstile_site_key'] ?? config('services.turnstile.site_key', '');
         $this->turnstileSecretKey = $settings['turnstile_secret_key'] ?? config('services.turnstile.secret_key', '');
         $this->enableHoneypot = isset($settings['honeypot_enabled']) ? (bool) $settings['honeypot_enabled'] : true;
@@ -161,7 +178,7 @@ class AdminAuthSettingsPage extends Component
             ['ip_address' => $this->new_block_ip],
             [
                 'reason' => $this->new_block_reason ?: 'Manually blocked by Administrator',
-                'blocked_by' => 'admin (' . Auth::user()->name . ')',
+                'blocked_by' => 'admin ('.Auth::user()->name.')',
                 'blocked_until' => $blockedUntil,
             ]
         );
@@ -177,8 +194,8 @@ class AdminAuthSettingsPage extends Component
         $block->delete();
 
         // Clear Rate Limiters for this IP
-        RateLimiter::clear('login:ip:' . $ip);
-        RateLimiter::clear('register:ip:' . $ip);
+        RateLimiter::clear('login:ip:'.$ip);
+        RateLimiter::clear('register:ip:'.$ip);
 
         session()->flash('status', "IP Address '{$ip}' unblocked and rate limits flushed.");
     }
@@ -188,14 +205,15 @@ class AdminAuthSettingsPage extends Component
         $user = User::findOrFail($userId);
         if ($user->id === Auth::id()) {
             session()->flash('error', 'You cannot ban your own active admin account.');
+
             return;
         }
 
-        $user->is_active = !$user->is_active;
+        $user->is_active = ! $user->is_active;
         $user->save();
 
         // If banning user, terminate all their active sessions
-        if (!$user->is_active && SchemaHasSessionsTable()) {
+        if (! $user->is_active && SchemaHasSessionsTable()) {
             DB::table('sessions')->where('user_id', $user->id)->delete();
         }
 
@@ -236,31 +254,31 @@ class AdminAuthSettingsPage extends Component
 
         // 3. Security logs query
         $logsQuery = AuthSecurityLog::latest();
-        if (!empty($this->searchLog)) {
+        if (! empty($this->searchLog)) {
             $logsQuery->where(function ($q) {
-                $q->where('ip_address', 'like', '%' . $this->searchLog . '%')
-                  ->orWhere('email', 'like', '%' . $this->searchLog . '%');
+                $q->where('ip_address', 'like', '%'.$this->searchLog.'%')
+                    ->orWhere('email', 'like', '%'.$this->searchLog.'%');
             });
         }
-        if (!empty($this->eventFilter)) {
+        if (! empty($this->eventFilter)) {
             $logsQuery->where('event_type', $this->eventFilter);
         }
         $securityLogs = $logsQuery->paginate(15, ['*'], 'logsPage');
 
         // 4. Blocked IPs query
         $blockedIpsQuery = BlockedIp::latest();
-        if (!empty($this->searchIp)) {
-            $blockedIpsQuery->where('ip_address', 'like', '%' . $this->searchIp . '%')
-                            ->orWhere('reason', 'like', '%' . $this->searchIp . '%');
+        if (! empty($this->searchIp)) {
+            $blockedIpsQuery->where('ip_address', 'like', '%'.$this->searchIp.'%')
+                ->orWhere('reason', 'like', '%'.$this->searchIp.'%');
         }
         $blockedIps = $blockedIpsQuery->paginate(10, ['*'], 'ipsPage');
 
         // 5. Banned users query
         $bannedUsersQuery = User::where('is_active', false);
-        if (!empty($this->searchUser)) {
+        if (! empty($this->searchUser)) {
             $bannedUsersQuery->where(function ($q) {
-                $q->where('name', 'like', '%' . $this->searchUser . '%')
-                  ->orWhere('email', 'like', '%' . $this->searchUser . '%');
+                $q->where('name', 'like', '%'.$this->searchUser.'%')
+                    ->orWhere('email', 'like', '%'.$this->searchUser.'%');
             });
         }
         $bannedUsers = $bannedUsersQuery->paginate(10, ['*'], 'usersPage');
@@ -285,7 +303,7 @@ class AdminAuthSettingsPage extends Component
 function SchemaHasSessionsTable(): bool
 {
     try {
-        return \Illuminate\Support\Facades\Schema::hasTable('sessions');
+        return Schema::hasTable('sessions');
     } catch (\Throwable $e) {
         return false;
     }

@@ -5,11 +5,13 @@ namespace Tests\Feature;
 use App\Features\AI\Models\AiProvider;
 use App\Features\KnowledgeBase\Actions\CreateKnowledgeSource;
 use App\Features\KnowledgeBase\Actions\RetrieveRagContext;
+use App\Features\KnowledgeBase\Livewire\KnowledgeBasePage;
 use App\Features\KnowledgeBase\Models\KnowledgeSource;
 use App\Features\KnowledgeBase\Services\SemanticChunker;
 use App\Features\KnowledgeBase\Services\VectorSearchEngine;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class KnowledgeBaseRagTest extends TestCase
@@ -49,7 +51,7 @@ class KnowledgeBaseRagTest extends TestCase
 
     public function test_semantic_chunker_splits_markdown_into_token_aware_chunks(): void
     {
-        $chunker = new SemanticChunker();
+        $chunker = new SemanticChunker;
         $markdown = "# Section 1: Introduction\n\nThis is the introductory paragraph detailing our cloud infrastructure.\n\n# Section 2: Architecture\n\nOur system uses multi-model LLM routing across distributed edge gateways to minimize latency.";
 
         $chunks = $chunker->chunk($markdown, 20, 5);
@@ -82,7 +84,7 @@ class KnowledgeBaseRagTest extends TestCase
         $source = $createAction->execute($this->user, [
             'title' => 'Refund Policy & SLA Guarantees',
             'source_type' => 'text',
-            'content' => "We offer a 100% money-back guarantee within 30 days of purchase for all SaaS subscriptions. Enterprise customers have a 99.99% uptime SLA backed by credits.",
+            'content' => 'We offer a 100% money-back guarantee within 30 days of purchase for all SaaS subscriptions. Enterprise customers have a 99.99% uptime SLA backed by credits.',
         ]);
 
         $this->assertDatabaseHas('knowledge_sources', [
@@ -115,8 +117,8 @@ class KnowledgeBaseRagTest extends TestCase
             'status' => 'ready',
         ]);
 
-        \Livewire\Livewire::actingAs($this->user)
-            ->test(\App\Features\KnowledgeBase\Livewire\KnowledgeBasePage::class)
+        Livewire::actingAs($this->user)
+            ->test(KnowledgeBasePage::class)
             ->call('reindex', $source->id)
             ->assertHasNoErrors()
             ->call('deleteSource', $source->id)

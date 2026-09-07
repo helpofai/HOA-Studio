@@ -1,4 +1,5 @@
 <?php
+
 /*
 |--------------------------------------------------------------------------
 | HelpOfAi (HOA) Professional Software - Writing Intelligence Test
@@ -19,8 +20,8 @@ namespace Tests\Feature;
 use App\Features\AI\Models\AiProvider;
 use App\Features\AI\Services\ContentWriterBrain;
 use App\Models\User;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class WritingIntelligenceTest extends TestCase
@@ -28,14 +29,16 @@ class WritingIntelligenceTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected User $admin;
+
     protected ContentWriterBrain $brain;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+        $this->withoutMiddleware(ValidateCsrfToken::class);
 
         $this->user = User::factory()->create([
             'role' => 'user',
@@ -108,7 +111,7 @@ class WritingIntelligenceTest extends TestCase
 
     public function test_local_algorithmic_engine_executes_all_seven_actions_with_anti_echo_guarantee(): void
     {
-        $rawText = "In order to utilize microservices effectively, it is important to note that teams should implement good monitoring because problems will happen.";
+        $rawText = 'In order to utilize microservices effectively, it is important to note that teams should implement good monitoring because problems will happen.';
 
         $context = [
             'document_title' => 'Cloud Scalability Guide',

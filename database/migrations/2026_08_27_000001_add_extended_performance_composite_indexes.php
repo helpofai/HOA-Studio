@@ -33,21 +33,21 @@ return new class extends Migration
     {
         // 1. Composite index for Documents filtering (user_id, status, project_id, updated_at)
         Schema::table('documents', function (Blueprint $table) {
-            if (!Schema::hasIndex('documents', 'idx_documents_user_filter')) {
+            if (! Schema::hasIndex('documents', 'idx_documents_user_filter')) {
                 $table->index(['user_id', 'status', 'project_id', 'updated_at'], 'idx_documents_user_filter');
             }
         });
 
         // 2. Composite index for active BYOK API keys lookup (user_id, provider_slug, is_active)
         Schema::table('user_api_keys', function (Blueprint $table) {
-            if (!Schema::hasIndex('user_api_keys', 'idx_user_api_keys_active_lookup')) {
+            if (! Schema::hasIndex('user_api_keys', 'idx_user_api_keys_active_lookup')) {
                 $table->index(['user_id', 'provider_slug', 'is_active'], 'idx_user_api_keys_active_lookup');
             }
         });
 
         // 3. Composite index for active document shares lookup (document_id, is_active)
         Schema::table('document_shares', function (Blueprint $table) {
-            if (!Schema::hasIndex('document_shares', 'idx_document_shares_active')) {
+            if (! Schema::hasIndex('document_shares', 'idx_document_shares_active')) {
                 $table->index(['document_id', 'is_active'], 'idx_document_shares_active');
             }
         });

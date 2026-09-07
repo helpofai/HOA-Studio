@@ -27,6 +27,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ContentMission extends Model
@@ -89,6 +90,31 @@ class ContentMission extends Model
     public function workflowRuns(): HasMany
     {
         return $this->hasMany(WorkflowRun::class, 'mission_id');
+    }
+
+    public function claims(): HasMany
+    {
+        return $this->hasMany(ClaimNode::class, 'mission_id');
+    }
+
+    public function knowledgeTriples(): HasMany
+    {
+        return $this->hasMany(KnowledgeTriple::class, 'mission_id');
+    }
+
+    public function blueprint(): HasOne
+    {
+        return $this->hasOne(ContentBlueprint::class, 'mission_id');
+    }
+
+    public function outline(): HasOne
+    {
+        return $this->hasOne(ContentOutline::class, 'mission_id');
+    }
+
+    public function seoMetadata(): HasOne
+    {
+        return $this->hasOne(ContentSeoMetadata::class, 'mission_id');
     }
 
     /**

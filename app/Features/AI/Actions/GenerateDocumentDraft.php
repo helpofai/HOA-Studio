@@ -38,8 +38,8 @@ class GenerateDocumentDraft
 
     public function execute(User $user, string $topic, array $options = []): string
     {
-        if (!$user->hasQuota(100)) {
-            throw new Exception("Insufficient word quota to generate a complete draft.");
+        if (! $user->hasQuota(100)) {
+            throw new Exception('Insufficient word quota to generate a complete draft.');
         }
 
         $systemPrompt = 'You are a world-class long-form content creator and copywriter. Generate a comprehensive, high-quality, structured article with HTML formatting (<h2>, <h3>, <p>, <ul>, <li>, <strong>, <blockquote>). Ensure engaging hooks and actionable insights.';

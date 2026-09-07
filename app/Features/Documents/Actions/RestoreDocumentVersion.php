@@ -48,7 +48,7 @@ class RestoreDocumentVersion
                 'content_html' => $versionToRestore->content_html,
                 'content_json' => $versionToRestore->content_json,
                 'operation_type' => 'restore',
-                'summary' => 'Restored from Version #' . $versionToRestore->version_number,
+                'summary' => 'Restored from Version #'.$versionToRestore->version_number,
                 'word_count' => $wordCount,
                 'created_by' => $user->id,
             ]);

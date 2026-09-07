@@ -25,13 +25,12 @@
 
 namespace App\Core\Support;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use RuntimeException;
 
 /**
  * Optimistic Locking Trait
- * 
+ *
  * Prevents concurrent updates by checking a 'lock_version' column.
  */
 trait OptimisticLocking

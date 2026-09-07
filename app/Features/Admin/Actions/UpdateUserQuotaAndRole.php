@@ -68,7 +68,7 @@ class UpdateUserQuotaAndRole
             $user->email_verified_at = $data['email_verified'] ? ($user->email_verified_at ?: now()) : null;
         }
 
-        if (!empty($data['password'])) {
+        if (! empty($data['password'])) {
             $user->password = Hash::make($data['password']);
         }
 

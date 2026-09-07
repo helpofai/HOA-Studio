@@ -25,6 +25,7 @@
 
 namespace App\Features\Documents\Models;
 
+use App\Features\Blog\Models\BlogPost;
 use App\Features\Projects\Models\Project;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -106,6 +107,6 @@ class Document extends Model
 
     public function blogPost(): HasOne
     {
-        return $this->hasOne(\App\Features\Blog\Models\BlogPost::class);
+        return $this->hasOne(BlogPost::class);
     }
 }

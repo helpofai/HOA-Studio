@@ -26,7 +26,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('blog_posts')) {
+        if (! Schema::hasTable('blog_posts')) {
             Schema::create('blog_posts', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('user_id')->constrained()->cascadeOnDelete();

@@ -29,7 +29,7 @@ class VerifyWordPressHandshake
     public function execute(User $user): array
     {
         $remainingWords = max(0, (int) $user->monthly_word_quota - (int) $user->used_word_quota);
-        $pct = $user->monthly_word_quota > 0 
+        $pct = $user->monthly_word_quota > 0
             ? min(100, round(($user->used_word_quota / $user->monthly_word_quota) * 100))
             : 0;
 

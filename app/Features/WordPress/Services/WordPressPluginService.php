@@ -26,17 +26,19 @@ use ZipArchive;
 class WordPressPluginService
 {
     public const PLUGIN_DIR_NAME = 'hoa-studio-wordpress';
+
     public const ZIP_FILE_NAME = 'hoa-studio-wordpress.zip';
+
     public const CURRENT_VERSION = '2.6.0';
 
     public function getPluginDirectoryPath(): string
     {
-        return public_path('plugins/' . self::PLUGIN_DIR_NAME);
+        return public_path('plugins/'.self::PLUGIN_DIR_NAME);
     }
 
     public function getZipFilePath(): string
     {
-        return public_path('plugins/' . self::ZIP_FILE_NAME);
+        return public_path('plugins/'.self::ZIP_FILE_NAME);
     }
 
     public function getPluginInfo(): array
@@ -72,11 +74,11 @@ class WordPressPluginService
         $dirPath = $this->getPluginDirectoryPath();
         $zipPath = $this->getZipFilePath();
 
-        if (!is_dir($dirPath)) {
+        if (! is_dir($dirPath)) {
             throw new \RuntimeException("WordPress plugin directory not found at [{$dirPath}].");
         }
 
-        $shouldRebuild = !file_exists($zipPath) || $this->isZipStale($dirPath, $zipPath);
+        $shouldRebuild = ! file_exists($zipPath) || $this->isZipStale($dirPath, $zipPath);
 
         if ($shouldRebuild) {
             $this->buildZipArchive($dirPath, $zipPath);
@@ -90,18 +92,18 @@ class WordPressPluginService
      */
     public function buildZipArchive(string $sourceDir, string $destinationZip): void
     {
-        if (!class_exists('ZipArchive')) {
+        if (! class_exists('ZipArchive')) {
             throw new \RuntimeException('PHP ZipArchive extension is required to package the WordPress plugin.');
         }
 
         $zipDir = dirname($destinationZip);
-        if (!is_dir($zipDir)) {
+        if (! is_dir($zipDir)) {
             mkdir($zipDir, 0755, true);
         }
 
-        $tempZip = $destinationZip . '.tmp.' . uniqid();
+        $tempZip = $destinationZip.'.tmp.'.uniqid();
 
-        $zip = new ZipArchive();
+        $zip = new ZipArchive;
         $res = $zip->open($tempZip, ZipArchive::CREATE | ZipArchive::OVERWRITE);
 
         if ($res !== true) {
@@ -115,7 +117,7 @@ class WordPressPluginService
 
         foreach ($iterator as $file) {
             /** @var SplFileInfo $file */
-            if (!$file->isFile()) {
+            if (! $file->isFile()) {
                 continue;
             }
 
@@ -124,7 +126,7 @@ class WordPressPluginService
             $relativePath = str_replace('\\', '/', $relativePath);
 
             // Structure inside ZIP starts with hoa-studio-wordpress/
-            $zipPath = self::PLUGIN_DIR_NAME . '/' . $relativePath;
+            $zipPath = self::PLUGIN_DIR_NAME.'/'.$relativePath;
             $zip->addFile($filePath, $zipPath);
         }
 
@@ -175,6 +177,6 @@ class WordPressPluginService
         $i = (int) floor(log($bytes, 1024));
         $i = min($i, count($units) - 1);
 
-        return round($bytes / pow(1024, $i), 2) . ' ' . $units[$i];
+        return round($bytes / pow(1024, $i), 2).' '.$units[$i];
     }
 }

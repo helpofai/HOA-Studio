@@ -26,7 +26,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasTable('content_blueprints')) {
+        if (! Schema::hasTable('content_blueprints')) {
             Schema::create('content_blueprints', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('mission_id')->constrained('content_missions')->cascadeOnDelete();
@@ -45,7 +45,7 @@ return new class extends Migration
             });
         }
 
-        if (!Schema::hasTable('content_outlines')) {
+        if (! Schema::hasTable('content_outlines')) {
             Schema::create('content_outlines', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('blueprint_id')->constrained('content_blueprints')->cascadeOnDelete();

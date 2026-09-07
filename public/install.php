@@ -20,14 +20,14 @@
 declare(strict_types=1);
 
 // ── Path Constants ──────────────────────────────────────────────────────────
-define('HOA_PUBLIC',    __DIR__);
-define('HOA_ROOT',      realpath(__DIR__ . '/..'));
-define('HOA_STORAGE',   HOA_ROOT . '/storage');
-define('HOA_ENV_FILE',  HOA_ROOT . '/.env');
-define('HOA_ENV_EXMPL', HOA_ROOT . '/.env.example');
-define('HOA_INSTALLED', HOA_STORAGE . '/framework/installed');
-define('HOA_ARTISAN',   HOA_ROOT . '/artisan');
-define('HOA_VERSION',   '1.0.0');
+define('HOA_PUBLIC', __DIR__);
+define('HOA_ROOT', realpath(__DIR__.'/..'));
+define('HOA_STORAGE', HOA_ROOT.'/storage');
+define('HOA_ENV_FILE', HOA_ROOT.'/.env');
+define('HOA_ENV_EXMPL', HOA_ROOT.'/.env.example');
+define('HOA_INSTALLED', HOA_STORAGE.'/framework/installed');
+define('HOA_ARTISAN', HOA_ROOT.'/artisan');
+define('HOA_VERSION', '1.0.0');
 
 // ── Session (isolated from app session) ────────────────────────────────────
 ini_set('session.name', 'hoa_installer');
@@ -36,21 +36,25 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // ── Already Installed Guard ─────────────────────────────────────────────────
-if (file_exists(HOA_INSTALLED) && !isset($_GET['reinstall'])) {
+if (file_exists(HOA_INSTALLED) && ! isset($_GET['reinstall'])) {
     $appUrl = _readEnvKey('APP_URL') ?: '/';
     _renderInstalledPage($appUrl);
     exit;
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
-function _readEnvKey(string $key, string $file = HOA_ENV_FILE): string {
-    if (!file_exists($file)) return '';
+function _readEnvKey(string $key, string $file = HOA_ENV_FILE): string
+{
+    if (! file_exists($file)) {
+        return '';
+    }
     foreach (file($file) as $line) {
         $line = trim($line);
-        if (str_starts_with($line, $key . '=')) {
+        if (str_starts_with($line, $key.'=')) {
             return trim(substr($line, strlen($key) + 1), " \t\"'");
         }
     }
+
     return '';
 }
 
@@ -62,124 +66,130 @@ function _readEnvKey(string $key, string $file = HOA_ENV_FILE): string {
  *   https://studio.helpofai.com/install.php   → subdomain,   APP_URL = https://studio.helpofai.com
  *   https://helpofai.com/studio/install.php   → subdirectory,APP_URL = https://helpofai.com/studio
  */
-function _detectConfig(): array {
-    $https    = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+function _detectConfig(): array
+{
+    $https = (! empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
                || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https'
                || ($_SERVER['SERVER_PORT'] ?? '') === '443';
     $protocol = $https ? 'https' : 'http';
-    $host     = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 
     // Use REQUEST_URI so it works whether accessed directly or via .htaccess rewrite
-    $uri      = strtok($_SERVER['REQUEST_URI'] ?? '/install.php', '?');
-    $dir      = rtrim(dirname($uri), '/'); // /studio  OR  ''
+    $uri = strtok($_SERVER['REQUEST_URI'] ?? '/install.php', '?');
+    $dir = rtrim(dirname($uri), '/'); // /studio  OR  ''
 
     // Domain type heuristic
-    $hostParts  = explode('.', preg_replace('/:\d+$/', '', $host)); // strip port
-    $isSub      = count($hostParts) >= 3 && !is_numeric($hostParts[0]);
-    $isSub      = $isSub && !in_array($hostParts[0], ['www', 'localhost']);
-    $isSubdir   = ($dir !== '' && $dir !== '/');
+    $hostParts = explode('.', preg_replace('/:\d+$/', '', $host)); // strip port
+    $isSub = count($hostParts) >= 3 && ! is_numeric($hostParts[0]);
+    $isSub = $isSub && ! in_array($hostParts[0], ['www', 'localhost']);
+    $isSubdir = ($dir !== '' && $dir !== '/');
 
     $domainType = $isSubdir ? 'subdirectory' : ($isSub ? 'subdomain' : 'main');
-    $appUrl     = rtrim($protocol . '://' . $host . $dir, '/');
-    $urlPath    = parse_url($appUrl, PHP_URL_PATH) ?: '/';
-    $sesPath    = rtrim($urlPath, '/') ?: '/';
+    $appUrl = rtrim($protocol.'://'.$host.$dir, '/');
+    $urlPath = parse_url($appUrl, PHP_URL_PATH) ?: '/';
+    $sesPath = rtrim($urlPath, '/') ?: '/';
 
     return [
-        'app_url'      => $appUrl,
-        'asset_url'    => $appUrl,
+        'app_url' => $appUrl,
+        'asset_url' => $appUrl,
         'session_path' => $sesPath,
-        'domain_type'  => $domainType,
-        'base_path'    => $dir,
-        'host'         => $host,
-        'protocol'     => $protocol,
+        'domain_type' => $domainType,
+        'base_path' => $dir,
+        'host' => $host,
+        'protocol' => $protocol,
     ];
 }
 
-function _checkRequirements(): array {
+function _checkRequirements(): array
+{
     $checks = [];
 
     $checks[] = [
-        'label'  => 'PHP Version ≥ 8.2',
-        'ok'     => version_compare(PHP_VERSION, '8.2.0', '>='),
-        'detail' => 'PHP ' . PHP_VERSION,
-        'fatal'  => true,
+        'label' => 'PHP Version ≥ 8.2',
+        'ok' => version_compare(PHP_VERSION, '8.2.0', '>='),
+        'detail' => 'PHP '.PHP_VERSION,
+        'fatal' => true,
     ];
 
     foreach (['pdo', 'pdo_mysql', 'mbstring', 'tokenizer', 'xml', 'ctype', 'json', 'bcmath', 'openssl', 'curl', 'fileinfo'] as $ext) {
         $ok = extension_loaded($ext);
         $checks[] = [
-            'label'  => "ext: $ext",
-            'ok'     => $ok,
+            'label' => "ext: $ext",
+            'ok' => $ok,
             'detail' => $ok ? 'Loaded' : 'MISSING',
-            'fatal'  => true,
+            'fatal' => true,
         ];
     }
 
     $dirs = [
-        HOA_STORAGE . '/framework' => 'storage/framework/ writable',
-        HOA_STORAGE . '/logs'      => 'storage/logs/ writable',
-        HOA_ROOT . '/bootstrap/cache' => 'bootstrap/cache/ writable',
+        HOA_STORAGE.'/framework' => 'storage/framework/ writable',
+        HOA_STORAGE.'/logs' => 'storage/logs/ writable',
+        HOA_ROOT.'/bootstrap/cache' => 'bootstrap/cache/ writable',
     ];
     foreach ($dirs as $dir => $label) {
         $checks[] = [
-            'label'  => $label,
-            'ok'     => is_writable($dir),
+            'label' => $label,
+            'ok' => is_writable($dir),
             'detail' => is_writable($dir) ? 'Writable ✓' : 'Not writable — run: chmod -R 775 storage bootstrap/cache',
-            'fatal'  => true,
+            'fatal' => true,
         ];
     }
 
     $checks[] = [
-        'label'  => '.env.example present',
-        'ok'     => file_exists(HOA_ENV_EXMPL),
+        'label' => '.env.example present',
+        'ok' => file_exists(HOA_ENV_EXMPL),
         'detail' => file_exists(HOA_ENV_EXMPL) ? 'Found ✓' : 'Missing — re-upload project files',
-        'fatal'  => true,
+        'fatal' => true,
     ];
 
     $checks[] = [
-        'label'  => 'PHP exec() available (for migrations)',
-        'ok'     => function_exists('exec') && !in_array('exec', array_map('trim', explode(',', ini_get('disable_functions')))),
+        'label' => 'PHP exec() available (for migrations)',
+        'ok' => function_exists('exec') && ! in_array('exec', array_map('trim', explode(',', ini_get('disable_functions')))),
         'detail' => 'Needed for: php artisan migrate',
-        'fatal'  => false, // warn only
+        'fatal' => false, // warn only
     ];
 
     return $checks;
 }
 
-function _generateKey(): string {
-    return 'base64:' . base64_encode(random_bytes(32));
+function _generateKey(): string
+{
+    return 'base64:'.base64_encode(random_bytes(32));
 }
 
-function _writeEnv(array $d): bool {
-    if (!file_exists(HOA_ENV_EXMPL)) return false;
+function _writeEnv(array $d): bool
+{
+    if (! file_exists(HOA_ENV_EXMPL)) {
+        return false;
+    }
     $env = file_get_contents(HOA_ENV_EXMPL);
 
     // Backup existing .env
     if (file_exists(HOA_ENV_FILE)) {
-        @copy(HOA_ENV_FILE, HOA_ENV_FILE . '.bak.' . date('YmdHis'));
+        @copy(HOA_ENV_FILE, HOA_ENV_FILE.'.bak.'.date('YmdHis'));
     }
 
     $map = [
-        'APP_NAME'       => '"' . str_replace('"', '\\"', $d['app_name'] ?? 'HOA Studio') . '"',
-        'APP_ENV'        => $d['app_env'] ?? 'production',
-        'APP_KEY'        => $d['app_key'] ?? _generateKey(),
-        'APP_DEBUG'      => ($d['app_env'] ?? 'production') === 'local' ? 'true' : 'false',
-        'APP_URL'        => $d['app_url'] ?? '',
-        'ASSET_URL'      => $d['app_url'] ?? '',
-        'SESSION_PATH'   => $d['session_path'] ?? '/',
-        'DB_CONNECTION'  => 'mysql',
-        'DB_HOST'        => $d['db_host'] ?? '127.0.0.1',
-        'DB_PORT'        => $d['db_port'] ?? '3306',
-        'DB_DATABASE'    => $d['db_name'] ?? '',
-        'DB_USERNAME'    => $d['db_user'] ?? '',
-        'DB_PASSWORD'    => '"' . str_replace('"', '\\"', $d['db_pass'] ?? '') . '"',
+        'APP_NAME' => '"'.str_replace('"', '\\"', $d['app_name'] ?? 'HOA Studio').'"',
+        'APP_ENV' => $d['app_env'] ?? 'production',
+        'APP_KEY' => $d['app_key'] ?? _generateKey(),
+        'APP_DEBUG' => ($d['app_env'] ?? 'production') === 'local' ? 'true' : 'false',
+        'APP_URL' => $d['app_url'] ?? '',
+        'ASSET_URL' => $d['app_url'] ?? '',
+        'SESSION_PATH' => $d['session_path'] ?? '/',
+        'DB_CONNECTION' => 'mysql',
+        'DB_HOST' => $d['db_host'] ?? '127.0.0.1',
+        'DB_PORT' => $d['db_port'] ?? '3306',
+        'DB_DATABASE' => $d['db_name'] ?? '',
+        'DB_USERNAME' => $d['db_user'] ?? '',
+        'DB_PASSWORD' => '"'.str_replace('"', '\\"', $d['db_pass'] ?? '').'"',
     ];
 
     foreach ($map as $key => $val) {
         // Replace KEY=anything (including quoted values) on its own line
-        $env = preg_replace('/^' . preg_quote($key, '/') . '\s*=.*/m', $key . '=' . $val, $env);
+        $env = preg_replace('/^'.preg_quote($key, '/').'\s*=.*/m', $key.'='.$val, $env);
         // If key didn't exist, append it
-        if (!preg_match('/^' . preg_quote($key, '/') . '\s*=/m', $env)) {
+        if (! preg_match('/^'.preg_quote($key, '/').'\s*=/m', $env)) {
             $env .= "\n$key=$val";
         }
     }
@@ -187,20 +197,23 @@ function _writeEnv(array $d): bool {
     return (bool) file_put_contents(HOA_ENV_FILE, $env);
 }
 
-function _artisan(string $cmd): array {
-    if (!function_exists('exec')) {
-        return ['ok' => false, 'out' => '⚠️ exec() disabled. Run manually: php artisan ' . $cmd];
+function _artisan(string $cmd): array
+{
+    if (! function_exists('exec')) {
+        return ['ok' => false, 'out' => '⚠️ exec() disabled. Run manually: php artisan '.$cmd];
     }
-    $php   = PHP_BINARY ?: 'php';
-    $art   = escapeshellarg(HOA_ARTISAN);
-    $full  = escapeshellarg($php) . ' ' . $art . ' ' . $cmd . ' 2>&1';
+    $php = PHP_BINARY ?: 'php';
+    $art = escapeshellarg(HOA_ARTISAN);
+    $full = escapeshellarg($php).' '.$art.' '.$cmd.' 2>&1';
     $lines = [];
-    $code  = 0;
+    $code = 0;
     exec($full, $lines, $code);
+
     return ['ok' => ($code === 0), 'out' => implode("\n", $lines)];
 }
 
-function _createAdmin(array $d): array {
+function _createAdmin(array $d): array
+{
     try {
         $dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
             $d['db_host'] ?? '127.0.0.1',
@@ -217,6 +230,7 @@ function _createAdmin(array $d): array {
         if ($chk->fetchColumn()) {
             // Update to admin role if needed
             $pdo->prepare("UPDATE users SET role='admin' WHERE email=?")->execute([$d['admin_email']]);
+
             return ['ok' => true, 'out' => 'Admin user already exists. Role set to admin.'];
         }
 
@@ -230,7 +244,7 @@ function _createAdmin(array $d): array {
             'admin',
         ]);
 
-        return ['ok' => true, 'out' => 'Admin user created: ' . $d['admin_email']];
+        return ['ok' => true, 'out' => 'Admin user created: '.$d['admin_email']];
     } catch (Throwable $e) {
         return ['ok' => false, 'out' => $e->getMessage()];
     }
@@ -242,7 +256,7 @@ if (isset($_GET['action'])) {
 
     if ($_GET['action'] === 'test_db') {
         $host = trim($_POST['db_host'] ?? '127.0.0.1');
-        $port = (int)($_POST['db_port'] ?? 3306);
+        $port = (int) ($_POST['db_port'] ?? 3306);
         $name = trim($_POST['db_name'] ?? '');
         $user = trim($_POST['db_user'] ?? '');
         $pass = $_POST['db_pass'] ?? '';
@@ -255,13 +269,13 @@ if (isset($_GET['action'])) {
             $ver = $pdo->getAttribute(PDO::ATTR_SERVER_VERSION);
             echo json_encode(['ok' => true, 'msg' => "✅ Connected! MySQL $ver — database \"$name\" found."]);
         } catch (Throwable $e) {
-            echo json_encode(['ok' => false, 'msg' => '❌ ' . $e->getMessage()]);
+            echo json_encode(['ok' => false, 'msg' => '❌ '.$e->getMessage()]);
         }
         exit;
     }
 
     if ($_GET['action'] === 'install') {
-        $d     = $_SESSION['installer_data'] ?? [];
+        $d = $_SESSION['installer_data'] ?? [];
         $steps = [];
 
         $push = function (string $msg, bool $ok = true) use (&$steps) {
@@ -273,7 +287,7 @@ if (isset($_GET['action'])) {
         $push('🔑 Generated new APP_KEY');
 
         // 2. Write .env
-        if (!_writeEnv($d)) {
+        if (! _writeEnv($d)) {
             $push('❌ Failed to write .env — check file permissions', false);
             echo json_encode(['ok' => false, 'steps' => $steps, 'err' => 'Cannot write .env file.']);
             exit;
@@ -281,21 +295,23 @@ if (isset($_GET['action'])) {
         $push('✅ .env file created');
 
         // 3. Clear bootstrap cache
-        foreach (glob(HOA_ROOT . '/bootstrap/cache/*.php') as $f) { @unlink($f); }
+        foreach (glob(HOA_ROOT.'/bootstrap/cache/*.php') as $f) {
+            @unlink($f);
+        }
         $push('🗑️  Bootstrap cache cleared');
 
         // 4. Migrate
         $mig = _artisan('migrate --force');
-        $truncated = strlen($mig['out']) > 300 ? substr($mig['out'], 0, 300) . '…' : $mig['out'];
-        $push(($mig['ok'] ? '✅' : '⚠️') . ' Migrations: ' . $truncated, $mig['ok']);
-        if (!$mig['ok'] && !str_contains($mig['out'], 'exec()')) {
-            echo json_encode(['ok' => false, 'steps' => $steps, 'err' => 'Migration failed: ' . $mig['out']]);
+        $truncated = strlen($mig['out']) > 300 ? substr($mig['out'], 0, 300).'…' : $mig['out'];
+        $push(($mig['ok'] ? '✅' : '⚠️').' Migrations: '.$truncated, $mig['ok']);
+        if (! $mig['ok'] && ! str_contains($mig['out'], 'exec()')) {
+            echo json_encode(['ok' => false, 'steps' => $steps, 'err' => 'Migration failed: '.$mig['out']]);
             exit;
         }
 
         // 5. Seed
         $seed = _artisan('db:seed --force');
-        $push(($seed['ok'] ? '✅' : '⚠️') . ' Seeders: ' . (strlen($seed['out']) > 150 ? substr($seed['out'], 0, 150) . '…' : $seed['out']));
+        $push(($seed['ok'] ? '✅' : '⚠️').' Seeders: '.(strlen($seed['out']) > 150 ? substr($seed['out'], 0, 150).'…' : $seed['out']));
 
         // 6. Cache config
         _artisan('config:cache');
@@ -303,12 +319,12 @@ if (isset($_GET['action'])) {
 
         // 7. Create admin
         $admin = _createAdmin($d);
-        $push(($admin['ok'] ? '✅' : '⚠️') . ' Admin: ' . $admin['out'], $admin['ok']);
+        $push(($admin['ok'] ? '✅' : '⚠️').' Admin: '.$admin['out'], $admin['ok']);
 
         // 8. Create installed flag
         @file_put_contents(HOA_INSTALLED, json_encode([
             'installed_at' => date('Y-m-d H:i:s'),
-            'app_url'      => $d['app_url'],
+            'app_url' => $d['app_url'],
             'installed_by' => $d['admin_email'] ?? 'unknown',
         ], JSON_PRETTY_PRINT));
         $push('🎉 Installation complete!');
@@ -317,7 +333,7 @@ if (isset($_GET['action'])) {
         $_SESSION = [];
         session_destroy();
 
-        echo json_encode(['ok' => true, 'steps' => $steps, 'redirect' => $d['app_url'] . '/login']);
+        echo json_encode(['ok' => true, 'steps' => $steps, 'redirect' => $d['app_url'].'/login']);
         exit;
     }
 
@@ -326,47 +342,48 @@ if (isset($_GET['action'])) {
 }
 
 // ── Step POST Handler ───────────────────────────────────────────────────────
-$step   = (int)($_SESSION['installer_step'] ?? 1);
-$data   = $_SESSION['installer_data'] ?? [];
+$step = (int) ($_SESSION['installer_step'] ?? 1);
+$data = $_SESSION['installer_data'] ?? [];
 $config = _detectConfig();
-$error  = '';
+$error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['back'])) {
         $_SESSION['installer_step'] = max(1, $step - 1);
-        header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
+        header('Location: '.strtok($_SERVER['REQUEST_URI'], '?'));
         exit;
     }
 
     match ($step) {
         1 => (function () use (&$step) {
             $_SESSION['installer_step'] = 2;
-            header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
+            header('Location: '.strtok($_SERVER['REQUEST_URI'], '?'));
             exit;
         })(),
 
         2 => (function () use (&$step, &$data, &$error, $config) {
-            $appUrl  = rtrim(trim($_POST['app_url'] ?? $config['app_url']), '/');
+            $appUrl = rtrim(trim($_POST['app_url'] ?? $config['app_url']), '/');
             $urlPath = parse_url($appUrl, PHP_URL_PATH);
-            $data   += [
-                'app_name'     => trim($_POST['app_name'] ?? 'HelpOfAi Studio'),
-                'app_env'      => in_array($_POST['app_env'] ?? '', ['production', 'local']) ? $_POST['app_env'] : 'production',
-                'app_url'      => $appUrl,
-                'asset_url'    => $appUrl,
+            $data += [
+                'app_name' => trim($_POST['app_name'] ?? 'HelpOfAi Studio'),
+                'app_env' => in_array($_POST['app_env'] ?? '', ['production', 'local']) ? $_POST['app_env'] : 'production',
+                'app_url' => $appUrl,
+                'asset_url' => $appUrl,
                 'session_path' => rtrim($urlPath ?: '/', '/') ?: '/',
             ];
-            $data['app_name']     = trim($_POST['app_name'] ?? $data['app_name']);
-            $data['app_env']      = in_array($_POST['app_env'] ?? '', ['production', 'local']) ? $_POST['app_env'] : $data['app_env'];
-            $data['app_url']      = $appUrl;
+            $data['app_name'] = trim($_POST['app_name'] ?? $data['app_name']);
+            $data['app_env'] = in_array($_POST['app_env'] ?? '', ['production', 'local']) ? $_POST['app_env'] : $data['app_env'];
+            $data['app_url'] = $appUrl;
             $data['session_path'] = rtrim($urlPath ?: '/', '/') ?: '/';
 
             if (empty($data['app_url'])) {
                 $error = 'Application URL is required.';
+
                 return;
             }
             $_SESSION['installer_data'] = $data;
             $_SESSION['installer_step'] = 3;
-            header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
+            header('Location: '.strtok($_SERVER['REQUEST_URI'], '?'));
             exit;
         })(),
 
@@ -379,35 +396,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if (empty($data['db_name']) || empty($data['db_user'])) {
                 $error = 'Database name and username are required.';
+
                 return;
             }
             $_SESSION['installer_data'] = $data;
             $_SESSION['installer_step'] = 4;
-            header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
+            header('Location: '.strtok($_SERVER['REQUEST_URI'], '?'));
             exit;
         })(),
 
         4 => (function () use (&$step, &$data, &$error) {
-            $data['admin_name']     = trim($_POST['admin_name'] ?? 'Admin');
-            $data['admin_email']    = trim($_POST['admin_email'] ?? '');
+            $data['admin_name'] = trim($_POST['admin_name'] ?? 'Admin');
+            $data['admin_email'] = trim($_POST['admin_email'] ?? '');
             $data['admin_password'] = $_POST['admin_password'] ?? '';
-            $confirm                = $_POST['confirm_password'] ?? '';
+            $confirm = $_POST['confirm_password'] ?? '';
 
-            if (!filter_var($data['admin_email'], FILTER_VALIDATE_EMAIL)) {
+            if (! filter_var($data['admin_email'], FILTER_VALIDATE_EMAIL)) {
                 $error = 'A valid email address is required.';
+
                 return;
             }
             if (strlen($data['admin_password']) < 8) {
                 $error = 'Password must be at least 8 characters.';
+
                 return;
             }
             if ($data['admin_password'] !== $confirm) {
                 $error = 'Passwords do not match.';
+
                 return;
             }
             $_SESSION['installer_data'] = $data;
             $_SESSION['installer_step'] = 5;
-            header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
+            header('Location: '.strtok($_SERVER['REQUEST_URI'], '?'));
             exit;
         })(),
 
@@ -416,14 +437,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Re-read (may have changed on POST error)
-$step   = (int)($_SESSION['installer_step'] ?? 1);
-$data   = $_SESSION['installer_data'] ?? [];
+$step = (int) ($_SESSION['installer_step'] ?? 1);
+$data = $_SESSION['installer_data'] ?? [];
 $config = _detectConfig();
 $checks = _checkRequirements();
-$hasBlocker = (bool) array_filter($checks, fn($c) => !$c['ok'] && ($c['fatal'] ?? false));
+$hasBlocker = (bool) array_filter($checks, fn ($c) => ! $c['ok'] && ($c['fatal'] ?? false));
 
 // ── Render ──────────────────────────────────────────────────────────────────
-function _renderInstalledPage(string $appUrl): void { ?>
+function _renderInstalledPage(string $appUrl): void
+{ ?>
 <!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>HOA Studio — Already Installed</title>
@@ -446,9 +468,9 @@ function _renderInstalledPage(string $appUrl): void { ?>
 </body></html>
 <?php }
 
-$typeLabel  = ['main' => '🌐 Main Domain', 'subdomain' => '🔗 Subdomain', 'subdirectory' => '📁 Subdirectory'];
+$typeLabel = ['main' => '🌐 Main Domain', 'subdomain' => '🔗 Subdomain', 'subdirectory' => '📁 Subdirectory'];
 $stepLabels = ['Requirements', 'Domain & App', 'Database', 'Admin Account', 'Install'];
-$selfUrl    = strtok($_SERVER['REQUEST_URI'], '?');
+$selfUrl = strtok($_SERVER['REQUEST_URI'], '?');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -500,8 +522,8 @@ body { background: #020617; font-family: system-ui, -apple-system, sans-serif; }
 
   <!-- Step indicators -->
   <div class="flex items-center mb-10">
-  <?php for ($i = 1; $i <= 5; $i++):
-    $cls = $i < $step ? 'step-done' : ($i === $step ? 'step-act' : 'step-idle'); ?>
+  <?php for ($i = 1; $i <= 5; $i++) {
+      $cls = $i < $step ? 'step-done' : ($i === $step ? 'step-act' : 'step-idle'); ?>
     <div class="flex items-center <?= $i < 5 ? 'flex-1' : '' ?>">
       <div class="<?= $cls ?> w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-all duration-300">
         <?= $i < $step ? '✓' : $i ?>
@@ -509,18 +531,18 @@ body { background: #020617; font-family: system-ui, -apple-system, sans-serif; }
       <div class="hidden sm:block ml-2 text-xs <?= $i === $step ? 'text-violet-300' : 'text-slate-600' ?> whitespace-nowrap">
         <?= $stepLabels[$i - 1] ?>
       </div>
-      <?php if ($i < 5): ?>
+      <?php if ($i < 5) { ?>
       <div class="flex-1 h-px <?= $i < $step ? 'bg-emerald-600/40' : 'bg-white/6' ?> mx-3"></div>
-      <?php endif; ?>
+      <?php } ?>
     </div>
-  <?php endfor; ?>
+  <?php } ?>
   </div>
 
   <!-- Card -->
   <div class="glass glow rounded-3xl p-8 fade-up">
 
   <?php /* ═══════════════════════════════ STEP 1: REQUIREMENTS ══════════════════════════════ */ ?>
-  <?php if ($step === 1): ?>
+  <?php if ($step === 1) { ?>
 
   <div class="mb-7">
     <h2 class="text-2xl font-bold mb-1 tracking-tight">System Requirements</h2>
@@ -528,13 +550,13 @@ body { background: #020617; font-family: system-ui, -apple-system, sans-serif; }
   </div>
 
   <div class="space-y-1.5 mb-7">
-  <?php foreach ($checks as $chk):
-    $isFatal = $chk['fatal'] ?? true;
-    $border  = $chk['ok'] ? 'border-emerald-500/15 bg-emerald-500/5'
-             : ($isFatal   ? 'border-red-500/20 bg-red-500/5'
-                           : 'border-yellow-500/20 bg-yellow-500/5');
-    $icon    = $chk['ok'] ? '✅' : ($isFatal ? '❌' : '⚠️');
-  ?>
+  <?php foreach ($checks as $chk) {
+      $isFatal = $chk['fatal'] ?? true;
+      $border = $chk['ok'] ? 'border-emerald-500/15 bg-emerald-500/5'
+               : ($isFatal ? 'border-red-500/20 bg-red-500/5'
+                             : 'border-yellow-500/20 bg-yellow-500/5');
+      $icon = $chk['ok'] ? '✅' : ($isFatal ? '❌' : '⚠️');
+      ?>
   <div class="flex items-center justify-between px-4 py-2.5 rounded-xl border <?= $border ?>">
     <span class="text-sm text-slate-300"><?= htmlspecialchars($chk['label']) ?></span>
     <div class="flex items-center gap-2 shrink-0">
@@ -542,15 +564,15 @@ body { background: #020617; font-family: system-ui, -apple-system, sans-serif; }
       <span class="text-base"><?= $icon ?></span>
     </div>
   </div>
-  <?php endforeach; ?>
+  <?php } ?>
   </div>
 
-  <?php if ($hasBlocker): ?>
+  <?php if ($hasBlocker) { ?>
   <div class="bg-red-500/10 border border-red-500/25 rounded-2xl p-4 mb-6 text-sm text-red-300">
     <strong>⚠️ Fix the errors above</strong> before continuing.<br>
     For permission errors: <code class="bg-black/30 px-1.5 py-0.5 rounded text-xs">chmod -R 775 storage bootstrap/cache</code>
   </div>
-  <?php endif; ?>
+  <?php } ?>
 
   <form method="POST">
     <button type="submit" <?= $hasBlocker ? 'disabled' : '' ?>
@@ -560,7 +582,7 @@ body { background: #020617; font-family: system-ui, -apple-system, sans-serif; }
   </form>
 
   <?php /* ═══════════════════════════════ STEP 2: DOMAIN & APP ══════════════════════════════ */ ?>
-  <?php elseif ($step === 2): ?>
+  <?php } elseif ($step === 2) { ?>
 
   <div class="mb-7">
     <h2 class="text-2xl font-bold mb-1 tracking-tight">Domain & Application</h2>
@@ -594,9 +616,9 @@ body { background: #020617; font-family: system-ui, -apple-system, sans-serif; }
     </div>
   </div>
 
-  <?php if ($error): ?>
+  <?php if ($error) { ?>
   <div class="bg-red-500/10 border border-red-500/25 rounded-2xl p-4 mb-5 text-sm text-red-300"><?= htmlspecialchars($error) ?></div>
-  <?php endif; ?>
+  <?php } ?>
 
   <form method="POST" class="space-y-5">
     <div>
@@ -634,16 +656,16 @@ body { background: #020617; font-family: system-ui, -apple-system, sans-serif; }
   </form>
 
   <?php /* ═══════════════════════════════ STEP 3: DATABASE ══════════════════════════════ */ ?>
-  <?php elseif ($step === 3): ?>
+  <?php } elseif ($step === 3) { ?>
 
   <div class="mb-7">
     <h2 class="text-2xl font-bold mb-1 tracking-tight">Database Configuration</h2>
     <p class="text-slate-400 text-sm">Enter your MySQL connection details. Use the test button to verify.</p>
   </div>
 
-  <?php if ($error): ?>
+  <?php if ($error) { ?>
   <div class="bg-red-500/10 border border-red-500/25 rounded-2xl p-4 mb-5 text-sm text-red-300"><?= htmlspecialchars($error) ?></div>
-  <?php endif; ?>
+  <?php } ?>
 
   <form method="POST" id="db-form" class="space-y-5">
     <div class="flex gap-3">
@@ -725,16 +747,16 @@ body { background: #020617; font-family: system-ui, -apple-system, sans-serif; }
   </script>
 
   <?php /* ═══════════════════════════════ STEP 4: ADMIN ACCOUNT ══════════════════════════════ */ ?>
-  <?php elseif ($step === 4): ?>
+  <?php } elseif ($step === 4) { ?>
 
   <div class="mb-7">
     <h2 class="text-2xl font-bold mb-1 tracking-tight">Admin Account</h2>
     <p class="text-slate-400 text-sm">Create your primary administrator account.</p>
   </div>
 
-  <?php if ($error): ?>
+  <?php if ($error) { ?>
   <div class="bg-red-500/10 border border-red-500/25 rounded-2xl p-4 mb-5 text-sm text-red-300"><?= htmlspecialchars($error) ?></div>
-  <?php endif; ?>
+  <?php } ?>
 
   <form method="POST" class="space-y-5">
     <div>
@@ -767,7 +789,7 @@ body { background: #020617; font-family: system-ui, -apple-system, sans-serif; }
   </form>
 
   <?php /* ═══════════════════════════════ STEP 5: INSTALL ══════════════════════════════ */ ?>
-  <?php elseif ($step === 5): ?>
+  <?php } elseif ($step === 5) { ?>
 
   <div class="mb-7">
     <h2 class="text-2xl font-bold mb-1 tracking-tight">Ready to Install</h2>
@@ -779,19 +801,19 @@ body { background: #020617; font-family: system-ui, -apple-system, sans-serif; }
     <div class="text-xs text-violet-400 font-semibold uppercase tracking-widest mb-4">📋 Configuration Summary</div>
     <div class="space-y-2 text-sm">
     <?php $rows = [
-      ['🏷️  App Name',      $data['app_name'] ?? '—'],
-      ['🌐 App URL',        $data['app_url'] ?? '—'],
-      ['🔧 Environment',    $data['app_env'] ?? 'production'],
-      ['🍪 Session Path',   $data['session_path'] ?? '/'],
-      ['🗄️  Database',      ($data['db_host'] ?? '—') . ':' . ($data['db_port'] ?? '3306') . '/' . ($data['db_name'] ?? '—')],
-      ['👤 Admin Email',    $data['admin_email'] ?? '—'],
-    ];
-    foreach ($rows as [$k, $v]): ?>
+            ['🏷️  App Name',      $data['app_name'] ?? '—'],
+            ['🌐 App URL',        $data['app_url'] ?? '—'],
+            ['🔧 Environment',    $data['app_env'] ?? 'production'],
+            ['🍪 Session Path',   $data['session_path'] ?? '/'],
+            ['🗄️  Database',      ($data['db_host'] ?? '—').':'.($data['db_port'] ?? '3306').'/'.($data['db_name'] ?? '—')],
+            ['👤 Admin Email',    $data['admin_email'] ?? '—'],
+        ];
+      foreach ($rows as [$k, $v]) { ?>
     <div class="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0">
       <span class="text-slate-500 text-xs"><?= htmlspecialchars($k) ?></span>
       <span class="font-mono text-xs text-slate-200 max-w-xs text-right truncate"><?= htmlspecialchars($v) ?></span>
     </div>
-    <?php endforeach; ?>
+    <?php } ?>
     </div>
   </div>
 
@@ -861,7 +883,7 @@ body { background: #020617; font-family: system-ui, -apple-system, sans-serif; }
   }
   </script>
 
-  <?php endif; ?>
+  <?php } ?>
 
   </div><!-- end glass card -->
 </div><!-- end max-w-xl -->

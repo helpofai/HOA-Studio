@@ -147,6 +147,10 @@ executeSlashAction(action) {
         this.triggerAiTransform('generate_faq');
     } else if (action === 'comparison_table') {
         this.triggerAiTransform('comparison_table');
+    } else if (action === 'surgical_micro_repair') {
+        this.triggerSubContentSubAgent('surgical_micro_repair');
+    } else if (action === 'verify_lineage') {
+        this.triggerSubContentSubAgent('verify_lineage');
     } else if (action === 'tip') {
         ed?.insertCallout?.('tip');
     } else if (action === 'warning') {

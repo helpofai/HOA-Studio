@@ -31,6 +31,7 @@ use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
@@ -58,13 +59,13 @@ class AdminTerminalLogsController extends Controller
                 'component' => 'router',
                 'module' => 'inference',
                 'message' => "POST /v1/chat/completions -> auto-routed to '{$u->model_slug}' | {$u->words_used} words consumed (User #{$u->user_id})",
-                'correlationId' => 'req_' . substr(md5($u->id . $u->recorded_at), 0, 8),
+                'correlationId' => 'req_'.substr(md5($u->id.$u->recorded_at), 0, 8),
             ];
         }
 
         // 2. Query OmniRoute native console API endpoint with circuit breaker
-        $isOffline = \Illuminate\Support\Facades\Cache::get('omniroute_console_offline', false);
-        if (!$isOffline) {
+        $isOffline = Cache::get('omniroute_console_offline', false);
+        if (! $isOffline) {
             try {
                 $res = Http::withHeaders(['Authorization' => "Bearer {$apiKey}"])
                     ->withOptions(['force_ip_resolve' => 'v4'])
@@ -87,11 +88,11 @@ class AdminTerminalLogsController extends Controller
                         }
                     }
                 } else {
-                    \Illuminate\Support\Facades\Cache::put('omniroute_console_offline', true, 30);
+                    Cache::put('omniroute_console_offline', true, 30);
                 }
             } catch (Exception $e) {
                 // If OmniRoute connection fails/timeouts, cache offline state for 30s to prevent blocking single-threaded PHP server
-                \Illuminate\Support\Facades\Cache::put('omniroute_console_offline', true, 30);
+                Cache::put('omniroute_console_offline', true, 30);
             }
         }
 
@@ -108,14 +109,14 @@ class AdminTerminalLogsController extends Controller
                 'timestamp' => now()->subSeconds(30)->toIso8601String(),
                 'level' => 'debug',
                 'component' => 'gateway',
-                'message' => "Registered 42 free tier provider pools with automated dynamic cascades and reasoning fallback support.",
+                'message' => 'Registered 42 free tier provider pools with automated dynamic cascades and reasoning fallback support.',
                 'correlationId' => 'init_02',
             ];
             $logs[] = [
                 'timestamp' => now()->subSeconds(10)->toIso8601String(),
                 'level' => 'info',
                 'component' => 'telemetry',
-                'message' => "Real-time SSE token stream monitoring and telemetry headers interceptor initialized.",
+                'message' => 'Real-time SSE token stream monitoring and telemetry headers interceptor initialized.',
                 'correlationId' => 'init_03',
             ];
         }

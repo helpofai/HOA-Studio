@@ -32,6 +32,7 @@ use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -53,18 +54,18 @@ class WordPressBridgeController extends Controller
      * Live SSE Streaming Transformation API for WordPress TipTap & Gutenberg Blocks
      */
     public function stream(
-        Request $request, 
-        TransformText $action, 
-        OmniRouteClient $client, 
-        RecordGenerationUsage $recordUsage, 
-        AiCircuitBreaker $breaker, 
+        Request $request,
+        TransformText $action,
+        OmniRouteClient $client,
+        RecordGenerationUsage $recordUsage,
+        AiCircuitBreaker $breaker,
         AiRateLimiterService $limiter
     ): StreamedResponse {
         if ($breaker->isTripped()) {
             return response()->stream(function () use ($breaker) {
                 $status = $breaker->getStatus();
-                $msg = 'AI Gateway Paused: ' . ($status['reason'] ?? 'Circuit breaker active');
-                echo "event: error\ndata: " . json_encode(['error' => $msg, 'message' => $msg, 'done' => true]) . "\n\n";
+                $msg = 'AI Gateway Paused: '.($status['reason'] ?? 'Circuit breaker active');
+                echo "event: error\ndata: ".json_encode(['error' => $msg, 'message' => $msg, 'done' => true])."\n\n";
                 if (ob_get_level() > 0) {
                     @ob_flush();
                 }
@@ -79,10 +80,10 @@ class WordPressBridgeController extends Controller
         $user = Auth::user();
         $rateCheck = $limiter->checkRateLimit($user);
 
-        if (!$rateCheck['allowed']) {
+        if (! $rateCheck['allowed']) {
             return response()->stream(function () use ($rateCheck) {
                 $msg = $rateCheck['reason'] ?? 'Too many requests. Please slow down.';
-                echo "event: error\ndata: " . json_encode(['error' => $msg, 'message' => $msg, 'done' => true]) . "\n\n";
+                echo "event: error\ndata: ".json_encode(['error' => $msg, 'message' => $msg, 'done' => true])."\n\n";
                 if (ob_get_level() > 0) {
                     @ob_flush();
                 }
@@ -95,10 +96,10 @@ class WordPressBridgeController extends Controller
         }
 
         $quotaManager = app(QuotaManager::class);
-        if (!$quotaManager->hasQuota($user, 1)) {
+        if (! $quotaManager->hasQuota($user, 1)) {
             return response()->stream(function () {
                 $msg = 'Monthly AI word quota exhausted. Please upgrade your HOA Studio plan or configure a personal API key in HOA Studio Settings.';
-                echo "data: " . json_encode(['error' => $msg, 'message' => $msg, 'done' => true]) . "\n\n";
+                echo 'data: '.json_encode(['error' => $msg, 'message' => $msg, 'done' => true])."\n\n";
                 if (ob_get_level() > 0) {
                     @ob_flush();
                 }
@@ -121,13 +122,13 @@ class WordPressBridgeController extends Controller
 
         $text = $validated['text'] ?? $validated['custom_instruction'] ?? '';
         $customInstruction = $validated['custom_instruction'] ?? null;
-        $type = (!empty($validated['type']) && $validated['type'] !== 'undefined') ? $validated['type'] : 'generate';
+        $type = (! empty($validated['type']) && $validated['type'] !== 'undefined') ? $validated['type'] : 'generate';
         $context = $validated['context'] ?? [];
 
         if (trim($text) === '' && empty($customInstruction)) {
             return response()->stream(function () {
                 $msg = 'Please provide a prompt instruction or select text in the editor to transform.';
-                echo "data: " . json_encode(['error' => $msg, 'message' => $msg, 'done' => true]) . "\n\n";
+                echo 'data: '.json_encode(['error' => $msg, 'message' => $msg, 'done' => true])."\n\n";
                 if (ob_get_level() > 0) {
                     @ob_flush();
                 }
@@ -146,19 +147,19 @@ class WordPressBridgeController extends Controller
             $context
         );
 
-        $model = (!empty($validated['model']) && $validated['model'] !== 'auto') 
-            ? $validated['model'] 
+        $model = (! empty($validated['model']) && $validated['model'] !== 'auto')
+            ? $validated['model']
             : ($user->preferences['default_model'] ?? null);
 
         // Fetch brand voice if specified
-        if (!empty($validated['brand_voice_id'])) {
+        if (! empty($validated['brand_voice_id'])) {
             $brand = BrandProfile::where('id', $validated['brand_voice_id'])->where('user_id', $user->id)->first();
             if ($brand) {
-                $promptData['system'] .= "\nApply Brand Voice: " . $brand->name . " (Tone: " . ($brand->tone_description ?? 'Professional') . ", Audience: " . ($brand->target_audience ?? 'General') . ")";
+                $promptData['system'] .= "\nApply Brand Voice: ".$brand->name.' (Tone: '.($brand->tone_description ?? 'Professional').', Audience: '.($brand->target_audience ?? 'General').')';
             }
         }
 
-        return response()->stream(function () use ($client, $promptData, $model, $user, $recordUsage, $validated) {
+        return response()->stream(function () use ($client, $promptData, $model, $user, $recordUsage) {
             while (ob_get_level() > 0) {
                 ob_end_flush();
             }
@@ -183,7 +184,7 @@ class WordPressBridgeController extends Controller
                     }
 
                     $delta = $chunk['token'] ?? $chunk['text'] ?? $chunk['delta'] ?? '';
-                    if (!empty($chunk['model'])) {
+                    if (! empty($chunk['model'])) {
                         $routedModel = $chunk['model'];
                     }
 
@@ -191,23 +192,24 @@ class WordPressBridgeController extends Controller
                         $accumulated .= $delta;
                         $tokenCount += max(1, (int) ceil(strlen($delta) / 4));
 
-                        echo "data: " . json_encode([
+                        echo 'data: '.json_encode([
                             'delta' => $delta,
                             'done' => false,
                             'model' => $routedModel,
-                        ]) . "\n\n";
+                        ])."\n\n";
 
                         flush();
                     }
                 }
 
                 if (trim($accumulated) === '') {
-                    echo "data: " . json_encode([
+                    echo 'data: '.json_encode([
                         'error' => 'The AI model returned an empty response. Please verify that your AI provider and model are accessible, or rephrase your prompt.',
                         'message' => 'The AI model returned an empty response. Please verify that your AI provider and model are accessible, or rephrase your prompt.',
                         'done' => true,
-                    ]) . "\n\n";
+                    ])."\n\n";
                     flush();
+
                     return;
                 }
 
@@ -219,23 +221,23 @@ class WordPressBridgeController extends Controller
                     'model_slug' => $routedModel,
                 ]);
 
-                echo "data: " . json_encode([
+                echo 'data: '.json_encode([
                     'done' => true,
                     'words' => $wordsUsed,
                     'tokens' => $tokenCount,
                     'model' => $routedModel,
                     'quota_remaining' => max(0, $user->monthly_word_quota - $user->used_word_quota),
-                ]) . "\n\n";
+                ])."\n\n";
 
                 flush();
 
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::error('WordPress Stream Error: ' . $e->getMessage());
-                echo "data: " . json_encode([
-                    'error' => 'AI Generation Error: ' . $e->getMessage(),
-                    'message' => 'AI Generation Error: ' . $e->getMessage(),
+                Log::error('WordPress Stream Error: '.$e->getMessage());
+                echo 'data: '.json_encode([
+                    'error' => 'AI Generation Error: '.$e->getMessage(),
+                    'message' => 'AI Generation Error: '.$e->getMessage(),
                     'done' => true,
-                ]) . "\n\n";
+                ])."\n\n";
                 flush();
             }
         }, 200, [
@@ -250,23 +252,23 @@ class WordPressBridgeController extends Controller
      * Synchronous Transformation Action for WordPress
      */
     public function transform(
-        Request $request, 
-        TransformText $action, 
-        RecordGenerationUsage $recordUsage, 
-        AiCircuitBreaker $breaker, 
+        Request $request,
+        TransformText $action,
+        RecordGenerationUsage $recordUsage,
+        AiCircuitBreaker $breaker,
         AiRateLimiterService $limiter
     ): JsonResponse {
         if ($breaker->isTripped()) {
             return response()->json([
                 'success' => false,
-                'error' => 'AI Gateway Paused: ' . $breaker->getStatus()['reason'],
+                'error' => 'AI Gateway Paused: '.$breaker->getStatus()['reason'],
             ], 503);
         }
 
         $user = Auth::user();
         $rateCheck = $limiter->checkRateLimit($user);
 
-        if (!$rateCheck['allowed']) {
+        if (! $rateCheck['allowed']) {
             return response()->json([
                 'success' => false,
                 'error' => $rateCheck['reason'],
@@ -336,7 +338,7 @@ class WordPressBridgeController extends Controller
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'error' => 'Document not found or access denied: ' . $e->getMessage(),
+                'error' => 'Document not found or access denied: '.$e->getMessage(),
             ], 404);
         }
     }

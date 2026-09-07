@@ -29,6 +29,7 @@ use App\Features\AI\Actions\SyncOmniRouteGateway;
 use App\Features\AI\Actions\TestOmniRouteModel;
 use App\Features\AI\Models\AiModel;
 use App\Features\AI\Models\AiProvider;
+use App\Features\AI\Services\OmniRouteGraphTelemetryService;
 use App\Features\AI\Services\OmniRouteUrlResolver;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -45,53 +46,83 @@ class AdminOmniRouteSetupPage extends Component
     use WithPagination;
 
     public string $base_url = 'http://localhost:20128/v1';
+
     public string $api_key = 'omniroute-default-key';
+
     public string $default_model = 'auto';
+
     public string $compression_mode = 'default';
+
     public string $thinking_budget = 'auto';
+
     public bool $allow_user_key = true;
+
     public bool $is_active = true;
 
     // Model Filters & Pagination
     public string $modelSearch = '';
+
     public string $modelStatusFilter = 'all'; // 'all', 'working', 'failed', 'untested', 'free_tier', 'combos', 'reasoning', 'online', 'offline'
+
     public string $modelVendorFilter = '';
+
     public int $perPage = 18;
 
     // Live Diagnostics & Sync State
     public ?bool $connectionStatus = null;
+
     public ?int $pingLatencyMs = null;
+
     public string $statusMessage = '';
+
     public bool $isTesting = false;
+
     public ?array $syncTelemetry = null;
+
     public ?string $saveStatus = null; // 'success', 'error', null
+
     public ?string $syncStatus = null; // 'success', 'error', null
 
     // Telemetry Graph State
     public int $graphTimeRange = 24; // 1, 5, 12, 24
+
     public string $graphStatusFilter = 'all'; // 'all', 'pass', 'info', 'warning', 'fail'
 
     // Model Health Probe State
     public array $testingModelIds = [];
+
     public bool $isBatchTesting = false;
+
     public ?string $batchTestMessage = null;
 
     // Real-Time Progress Terminal Modal State
     public bool $showProgressModal = false;
+
     public string $progressModalTitle = '';
+
     public string $progressModalSubtitle = '';
+
     public int $progressCurrent = 0;
+
     public int $progressTotal = 0;
+
     public int $progressWorking = 0;
+
     public int $progressFailed = 0;
+
     public array $progressLogs = [];
+
     public bool $progressDone = false;
 
     // Console Log Viewer State (Matching http://localhost:20128/dashboard/logs/console)
     public array $consoleLogs = [];
+
     public string $logLevelFilter = 'all'; // 'all', 'debug', 'info', 'warn', 'error'
+
     public string $logSearch = '';
+
     public bool $autoScroll = true;
+
     public ?string $lastUpdated = null;
 
     public function updatingModelSearch()
@@ -120,11 +151,12 @@ class AdminOmniRouteSetupPage extends Component
         $dbUrl = null;
         try {
             $dbUrl = DB::table('settings')->where('key', 'omniroute_base_url')->value('value');
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         $loadedUrl = $dbUrl ?: ($provider->base_url ?? config('omniroute.base_url', 'http://localhost:20128/v1'));
-        if (!str_ends_with(rtrim($loadedUrl, '/'), '/v1')) {
-            $loadedUrl = rtrim($loadedUrl, '/') . '/v1';
+        if (! str_ends_with(rtrim($loadedUrl, '/'), '/v1')) {
+            $loadedUrl = rtrim($loadedUrl, '/').'/v1';
         }
         $this->base_url = $loadedUrl;
 
@@ -152,14 +184,14 @@ class AdminOmniRouteSetupPage extends Component
     public function updatedBaseUrl($value)
     {
         $raw = trim((string) $value);
-        if (!empty($raw)) {
-            if (!preg_match('#^https?://#i', $raw)) {
+        if (! empty($raw)) {
+            if (! preg_match('#^https?://#i', $raw)) {
                 $raw = (str_contains($raw, 'localhost') || str_contains($raw, '127.0.0.1'))
                     ? "http://{$raw}"
                     : "https://{$raw}";
             }
             $cleanUrl = rtrim($raw, '/');
-            if (!preg_match('#/v1$#i', $cleanUrl)) {
+            if (! preg_match('#/v1$#i', $cleanUrl)) {
                 $cleanUrl .= '/v1';
             }
             $this->base_url = $cleanUrl;
@@ -173,7 +205,8 @@ class AdminOmniRouteSetupPage extends Component
                     $provider->is_local = str_contains($this->base_url, 'localhost') || str_contains($this->base_url, '127.0.0.1');
                     $provider->save();
                 }
-            } catch (\Throwable $e) {}
+            } catch (\Throwable $e) {
+            }
         }
         $this->pingGatewayHealth();
     }
@@ -186,12 +219,12 @@ class AdminOmniRouteSetupPage extends Component
         $parsedUrl = parse_url($endpoints['models_endpoint']);
         $scheme = $parsedUrl['scheme'] ?? 'http';
         $host = $parsedUrl['host'] ?? '127.0.0.1';
-        $isRemote = !in_array($host, ['localhost', '127.0.0.1']) || !empty($endpoints['is_remote']);
+        $isRemote = ! in_array($host, ['localhost', '127.0.0.1']) || ! empty($endpoints['is_remote']);
         $port = $parsedUrl['port'] ?? ($scheme === 'https' ? 443 : 20128);
 
-        if (!$isRemote) {
+        if (! $isRemote) {
             $serverHost = request()->getHost();
-            $isServerRemote = !in_array($serverHost, ['localhost', '127.0.0.1', '::1']);
+            $isServerRemote = ! in_array($serverHost, ['localhost', '127.0.0.1', '::1']);
 
             if ($isServerRemote) {
                 // When running on a remote cloud server (e.g. studio.helpofai.com),
@@ -201,18 +234,20 @@ class AdminOmniRouteSetupPage extends Component
                     return;
                 }
                 $this->statusMessage = "Local PC Daemon ({$this->base_url}). Connecting via Direct Browser Bridge...";
+
                 return;
             }
 
             $ipToCheck = ($host === 'localhost') ? '127.0.0.1' : $host;
             $fp = @fsockopen($ipToCheck, $port, $errno, $errstr, 0.4);
-            if (!$fp && $ipToCheck !== '127.0.0.1') {
+            if (! $fp && $ipToCheck !== '127.0.0.1') {
                 $fp = @fsockopen('127.0.0.1', $port, $errno, $errstr, 0.4);
             }
-            if (!$fp) {
+            if (! $fp) {
                 $this->connectionStatus = false;
                 $this->pingLatencyMs = null;
                 $this->statusMessage = "Local OmniRoute daemon not responding on port {$port}. (Start OmniRoute in terminal or use Cloudflare Tunnel).";
+
                 return;
             }
             fclose($fp);
@@ -225,7 +260,7 @@ class AdminOmniRouteSetupPage extends Component
             ]);
 
             $options = ['verify' => config('omniroute.ssl_verify', false)];
-            if (!$isRemote) {
+            if (! $isRemote) {
                 $options['force_ip_resolve'] = 'v4';
             }
             $httpReq = $httpReq->withOptions($options);
@@ -239,7 +274,7 @@ class AdminOmniRouteSetupPage extends Component
 
             if ($response->successful() || $response->status() === 200 || $response->status() === 304) {
                 $this->connectionStatus = true;
-                $this->statusMessage = "Gateway Online ({$this->pingLatencyMs}ms) via " . ($isRemote ? 'Cloudflare / Remote Tunnel' : 'Local Daemon');
+                $this->statusMessage = "Gateway Online ({$this->pingLatencyMs}ms) via ".($isRemote ? 'Cloudflare / Remote Tunnel' : 'Local Daemon');
             } elseif ($response->status() === 401 || $response->status() === 403) {
                 // Daemon is online, key may need update
                 $this->connectionStatus = true;
@@ -250,7 +285,7 @@ class AdminOmniRouteSetupPage extends Component
             }
         } catch (Exception $e) {
             $this->connectionStatus = false;
-            $this->statusMessage = "Connection error: " . $e->getMessage();
+            $this->statusMessage = 'Connection error: '.$e->getMessage();
         }
     }
 
@@ -272,7 +307,7 @@ class AdminOmniRouteSetupPage extends Component
                 'component' => 'router',
                 'module' => 'inference',
                 'message' => "POST /v1/chat/completions -> auto-routed to '{$u->model_slug}' | {$u->words_used} words consumed (User #{$u->user_id})",
-                'correlationId' => 'req_' . substr(md5($u->id . $u->recorded_at), 0, 8),
+                'correlationId' => 'req_'.substr(md5($u->id.$u->recorded_at), 0, 8),
             ];
         }
 
@@ -316,14 +351,14 @@ class AdminOmniRouteSetupPage extends Component
                 'timestamp' => now()->subSeconds(30)->toIso8601String(),
                 'level' => 'debug',
                 'component' => 'gateway',
-                'message' => "Registered 42 free tier provider pools with automated dynamic cascades and reasoning fallback support.",
+                'message' => 'Registered 42 free tier provider pools with automated dynamic cascades and reasoning fallback support.',
                 'correlationId' => 'init_02',
             ];
             $logs[] = [
                 'timestamp' => now()->subSeconds(10)->toIso8601String(),
                 'level' => 'info',
                 'component' => 'telemetry',
-                'message' => "Real-time SSE token stream monitoring and telemetry headers interceptor initialized.",
+                'message' => 'Real-time SSE token stream monitoring and telemetry headers interceptor initialized.',
                 'correlationId' => 'init_03',
             ];
         }
@@ -340,8 +375,9 @@ class AdminOmniRouteSetupPage extends Component
     {
         $this->testingModelIds[$modelId] = true;
         $model = AiModel::find($modelId);
-        if (!$model) {
+        if (! $model) {
             unset($this->testingModelIds[$modelId]);
+
             return;
         }
 
@@ -353,14 +389,14 @@ class AdminOmniRouteSetupPage extends Component
             'timestamp' => now()->toIso8601String(),
             'level' => $res['success'] ? 'info' : 'error',
             'component' => 'health-probe',
-            'message' => "DIAGNOSTIC TEST -> '{$model->model_id}' => " . ($res['success'] ? "200 OK ({$res['latency_ms']}ms, routed to {$res['routed_model']})" : "FAILED: {$res['error']}"),
-            'correlationId' => 'test_' . substr(md5($model->id . microtime()), 0, 8),
+            'message' => "DIAGNOSTIC TEST -> '{$model->model_id}' => ".($res['success'] ? "200 OK ({$res['latency_ms']}ms, routed to {$res['routed_model']})" : "FAILED: {$res['error']}"),
+            'correlationId' => 'test_'.substr(md5($model->id.microtime()), 0, 8),
         ];
 
         if ($res['success']) {
             session()->flash('status', "Model '{$model->name}' is WORKING! Latency: {$res['latency_ms']}ms (Response: \"{$res['response']}\")");
         } else {
-            session()->flash('error', "Model '{$model->name}' test failed: " . ($res['error'] ?? 'Connection error'));
+            session()->flash('error', "Model '{$model->name}' test failed: ".($res['error'] ?? 'Connection error'));
         }
     }
 
@@ -378,10 +414,10 @@ class AdminOmniRouteSetupPage extends Component
         $provider = AiProvider::where('slug', 'omniroute')->first();
         $query = $provider ? AiModel::where('ai_provider_id', $provider->id) : AiModel::query();
 
-        if (!empty($this->modelSearch)) {
+        if (! empty($this->modelSearch)) {
             $query->where(function ($q) {
-                $q->where('name', 'like', '%' . $this->modelSearch . '%')
-                  ->orWhere('model_id', 'like', '%' . $this->modelSearch . '%');
+                $q->where('name', 'like', '%'.$this->modelSearch.'%')
+                    ->orWhere('model_id', 'like', '%'.$this->modelSearch.'%');
             });
         }
 
@@ -418,8 +454,8 @@ class AdminOmniRouteSetupPage extends Component
                 'timestamp' => now()->toIso8601String(),
                 'level' => $res['success'] ? 'info' : 'warn',
                 'component' => 'batch-probe',
-                'message' => "BATCH PROBE -> '{$m->model_id}' => " . ($res['success'] ? "200 OK ({$res['latency_ms']}ms)" : "FAIL ({$res['error']})"),
-                'correlationId' => 'batch_' . substr(md5($m->id . microtime()), 0, 8),
+                'message' => "BATCH PROBE -> '{$m->model_id}' => ".($res['success'] ? "200 OK ({$res['latency_ms']}ms)" : "FAIL ({$res['error']})"),
+                'correlationId' => 'batch_'.substr(md5($m->id.microtime()), 0, 8),
             ];
         }
 
@@ -454,14 +490,15 @@ class AdminOmniRouteSetupPage extends Component
                 $provider->is_local = str_contains($this->base_url, 'localhost') || str_contains($this->base_url, '127.0.0.1');
                 $provider->save();
             }
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         try {
             $endpoints = OmniRouteUrlResolver::resolve($this->base_url);
             $this->appendProgressLog('debug', 'RESOLVE', "Resolved routes: [Models: {$endpoints['models_endpoint']}]");
 
             $this->progressCurrent = 2;
-            $this->appendProgressLog('info', 'FETCH', "Requesting GET /v1/models...");
+            $this->appendProgressLog('info', 'FETCH', 'Requesting GET /v1/models...');
 
             $result = $syncAction->execute($this->base_url, $this->api_key);
 
@@ -471,7 +508,7 @@ class AdminOmniRouteSetupPage extends Component
             $this->progressCurrent = 4;
             $this->appendProgressLog('ok', 'COMBOS', "Ingested {$result['combos_count']} cascade combos and {$result['free_tier_count']} free tier pools.");
 
-            if (!empty($result['is_offline_fallback'])) {
+            if (! empty($result['is_offline_fallback'])) {
                 $this->connectionStatus = false;
                 $this->pingLatencyMs = $result['latency_ms'];
                 $this->syncTelemetry = $result;
@@ -485,7 +522,7 @@ class AdminOmniRouteSetupPage extends Component
                 $this->syncTelemetry = $result;
                 $this->syncStatus = 'success';
 
-                $pruneText = !empty($result['pruned_count']) ? " (Purged {$result['pruned_count']} stale models)" : "";
+                $pruneText = ! empty($result['pruned_count']) ? " (Purged {$result['pruned_count']} stale models)" : '';
                 $this->appendProgressLog('info', 'COMPLETE', "✔ Dynamic synchronization complete! All {$result['total_synced']} active models updated{$pruneText}.");
                 $this->statusMessage = "OmniRoute Gateway Online ({$result['latency_ms']}ms). Dynamically synchronized {$result['total_synced']} models{$pruneText} ({$result['combos_count']} combos, {$result['free_tier_count']} free-tier pools)!";
                 session()->flash('status', $this->statusMessage);
@@ -494,8 +531,8 @@ class AdminOmniRouteSetupPage extends Component
         } catch (Exception $e) {
             $this->connectionStatus = false;
             $this->syncStatus = 'error';
-            $this->statusMessage = "Gateway connection error: " . $e->getMessage();
-            $this->appendProgressLog('error', 'ERROR', "Synchronization failed: " . $e->getMessage());
+            $this->statusMessage = 'Gateway connection error: '.$e->getMessage();
+            $this->appendProgressLog('error', 'ERROR', 'Synchronization failed: '.$e->getMessage());
             session()->flash('error', $this->statusMessage);
         } finally {
             $this->isTesting = false;
@@ -512,14 +549,14 @@ class AdminOmniRouteSetupPage extends Component
         $this->isTesting = true;
         $this->showProgressModal = true;
         $this->progressModalTitle = 'OmniRoute Gateway Dynamic Synchronization';
-        $this->progressModalSubtitle = "Ingesting live catalog directly from your local PC via Browser Bridge...";
+        $this->progressModalSubtitle = 'Ingesting live catalog directly from your local PC via Browser Bridge...';
         $this->progressLogs = [];
         $this->progressCurrent = 1;
         $this->progressTotal = 4;
         $this->progressDone = false;
 
-        $this->appendProgressLog('info', 'INIT', "Connected to local PC daemon (Browser Bridge active).");
-        $this->appendProgressLog('debug', 'BRIDGE', "Transferred " . count($modelsData) . " models from your local OmniRoute daemon.");
+        $this->appendProgressLog('info', 'INIT', 'Connected to local PC daemon (Browser Bridge active).');
+        $this->appendProgressLog('debug', 'BRIDGE', 'Transferred '.count($modelsData).' models from your local OmniRoute daemon.');
 
         // Always persist base_url to database before syncing
         try {
@@ -532,11 +569,12 @@ class AdminOmniRouteSetupPage extends Component
                 $provider->is_local = str_contains($this->base_url, 'localhost') || str_contains($this->base_url, '127.0.0.1');
                 $provider->save();
             }
-        } catch (\Throwable $e) {}
+        } catch (\Throwable $e) {
+        }
 
         try {
             $this->progressCurrent = 2;
-            $this->appendProgressLog('info', 'FETCH', "Processing model catalog...");
+            $this->appendProgressLog('info', 'FETCH', 'Processing model catalog...');
 
             $result = $syncAction->ingestData($modelsData, $combosData, $latencyMs, $this->base_url, false, null);
 
@@ -551,7 +589,7 @@ class AdminOmniRouteSetupPage extends Component
             $this->syncTelemetry = $result;
             $this->syncStatus = 'success';
 
-            $pruneText = !empty($result['pruned_count']) ? " (Purged {$result['pruned_count']} stale models)" : "";
+            $pruneText = ! empty($result['pruned_count']) ? " (Purged {$result['pruned_count']} stale models)" : '';
             $this->appendProgressLog('info', 'COMPLETE', "✔ Dynamic synchronization complete! All {$result['total_synced']} active models updated{$pruneText}.");
             $this->statusMessage = "OmniRoute Gateway Online ({$latencyMs}ms via Direct Browser Bridge). Dynamically synchronized {$result['total_synced']} models{$pruneText} ({$result['combos_count']} combos, {$result['free_tier_count']} free-tier pools)!";
             session()->flash('status', $this->statusMessage);
@@ -559,8 +597,8 @@ class AdminOmniRouteSetupPage extends Component
         } catch (Exception $e) {
             $this->connectionStatus = false;
             $this->syncStatus = 'error';
-            $this->statusMessage = "Gateway connection error: " . $e->getMessage();
-            $this->appendProgressLog('error', 'ERROR', "Synchronization failed: " . $e->getMessage());
+            $this->statusMessage = 'Gateway connection error: '.$e->getMessage();
+            $this->appendProgressLog('error', 'ERROR', 'Synchronization failed: '.$e->getMessage());
             session()->flash('error', $this->statusMessage);
         } finally {
             $this->isTesting = false;
@@ -606,7 +644,7 @@ class AdminOmniRouteSetupPage extends Component
                 'component' => 'system',
                 'message' => 'Application console buffer cleared by administrator.',
                 'correlationId' => 'clear_01',
-            ]
+            ],
         ];
         $this->lastUpdated = now()->format('H:i:s');
         session()->flash('status', 'Console log buffer cleared.');
@@ -615,10 +653,10 @@ class AdminOmniRouteSetupPage extends Component
     public function toggleModelStatus(int $modelId)
     {
         $model = AiModel::findOrFail($modelId);
-        $model->is_active = !$model->is_active;
+        $model->is_active = ! $model->is_active;
         $model->save();
 
-        session()->flash('status', "Model '{$model->name}' is now " . ($model->is_active ? 'Active' : 'Offline') . ".");
+        session()->flash('status', "Model '{$model->name}' is now ".($model->is_active ? 'Active' : 'Offline').'.');
     }
 
     public function setDefaultRoutingModel(string $modelId)
@@ -634,7 +672,7 @@ class AdminOmniRouteSetupPage extends Component
         $provider = AiProvider::where('slug', 'omniroute')->first();
         if ($provider) {
             AiModel::where('ai_provider_id', $provider->id)->update(['is_active' => $active]);
-            session()->flash('status', "All OmniRoute models have been " . ($active ? 'Enabled' : 'Disabled') . ".");
+            session()->flash('status', 'All OmniRoute models have been '.($active ? 'Enabled' : 'Disabled').'.');
         }
     }
 
@@ -642,14 +680,14 @@ class AdminOmniRouteSetupPage extends Component
     {
         try {
             $rawUrl = trim((string) $this->base_url);
-            if (!empty($rawUrl)) {
-                if (!preg_match('#^https?://#i', $rawUrl)) {
+            if (! empty($rawUrl)) {
+                if (! preg_match('#^https?://#i', $rawUrl)) {
                     $rawUrl = (str_contains($rawUrl, 'localhost') || str_contains($rawUrl, '127.0.0.1'))
                         ? "http://{$rawUrl}"
                         : "https://{$rawUrl}";
                 }
                 $cleanUrl = rtrim($rawUrl, '/');
-                if (!preg_match('#/v1$#i', $cleanUrl)) {
+                if (! preg_match('#/v1$#i', $cleanUrl)) {
                     $cleanUrl .= '/v1';
                 }
                 $this->base_url = $cleanUrl;
@@ -691,7 +729,7 @@ class AdminOmniRouteSetupPage extends Component
             session()->flash('status', "OmniRoute Gateway configuration saved and endpoint set to {$this->base_url}.");
         } catch (Exception $e) {
             $this->saveStatus = 'error';
-            session()->flash('error', 'Failed to save settings: ' . $e->getMessage());
+            session()->flash('error', 'Failed to save settings: '.$e->getMessage());
         }
     }
 
@@ -716,10 +754,10 @@ class AdminOmniRouteSetupPage extends Component
 
         $query = $provider ? AiModel::where('ai_provider_id', $provider->id) : AiModel::query();
 
-        if (!empty($this->modelSearch)) {
+        if (! empty($this->modelSearch)) {
             $query->where(function ($q) {
-                $q->where('name', 'like', '%' . $this->modelSearch . '%')
-                  ->orWhere('model_id', 'like', '%' . $this->modelSearch . '%');
+                $q->where('name', 'like', '%'.$this->modelSearch.'%')
+                    ->orWhere('model_id', 'like', '%'.$this->modelSearch.'%');
             });
         }
 
@@ -743,10 +781,10 @@ class AdminOmniRouteSetupPage extends Component
             $query->where('supports_reasoning', true);
         }
 
-        if (!empty($this->modelVendorFilter)) {
+        if (! empty($this->modelVendorFilter)) {
             $query->where(function ($q) {
-                $q->where('model_id', 'like', $this->modelVendorFilter . '/%')
-                  ->orWhere('owned_by', $this->modelVendorFilter);
+                $q->where('model_id', 'like', $this->modelVendorFilter.'/%')
+                    ->orWhere('owned_by', $this->modelVendorFilter);
             });
         }
 
@@ -757,22 +795,34 @@ class AdminOmniRouteSetupPage extends Component
         // Filtered Console Logs matching OmniRoute log filtering
         $filteredLogs = collect($this->consoleLogs)->filter(function ($log) {
             $level = strtolower($log['level'] ?? 'info');
-            if ($this->logLevelFilter === 'debug' && !in_array($level, ['debug', 'info', 'warn', 'error', 'fatal'])) return false;
-            if ($this->logLevelFilter === 'info' && !in_array($level, ['info', 'warn', 'error', 'fatal'])) return false;
-            if ($this->logLevelFilter === 'warn' && !in_array($level, ['warn', 'error', 'fatal'])) return false;
-            if ($this->logLevelFilter === 'error' && !in_array($level, ['error', 'fatal'])) return false;
-            
-            if (!empty($this->logSearch)) {
+            if ($this->logLevelFilter === 'debug' && ! in_array($level, ['debug', 'info', 'warn', 'error', 'fatal'])) {
+                return false;
+            }
+            if ($this->logLevelFilter === 'info' && ! in_array($level, ['info', 'warn', 'error', 'fatal'])) {
+                return false;
+            }
+            if ($this->logLevelFilter === 'warn' && ! in_array($level, ['warn', 'error', 'fatal'])) {
+                return false;
+            }
+            if ($this->logLevelFilter === 'error' && ! in_array($level, ['error', 'fatal'])) {
+                return false;
+            }
+
+            if (! empty($this->logSearch)) {
                 $search = strtolower($this->logSearch);
                 $msg = strtolower($log['message'] ?? '');
                 $comp = strtolower($log['component'] ?? '');
                 $cid = strtolower($log['correlationId'] ?? '');
+
                 return str_contains($msg, $search) || str_contains($comp, $search) || str_contains($cid, $search);
             }
+
             return true;
         })->values()->all();
 
-        $untestedCount = $provider ? AiModel::where('ai_provider_id', $provider->id)->where(function($q){ $q->whereNull('last_test_status')->orWhere('last_test_status', 'untested'); })->count() : AiModel::whereNull('last_test_status')->count();
+        $untestedCount = $provider ? AiModel::where('ai_provider_id', $provider->id)->where(function ($q) {
+            $q->whereNull('last_test_status')->orWhere('last_test_status', 'untested');
+        })->count() : AiModel::whereNull('last_test_status')->count();
 
         $vendors = $provider ? AiModel::where('ai_provider_id', $provider->id)
             ->select('owned_by', DB::raw('count(*) as count'))
@@ -782,7 +832,7 @@ class AdminOmniRouteSetupPage extends Component
             ->orderBy('count', 'desc')
             ->get() : collect();
 
-        $graphData = app(\App\Features\AI\Services\OmniRouteGraphTelemetryService::class)->generate(
+        $graphData = app(OmniRouteGraphTelemetryService::class)->generate(
             $this->graphTimeRange,
             null, // null = platform-wide admin metrics
             $this->graphStatusFilter

@@ -6,7 +6,6 @@ use App\Features\Documents\Actions\CreateDocumentShare;
 use App\Features\Documents\Actions\RevokeDocumentShare;
 use App\Features\Documents\Models\Document;
 use App\Features\Documents\Models\DocumentContent;
-use App\Features\Documents\Models\DocumentShare;
 use App\Features\Documents\Services\DocumentExporter;
 use App\Features\Documents\Services\DocumentImporter;
 use App\Models\User;
@@ -20,6 +19,7 @@ class DocumentImportExportSharingTest extends TestCase
     use RefreshDatabase;
 
     protected User $user;
+
     protected Document $document;
 
     protected function setUp(): void
@@ -27,7 +27,7 @@ class DocumentImportExportSharingTest extends TestCase
         parent::setUp();
 
         $this->user = User::factory()->create([
-            'email' => 'author_' . uniqid() . '@example.com',
+            'email' => 'author_'.uniqid().'@example.com',
             'role' => 'user',
         ]);
 
@@ -50,7 +50,7 @@ class DocumentImportExportSharingTest extends TestCase
 
     public function test_document_can_be_exported_to_markdown()
     {
-        $exporter = new DocumentExporter();
+        $exporter = new DocumentExporter;
         $md = $exporter->exportMarkdown($this->document);
 
         $this->assertStringContainsString('# Mastering AI SEO 2026', $md);
@@ -61,7 +61,7 @@ class DocumentImportExportSharingTest extends TestCase
 
     public function test_document_can_be_exported_to_html()
     {
-        $exporter = new DocumentExporter();
+        $exporter = new DocumentExporter;
         $html = $exporter->exportHtml($this->document);
 
         $this->assertStringContainsString('<!DOCTYPE html>', $html);
@@ -72,7 +72,7 @@ class DocumentImportExportSharingTest extends TestCase
 
     public function test_document_can_be_exported_to_plain_text()
     {
-        $exporter = new DocumentExporter();
+        $exporter = new DocumentExporter;
         $txt = $exporter->exportPlainText($this->document);
 
         $this->assertStringContainsString('Mastering AI SEO 2026', $txt);
@@ -83,7 +83,7 @@ class DocumentImportExportSharingTest extends TestCase
 
     public function test_document_can_be_exported_to_docx_mime()
     {
-        $exporter = new DocumentExporter();
+        $exporter = new DocumentExporter;
         $docx = $exporter->exportDocx($this->document);
 
         $this->assertStringContainsString('urn:schemas-microsoft-com:office:word', $docx);
@@ -92,7 +92,7 @@ class DocumentImportExportSharingTest extends TestCase
 
     public function test_document_can_be_exported_to_json_ast()
     {
-        $exporter = new DocumentExporter();
+        $exporter = new DocumentExporter;
         $json = $exporter->exportJson($this->document);
 
         $this->assertJson($json);
@@ -147,7 +147,7 @@ class DocumentImportExportSharingTest extends TestCase
 
     public function test_document_can_be_imported_from_markdown_file()
     {
-        $importer = new DocumentImporter();
+        $importer = new DocumentImporter;
 
         $markdownContent = "# Complete Guide to Content Architecture\n\n**Structured writing** is the foundation of high-converting copies.\n\n- Point 1\n- Point 2";
         $uploadedFile = UploadedFile::fake()->createWithContent('content-guide.md', $markdownContent);
@@ -167,7 +167,7 @@ class DocumentImportExportSharingTest extends TestCase
 
     public function test_public_document_share_can_be_created_and_accessed()
     {
-        $action = new CreateDocumentShare();
+        $action = new CreateDocumentShare;
         $share = $action->execute($this->document, [
             'allow_copy' => true,
             'allow_download' => true,
@@ -187,7 +187,7 @@ class DocumentImportExportSharingTest extends TestCase
 
     public function test_password_protected_document_share_requires_valid_password()
     {
-        $action = new CreateDocumentShare();
+        $action = new CreateDocumentShare;
         $share = $action->execute($this->document, [
             'password' => 'secret123',
             'allow_copy' => true,
@@ -208,8 +208,8 @@ class DocumentImportExportSharingTest extends TestCase
 
     public function test_revoking_document_share_deactivates_public_access()
     {
-        $createAction = new CreateDocumentShare();
-        $revokeAction = new RevokeDocumentShare();
+        $createAction = new CreateDocumentShare;
+        $revokeAction = new RevokeDocumentShare;
 
         $share = $createAction->execute($this->document);
         $this->assertTrue($share->is_active);
@@ -223,7 +223,7 @@ class DocumentImportExportSharingTest extends TestCase
 
     public function test_public_share_allows_format_downloads_when_enabled()
     {
-        $action = new CreateDocumentShare();
+        $action = new CreateDocumentShare;
         $share = $action->execute($this->document, [
             'allow_download' => true,
         ]);
