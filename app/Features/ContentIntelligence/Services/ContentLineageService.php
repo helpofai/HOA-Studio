@@ -66,11 +66,14 @@ class ContentLineageService
         $runId = $workflowRun?->id;
         $projId = $document->project_id ?? $workflowRun?->project_id;
 
-        // Fetch claims and evidence available for this run or user
+        // Fetch claims available to this user — claim_nodes has no user_id or workflow_run_id column.
+        // Scope via content_missions that belong to the user.
         $availableClaims = ClaimNode::query()
-            ->when($runId, fn ($q) => $q->where('workflow_run_id', $runId))
-            ->where('user_id', $userId)
-            ->with(['source', 'evidenceSnippet'])
+            ->whereIn(
+                'mission_id',
+                \App\Features\ContentIntelligence\Models\ContentMission::where('user_id', $userId)->select('id')
+            )
+            ->with(['source'])
             ->get();
 
         $content = (string) ($document->content instanceof DocumentContent

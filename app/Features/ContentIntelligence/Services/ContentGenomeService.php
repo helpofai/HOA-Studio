@@ -62,10 +62,10 @@ class ContentGenomeService
             'description' => $e->description,
         ])->toArray();
 
-        // 4. Claims DNA (Gather verified claims)
-        $claims = ClaimNode::where('workflow_run_id', $run->id)->take(20)->get();
+        // 4. Claims DNA (Gather verified claims via mission relationship)
+        $claims = ClaimNode::where('mission_id', $mission->id)->take(20)->get();
         $claimsDna = $claims->map(fn (ClaimNode $c) => [
-            'claim_text' => $c->claim_text,
+            'claim_text' => $c->statement,
             'epistemic_state' => $c->epistemic_state,
             'confidence' => $c->confidence_score,
         ])->toArray();
@@ -170,10 +170,14 @@ class ContentGenomeService
             'description' => $e->description,
         ])->toArray();
 
-        // 4. Claims DNA
-        $claims = ClaimNode::where('user_id', $userId)->take(20)->get();
+        // 4. Claims DNA — claim_nodes links to content_missions (no direct user_id column)
+        //    Query via subquery joining through content_missions that belong to the user.
+        $claims = ClaimNode::whereIn(
+            'mission_id',
+            \App\Features\ContentIntelligence\Models\ContentMission::where('user_id', $userId)->select('id')
+        )->take(20)->get();
         $claimsDna = $claims->map(fn (ClaimNode $c) => [
-            'claim_text' => $c->claim_text,
+            'claim_text' => $c->statement,
             'epistemic_state' => $c->epistemic_state,
             'confidence' => $c->confidence_score,
         ])->toArray();
