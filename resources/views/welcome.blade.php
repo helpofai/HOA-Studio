@@ -123,7 +123,7 @@
                 </div>
 
                 <!-- Live Alpine.js Studio Simulation Component (Loaded safely via Alpine.data) -->
-                <div 
+                <div
                     x-data="multiEditorDemo"
                     class="glass-elevated rounded-3xl overflow-hidden border border-white/15 shadow-2xl space-y-0 relative hoa-editor-shadow"
                 >
@@ -142,10 +142,10 @@
                                 <span class="text-[11px] text-indigo-400/90 font-mono font-semibold hidden md:inline shrink-0">
                                     Articles /
                                 </span>
-                                <input 
-                                    type="text" 
-                                    x-model="documentTitle" 
-                                    placeholder="Document Title..." 
+                                <input
+                                    type="text"
+                                    x-model="documentTitle"
+                                    placeholder="Document Title..."
                                     class="text-xs sm:text-sm font-extrabold text-white bg-transparent border-b border-transparent hover:border-white/20 focus:border-indigo-500 focus:outline-none px-1 py-0.5 transition-all w-full max-w-xs sm:max-w-sm truncate"
                                 />
                             </div>
@@ -174,29 +174,29 @@
 
                             <!-- Panel Toggle Buttons (AI, Zen Focus, Intel) -->
                             <div class="flex items-center rounded-xl bg-slate-950 p-0.5 border border-white/10">
-                                <button 
-                                    type="button" 
-                                    x-on:click="toggleLeftPanel()" 
+                                <button
+                                    type="button"
+                                    x-on:click="toggleLeftPanel()"
                                     :class="showLeftPanel ? 'bg-indigo-600/40 text-indigo-300 font-bold border border-indigo-500/40' : 'text-slate-400 hover:text-white border border-transparent'"
-                                    class="px-2 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer" 
+                                    class="px-2 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer"
                                     title="Toggle AI Command Center"
                                 >
                                     ◧ AI
                                 </button>
-                                <button 
-                                    type="button" 
-                                    x-on:click="toggleFocusMode()" 
+                                <button
+                                    type="button"
+                                    x-on:click="toggleFocusMode()"
                                     :class="(!showLeftPanel && !showRightPanel) ? 'bg-purple-600/40 text-purple-300 font-bold border border-purple-500/40' : 'text-slate-400 hover:text-white border border-transparent'"
-                                    class="px-2 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer" 
+                                    class="px-2 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer"
                                     title="Zen Focus Mode"
                                 >
                                     Zen
                                 </button>
-                                <button 
-                                    type="button" 
-                                    x-on:click="toggleRightPanel()" 
+                                <button
+                                    type="button"
+                                    x-on:click="toggleRightPanel()"
                                     :class="showRightPanel ? 'bg-emerald-600/40 text-emerald-300 font-bold border border-emerald-500/40' : 'text-slate-400 hover:text-white border border-transparent'"
-                                    class="px-2 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer" 
+                                    class="px-2 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer"
                                     title="Toggle Content Intelligence"
                                 >
                                     ◨ Intel
@@ -208,7 +208,7 @@
                     <!-- ========================================================================= -->
                     <!-- 3-COLUMN STUDIO WORKSPACE GRID                                            -->
                     <!-- ========================================================================= -->
-                    <div 
+                    <div
                         class="grid grid-cols-1 gap-0 items-start min-h-[580px]"
                         :class="{
                             'lg:grid-cols-[290px_1fr_320px]': showLeftPanel && showRightPanel,
@@ -218,9 +218,9 @@
                         }"
                     >
                         <!-- ─── COLUMN 1: AI COMMAND CENTER (OMNIRoute Gateway) ──────── -->
-                        <div 
-                            x-show="showLeftPanel" 
-                            x-transition 
+                        <div
+                            x-show="showLeftPanel"
+                            x-transition
                             class="border-r border-white/10 p-4 sm:p-5 bg-slate-950/85 flex flex-col justify-between text-xs space-y-4 h-full"
                         >
                             <div class="space-y-3.5">
@@ -296,15 +296,15 @@
                                         <label class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">✦ Ask AI / Custom Prompt</label>
                                         <span class="text-[9px] font-mono text-indigo-400">Cmd+K</span>
                                     </div>
-                                    <textarea 
-                                        x-model="aiPromptText" 
-                                        rows="2" 
+                                    <textarea
+                                        x-model="aiPromptText"
+                                        rows="2"
                                         class="w-full bg-slate-900 border border-white/15 rounded-xl p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 resize-none font-sans leading-relaxed shadow-inner"
                                     ></textarea>
-                                    <button 
-                                        type="button" 
-                                        x-on:click="runDemoAi('generate')" 
-                                        :disabled="isStreaming" 
+                                    <button
+                                        type="button"
+                                        x-on:click="runDemoAi('generate')"
+                                        :disabled="isStreaming"
                                         :class="isStreaming ? 'btn-shimmer' : ''"
                                         class="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs shadow-md shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-75"
                                     >
@@ -361,8 +361,8 @@
                         <div class="p-4 sm:p-6 flex flex-col justify-between bg-slate-900/40 border-r border-white/10 min-h-[580px]">
                             <div class="space-y-4">
                                 <!-- Direct In-Canvas AI Generation Active Telemetry Stream Bar -->
-                                <div 
-                                    x-show="isStreaming" 
+                                <div
+                                    x-show="isStreaming"
                                     x-cloak
                                     x-transition
                                     class="px-4 py-2 rounded-2xl bg-indigo-950/90 border border-indigo-500/50 shadow-xl flex items-center justify-between gap-3 text-xs animate-in"
@@ -403,9 +403,9 @@
                                         <button type="button" class="px-2 py-1 rounded-lg hover:bg-white/10 transition-colors font-mono">&lt;/&gt;</button>
                                         <button type="button" class="px-2 py-1 rounded-lg hover:bg-white/10 transition-colors font-serif">“ ”</button>
                                     </div>
-                                    <button 
-                                        type="button" 
-                                        x-on:click="showInlinePrompt = !showInlinePrompt" 
+                                    <button
+                                        type="button"
+                                        x-on:click="showInlinePrompt = !showInlinePrompt"
                                         class="px-2 py-1 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 text-[10.5px] font-mono flex items-center gap-1 transition-all cursor-pointer"
                                     >
                                         <span>✦ In-Canvas AI</span>
@@ -414,7 +414,7 @@
                                 </div>
 
                                 <!-- In-Canvas Floating AI Prompt Bar (Cmd+K / Slash Command) -->
-                                <div 
+                                <div
                                     x-show="showInlinePrompt"
                                     x-cloak
                                     x-transition
@@ -576,9 +576,9 @@ Modern content production platforms demand high-throughput intelligence routing 
                         </div>
 
                         <!-- ─── COLUMN 3: CONTENT INTELLIGENCE & SEO AUDIT (RIGHT) ────── -->
-                        <div 
-                            x-show="showRightPanel" 
-                            x-transition 
+                        <div
+                            x-show="showRightPanel"
+                            x-transition
                             class="p-4 sm:p-5 bg-slate-950/85 flex flex-col justify-between text-xs space-y-4 h-full"
                         >
                             <div class="space-y-3.5">
@@ -966,9 +966,9 @@ Modern content production platforms demand high-throughput intelligence routing 
                         10 ultra-lightweight, CSS-only animated loading states engineered for high-performance Livewire & Alpine micro-interactions.
                     </p>
                     <div class="mt-6 flex items-center justify-center gap-3">
-                        <button 
-                            type="button" 
-                            @click="demoLoading = !demoLoading" 
+                        <button
+                            type="button"
+                            @click="demoLoading = !demoLoading"
                             class="px-4 py-2 rounded-xl bg-slate-900 border border-indigo-500/40 text-indigo-300 hover:text-white text-xs font-mono font-bold shadow-lg shadow-indigo-600/20 hover:border-indigo-400 transition-all cursor-pointer flex items-center gap-2"
                         >
                             <span class="w-2 h-2 rounded-full" :class="demoLoading ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'"></span>
@@ -1098,9 +1098,9 @@ Modern content production platforms demand high-throughput intelligence routing 
                 <div class="space-y-4">
                     <!-- FAQ 1 -->
                     <div class="glass-standard rounded-2xl p-5 border border-white/10 transition-all">
-                        <button 
-                            type="button" 
-                            @click="activeFaq = (activeFaq === 1 ? null : 1)" 
+                        <button
+                            type="button"
+                            @click="activeFaq = (activeFaq === 1 ? null : 1)"
                             class="w-full flex items-center justify-between text-left font-bold text-white text-base cursor-pointer"
                         >
                             <span>Can I really switch between Tiptap, Notion, Gutenberg, and Markdown without losing my formatting?</span>
@@ -1113,9 +1113,9 @@ Modern content production platforms demand high-throughput intelligence routing 
 
                     <!-- FAQ 2 -->
                     <div class="glass-standard rounded-2xl p-5 border border-white/10 transition-all">
-                        <button 
-                            type="button" 
-                            @click="activeFaq = (activeFaq === 2 ? null : 2)" 
+                        <button
+                            type="button"
+                            @click="activeFaq = (activeFaq === 2 ? null : 2)"
                             class="w-full flex items-center justify-between text-left font-bold text-white text-base cursor-pointer"
                         >
                             <span>Which AI models can I use with OmniRoute?</span>
@@ -1128,9 +1128,9 @@ Modern content production platforms demand high-throughput intelligence routing 
 
                     <!-- FAQ 3 -->
                     <div class="glass-standard rounded-2xl p-5 border border-white/10 transition-all">
-                        <button 
-                            type="button" 
-                            @click="activeFaq = (activeFaq === 3 ? null : 3)" 
+                        <button
+                            type="button"
+                            @click="activeFaq = (activeFaq === 3 ? null : 3)"
                             class="w-full flex items-center justify-between text-left font-bold text-white text-base cursor-pointer"
                         >
                             <span>Does HelpOfAi Studio run on standard cPanel / shared hosting?</span>
@@ -1143,9 +1143,9 @@ Modern content production platforms demand high-throughput intelligence routing 
 
                     <!-- FAQ 4 -->
                     <div class="glass-standard rounded-2xl p-5 border border-white/10 transition-all">
-                        <button 
-                            type="button" 
-                            @click="activeFaq = (activeFaq === 4 ? null : 4)" 
+                        <button
+                            type="button"
+                            @click="activeFaq = (activeFaq === 4 ? null : 4)"
                             class="w-full flex items-center justify-between text-left font-bold text-white text-base cursor-pointer"
                         >
                             <span>How does the Real-Time SEO scoring work?</span>
@@ -1158,9 +1158,9 @@ Modern content production platforms demand high-throughput intelligence routing 
 
                     <!-- FAQ 5 -->
                     <div class="glass-standard rounded-2xl p-5 border border-white/10 transition-all">
-                        <button 
-                            type="button" 
-                            @click="activeFaq = (activeFaq === 5 ? null : 5)" 
+                        <button
+                            type="button"
+                            @click="activeFaq = (activeFaq === 5 ? null : 5)"
                             class="w-full flex items-center justify-between text-left font-bold text-white text-base cursor-pointer"
                         >
                             <span>What happens if an AI rewrite makes an unwanted change?</span>
@@ -1335,7 +1335,7 @@ Modern content production platforms demand high-throughput intelligence routing 
                             this.isStreaming = true;
                             this.receivedTokens = 0;
                             this.streamingToken = 'Routing prompt to ' + this.selectedAiModel + ' via OmniRoute proxy...';
-                            
+
                             let interval = setInterval(() => {
                                 if (this.receivedTokens < 180) {
                                     this.receivedTokens += 36;

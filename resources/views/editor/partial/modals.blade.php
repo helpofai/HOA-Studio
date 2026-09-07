@@ -38,9 +38,9 @@
 
         <div class="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
             <button type="button" @click="closeShareModalInstant()" class="px-4 py-2 rounded-xl text-slate-400 hover:text-white text-xs font-semibold cursor-pointer">Close</button>
-            <button 
-                type="button" 
-                wire:click="createOrUpdateShare" 
+            <button
+                type="button"
+                wire:click="createOrUpdateShare"
                 wire:loading.attr="disabled"
                 wire:target="createOrUpdateShare"
                 class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 cursor-pointer disabled:opacity-50 flex items-center gap-2"
@@ -91,16 +91,16 @@
                     </div>
                     <div class="flex items-center gap-2">
                         <input type="text" readonly value="{{ $blogPublishedUrl }}" class="flex-1 bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-slate-200 font-mono select-all focus:outline-none" />
-                        <button 
-                            type="button" 
-                            onclick="navigator.clipboard.writeText('{{ $blogPublishedUrl }}'); alert('Blog article link copied!');" 
+                        <button
+                            type="button"
+                            onclick="navigator.clipboard.writeText('{{ $blogPublishedUrl }}'); alert('Blog article link copied!');"
                             class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition-colors cursor-pointer"
                         >
                             Copy
                         </button>
-                        <a 
-                            href="{{ $blogPublishedUrl }}" 
-                            target="_blank" 
+                        <a
+                            href="{{ $blogPublishedUrl }}"
+                            target="_blank"
                             class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all flex items-center gap-1 cursor-pointer shadow-lg shadow-emerald-600/20"
                         >
                             <span>View Post</span>
@@ -115,10 +115,10 @@
                 <!-- Title -->
                 <div>
                     <label class="text-xs font-semibold text-slate-300 block mb-1.5">Article Headline</label>
-                    <input 
-                        type="text" 
-                        wire:model="blogTitle" 
-                        placeholder="Article Headline..." 
+                    <input
+                        type="text"
+                        wire:model="blogTitle"
+                        placeholder="Article Headline..."
                         class="w-full bg-slate-900 border border-white/10 focus:border-violet-500 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none transition-colors"
                         required
                     />
@@ -129,10 +129,10 @@
                     <label class="text-xs font-semibold text-slate-300 block mb-1.5">URL Permalink Slug</label>
                     <div class="flex items-center">
                         <span class="px-3 py-2.5 rounded-l-xl bg-slate-950/80 border border-r-0 border-white/10 text-xs text-slate-500 font-mono">/blog/</span>
-                        <input 
-                            type="text" 
-                            wire:model="blogSlug" 
-                            placeholder="my-awesome-article" 
+                        <input
+                            type="text"
+                            wire:model="blogSlug"
+                            placeholder="my-awesome-article"
                             class="flex-1 bg-slate-900 border border-white/10 focus:border-violet-500 rounded-r-xl px-3 py-2.5 text-xs text-white font-mono focus:outline-none transition-colors"
                         />
                     </div>
@@ -161,20 +161,20 @@
                 <!-- Tags -->
                 <div>
                     <label class="text-xs font-semibold text-slate-300 block mb-1.5">Tags (Comma Separated)</label>
-                    <input 
-                        type="text" 
-                        wire:model="blogTags" 
-                        placeholder="AI, Writing, Marketing, TipTap, Strategy" 
+                    <input
+                        type="text"
+                        wire:model="blogTags"
+                        placeholder="AI, Writing, Marketing, TipTap, Strategy"
                         class="w-full bg-slate-900 border border-white/10 focus:border-violet-500 rounded-xl px-3 py-2 text-xs text-white focus:outline-none transition-colors"
                     />
                 </div>
 
                 <!-- Featured Image Upload & Cover -->
-                <div 
-                    x-data="{ 
-                        isUploadingModal: false, 
-                        progressModal: 0, 
-                        isDroppingModal: false 
+                <div
+                    x-data="{
+                        isUploadingModal: false,
+                        progressModal: 0,
+                        isDroppingModal: false
                     }"
                     x-on:livewire-upload-start="isUploadingModal = true; progressModal = 0"
                     x-on:livewire-upload-finish="isUploadingModal = false"
@@ -185,9 +185,9 @@
                     <div class="flex items-center justify-between">
                         <label class="text-xs font-semibold text-slate-300">Featured Cover Image</label>
                         @if(!empty($blogFeaturedImage))
-                            <button 
-                                type="button" 
-                                wire:click="removeFeaturedImage" 
+                            <button
+                                type="button"
+                                wire:click="removeFeaturedImage"
                                 class="text-[11px] text-rose-400 hover:text-rose-300 font-medium transition-colors cursor-pointer flex items-center gap-1"
                             >
                                 <span>🗑️ Remove</span>
@@ -196,16 +196,16 @@
                     </div>
 
                     <!-- Upload & Preview Dropzone Container -->
-                    <div 
+                    <div
                         class="relative rounded-2xl border-2 border-dashed border-white/20 hover:border-violet-500/50 bg-slate-900/60 hover:bg-slate-900/90 transition-all text-center flex flex-col items-center justify-center cursor-pointer overflow-hidden shadow-inner h-36 group"
                         x-on:dragover.prevent="isDroppingModal = true"
                         x-on:dragleave.prevent="isDroppingModal = false"
                         x-on:drop="isDroppingModal = false"
                         :class="{ 'border-violet-500 bg-violet-950/30': isDroppingModal }"
                     >
-                        <input 
-                            type="file" 
-                            wire:model="featuredImageUpload" 
+                        <input
+                            type="file"
+                            wire:model="featuredImageUpload"
                             accept="image/png,image/jpeg,image/jpg,image/webp,image/gif,image/svg+xml,image/avif,image/bmp,image/x-icon,image/tiff"
                             class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
                             :class="{ 'pointer-events-none': isUploadingModal }"
@@ -213,9 +213,9 @@
                         />
 
                         <!-- Progress Bar Overlay (Modal) -->
-                        <div 
-                            x-show="isUploadingModal" 
-                            x-cloak 
+                        <div
+                            x-show="isUploadingModal"
+                            x-cloak
                             class="absolute inset-0 z-30 bg-slate-950/95 backdrop-blur-sm flex flex-col items-center justify-center gap-2 px-6"
                         >
                             <div class="flex items-center justify-between w-full max-w-[240px] text-[11px]">
@@ -226,7 +226,7 @@
                                 <span class="text-violet-400 font-mono font-bold" x-text="`${progressModal}%`"></span>
                             </div>
                             <div class="w-full max-w-[240px] bg-slate-800 rounded-full h-2 overflow-hidden border border-white/10 shadow-inner">
-                                <div 
+                                <div
                                     class="bg-gradient-to-r from-violet-500 via-indigo-500 to-pink-500 h-full rounded-full transition-all duration-150"
                                     :style="`width: ${Math.max(progressModal, 5)}%`"
                                 ></div>
@@ -235,10 +235,10 @@
                         </div>
 
                         <!-- Processing State Indicator -->
-                        <div 
-                            wire:loading 
-                            wire:target="featuredImageUpload" 
-                            x-show="!isUploadingModal" 
+                        <div
+                            wire:loading
+                            wire:target="featuredImageUpload"
+                            x-show="!isUploadingModal"
                             class="absolute inset-0 z-30 bg-slate-950/90 backdrop-blur-sm flex flex-col items-center justify-center gap-2"
                         >
                             <div class="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
@@ -270,20 +270,20 @@
                         @endif
                     </div>
 
-                    @error('featuredImageUpload') 
+                    @error('featuredImageUpload')
                         <div class="p-2 rounded-xl bg-rose-500/10 text-rose-400 text-xs flex items-center gap-1.5">
                             <span>⚠️</span>
                             <span>{{ $message }}</span>
-                        </div> 
+                        </div>
                     @enderror
 
                     <!-- Image URL Input -->
                     <div class="space-y-1 pt-1">
                         <label class="text-[10px] text-slate-400 font-mono block">Featured Cover Image URL (Optional)</label>
-                        <input 
-                            type="url" 
-                            wire:model.live.debounce.400ms="blogFeaturedImage" 
-                            placeholder="https://images.unsplash.com/photo-..." 
+                        <input
+                            type="url"
+                            wire:model.live.debounce.400ms="blogFeaturedImage"
+                            placeholder="https://images.unsplash.com/photo-..."
                             class="w-full bg-slate-900 border border-white/10 focus:border-violet-500 rounded-xl px-3 py-2 text-xs text-white focus:outline-none transition-colors font-mono"
                         />
                     </div>
@@ -293,9 +293,9 @@
                 <div>
                     <div class="flex items-center justify-between mb-1.5">
                         <label class="text-xs font-semibold text-slate-300">Article Summary / Excerpt</label>
-                        <button 
-                            type="button" 
-                            wire:click="generateBlogExcerpt" 
+                        <button
+                            type="button"
+                            wire:click="generateBlogExcerpt"
                             wire:loading.attr="disabled"
                             wire:target="generateBlogExcerpt"
                             class="text-[11px] text-violet-400 hover:text-violet-300 font-semibold cursor-pointer transition-colors disabled:opacity-50"
@@ -304,10 +304,10 @@
                             <span wire:loading wire:target="generateBlogExcerpt" class="inline-block animate-pulse text-[10px]">Generating...</span>
                         </button>
                     </div>
-                    <textarea 
-                        wire:model="blogExcerpt" 
-                        rows="3" 
-                        placeholder="Brief 1-2 sentence teaser to hook readers in the blog feed..." 
+                    <textarea
+                        wire:model="blogExcerpt"
+                        rows="3"
+                        placeholder="Brief 1-2 sentence teaser to hook readers in the blog feed..."
                         class="w-full bg-slate-900 border border-white/10 focus:border-violet-500 rounded-xl p-3 text-xs text-slate-200 focus:outline-none transition-colors resize-none"
                     ></textarea>
                 </div>
@@ -326,9 +326,9 @@
             <div class="flex items-center justify-between gap-3 pt-4 border-t border-white/10">
                 <div>
                     @if($isPublishedToBlog)
-                        <button 
-                            type="button" 
-                            wire:click="unpublishFromBlog" 
+                        <button
+                            type="button"
+                            wire:click="unpublishFromBlog"
                             wire:loading.attr="disabled"
                             wire:target="unpublishFromBlog"
                             wire:confirm="Are you sure you want to unpublish this article from the public blog? It will be switched to draft."
@@ -344,9 +344,9 @@
                     <button type="button" @click="closeBlogModalInstant()" class="px-4 py-2 rounded-xl text-slate-400 hover:text-white text-xs font-semibold cursor-pointer">
                         Cancel
                     </button>
-                    <button 
-                        type="button" 
-                        wire:click="publishToBlog" 
+                    <button
+                        type="button"
+                        wire:click="publishToBlog"
                         wire:loading.attr="disabled"
                         class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-violet-600/30 transition-all cursor-pointer"
                     >
@@ -361,16 +361,16 @@
     </div>
 
 <!-- Universal Document Import Studio Modal -->
-<div 
-    x-show="showImportModalLocal || $wire.showImportModal" 
-    x-cloak 
-    style="display: none;" 
+<div
+    x-show="showImportModalLocal || $wire.showImportModal"
+    x-cloak
+    style="display: none;"
     class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/85 backdrop-blur-md"
-    role="dialog" 
+    role="dialog"
     aria-modal="true"
 >
     <div x-data="{ currentMode: $wire.entangle('importInsertMode') }" class="w-full max-w-5xl max-h-[92vh] rounded-3xl glass-elevated border border-indigo-500/30 p-5 sm:p-7 flex flex-col shadow-2xl animate-in fade-in zoom-in-95 duration-200 relative overflow-hidden">
-        
+
         <!-- Modal Header -->
         <div class="flex items-center justify-between pb-4 border-b border-white/10 shrink-0">
             <div class="flex items-center gap-3">
@@ -387,9 +387,9 @@
                     <p class="text-xs text-slate-400">Extract formatted text, headings, tables & deep content intelligence from multi-format files.</p>
                 </div>
             </div>
-            <button 
-                type="button" 
-                @click="closeImportModalInstant()" 
+            <button
+                type="button"
+                @click="closeImportModalInstant()"
                 class="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-all cursor-pointer"
                 title="Close"
             >
@@ -421,7 +421,7 @@
                 @if(!$extractedDocument)
                     <!-- DROPZONE / UPLOAD VIEW -->
                     <div class="space-y-4">
-                        <div 
+                        <div
                             class="relative rounded-3xl border-2 border-dashed border-white/20 hover:border-indigo-500/50 bg-slate-900/40 hover:bg-slate-900/70 transition-all p-8 sm:p-12 text-center group flex flex-col items-center justify-center gap-4 cursor-pointer overflow-hidden"
                             x-data="{ isDropping: false }"
                             x-on:dragover.prevent="isDropping = true"
@@ -429,9 +429,9 @@
                             x-on:drop="isDropping = false"
                             :class="{ 'border-indigo-500 bg-indigo-950/30': isDropping }"
                         >
-                            <input 
-                                type="file" 
-                                wire:model="importFile" 
+                            <input
+                                type="file"
+                                wire:model="importFile"
                                 accept=".docx,.pdf,.md,.markdown,.html,.htm,.txt,.csv,.json"
                                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
                             />
@@ -514,9 +514,9 @@
                             </div>
 
                             <div class="flex items-center gap-2">
-                                <button 
-                                    type="button" 
-                                    wire:click="resetImportState" 
+                                <button
+                                    type="button"
+                                    wire:click="resetImportState"
                                     class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold border border-white/10 transition-all cursor-pointer"
                                 >
                                     🔄 Import Different File
@@ -538,8 +538,8 @@
 
                                     <div class="space-y-2">
                                         <!-- Mode 1: Replace Canvas -->
-                                        <div 
-                                            @click="currentMode = 'replace'; $wire.importInsertMode = 'replace'" 
+                                        <div
+                                            @click="currentMode = 'replace'; $wire.importInsertMode = 'replace'"
                                             class="p-3 rounded-xl border transition-all cursor-pointer flex items-start gap-3"
                                             :class="currentMode === 'replace' ? 'bg-indigo-950/40 border-indigo-500/60 shadow-md shadow-indigo-500/10' : 'bg-slate-950/40 border-white/5 hover:border-white/15'"
                                         >
@@ -555,8 +555,8 @@
                                         </div>
 
                                         <!-- Mode 2: Append to Bottom -->
-                                        <div 
-                                            @click="currentMode = 'append'; $wire.importInsertMode = 'append'" 
+                                        <div
+                                            @click="currentMode = 'append'; $wire.importInsertMode = 'append'"
                                             class="p-3 rounded-xl border transition-all cursor-pointer flex items-start gap-3"
                                             :class="currentMode === 'append' ? 'bg-indigo-950/40 border-indigo-500/60 shadow-md shadow-indigo-500/10' : 'bg-slate-950/40 border-white/5 hover:border-white/15'"
                                         >
@@ -572,8 +572,8 @@
                                         </div>
 
                                         <!-- Mode 3: Insert at Caret -->
-                                        <div 
-                                            @click="currentMode = 'cursor'; $wire.importInsertMode = 'cursor'" 
+                                        <div
+                                            @click="currentMode = 'cursor'; $wire.importInsertMode = 'cursor'"
                                             class="p-3 rounded-xl border transition-all cursor-pointer flex items-start gap-3"
                                             :class="currentMode === 'cursor' ? 'bg-indigo-950/40 border-indigo-500/60 shadow-md shadow-indigo-500/10' : 'bg-slate-950/40 border-white/5 hover:border-white/15'"
                                         >
@@ -589,8 +589,8 @@
                                         </div>
 
                                         <!-- Mode 4: Create as New Document -->
-                                        <div 
-                                            @click="currentMode = 'new_doc'; $wire.importInsertMode = 'new_doc'" 
+                                        <div
+                                            @click="currentMode = 'new_doc'; $wire.importInsertMode = 'new_doc'"
                                             class="p-3 rounded-xl border transition-all cursor-pointer flex items-start gap-3"
                                             :class="currentMode === 'new_doc' ? 'bg-indigo-950/40 border-indigo-500/60 shadow-md shadow-indigo-500/10' : 'bg-slate-950/40 border-white/5 hover:border-white/15'"
                                         >
@@ -617,7 +617,7 @@
                                         <div class="flex items-center justify-between p-2 rounded-xl bg-slate-950/50 border border-white/5">
                                             <span class="text-slate-400">Readability</span>
                                             <span class="font-bold text-indigo-300">
-                                                {{ $extractedDocument['readability']['flesch_reading_ease'] ?? 0 }}/100 
+                                                {{ $extractedDocument['readability']['flesch_reading_ease'] ?? 0 }}/100
                                                 <span class="text-[10px] text-slate-400">({{ $extractedDocument['readability']['reading_level_label'] ?? 'Standard' }})</span>
                                             </span>
                                         </div>
@@ -665,9 +665,9 @@
 
                                 <!-- Tab Navigation -->
                                 <div class="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-900/90 border border-white/10 shrink-0">
-                                    <button 
-                                        type="button" 
-                                        x-on:click="activeImportTab = 'preview'" 
+                                    <button
+                                        type="button"
+                                        x-on:click="activeImportTab = 'preview'"
                                         :class="activeImportTab === 'preview' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:text-white'"
                                         class="flex-1 py-1.5 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5"
                                     >
@@ -675,9 +675,9 @@
                                         <span>Canvas Preview</span>
                                     </button>
 
-                                    <button 
-                                        type="button" 
-                                        x-on:click="activeImportTab = 'analysis'" 
+                                    <button
+                                        type="button"
+                                        x-on:click="activeImportTab = 'analysis'"
                                         :class="activeImportTab === 'analysis' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:text-white'"
                                         class="flex-1 py-1.5 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5"
                                     >
@@ -685,9 +685,9 @@
                                         <span>Content Intelligence</span>
                                     </button>
 
-                                    <button 
-                                        type="button" 
-                                        x-on:click="activeImportTab = 'raw'" 
+                                    <button
+                                        type="button"
+                                        x-on:click="activeImportTab = 'raw'"
                                         :class="activeImportTab === 'raw' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:text-white'"
                                         class="flex-1 py-1.5 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5"
                                     >
@@ -831,15 +831,15 @@
 
                                 <!-- TAB 3: RAW CLEAN TEXT -->
                                 <div x-show="activeImportTab === 'raw'" class="flex-1 flex flex-col min-h-0 space-y-2" style="display: none;">
-                                    <textarea 
-                                        readonly 
-                                        rows="12" 
+                                    <textarea
+                                        readonly
+                                        rows="12"
                                         class="w-full flex-1 p-4 rounded-2xl bg-slate-950/80 border border-white/10 font-mono text-[11px] text-slate-300 leading-relaxed focus:outline-none resize-none select-all"
                                     >{{ $extractedDocument['plain_text'] }}</textarea>
                                     <div class="flex items-center justify-between text-[11px] text-slate-400 px-1">
                                         <span>{{ number_format(strlen($extractedDocument['plain_text'])) }} characters</span>
-                                        <button 
-                                            type="button" 
+                                        <button
+                                            type="button"
                                             onclick="navigator.clipboard.writeText({{ json_encode($extractedDocument['plain_text']) }}); alert('Raw text copied to clipboard!');"
                                             class="text-indigo-400 hover:text-indigo-300 font-semibold cursor-pointer"
                                         >
@@ -857,9 +857,9 @@
 
             <!-- Modal Footer -->
             <div class="flex items-center justify-between gap-3 pt-4 mt-3 border-t border-white/10 shrink-0">
-                <button 
-                    type="button" 
-                    @click="closeImportModalInstant()" 
+                <button
+                    type="button"
+                    @click="closeImportModalInstant()"
                     class="px-4 py-2 rounded-xl text-slate-400 hover:text-white text-xs font-semibold cursor-pointer transition-colors"
                 >
                     Cancel
@@ -867,17 +867,17 @@
 
                 <div class="flex items-center gap-2.5">
                     @if($extractedDocument)
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             onclick="navigator.clipboard.writeText({{ json_encode($extractedDocument['html']) }}); alert('HTML copied to clipboard!');"
                             class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold border border-white/10 transition-all cursor-pointer"
                         >
                             📋 Copy HTML
                         </button>
 
-                        <button 
-                            type="button" 
-                            wire:click="confirmImport" 
+                        <button
+                            type="button"
+                            wire:click="confirmImport"
                             wire:loading.attr="disabled"
                             wire:target="confirmImport"
                             class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 transition-all cursor-pointer flex items-center gap-2"

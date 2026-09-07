@@ -202,8 +202,11 @@ class TipTapDocumentAssembler
             // Graceful fallback if article brain service encountered an issue
         }
 
-        // Phase 6: Content Lineage Extraction & Autonomous Learning Engine Harvest
+        // Phase 5 & 6: Content Health Quality Audit, Risk Assessment, Lineage & Genome Synthesis
         try {
+            app(QualityEngineService::class)->auditContentHealth($run, ['text' => $fullHtml]);
+            app(ContentRiskEngineService::class)->assessRisk($run);
+            app(ContentGenomeService::class)->synthesizeGenome($run);
             app(ContentLineageService::class)->extractAndRecordDocumentLineage($document, $run);
             app(AutonomousLearningEngineService::class)->harvestWorkflowRunLessons($run);
         } catch (\Throwable) {

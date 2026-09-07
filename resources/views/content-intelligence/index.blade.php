@@ -39,8 +39,8 @@
             </div>
 
             <div class="flex items-center gap-3 shrink-0">
-                <button 
-                    wire:click="openCreateModal" 
+                <button
+                    wire:click="openCreateModal"
                     class="px-5 py-3 rounded-2xl bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 hover:from-violet-500 hover:to-indigo-500 text-white text-sm font-bold shadow-xl shadow-violet-600/30 border border-violet-400/40 flex items-center gap-2.5 transition-all hover:scale-[1.02] active:scale-98 cursor-pointer"
                 >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
@@ -127,8 +127,8 @@
 
                 <div class="flex items-center gap-2">
                     @if ($selectedRun->status->value !== 'completed')
-                        <button 
-                            wire:click="stepWorkflow({{ $selectedRun->id }})" 
+                        <button
+                            wire:click="stepWorkflow({{ $selectedRun->id }})"
                             wire:loading.attr="disabled"
                             class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white flex items-center gap-1.5 shadow-md shadow-indigo-600/20 cursor-pointer disabled:opacity-50 transition-all hover:scale-[1.02]"
                         >
@@ -137,8 +137,8 @@
                             <span wire:loading wire:target="stepWorkflow({{ $selectedRun->id }})" class="animate-spin">⟳</span>
                         </button>
 
-                        <button 
-                            wire:click="runFullWorkflow({{ $selectedRun->id }})" 
+                        <button
+                            wire:click="runFullWorkflow({{ $selectedRun->id }})"
                             wire:loading.attr="disabled"
                             class="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 text-white flex items-center gap-1.5 shadow-lg shadow-violet-600/20 cursor-pointer disabled:opacity-50 transition-all hover:scale-[1.02]"
                         >
@@ -147,8 +147,8 @@
                             <span wire:loading wire:target="runFullWorkflow({{ $selectedRun->id }})" class="animate-spin">⟳</span>
                         </button>
                     @else
-                        <a 
-                            href="{{ route('documents.editor', $selectedRun->document_id) }}" 
+                        <a
+                            href="{{ route('documents.editor', $selectedRun->document_id) }}"
                             wire:navigate
                             class="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 text-white flex items-center gap-1.5 shadow-lg shadow-emerald-600/20"
                         >
@@ -157,8 +157,8 @@
                         </a>
                     @endif
 
-                    <button 
-                        wire:click="selectRun(null)" 
+                    <button
+                        wire:click="selectRun(null)"
                         class="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-xs cursor-pointer"
                         title="Close Inspector"
                     >✕</button>
@@ -189,7 +189,7 @@
                         $isCurrent = ($selectedRun->current_node === $nodeKey && $selectedRun->status->value !== 'completed');
                         $isDone = ($rec && $rec->status === 'success');
                     @endphp
-                    <div 
+                    <div
                         class="p-3 rounded-2xl flex flex-col items-center text-center transition-all relative border {{ $isCurrent ? 'bg-gradient-to-b from-indigo-950/80 to-violet-950/80 border-indigo-400 shadow-xl shadow-indigo-500/20' : ($isDone ? 'bg-slate-950/80 border-emerald-500/30' : 'bg-slate-950/40 border-white/5 opacity-60') }}"
                     >
                         <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm mb-1.5 {{ $isDone ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : ($isCurrent ? 'bg-indigo-500/30 text-indigo-300 border border-indigo-400 animate-pulse' : 'bg-white/5 text-slate-400') }}">
@@ -235,26 +235,26 @@
                     <!-- Filter buttons & Search -->
                     <div class="flex flex-wrap items-center gap-2">
                         <div class="relative">
-                            <input 
-                                type="text" 
-                                wire:model.live.debounce.300ms="search" 
-                                placeholder="Search missions..." 
+                            <input
+                                type="text"
+                                wire:model.live.debounce.300ms="search"
+                                placeholder="Search missions..."
                                 class="w-40 sm:w-48 pl-7 pr-2.5 py-1 rounded-xl bg-slate-950 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
                             />
                             <span class="absolute left-2.5 top-1.5 text-slate-500 text-xs">🔍</span>
                         </div>
 
                         <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-white/10 text-xs">
-                            <button 
-                                wire:click="$set('filterStatus', 'all')" 
+                            <button
+                                wire:click="$set('filterStatus', 'all')"
                                 class="px-2.5 py-1 rounded-lg transition-all {{ $filterStatus === 'all' ? 'bg-violet-600 text-white font-semibold shadow-sm' : 'text-slate-400 hover:text-white' }}"
                             >All</button>
-                            <button 
-                                wire:click="$set('filterStatus', 'running')" 
+                            <button
+                                wire:click="$set('filterStatus', 'running')"
                                 class="px-2.5 py-1 rounded-lg transition-all {{ $filterStatus === 'running' ? 'bg-violet-600 text-white font-semibold shadow-sm' : 'text-slate-400 hover:text-white' }}"
                             >Running</button>
-                            <button 
-                                wire:click="$set('filterStatus', 'completed')" 
+                            <button
+                                wire:click="$set('filterStatus', 'completed')"
                                 class="px-2.5 py-1 rounded-lg transition-all {{ $filterStatus === 'completed' ? 'bg-violet-600 text-white font-semibold shadow-sm' : 'text-slate-400 hover:text-white' }}"
                             >Completed</button>
                         </div>
@@ -266,8 +266,8 @@
                         <div class="w-16 h-16 rounded-3xl bg-violet-600/10 border border-violet-500/20 flex items-center justify-center text-3xl mx-auto mb-3">🎯</div>
                         <h3 class="text-base font-bold text-white mb-1">No Content Missions Found</h3>
                         <p class="text-slate-400 text-xs max-w-sm mx-auto mb-5">Launch your first autonomous mission to trigger multi-stage research, knowledge extraction, and TipTap document creation.</p>
-                        <button 
-                            wire:click="openCreateModal" 
+                        <button
+                            wire:click="openCreateModal"
                             class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 text-white text-xs font-semibold shadow-lg shadow-violet-600/20 cursor-pointer"
                         >
                             Initialize First Mission
@@ -281,8 +281,8 @@
                                 $completedStages = $run->nodes->where('status', 'success')->count();
                                 $progressPercent = min(100, round(($completedStages / $totalStages) * 100));
                             @endphp
-                            <div 
-                                wire:key="run-card-{{ $run->id }}" 
+                            <div
+                                wire:key="run-card-{{ $run->id }}"
                                 class="p-4 rounded-2xl border transition-all relative overflow-hidden {{ $selectedRunId === $run->id ? 'bg-gradient-to-r from-violet-950/40 via-slate-900/90 to-indigo-950/30 border-violet-500/60 shadow-xl shadow-violet-500/10' : 'bg-slate-950/70 border-white/5 hover:border-white/20' }}"
                             >
                                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
@@ -315,7 +315,7 @@
 
                                 <!-- Progress Track -->
                                 <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden my-2">
-                                    <div 
+                                    <div
                                         class="h-full rounded-full transition-all duration-500 {{ $run->status->value === 'completed' ? 'bg-gradient-to-r from-emerald-500 to-teal-400' : 'bg-gradient-to-r from-violet-500 to-indigo-500' }}"
                                         style="width: {{ $progressPercent }}%"
                                     ></div>
@@ -323,19 +323,19 @@
 
                                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-slate-400 my-2">
                                     <div>
-                                        <span class="text-slate-500">Active Node:</span> 
+                                        <span class="text-slate-500">Active Node:</span>
                                         <span class="font-mono text-violet-300 font-semibold truncate block">{{ $run->current_node }}</span>
                                     </div>
                                     <div>
-                                        <span class="text-slate-500">Confidence:</span> 
+                                        <span class="text-slate-500">Confidence:</span>
                                         <span class="text-slate-200 font-bold">{{ round($run->overall_confidence * 100) }}%</span>
                                     </div>
                                     <div>
-                                        <span class="text-slate-500">Stages Done:</span> 
+                                        <span class="text-slate-500">Stages Done:</span>
                                         <span class="text-slate-200">{{ $completedStages }} / 10 ({{ $progressPercent }}%)</span>
                                     </div>
                                     <div>
-                                        <span class="text-slate-500">Budget Tier:</span> 
+                                        <span class="text-slate-500">Budget Tier:</span>
                                         <span class="text-slate-200 uppercase font-semibold text-[10px]">{{ $run->mission->research_budget_tier->value ?? 'STANDARD' }}</span>
                                     </div>
                                 </div>
@@ -343,17 +343,17 @@
                                 <!-- Action Buttons Row -->
                                 <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-white/5 mt-2">
                                     <div class="flex items-center gap-2">
-                                        <button 
-                                            wire:click="selectRun({{ $run->id }})" 
+                                        <button
+                                            wire:click="selectRun({{ $run->id }})"
                                             class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer {{ $selectedRunId === $run->id ? 'bg-violet-600 text-white shadow-md shadow-violet-600/30' : 'bg-white/5 hover:bg-white/10 text-slate-300' }}"
                                         >
                                             Inspect Graph 🔍
                                         </button>
 
                                         @if ($run->document_id)
-                                            <a 
-                                                href="{{ route('documents.editor', $run->document_id) }}" 
-                                                wire:navigate 
+                                            <a
+                                                href="{{ route('documents.editor', $run->document_id) }}"
+                                                wire:navigate
                                                 class="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600/25 hover:bg-emerald-600/35 text-emerald-200 border border-emerald-500/40 flex items-center gap-1 shadow-sm"
                                             >
                                                 <span>✍️ Open TipTap</span>
@@ -363,16 +363,16 @@
 
                                     <div class="flex items-center gap-2">
                                         @if ($run->status->value !== 'completed')
-                                            <button 
-                                                wire:click="stepWorkflow({{ $run->id }})" 
+                                            <button
+                                                wire:click="stepWorkflow({{ $run->id }})"
                                                 wire:loading.attr="disabled"
                                                 class="px-3 py-1.5 rounded-xl text-xs font-medium bg-indigo-600/80 hover:bg-indigo-600 text-white flex items-center gap-1 cursor-pointer disabled:opacity-50"
                                             >
                                                 <span>Step Node</span>
                                             </button>
 
-                                            <button 
-                                                wire:click="runFullWorkflow({{ $run->id }})" 
+                                            <button
+                                                wire:click="runFullWorkflow({{ $run->id }})"
                                                 wire:loading.attr="disabled"
                                                 class="px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 text-white flex items-center gap-1 cursor-pointer disabled:opacity-50 shadow-md shadow-violet-600/20"
                                             >
@@ -380,8 +380,8 @@
                                             </button>
                                         @endif
 
-                                        <button 
-                                            wire:click="deleteRun({{ $run->id }})" 
+                                        <button
+                                            wire:click="deleteRun({{ $run->id }})"
                                             wire:confirm="Are you sure you want to remove this workflow run?"
                                             class="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/30 transition-colors cursor-pointer text-xs"
                                             title="Delete Run"
@@ -425,48 +425,48 @@
 
                     <!-- Inspector Multi-Tab Navigation -->
                     <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-2xl border border-white/10 overflow-x-auto text-xs">
-                        <button 
-                            wire:click="setInspectorTab('progression')" 
+                        <button
+                            wire:click="setInspectorTab('progression')"
                             class="px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-all {{ $inspectorTab === 'progression' ? 'bg-violet-600 text-white shadow-md' : 'text-slate-400 hover:text-white' }}"
                         >⚡ Progression</button>
-                        <button 
-                            wire:click="setInspectorTab('dossier')" 
+                        <button
+                            wire:click="setInspectorTab('dossier')"
                             class="px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-all {{ $inspectorTab === 'dossier' ? 'bg-violet-600 text-white shadow-md' : 'text-slate-400 hover:text-white' }}"
                         >📋 Mission</button>
-                        <button 
-                            wire:click="setInspectorTab('claims')" 
+                        <button
+                            wire:click="setInspectorTab('claims')"
                             class="px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-all {{ $inspectorTab === 'claims' ? 'bg-violet-600 text-white shadow-md' : 'text-slate-400 hover:text-white' }}"
                         >🧬 Claims ({{ $selectedRun->mission->claims->count() }})</button>
-                        <button 
-                            wire:click="setInspectorTab('blueprint')" 
+                        <button
+                            wire:click="setInspectorTab('blueprint')"
                             class="px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-all {{ $inspectorTab === 'blueprint' ? 'bg-violet-600 text-white shadow-md' : 'text-slate-400 hover:text-white' }}"
                         >📐 Blueprint</button>
-                        <button 
-                            wire:click="setInspectorTab('drafts')" 
+                        <button
+                            wire:click="setInspectorTab('drafts')"
                             class="px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-all {{ $inspectorTab === 'drafts' ? 'bg-violet-600 text-white shadow-md' : 'text-slate-400 hover:text-white' }}"
                         >✍️ Drafts ({{ $selectedRun->drafts->count() }})</button>
-                        <button 
-                            wire:click="setInspectorTab('seo')" 
+                        <button
+                            wire:click="setInspectorTab('seo')"
                             class="px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-all {{ $inspectorTab === 'seo' ? 'bg-violet-600 text-white shadow-md' : 'text-slate-400 hover:text-white' }}"
                         >🎯 SEO</button>
-                        <button 
-                            wire:click="setInspectorTab('memory_os')" 
+                        <button
+                            wire:click="setInspectorTab('memory_os')"
                             class="px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-all {{ $inspectorTab === 'memory_os' ? 'bg-violet-600 text-white shadow-md' : 'text-slate-400 hover:text-white' }}"
                         >🧠 Memory OS ({{ $memories->count() }})</button>
-                        <button 
-                            wire:click="setInspectorTab('world_truth')" 
+                        <button
+                            wire:click="setInspectorTab('world_truth')"
                             class="px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-all {{ $inspectorTab === 'world_truth' ? 'bg-violet-600 text-white shadow-md' : 'text-slate-400 hover:text-white' }}"
                         >🌐 World & Truth</button>
-                        <button 
-                            wire:click="setInspectorTab('agents_router')" 
+                        <button
+                            wire:click="setInspectorTab('agents_router')"
                             class="px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-all {{ $inspectorTab === 'agents_router' ? 'bg-violet-600 text-white shadow-md' : 'text-slate-400 hover:text-white' }}"
                         >🤖 Agents & Router</button>
-                        <button 
-                            wire:click="setInspectorTab('health_repairs')" 
+                        <button
+                            wire:click="setInspectorTab('health_repairs')"
                             class="px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-all {{ $inspectorTab === 'health_repairs' ? 'bg-violet-600 text-white shadow-md' : 'text-slate-400 hover:text-white' }}"
                         >🔬 Health & Micro-Repair</button>
-                        <button 
-                            wire:click="setInspectorTab('lineage_learning')" 
+                        <button
+                            wire:click="setInspectorTab('lineage_learning')"
                             class="px-3 py-1.5 rounded-xl font-semibold whitespace-nowrap transition-all {{ $inspectorTab === 'lineage_learning' ? 'bg-violet-600 text-white shadow-md' : 'text-slate-400 hover:text-white' }}"
                         >🧭 Lineage & Strategy</button>
                     </div>
@@ -677,8 +677,8 @@
                             <!-- Controls: Layer Filter & Evaluate Decay -->
                             <div class="flex items-center justify-between gap-2 p-2.5 rounded-2xl bg-slate-950/80 border border-white/5">
                                 <div class="flex items-center gap-1">
-                                    <select 
-                                        wire:model.live="memoryFilterLayer" 
+                                    <select
+                                        wire:model.live="memoryFilterLayer"
                                         class="px-2.5 py-1 rounded-xl bg-slate-900 border border-white/10 text-xs text-white focus:outline-none focus:border-violet-500"
                                     >
                                         <option value="all">All Cognitive Layers</option>
@@ -690,8 +690,8 @@
                                         <option value="brand">Brand Voice</option>
                                     </select>
 
-                                    <select 
-                                        wire:model.live="memoryFilterScope" 
+                                    <select
+                                        wire:model.live="memoryFilterScope"
                                         class="px-2.5 py-1 rounded-xl bg-slate-900 border border-white/10 text-xs text-white focus:outline-none focus:border-violet-500"
                                     >
                                         <option value="all">All Scopes</option>
@@ -701,8 +701,8 @@
                                     </select>
                                 </div>
 
-                                <button 
-                                    wire:click="triggerDecayCheck" 
+                                <button
+                                    wire:click="triggerDecayCheck"
                                     class="px-3 py-1 rounded-xl bg-violet-600/30 hover:bg-violet-600/50 border border-violet-500/40 text-violet-300 text-xs font-semibold flex items-center gap-1 cursor-pointer transition-all"
                                     title="Evaluate Freshness Decay & Flag Stale Claims"
                                 >
@@ -716,7 +716,7 @@
                                     <div class="p-3 rounded-xl bg-slate-950/60 border {{ $mem->status->value === 'active' ? 'border-white/5' : 'border-amber-500/30 bg-amber-950/10' }} space-y-1.5 text-xs">
                                         <div class="flex items-center justify-between">
                                             <div class="flex items-center gap-1.5">
-                                                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider 
+                                                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider
                                                     {{ $mem->layer->value === 'brand' ? 'bg-amber-500/20 text-amber-300' : ($mem->layer->value === 'working' ? 'bg-indigo-500/20 text-indigo-300' : 'bg-violet-500/20 text-violet-300') }}">
                                                     {{ $mem->layer->value }}
                                                 </span>
@@ -739,8 +739,8 @@
 
                                         @if ($mem->subject)
                                             <div class="font-bold text-white text-xs">
-                                                <span class="text-violet-400">{{ $mem->subject }}</span> 
-                                                <span class="text-slate-400 font-mono text-[11px]">{{ $mem->predicate }}</span> 
+                                                <span class="text-violet-400">{{ $mem->subject }}</span>
+                                                <span class="text-slate-400 font-mono text-[11px]">{{ $mem->predicate }}</span>
                                                 <span class="text-emerald-300 font-normal">"{{ $mem->object }}"</span>
                                             </div>
                                         @else
@@ -777,7 +777,7 @@
                                                 @endif
                                             </div>
 
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold 
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold
                                                 {{ $cand->gate_status === 'admitted' ? 'bg-emerald-500/20 text-emerald-300' : ($cand->gate_status === 'merged' ? 'bg-indigo-500/20 text-indigo-300' : 'bg-rose-500/20 text-rose-300') }}">
                                                 {{ strtoupper($cand->gate_status) }}
                                             </span>
@@ -795,21 +795,21 @@
                                     <span class="text-[10px] text-rose-400/80">Level 3 Article Brain Downstream Invalidator</span>
                                 </div>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                    <input 
-                                        type="text" 
-                                        wire:model="invalidationSubject" 
-                                        placeholder="Fact Subject (e.g. PHP 8.3)" 
+                                    <input
+                                        type="text"
+                                        wire:model="invalidationSubject"
+                                        placeholder="Fact Subject (e.g. PHP 8.3)"
                                         class="px-2.5 py-1.5 rounded-xl bg-slate-950 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-rose-500"
                                     />
-                                    <input 
-                                        type="text" 
-                                        wire:model="invalidationReason" 
-                                        placeholder="Invalidation reason (e.g. Deprecated)" 
+                                    <input
+                                        type="text"
+                                        wire:model="invalidationReason"
+                                        placeholder="Invalidation reason (e.g. Deprecated)"
                                         class="px-2.5 py-1.5 rounded-xl bg-slate-950 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-rose-500"
                                     />
                                 </div>
-                                <button 
-                                    wire:click="triggerInvalidation" 
+                                <button
+                                    wire:click="triggerInvalidation"
                                     class="w-full py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all shadow-md shadow-rose-600/20 cursor-pointer"
                                 >
                                     Invalidate Fact & Mark Affected Sentences Stale
@@ -909,11 +909,11 @@
                                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Select Claim to Trace Lineage:</label>
                                         <div class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
                                             @foreach ($selectedRun->mission->claims as $c)
-                                                <button 
-                                                    wire:click="selectClaim({{ $c->id }})" 
+                                                <button
+                                                    wire:click="selectClaim({{ $c->id }})"
                                                     class="px-2.5 py-1 rounded-xl text-[10px] font-semibold transition-all cursor-pointer border
-                                                        {{ ($selectedClaimId ?? $selectedRun->mission->claims->first()?->id) === $c->id 
-                                                            ? 'bg-violet-600 border-violet-400 text-white shadow-sm' 
+                                                        {{ ($selectedClaimId ?? $selectedRun->mission->claims->first()?->id) === $c->id
+                                                            ? 'bg-violet-600 border-violet-400 text-white shadow-sm'
                                                             : 'bg-slate-900/80 border-white/10 text-slate-300 hover:bg-slate-800' }}"
                                                     title="{{ $c->statement }}"
                                                 >
@@ -1080,8 +1080,8 @@
                                                 <span class="text-[9px] text-slate-500 font-mono truncate max-w-[140px]">
                                                     {{ implode(', ', array_map(fn($t) => $t->value, $agent->getSupportedTaskTypes())) }}
                                                 </span>
-                                                <button 
-                                                    wire:click="dispatchWorkerAgent('{{ $name }}')" 
+                                                <button
+                                                    wire:click="dispatchWorkerAgent('{{ $name }}')"
                                                     wire:loading.attr="disabled"
                                                     class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-[10px] font-bold text-white transition-all shadow-sm cursor-pointer"
                                                 >
@@ -1247,7 +1247,7 @@
                                         @else
                                             <span class="text-[10px] text-slate-400 font-mono">Unassessed</span>
                                         @endif
-                                        <button 
+                                        <button
                                             wire:click="runQualityAudit"
                                             wire:loading.attr="disabled"
                                             class="px-2.5 py-1 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-[11px] font-semibold transition-all shadow-sm cursor-pointer disabled:opacity-50"
@@ -1316,7 +1316,7 @@
                                             <div class="text-[10px] text-slate-400 font-mono">Ladder: Sentence ➔ Paragraph ➔ Section ➔ Article</div>
                                         </div>
                                     </div>
-                                    <button 
+                                    <button
                                         wire:click="triggerMicroRepair"
                                         wire:loading.attr="disabled"
                                         class="px-2.5 py-1 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 text-white text-[11px] font-semibold transition-all shadow-sm cursor-pointer disabled:opacity-50"
@@ -1400,7 +1400,7 @@
                                     @if ($riskAssessment->requires_human_approval && ! $riskAssessment->is_approved_by_human)
                                         <div class="p-3 rounded-xl bg-rose-950/30 border border-rose-500/30 flex items-center justify-between text-xs">
                                             <span class="text-rose-300 font-semibold">High-risk verification gate active. Grant human signoff before final publishing.</span>
-                                            <button 
+                                            <button
                                                 wire:click="approveRiskGate"
                                                 class="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold transition-all shadow-md cursor-pointer"
                                             >
@@ -1422,7 +1422,7 @@
                                         <span class="text-sm">🧬</span>
                                         <span class="text-xs font-bold text-white uppercase tracking-wider">Content Genome (Reusable Knowledge DNA)</span>
                                     </div>
-                                    <button 
+                                    <button
                                         wire:click="synthesizeContentGenome"
                                         wire:loading.attr="disabled"
                                         class="px-2.5 py-1 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] font-semibold transition-all shadow-sm cursor-pointer disabled:opacity-50"
@@ -1482,7 +1482,7 @@
                                         <div class="text-[11px] font-semibold text-slate-400">Tracked Document Sentences:</div>
                                         <div class="space-y-1.5 max-h-56 overflow-y-auto pr-1">
                                             @forelse ($lineageNodes as $node)
-                                                <div 
+                                                <div
                                                     wire:click="selectLineageNode({{ $node->id }})"
                                                     class="p-2 rounded-xl border text-xs cursor-pointer transition-all {{ $selectedLineageNodeId === $node->id ? 'bg-violet-950/60 border-violet-500/60 text-white shadow-sm' : ($node->is_stale ? 'bg-rose-950/30 border-rose-500/30 text-rose-300' : 'bg-slate-900 border-white/5 text-slate-300 hover:bg-slate-850') }}"
                                                 >
@@ -1605,7 +1605,7 @@
 
                                             <div class="flex items-center gap-1.5 self-end sm:self-center">
                                                 @if ($strat->status->value !== 'adopted')
-                                                    <button 
+                                                    <button
                                                         wire:click="adoptStrategyCandidate({{ $strat->id }})"
                                                         class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition-all cursor-pointer shadow-sm"
                                                     >
@@ -1613,7 +1613,7 @@
                                                     </button>
                                                 @endif
                                                 @if ($strat->status->value !== 'rejected')
-                                                    <button 
+                                                    <button
                                                         wire:click="rejectStrategyCandidate({{ $strat->id }})"
                                                         class="px-2 py-1 rounded-lg text-[10px] font-bold bg-white/5 hover:bg-rose-950/40 text-slate-400 hover:text-rose-300 transition-all cursor-pointer"
                                                     >
@@ -1633,14 +1633,14 @@
                                 <div class="p-3 rounded-xl bg-slate-900/90 border border-white/5 space-y-2">
                                     <div class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Register Custom Strategic Observation</div>
                                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                        <input 
-                                            type="text" 
-                                            wire:model="newStrategyKey" 
-                                            placeholder="Strategy Key (e.g. data_table_first)" 
+                                        <input
+                                            type="text"
+                                            wire:model="newStrategyKey"
+                                            placeholder="Strategy Key (e.g. data_table_first)"
                                             class="px-3 py-1.5 rounded-xl bg-slate-950 border border-white/10 text-white text-xs"
                                         />
-                                        <select 
-                                            wire:model="newStrategyCategory" 
+                                        <select
+                                            wire:model="newStrategyCategory"
                                             class="px-3 py-1.5 rounded-xl bg-slate-950 border border-white/10 text-white text-xs"
                                         >
                                             <option value="structure">Structure</option>
@@ -1649,14 +1649,14 @@
                                             <option value="workflow">Workflow</option>
                                             <option value="seo">SEO</option>
                                         </select>
-                                        <input 
-                                            type="text" 
-                                            wire:model="newStrategyRule" 
-                                            placeholder="Behavioral rule definition..." 
+                                        <input
+                                            type="text"
+                                            wire:model="newStrategyRule"
+                                            placeholder="Behavioral rule definition..."
                                             class="px-3 py-1.5 rounded-xl bg-slate-950 border border-white/10 text-white text-xs"
                                         />
                                     </div>
-                                    <button 
+                                    <button
                                         wire:click="recordStrategyObservation"
                                         class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold cursor-pointer transition-all shadow-sm"
                                     >
@@ -1686,7 +1686,7 @@
                                         <div class="p-3 rounded-xl bg-slate-900 border border-white/5 space-y-1 text-xs">
                                             <div class="flex items-center justify-between">
                                                 <span class="font-mono font-bold text-teal-300">{{ $pref->preference_key }}</span>
-                                                <button 
+                                                <button
                                                     wire:click="toggleStylePreference({{ $pref->id }}, {{ $pref->is_active ? 'false' : 'true' }})"
                                                     class="px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer {{ $pref->is_active ? 'bg-emerald-500/20 text-emerald-300' : 'bg-white/5 text-slate-500' }}"
                                                 >
@@ -1710,20 +1710,20 @@
                                 <div class="p-3 rounded-xl bg-slate-900/90 border border-white/5 space-y-2">
                                     <div class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Test Author Diff Analysis</div>
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                        <textarea 
-                                            wire:model="testOriginalEdit" 
-                                            rows="2" 
-                                            placeholder="Original AI generated paragraph..." 
+                                        <textarea
+                                            wire:model="testOriginalEdit"
+                                            rows="2"
+                                            placeholder="Original AI generated paragraph..."
                                             class="w-full p-2 rounded-xl bg-slate-950 border border-white/10 text-xs text-white resize-none"
                                         ></textarea>
-                                        <textarea 
-                                            wire:model="testManualEdit" 
-                                            rows="2" 
-                                            placeholder="Your edited concise version..." 
+                                        <textarea
+                                            wire:model="testManualEdit"
+                                            rows="2"
+                                            placeholder="Your edited concise version..."
                                             class="w-full p-2 rounded-xl bg-slate-950 border border-white/10 text-xs text-white resize-none"
                                         ></textarea>
                                     </div>
-                                    <button 
+                                    <button
                                         wire:click="analyzeUserEditDiff"
                                         class="px-3 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold cursor-pointer transition-all shadow-sm"
                                     >
@@ -1742,7 +1742,7 @@
                                             <div class="text-[10px] text-slate-400 font-mono">Portfolio Clusters, Keyword Cannibalization & Cross-Linking Matrix</div>
                                         </div>
                                     </div>
-                                    <button 
+                                    <button
                                         wire:click="refreshTopicPortfolio"
                                         class="px-2.5 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-semibold transition-all shadow-sm cursor-pointer"
                                     >
@@ -1814,23 +1814,23 @@
                     <!-- Drawer Footer Actions -->
                     <div class="pt-3 border-t border-white/10 flex items-center gap-2">
                         @if ($selectedRun->status->value !== 'completed')
-                            <button 
-                                wire:click="stepWorkflow({{ $selectedRun->id }})" 
+                            <button
+                                wire:click="stepWorkflow({{ $selectedRun->id }})"
                                 wire:loading.attr="disabled"
                                 class="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold cursor-pointer disabled:opacity-50 transition-all shadow-md"
                             >
                                 Step Next Node ⏭
                             </button>
-                            <button 
-                                wire:click="runFullWorkflow({{ $selectedRun->id }})" 
+                            <button
+                                wire:click="runFullWorkflow({{ $selectedRun->id }})"
                                 wire:loading.attr="disabled"
                                 class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 text-white text-xs font-bold cursor-pointer disabled:opacity-50 transition-all shadow-lg shadow-violet-600/20"
                             >
                                 Auto-Run All ⚡
                             </button>
                         @else
-                            <a 
-                                href="{{ route('documents.editor', $selectedRun->document_id) }}" 
+                            <a
+                                href="{{ route('documents.editor', $selectedRun->document_id) }}"
                                 wire:navigate
                                 class="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 text-white text-xs font-bold text-center block shadow-lg shadow-emerald-600/20 transition-all hover:scale-[1.01]"
                             >
@@ -1863,36 +1863,36 @@
                 <div>
                     <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">⚡ Quick Strategy Presets</div>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        <button 
-                            type="button" 
-                            wire:click="applyPreset('technical_guide')" 
+                        <button
+                            type="button"
+                            wire:click="applyPreset('technical_guide')"
                             class="p-2.5 rounded-xl border text-left transition-all cursor-pointer {{ $selectedPreset === 'technical_guide' ? 'bg-violet-600/30 border-violet-400 text-white' : 'bg-slate-950/70 border-white/10 text-slate-300 hover:border-white/20' }}"
                         >
                             <div class="text-xs font-bold">🛠 Tech Guide</div>
                             <div class="text-[10px] text-slate-400">Deep & verified</div>
                         </button>
 
-                        <button 
-                            type="button" 
-                            wire:click="applyPreset('seo_pillar')" 
+                        <button
+                            type="button"
+                            wire:click="applyPreset('seo_pillar')"
                             class="p-2.5 rounded-xl border text-left transition-all cursor-pointer {{ $selectedPreset === 'seo_pillar' ? 'bg-violet-600/30 border-violet-400 text-white' : 'bg-slate-950/70 border-white/10 text-slate-300 hover:border-white/20' }}"
                         >
                             <div class="text-xs font-bold">🎯 SEO Pillar</div>
                             <div class="text-[10px] text-slate-400">Entity-dense 4k+</div>
                         </button>
 
-                        <button 
-                            type="button" 
-                            wire:click="applyPreset('thought_leadership')" 
+                        <button
+                            type="button"
+                            wire:click="applyPreset('thought_leadership')"
                             class="p-2.5 rounded-xl border text-left transition-all cursor-pointer {{ $selectedPreset === 'thought_leadership' ? 'bg-violet-600/30 border-violet-400 text-white' : 'bg-slate-950/70 border-white/10 text-slate-300 hover:border-white/20' }}"
                         >
                             <div class="text-xs font-bold">💡 Opinion & Angle</div>
                             <div class="text-[10px] text-slate-400">Contrarian thesis</div>
                         </button>
 
-                        <button 
-                            type="button" 
-                            wire:click="applyPreset('executive_brief')" 
+                        <button
+                            type="button"
+                            wire:click="applyPreset('executive_brief')"
                             class="p-2.5 rounded-xl border text-left transition-all cursor-pointer {{ $selectedPreset === 'executive_brief' ? 'bg-violet-600/30 border-violet-400 text-white' : 'bg-slate-950/70 border-white/10 text-slate-300 hover:border-white/20' }}"
                         >
                             <div class="text-xs font-bold">📈 Exec Brief</div>
@@ -1908,9 +1908,9 @@
                             <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
                                 Topic / Primary Subject <span class="text-rose-400">*</span>
                             </label>
-                            <input 
-                                type="text" 
-                                wire:model="topic" 
+                            <input
+                                type="text"
+                                wire:model="topic"
                                 placeholder="e.g. Production Redis Queue Scaling with Supervisor"
                                 class="w-full px-4 py-3 rounded-xl bg-slate-950 border border-white/15 text-white text-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-500 focus:outline-none placeholder-slate-500 transition-colors"
                             />
@@ -1921,8 +1921,8 @@
                             <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
                                 Primary Content Objective & Narrative Angle <span class="text-rose-400">*</span>
                             </label>
-                            <textarea 
-                                wire:model="primaryObjective" 
+                            <textarea
+                                wire:model="primaryObjective"
                                 rows="3"
                                 placeholder="e.g. Provide a rigorous architectural guide to scaling queue workers with zero worker drops, memory limits, and SIGTERM signal traps."
                                 class="w-full px-4 py-3 rounded-xl bg-slate-950 border border-white/15 text-white text-sm focus:border-violet-500 focus:ring-1 focus:ring-violet-500 focus:outline-none placeholder-slate-500 transition-colors"
@@ -1935,9 +1935,9 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Target Persona</label>
-                            <input 
-                                type="text" 
-                                wire:model="audiencePersona" 
+                            <input
+                                type="text"
+                                wire:model="audiencePersona"
                                 placeholder="e.g. Senior DevOps / Backend Engineer"
                                 class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-white/15 text-white text-sm focus:border-violet-500 focus:outline-none placeholder-slate-500"
                             />
@@ -1946,8 +1946,8 @@
 
                         <div>
                             <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Expertise Level</label>
-                            <select 
-                                wire:model="expertiseLevel" 
+                            <select
+                                wire:model="expertiseLevel"
                                 class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-white/15 text-white text-sm focus:border-violet-500 focus:outline-none"
                             >
                                 <option value="Beginner">Beginner</option>
@@ -1962,8 +1962,8 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Fact Risk Level</label>
-                            <select 
-                                wire:model="riskLevel" 
+                            <select
+                                wire:model="riskLevel"
                                 class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-white/15 text-white text-sm focus:border-violet-500 focus:outline-none"
                             >
                                 <option value="low">Low (Standard common knowledge)</option>
@@ -1974,8 +1974,8 @@
 
                         <div>
                             <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Research Budget Tier</label>
-                            <select 
-                                wire:model="researchBudgetTier" 
+                            <select
+                                wire:model="researchBudgetTier"
                                 class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-white/15 text-white text-sm focus:border-violet-500 focus:outline-none"
                             >
                                 <option value="quick">Quick (5 Tasks)</option>
@@ -1990,17 +1990,17 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Min Target Words</label>
-                            <input 
-                                type="number" 
-                                wire:model="minWords" 
+                            <input
+                                type="number"
+                                wire:model="minWords"
                                 class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-white/15 text-white text-sm focus:border-violet-500 focus:outline-none"
                             />
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Max Target Words</label>
-                            <input 
-                                type="number" 
-                                wire:model="maxWords" 
+                            <input
+                                type="number"
+                                wire:model="maxWords"
                                 class="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-white/15 text-white text-sm focus:border-violet-500 focus:outline-none"
                             />
                         </div>
@@ -2016,15 +2016,15 @@
 
                     <!-- Modal Actions -->
                     <div class="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
-                        <button 
-                            type="button" 
-                            wire:click="closeCreateModal" 
+                        <button
+                            type="button"
+                            wire:click="closeCreateModal"
                             class="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 text-sm font-medium cursor-pointer"
                         >
                             Cancel
                         </button>
-                        <button 
-                            type="submit" 
+                        <button
+                            type="submit"
                             class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 hover:from-violet-500 text-white text-sm font-bold shadow-xl shadow-violet-600/30 cursor-pointer transition-all hover:scale-[1.02]"
                         >
                             Launch Workflow Run 🚀

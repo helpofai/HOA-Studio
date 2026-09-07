@@ -227,7 +227,7 @@
             <!-- Email Body Content -->
             <div class="email-body">
                 <h2 class="email-heading">{{ $renderedHeading }}</h2>
-                
+
                 <div class="email-text">{!! nl2br(e($renderedBody)) !!}</div>
 
                 @if (!empty($renderedActionUrl) && !empty($renderedActionText))

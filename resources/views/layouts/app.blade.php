@@ -48,8 +48,8 @@
         <div class="absolute -bottom-40 right-1/4 w-[40rem] h-[40rem] bg-purple-900/20 rounded-full blur-[160px]"></div>
 
         <!-- Mouse Cursor Interactive Glow Spotlight -->
-        <div 
-            id="hoa-cursor-spotlight" 
+        <div
+            id="hoa-cursor-spotlight"
             class="fixed top-0 left-0 -mt-64 -ml-64 w-[32rem] h-[32rem] rounded-full pointer-events-none transition-opacity duration-500 ease-out opacity-0 z-0 will-change-transform"
             style="background: radial-gradient(circle at center, rgba(129, 140, 248, 0.12) 0%, rgba(168, 85, 247, 0.06) 35%, rgba(6, 182, 212, 0.02) 65%, transparent 80%); filter: blur(40px);"
         ></div>

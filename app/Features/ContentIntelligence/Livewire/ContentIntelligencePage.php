@@ -754,8 +754,8 @@ class ContentIntelligencePage extends Component
                     $claimLineage = app(DeepEvidenceGraphService::class)->getDeepLineage($claimId);
                     $claimConsensus = app(DeepEvidenceGraphService::class)->calculateConsensus($claimId);
                 }
-            } catch (\Throwable) {
-                // Graceful fallback
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error("TruthLayer render error: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
             }
         }
         $worldEntities = WorldEntity::query()->limit(25)->get();

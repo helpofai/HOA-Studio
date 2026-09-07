@@ -5,8 +5,8 @@
 |--------------------------------------------------------------------------
 */
 --}}
-<div 
-    x-show="showFloatingTelemetry" 
+<div
+    x-show="showFloatingTelemetry"
     x-cloak
     x-transition
     class="fixed z-[9999] shadow-2xl glass-elevated border border-indigo-500/30 rounded-2xl overflow-hidden flex flex-col"
@@ -17,7 +17,7 @@
     @touchend.window="endMoveTelemetry"
 >
     <!-- Window Header -->
-    <div 
+    <div
         @mousedown="startDragTelemetry"
         @touchstart.passive="startDragTelemetry"
         class="bg-indigo-950/90 border-b border-indigo-500/30 px-4 py-2.5 flex items-center justify-between cursor-move hover:bg-indigo-900 transition-colors shrink-0"
@@ -62,7 +62,7 @@
     </div>
 
     <!-- Resize Handle -->
-    <div 
+    <div
         @mousedown="startResizeTelemetry"
         @touchstart.passive="startResizeTelemetry"
         class="absolute bottom-0 right-0 w-5 h-5 cursor-se-resize flex items-end justify-end p-1 opacity-50 hover:opacity-100 z-50 bg-transparent"

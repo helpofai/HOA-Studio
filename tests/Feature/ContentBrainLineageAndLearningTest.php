@@ -55,12 +55,12 @@ class ContentBrainLineageAndLearningTest extends TestCase
         parent::setUp();
 
         $this->user = User::factory()->create([
-            'email' => 'author_lead@helpofai.com',
+            'email' => 'author_lead_'.uniqid().'@helpofai.com',
             'role' => 'user',
         ]);
 
         $this->admin = User::factory()->create([
-            'email' => 'principal_scientist@helpofai.com',
+            'email' => 'principal_scientist_'.uniqid().'@helpofai.com',
             'role' => 'admin',
         ]);
     }

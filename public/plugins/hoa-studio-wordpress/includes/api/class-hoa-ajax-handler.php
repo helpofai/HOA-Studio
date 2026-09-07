@@ -440,7 +440,7 @@ class HOA_Ajax_Handler
         $title = isset($_POST['title']) ? sanitize_text_field(wp_unslash($_POST['title'])) : '';
         $content = isset($_POST['content']) ? wp_strip_all_tags(wp_unslash($_POST['content'])) : '';
 
-        $prompt = "Analyze the following article title and excerpt, then generate a JSON object with: 
+        $prompt = "Analyze the following article title and excerpt, then generate a JSON object with:
 1. 'focus_keyword': The single best primary SEO keyword (2-4 words).
 2. 'meta_title': An engaging, high-CTR SEO title under 60 characters.
 3. 'meta_description': A compelling meta description with call-to-action under 155 characters.

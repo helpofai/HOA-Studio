@@ -72,7 +72,7 @@ debouncedAutosave() {
 
 performAutosave() {
     if (!this.isDirty || this.isTransforming || this.showSubAgentProposal) return;
-    
+
     const ed = this.getEditor();
     const html = ed && ed.getHTML ? ed.getHTML() : '';
     const json = ed && ed.getJSON ? ed.getJSON() : null;
@@ -214,7 +214,7 @@ init() {
                 this.restoredDraftTime = new Date(parsed.timestamp).toLocaleTimeString();
                 this.restoredWordCount = (parsed.html.replace(/<[^>]*>/g, '').trim().split(/\s+/).filter(Boolean)).length;
                 this.addLog('SYSTEM', '✦ Auto-recovered unsaved local draft (' + this.restoredWordCount + ' words)');
-                
+
                 setTimeout(() => {
                     Livewire.dispatch('autosave', { html: parsed.html, json: null });
                 }, 1000);
@@ -268,10 +268,10 @@ init() {
             this.addLog('IMPORT', 'Canvas content replaced from imported document.');
         } else if (mode === 'append') {
             const currentHtml = (ed.getHTML ? ed.getHTML() : '').trim();
-            const isDocEmpty = typeof this.isContentEmpty === 'function' 
-                ? this.isContentEmpty(currentHtml) 
+            const isDocEmpty = typeof this.isContentEmpty === 'function'
+                ? this.isContentEmpty(currentHtml)
                 : (!currentHtml || currentHtml === '<p></p>' || currentHtml === '<p><br></p>' || currentHtml.trim().length === 0);
-            
+
             if (isDocEmpty) {
                 ed.setContent(content, true);
             } else {
@@ -380,8 +380,8 @@ init() {
 
 getEditor() {
     if (!window.hoaEditorInstance) return null;
-    return typeof Alpine !== 'undefined' && Alpine.raw 
-        ? Alpine.raw(window.hoaEditorInstance) 
+    return typeof Alpine !== 'undefined' && Alpine.raw
+        ? Alpine.raw(window.hoaEditorInstance)
         : window.hoaEditorInstance;
 },
 

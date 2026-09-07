@@ -99,7 +99,7 @@
                 </div>
 
                 <!-- Password Input with Live Alpine.js Security Strength Meter & Show Toggle -->
-                <div 
+                <div
                     x-data="{
                         password: $wire.entangle('password'),
                         showPass: false,
@@ -199,7 +199,7 @@
 
                 <!-- Cloudflare Turnstile Challenge (Renders if site key is configured) -->
                 @if (!empty($turnstileSiteKey))
-                    <div 
+                    <div
                         x-data="{
                             initTurnstile() {
                                 if (window.turnstile) {
@@ -235,10 +235,10 @@
                 @endif
 
                 <!-- 1. Classic Spinner Submission Button -->
-                <x-glass.button 
-                    type="submit" 
-                    variant="primary" 
-                    size="md" 
+                <x-glass.button
+                    type="submit"
+                    variant="primary"
+                    size="md"
                     wire-target="register"
                     loader="spinner"
                     loading-text="Creating Account..."

@@ -146,9 +146,9 @@
 
                     </span>
 
-                    <button 
-                        type="button" 
-                        wire:click="generateSeoTitles" 
+                    <button
+                        type="button"
+                        wire:click="generateSeoTitles"
                         wire:loading.attr="disabled"
                         wire:target="generateSeoTitles"
                         class="px-3 py-1 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-mono text-[10.5px] font-bold shadow-md shadow-indigo-600/25 transition-all cursor-pointer disabled:opacity-50"
@@ -172,9 +172,9 @@
                     </div>
 
                     <div class="flex items-center gap-1.5">
-                        <input 
-                            type="text" 
-                            wire:model.lazy="title" 
+                        <input
+                            type="text"
+                            wire:model.lazy="title"
                             maxlength="190"
                             placeholder="Enter primary document title..."
                             class="flex-1 bg-slate-950 border border-white/15 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-sans"
@@ -198,10 +198,10 @@
                                     <span class="text-[9.5px] font-mono text-slate-500">{{ strlen($t) }} chars</span>
                                 </div>
                                 <div class="text-slate-200 text-xs leading-snug font-medium">{{ $t }}</div>
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     x-on:click="$wire.title = @js($t)"
-                                    wire:click="applyTitle(@js($t))" 
+                                    wire:click="applyTitle(@js($t))"
                                     wire:loading.attr="disabled"
                                     wire:target="applyTitle(@js($t))"
                                     class="w-full py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white text-[10.5px] font-bold transition-colors cursor-pointer disabled:opacity-50"
@@ -237,9 +237,9 @@
 
                     </span>
 
-                    <button 
-                        type="button" 
-                        wire:click="generateMetaDescriptions" 
+                    <button
+                        type="button"
+                        wire:click="generateMetaDescriptions"
                         wire:loading.attr="disabled"
                         wire:target="generateMetaDescriptions"
                         class="px-3 py-1 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-mono text-[10.5px] font-bold shadow-md shadow-indigo-600/25 transition-all cursor-pointer disabled:opacity-50"
@@ -269,13 +269,13 @@
 
                     </div>
 
-                    <textarea 
+                    <textarea
 
-                        wire:model.lazy="metaDescription" 
+                        wire:model.lazy="metaDescription"
 
-                        rows="2" 
+                        rows="2"
 
-                        placeholder="Enter compelling meta description..." 
+                        placeholder="Enter compelling meta description..."
 
                         class="w-full bg-slate-950 border border-white/15 rounded-xl p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 resize-none font-sans leading-relaxed shadow-inner"
 
@@ -306,10 +306,10 @@
 
                                     <span class="text-slate-500">{{ strlen($meta) }} chars</span>
 
-                                    <button 
-                                        type="button" 
+                                    <button
+                                        type="button"
                                         x-on:click="$wire.metaDescription = @js($meta)"
-                                        wire:click="applyMetaDescription(@js($meta))" 
+                                        wire:click="applyMetaDescription(@js($meta))"
                                         wire:loading.attr="disabled"
                                         wire:target="applyMetaDescription(@js($meta))"
                                         class="px-2.5 py-1 rounded-lg bg-emerald-600/30 hover:bg-emerald-600 text-emerald-300 hover:text-white font-bold transition-colors disabled:opacity-50 cursor-pointer"

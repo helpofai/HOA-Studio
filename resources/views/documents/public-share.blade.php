@@ -23,9 +23,9 @@
 */
 --}}
 
-<div 
+<div
     class="min-h-screen bg-slate-950 text-slate-100 selection:bg-indigo-500/30 selection:text-indigo-200 py-10 px-4 sm:px-6"
-    x-data="{ 
+    x-data="{
         copied: false,
         theme: 'dark',
         copyContent() {
@@ -63,16 +63,16 @@
                 @endif
 
                 <form wire:submit="unlock" class="space-y-4">
-                    <input 
-                        type="password" 
-                        wire:model="passwordInput" 
+                    <input
+                        type="password"
+                        wire:model="passwordInput"
                         placeholder="Enter password..."
                         class="w-full bg-slate-900 border border-white/15 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 text-center tracking-widest"
                         required
                     />
 
-                    <button 
-                        type="submit" 
+                    <button
+                        type="submit"
                         class="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 transition-all cursor-pointer"
                     >
                         Unlock & View Document
@@ -99,8 +99,8 @@
 
                 <div class="flex items-center gap-2 flex-wrap">
                     <!-- Theme Toggle -->
-                    <button 
-                        type="button" 
+                    <button
+                        type="button"
                         @click="theme = (theme === 'dark' ? 'light' : 'dark')"
                         class="p-2 rounded-xl border text-xs transition-all cursor-pointer"
                         :class="theme === 'light' ? 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200' : 'bg-slate-900 border-white/10 text-slate-300 hover:text-white'"
@@ -111,8 +111,8 @@
 
                     <!-- Copy Content Button -->
                     @if($share->allow_copy)
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             @click="copyContent()"
                             class="px-3 py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5"
                             :class="theme === 'light' ? 'bg-slate-100 border-slate-300 text-slate-800 hover:bg-slate-200' : 'bg-slate-900 border-white/10 text-slate-300 hover:text-white'"
@@ -125,8 +125,8 @@
                     <!-- Download Export Formats -->
                     @if($share->allow_download)
                         <div class="relative" x-data="{ open: false }">
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 @click="open = !open"
                                 @click.outside="open = false"
                                 class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/30 transition-all cursor-pointer flex items-center gap-1.5"
@@ -135,8 +135,8 @@
                                 <span class="text-[10px]">▼</span>
                             </button>
 
-                            <div 
-                                x-show="open" 
+                            <div
+                                x-show="open"
                                 x-transition
                                 class="absolute right-0 mt-2 w-44 rounded-xl bg-slate-900 border border-white/15 shadow-2xl p-1.5 z-50 text-xs space-y-1 font-mono text-slate-300"
                                 style="display: none;"
@@ -163,7 +163,7 @@
             </div>
 
             <!-- Document Content Paper Card -->
-            <div 
+            <div
                 class="p-8 sm:p-12 rounded-3xl border transition-all duration-300 shadow-2xl space-y-8"
                 :class="theme === 'light' ? 'bg-white border-slate-200 text-slate-800' : 'bg-slate-900/60 border-white/10 text-slate-200 backdrop-blur-xl'"
             >
@@ -183,8 +183,8 @@
                 </div>
 
                 <!-- Document Body HTML -->
-                <div 
-                    id="shared-doc-body" 
+                <div
+                    id="shared-doc-body"
                     class="prose prose-invert max-w-none leading-relaxed text-sm sm:text-base space-y-4"
                     :class="theme === 'light' ? 'prose-slate text-slate-800' : 'text-slate-200'"
                 >

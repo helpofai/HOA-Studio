@@ -20,6 +20,8 @@ namespace App\Features\ContentIntelligence\Pipeline;
 use App\Features\ContentIntelligence\Contracts\WorkflowNodeInterface;
 use App\Features\ContentIntelligence\DTOs\WorkflowNodeResultDTO;
 use App\Features\ContentIntelligence\Enums\ContentWorkflowStatus;
+use App\Features\ContentIntelligence\Models\AgentActivity;
+use App\Features\ContentIntelligence\Models\BrainDecision;
 use App\Features\ContentIntelligence\Models\WorkflowNodeRecord;
 use App\Features\ContentIntelligence\Models\WorkflowRun;
 use App\Features\ContentIntelligence\Pipeline\Nodes\AssemblyNode;
@@ -32,6 +34,7 @@ use App\Features\ContentIntelligence\Pipeline\Nodes\ResearchDirectorNode;
 use App\Features\ContentIntelligence\Pipeline\Nodes\SearchIntelNode;
 use App\Features\ContentIntelligence\Pipeline\Nodes\SectionWriterNode;
 use App\Features\ContentIntelligence\Pipeline\Nodes\SeoOptimizerNode;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Throwable;
 
@@ -142,6 +145,37 @@ class ContentWorkflowEngine
             $run->graph_state = $graphState;
             $run->overall_confidence = min($run->overall_confidence, $result->confidence);
 
+            // ══════════════════════════════════════════════════════════════
+            // PHASE 4 TELEMETRY: Log Agent Activity & Brain Decision
+            // ══════════════════════════════════════════════════════════════
+            try {
+                AgentActivity::create([
+                    'id' => Str::orderedUuid()->toString(),
+                    'mission_id' => $run->mission_id,
+                    'workflow_run_id' => $run->id,
+                    'agent_name' => $nodeName,
+                    'task_type' => $node->getName(),
+                    'model_used' => 'dynamic_ai',
+                    'tokens_used' => (int) ($result->metrics['tokens'] ?? 0),
+                    'latency_ms' => $latencyMs,
+                    'status' => $result->status === 'success' ? 'completed' : 'failed',
+                    'input_payload' => $context,
+                    'output_summary' => json_encode($result->outputPayload),
+                ]);
+                BrainDecision::create([
+                    'id' => Str::orderedUuid()->toString(),
+                    'mission_id' => $run->mission_id,
+                    'workflow_run_id' => $run->id,
+                    'question' => "Execute node: {$node->getName()}",
+                    'decision' => $result->status,
+                    'reasoning' => $node->getDescription(),
+                    'inputs' => $context,
+                    'confidence' => $result->confidence,
+                ]);
+            } catch (Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("WorkflowEngine telemetry logging failed: " . $e->getMessage());
+            }
+
             if ($result->isSuccess()) {
                 if ($result->nextSuggestedNode) {
                     $run->current_node = $result->nextSuggestedNode;
@@ -165,6 +199,7 @@ class ContentWorkflowEngine
                 'result' => $result,
             ];
         } catch (Throwable $e) {
+            Log::error("Workflow node {$nodeName} exception: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine());
             $latencyMs = (int) round((microtime(true) - $startTime) * 1000);
 
             $nodeRecord->update([

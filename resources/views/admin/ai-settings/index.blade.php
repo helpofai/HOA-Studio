@@ -77,9 +77,9 @@
                 </div>
             </div>
 
-            <button 
-                type="button" 
-                wire:click="toggleCircuitBreaker" 
+            <button
+                type="button"
+                wire:click="toggleCircuitBreaker"
                 wire:confirm="{{ $circuitStatus['is_tripped'] ? 'Restore normal AI traffic?' : 'Are you sure you want to pause all outgoing AI calls platform-wide?' }}"
                 class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-lg {{ $circuitStatus['is_tripped'] ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30' : 'bg-red-600/80 hover:bg-red-600 text-white border border-red-500/50 shadow-red-600/20' }}"
             >
@@ -202,9 +202,9 @@
 
                         <div class="pt-2 border-t border-white/5 flex flex-col justify-between">
                             <span class="text-[10px] text-slate-400 block uppercase font-bold tracking-wider">User BYOK Keys</span>
-                            <button 
+                            <button
                                 type="button"
-                                wire:click="toggleAllowUserKey({{ $provider->id }})" 
+                                wire:click="toggleAllowUserKey({{ $provider->id }})"
                                 class="mt-1 flex items-center justify-between px-2.5 py-1 rounded-lg text-[10px] font-bold font-mono transition-all cursor-pointer {{ $provider->allow_user_key ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/25' : 'bg-slate-800 text-slate-400 border border-white/10 hover:bg-slate-700' }}"
                                 title="Toggle whether users can configure their own personal API keys"
                             >
@@ -217,9 +217,9 @@
 
                 <!-- Footer Action Buttons -->
                 <div class="pt-4 border-t border-white/5 flex items-center justify-between gap-3 mt-4">
-                    <button 
+                    <button
                         type="button"
-                        wire:click="toggleProviderActive({{ $provider->id }})" 
+                        wire:click="toggleProviderActive({{ $provider->id }})"
                         class="px-3 py-1.5 rounded-xl text-xs font-bold uppercase transition-all cursor-pointer flex items-center gap-1.5 {{ $provider->is_active ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20' }}"
                     >
                         <span class="w-2 h-2 rounded-full {{ $provider->is_active ? 'bg-emerald-400' : 'bg-red-400' }}"></span>
@@ -308,9 +308,9 @@
 
                             <!-- Tier Access -->
                             <td class="py-3.5 px-3">
-                                <button 
-                                    type="button" 
-                                    wire:click="toggleModelFreeTier({{ $model->id }})" 
+                                <button
+                                    type="button"
+                                    wire:click="toggleModelFreeTier({{ $model->id }})"
                                     class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono uppercase transition-all cursor-pointer {{ $model->is_free_tier ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/30' : 'bg-purple-500/10 text-purple-300 border border-purple-500/30' }}"
                                     title="Click to toggle between Free and Pro-Only tier"
                                 >
@@ -338,9 +338,9 @@
                             <td class="py-3.5 px-4 text-right">
                                 <div class="flex items-center justify-end gap-1.5">
                                     <!-- Test Ping Button -->
-                                    <button 
-                                        type="button" 
-                                        wire:click="pingModel({{ $model->id }})" 
+                                    <button
+                                        type="button"
+                                        wire:click="pingModel({{ $model->id }})"
                                         class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-white/10 hover:border-indigo-500/40 text-[11px] font-semibold text-slate-300 hover:text-white transition-all cursor-pointer"
                                         title="Send test completion ping via OmniRoute"
                                     >
@@ -349,9 +349,9 @@
 
                                     <!-- Set Default Button -->
                                     @if(!$model->is_default)
-                                        <button 
-                                            type="button" 
-                                            wire:click="setDefaultModel({{ $model->id }})" 
+                                        <button
+                                            type="button"
+                                            wire:click="setDefaultModel({{ $model->id }})"
                                             class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-violet-600/20 border border-white/10 hover:border-violet-500/40 text-[11px] font-semibold text-slate-300 hover:text-violet-200 transition-all cursor-pointer"
                                             title="Set as global fallback model"
                                         >
@@ -360,9 +360,9 @@
                                     @endif
 
                                     <!-- Toggle Active Button -->
-                                    <button 
-                                        type="button" 
-                                        wire:click="toggleModelActive({{ $model->id }})" 
+                                    <button
+                                        type="button"
+                                        wire:click="toggleModelActive({{ $model->id }})"
                                         class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer {{ $model->is_active ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20' : 'bg-red-500/10 text-red-400 hover:bg-red-500/20' }}"
                                     >
                                         {{ $model->is_active ? 'Active' : 'Disabled' }}

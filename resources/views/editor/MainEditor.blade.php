@@ -13,7 +13,7 @@
 */
 --}}
 
-<div 
+<div
     class="space-y-4 min-h-screen flex flex-col justify-between relative"
     x-data="documentEditorComponent({
         documentId: {{ $documentId }},
@@ -29,8 +29,8 @@
     x-init="init()"
 >
     <!-- Ambient Error Notification Toast -->
-    <div 
-        x-show="aiErrorMessage" 
+    <div
+        x-show="aiErrorMessage"
         x-cloak
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 -translate-y-4 scale-95"
@@ -75,7 +75,7 @@
              wire:ignore
         >
             @include('editor.partial.canvas')
-            
+
             <!-- Contextual Editor Feedback Section -->
             <div x-show="showDiffReview" class="mb-4 p-4 rounded-2xl bg-slate-950/98 border border-indigo-500/40 shadow-2xl backdrop-blur-2xl space-y-3 text-xs" style="display: none;">
                 <div class="font-bold text-indigo-300 text-xs uppercase tracking-wider">Editor Feedback</div>

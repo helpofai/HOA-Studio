@@ -106,7 +106,7 @@ foreach ($tones as $t) {
                                 <div class="hoa-voice-details">
                                     <h4 class="hoa-voice-name"><?php echo esc_html($v['name']); ?></h4>
                                     <p class="hoa-voice-desc">
-                                        <strong>Tone:</strong> <?php echo esc_html($v['tone'] ?? 'Standard'); ?> | 
+                                        <strong>Tone:</strong> <?php echo esc_html($v['tone'] ?? 'Standard'); ?> |
                                         <strong>Audience:</strong> <?php echo esc_html($v['audience'] ?? 'General'); ?>
                                     </p>
                                 </div>

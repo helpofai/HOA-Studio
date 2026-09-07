@@ -10,7 +10,6 @@
 | Author      : Rajib Adhikary
 | Organization: HelpOfAi (HOA)
 | Website     : https://helpofai.com
-| Location    : Basta Purba Para, Aranghata, Nadia, West Bengal, India
 |
 |--------------------------------------------------------------------------
 */
@@ -19,35 +18,96 @@ namespace App\Features\ContentIntelligence\Services;
 
 use App\Features\ContentIntelligence\DTOs\ContentMissionDTO;
 use App\Features\ContentIntelligence\DTOs\SearchIntelligenceDTO;
+use Illuminate\Support\Facades\Log;
 
 class SearchIntelligenceService
 {
     /**
      * Deconstruct search intent, generate query clusters, build topic universe,
      * and identify content gaps from the Content Mission.
+     *
+     * NOW USES REAL AI to perform search intelligence analysis
      */
     public function analyze(ContentMissionDTO $mission): SearchIntelligenceDTO
     {
         $topic = $mission->topic;
+
+        Log::info("[SearchIntel] STEP 2: AI analyzing search intent for: {$topic}");
+
         $primaryIntent = $this->determinePrimaryIntent($mission);
         $journeyStage = $this->determineJourneyStage($primaryIntent, $mission);
 
-        $queryClusters = $this->generateQueryClusters($topic, $mission);
-        $topicUniverse = $this->buildTopicUniverse($topic, $mission);
-        $targetEntities = $this->extractTargetEntities($topic, $mission);
-        $serpCompetitors = $this->analyzeSerpCompetitors($topic);
-        $contentGaps = $this->detectContentGaps($topic, $serpCompetitors, $mission);
+        // ══════════════════════════════════════════════════════════════
+        // AI-Powered Search Intelligence
+        // ══════════════════════════════════════════════════════════════
+
+        $targetPersona = $mission->targetAudience['persona'] ?? 'General';
+        $intentPrompt = "Analyze the search landscape for the topic: \"{$topic}\"
+Primary Objective: {$mission->primaryObjective}
+Target Audience: {$targetPersona}
+Search Intent: {$primaryIntent}
+Journey Stage: {$journeyStage}
+
+Generate comprehensive search intelligence:
+
+1. query_clusters: Group related search queries
+   - primary: 3-5 main search queries people use
+   - secondary: 5-7 related/related queries
+   - long_tail: 5-7 specific long-tail queries
+   - paa_questions: 5-7 People Also Ask questions
+
+2. topic_universe: Map the topic ecosystem
+   - core_topics: 3-5 core sub-topics
+   - supporting_topics: 4-6 supporting topics
+   - related_topics: 4-6 related/broader topics
+
+3. target_entities: 5-8 key named entities (people, tools, concepts)
+
+4. content_gaps: What do current search results miss?
+   - missing_topics: important topics not covered
+   - weak_angles: poorly covered angles
+   - outdated_points: outdated assumptions
+   - underexplored_opportunities: unique angles to exploit
+
+5. serp_competitors: 2-3 typical competitor profiles
+   - url pattern, title, typical headings, word count, weaknesses
+
+Return strictly valid JSON:
+{
+  \"query_clusters\": {\"primary\": [...], \"secondary\": [...], \"long_tail\": [...], \"paa_questions\": [...]},
+  \"topic_universe\": {\"core_topics\": [...], \"supporting_topics\": [...], \"related_topics\": [...]},
+  \"target_entities\": [...],
+  \"content_gaps\": {\"missing_topics\": [...], \"weak_angles\": [...], \"outdated_points\": [...], \"underexplored_opportunities\": [...]},
+  \"serp_competitors\": [{\"url\": \"...\", \"title\": \"...\", \"headings\": [...], \"word_count\": 0, \"weaknesses\": [...]}]
+}";
+
+        $aiIntel = DynamicContentProvider::askJSON($intentPrompt, [
+            'query_clusters' => ['primary' => [], 'secondary' => [], 'long_tail' => [], 'paa_questions' => []],
+            'topic_universe' => ['core_topics' => [], 'supporting_topics' => [], 'related_topics' => []],
+            'target_entities' => [],
+            'content_gaps' => ['missing_topics' => [], 'weak_angles' => [], 'outdated_points' => [], 'underexplored_opportunities' => []],
+            'serp_competitors' => []
+        ]);
+
+        // Merge AI data with fallback defaults
+        $queryClusters = $this->mergeQueryClusters($topic, $aiIntel['query_clusters'] ?? []);
+        $topicUniverse = $this->mergeTopicUniverse($topic, $aiIntel['topic_universe'] ?? []);
+        $targetEntities = $this->mergeEntities($topic, $mission, $aiIntel['target_entities'] ?? []);
+        $contentGaps = $this->mergeContentGaps($aiIntel['content_gaps'] ?? []);
+        $serpCompetitors = $this->mergeCompetitors($topic, $aiIntel['serp_competitors'] ?? []);
+
+        Log::info("[SearchIntel] STEP 2 COMPLETE: " . count($queryClusters['primary']) . " primary queries, " . count($targetEntities) . " entities");
 
         return new SearchIntelligenceDTO(
             primaryIntent: $primaryIntent,
-            secondaryIntents: ['Practical Implementation', 'Troubleshooting & Optimization'],
+            secondaryIntents: array_slice($aiIntel['secondary_intents'] ?? ['Practical Implementation', 'Troubleshooting & Optimization'], 0, 3),
             userJourneyStage: $journeyStage,
             queryClusters: $queryClusters,
             serpCompetitors: $serpCompetitors,
             topicUniverse: $topicUniverse,
             contentGaps: $contentGaps,
             targetEntities: $targetEntities,
-            intentConfidence: 0.96
+            intentConfidence: 0.92
         );
     }
 
@@ -85,152 +145,81 @@ class SearchIntelligenceService
         return ($expertise === 'beginner') ? 'Awareness' : 'Consideration';
     }
 
-    /**
-     * Generate multi-angle query clusters: primary, secondary, long-tail, and PAA.
-     *
-     * @return array{primary: array<string>, secondary: array<string>, long_tail: array<string>, paa_questions: array<string>}
-     */
-    protected function generateQueryClusters(string $topic, ContentMissionDTO $mission): array
+    protected function mergeQueryClusters(string $topic, array $aiData): array
     {
-        $cleanTopic = trim($topic);
+        $default = [
+            'primary' => [$topic, "{$topic} best practices", "{$topic} guide"],
+            'secondary' => ["{$topic} features", "{$topic} comparison", "{$topic} pricing"],
+            'long_tail' => ["what is {$topic} and how does it work", "how to use {$topic} effectively"],
+            'paa_questions' => ["What is {$topic}?", "How does {$topic} work?", "Is {$topic} worth using?"],
+        ];
 
         return [
-            'primary' => [
-                $cleanTopic,
-                "{$cleanTopic} best practices",
-                "{$cleanTopic} guide",
-            ],
-            'secondary' => [
-                "{$cleanTopic} architecture",
-                "{$cleanTopic} performance",
-                "{$cleanTopic} production deployment",
-            ],
-            'long_tail' => [
-                "how to configure {$cleanTopic} step by step",
-                "common pitfalls when deploying {$cleanTopic}",
-                "{$cleanTopic} benchmark and optimization tips",
-            ],
-            'paa_questions' => [
-                "What is the recommended architecture for {$cleanTopic}?",
-                "How do you prevent failures in {$cleanTopic}?",
-                "What are the performance tradeoffs of {$cleanTopic} in production?",
-                "How does {$cleanTopic} handle scaling under high load?",
-            ],
+            'primary' => !empty($aiData['primary']) ? $aiData['primary'] : $default['primary'],
+            'secondary' => !empty($aiData['secondary']) ? $aiData['secondary'] : $default['secondary'],
+            'long_tail' => !empty($aiData['long_tail']) ? $aiData['long_tail'] : $default['long_tail'],
+            'paa_questions' => !empty($aiData['paa_questions']) ? $aiData['paa_questions'] : $default['paa_questions'],
         ];
     }
 
-    /**
-     * Build hierarchical topic map: core, supporting, and related.
-     *
-     * @return array{core_topics: array<string>, supporting_topics: array<string>, related_topics: array<string>}
-     */
-    protected function buildTopicUniverse(string $topic, ContentMissionDTO $mission): array
+    protected function mergeTopicUniverse(string $topic, array $aiData): array
     {
         return [
-            'core_topics' => [
-                $topic,
-                'Architecture & Core Concepts',
-                'Production Configuration & Setup',
-            ],
-            'supporting_topics' => [
-                'Performance Benchmarks & Tuning',
-                'Monitoring, Logging & Health Checks',
-                'Failure Recovery & High Availability',
-            ],
-            'related_topics' => [
-                'Security Hardening & Access Control',
-                'Containerization & CI/CD Deployment',
-                'Cost Optimization & Resource Allocation',
-            ],
+            'core_topics' => !empty($aiData['core_topics']) ? $aiData['core_topics'] : [$topic],
+            'supporting_topics' => !empty($aiData['supporting_topics']) ? $aiData['supporting_topics'] : ['Features & Capabilities', 'Getting Started'],
+            'related_topics' => !empty($aiData['related_topics']) ? $aiData['related_topics'] : ['Alternatives', 'Pricing'],
         ];
     }
 
-    /**
-     * Extract target semantic entities from the topic and secondary objectives.
-     *
-     * @return array<string>
-     */
-    protected function extractTargetEntities(string $topic, ContentMissionDTO $mission): array
+    protected function mergeEntities(string $topic, ContentMissionDTO $mission, array $aiEntities): array
     {
         $entities = [$topic];
-
+        foreach ($aiEntities as $e) {
+            if (is_string($e) && strlen($e) > 2) {
+                $entities[] = $e;
+            }
+        }
         foreach ($mission->secondaryObjectives as $obj) {
-            $words = array_filter(explode(' ', $obj), fn ($w) => strlen($w) > 3);
-            if (! empty($words)) {
+            $words = array_filter(explode(' ', $obj), fn($w) => strlen($w) > 3);
+            if (!empty($words)) {
                 $entities[] = implode(' ', array_slice($words, 0, 3));
             }
         }
-
-        return array_values(array_unique($entities));
+        return array_values(array_unique(array_slice($entities, 0, 10)));
     }
 
-    /**
-     * Deconstruct top SERP competitors (simulated structural analysis based on domain patterns).
-     *
-     * @return array<array{url: string, title: string, headings: array<string>, word_count: int, content_formats: array<string>, weaknesses: array<string>}>
-     */
-    protected function analyzeSerpCompetitors(string $topic): array
+    protected function mergeContentGaps(array $aiData): array
     {
         return [
-            [
-                'url' => 'https://example-competitor.com/'.strtolower(str_replace(' ', '-', $topic)),
-                'title' => "Complete Guide to {$topic}",
-                'headings' => [
-                    "H2: Introduction to {$topic}",
-                    'H2: Basic Setup',
-                    'H2: Conclusion',
-                ],
-                'word_count' => 1250,
-                'content_formats' => ['prose', 'basic_code_block'],
-                'weaknesses' => [
-                    'Lacks concrete enterprise production configurations',
-                    'No failure recovery or graceful restart strategies',
-                    'Superficial overview without authoritative benchmarks',
-                ],
-            ],
-            [
-                'url' => 'https://tech-insights-blog.org/'.strtolower(str_replace(' ', '-', $topic)),
-                'title' => "Mastering {$topic} in 2026",
-                'headings' => [
-                    "H2: Why {$topic} Matters",
-                    'H2: Quickstart Example',
-                    'H2: Summary',
-                ],
-                'word_count' => 980,
-                'content_formats' => ['prose'],
-                'weaknesses' => [
-                    'Outdated assumptions about legacy versions',
-                    'Zero diagrams or architecture blueprints',
-                    'Fails to answer critical operational questions',
-                ],
-            ],
+            'missing_topics' => !empty($aiData['missing_topics']) ? $aiData['missing_topics'] : ['Comprehensive comparison with alternatives', 'Real-world case studies'],
+            'weak_angles' => !empty($aiData['weak_angles']) ? $aiData['weak_angles'] : ['Generic overviews without actionable insights', 'Lack of specific use cases'],
+            'outdated_points' => !empty($aiData['outdated_points']) ? $aiData['outdated_points'] : ['References to deprecated features', 'Outdated pricing information'],
+            'underexplored_opportunities' => !empty($aiData['underexplored_opportunities']) ? $aiData['underexplored_opportunities'] : ['Detailed comparison tables', 'Industry-specific use cases'],
         ];
     }
 
-    /**
-     * Identify high-value content gaps that top search results fail to cover.
-     *
-     * @param  array<array<string, mixed>>  $competitors
-     * @return array{missing_topics: array<string>, weak_angles: array<string>, outdated_points: array<string>, underexplored_opportunities: array<string>}
-     */
-    protected function detectContentGaps(string $topic, array $competitors, ContentMissionDTO $mission): array
+    protected function mergeCompetitors(string $topic, array $aiCompetitors): array
     {
+        if (!empty($aiCompetitors) && count($aiCompetitors) >= 2) {
+            return array_slice($aiCompetitors, 0, 3);
+        }
+
         return [
-            'missing_topics' => [
-                'Zero-downtime graceful signal handling and process supervision',
-                'Authoritative memory leak prevention and automatic threshold restarts',
+            [
+                'url' => "https://example-guide.com/" . strtolower(str_replace(' ', '-', $topic)),
+                'title' => "Complete Guide to {$topic}",
+                'headings' => ["Introduction to {$topic}", 'Key Features', 'How to Get Started', 'Conclusion'],
+                'word_count' => 1500,
+                'content_formats' => ['prose', 'screenshots'],
+                'weaknesses' => ['Generic overview without depth', 'No comparisons or benchmarks', 'Outdated information'],
             ],
-            'weak_angles' => [
-                'Most competitors provide basic tutorials rather than enterprise architectural recipes',
-                'Lack of production-tested configuration templates',
-            ],
-            'outdated_points' => [
-                'Reliance on deprecated parameters or obsolete version syntax',
-                'Ignoring modern asynchronous and containerized runtime requirements',
-            ],
-            'underexplored_opportunities' => [
-                'Providing copy-paste production configs with line-by-line rationale',
-                'Empirical benchmarks comparing real-world throughput under load',
+            [
+                'url' => "https://example-blog.com/" . strtolower(str_replace(' ', '-', $topic)) . "-review",
+                'title' => "{$topic} Review and Analysis",
+                'headings' => ['Overview', 'Pros and Cons', 'Pricing', 'Verdict'],
+                'word_count' => 1200,
+                'content_formats' => ['prose'],
+                'weaknesses' => ['Superficial analysis', 'No real-world testing data', 'Missing enterprise use cases'],
             ],
         ];
     }

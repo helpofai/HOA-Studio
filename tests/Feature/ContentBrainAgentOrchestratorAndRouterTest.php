@@ -44,12 +44,12 @@ class ContentBrainAgentOrchestratorAndRouterTest extends TestCase
         parent::setUp();
 
         $this->user = User::factory()->create([
-            'email' => 'orchestrator_lead@helpofai.com',
+            'email' => 'orchestrator_lead_'.uniqid().'@helpofai.com',
             'role' => 'user',
         ]);
 
         $this->admin = User::factory()->create([
-            'email' => 'ai_director@helpofai.com',
+            'email' => 'ai_director_'.uniqid().'@helpofai.com',
             'role' => 'admin',
         ]);
     }

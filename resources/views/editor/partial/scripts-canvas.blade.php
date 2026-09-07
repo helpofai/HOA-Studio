@@ -87,7 +87,7 @@ initEditor(customInitial = null) {
             this.characterCount = stats.characters;
             this.readingTime = Math.max(1, Math.ceil(stats.words / 200));
             this.updateOutline();
-            
+
             // Trigger dirty state and debounced autosave
             this.isDirty = true;
             this.debouncedAutosave();
@@ -102,8 +102,8 @@ initEditor(customInitial = null) {
         },
         onAutosave: (data) => {
             // Prevent duplicate autosaves if our new debounced mechanism is active or during pending proposals
-            if (this.isDirty || this.isTransforming || this.showSubAgentProposal) return; 
-            
+            if (this.isDirty || this.isTransforming || this.showSubAgentProposal) return;
+
             Livewire.dispatch('autosave', { html: data.html, json: data.json ?? null });
             this.saveLocalDraft(data.html);
             this.hasUnsavedChanges = false;
@@ -193,10 +193,10 @@ openContextMenu(event) {
     if (!event) return;
     const clientX = (event.clientX !== undefined) ? event.clientX : (event.x !== undefined ? event.x : window.innerWidth / 2);
     const clientY = (event.clientY !== undefined) ? event.clientY : (event.y !== undefined ? event.y : window.innerHeight / 2);
-    
+
     const menuWidth = 280;
     const menuHeight = 460;
-    
+
     this.contextMenuX = Math.max(10, Math.min(clientX, window.innerWidth - menuWidth - 10));
     this.contextMenuY = Math.max(10, Math.min(clientY, window.innerHeight - menuHeight - 10));
     this.showContextMenu = true;
@@ -391,14 +391,14 @@ applyLiveStreamNow() {
     if (!this.liveAiStreamText || this.liveAiStreamText.trim().length === 0) return;
     const textToInsert = this.liveAiStreamText;
     const ed = this.getEditor();
-    
+
     if (ed) {
         if (this.hasSelection && typeof ed.replaceSelection === 'function') {
             ed.replaceSelection(textToInsert);
         } else {
             const currentHtml = ed.getHTML ? ed.getHTML() : '';
-            const isDocEmpty = typeof this.isContentEmpty === 'function' 
-                ? this.isContentEmpty(currentHtml) 
+            const isDocEmpty = typeof this.isContentEmpty === 'function'
+                ? this.isContentEmpty(currentHtml)
                 : (!currentHtml || currentHtml === '<p></p>' || currentHtml === '<p><br></p>' || currentHtml.trim().length === 0);
             if (isDocEmpty) {
                 ed.setContent(textToInsert);
@@ -413,7 +413,7 @@ applyLiveStreamNow() {
         this.updateOutline();
         this.updateActiveFormats();
     }
-    
+
     this.addLog('AI', 'Applied live stream tokens into canvas (' + textToInsert.length + ' chars)');
     this.liveAiStreamText = '';
 },

@@ -29,8 +29,8 @@
         </div>
 
         <div class="flex items-center gap-3">
-            <button 
-                wire:click="createSnapshot" 
+            <button
+                wire:click="createSnapshot"
                 wire:loading.attr="disabled"
                 class="px-4 py-2 rounded-xl bg-slate-900 border border-white/15 text-slate-200 hover:text-white hover:border-violet-500/40 text-xs font-semibold shadow-md transition-all flex items-center gap-2 cursor-pointer"
             >
@@ -39,8 +39,8 @@
                 <span wire:loading wire:target="createSnapshot">Archiving Codebase...</span>
             </button>
 
-            <button 
-                wire:click="triggerCheck" 
+            <button
+                wire:click="triggerCheck"
                 wire:loading.attr="disabled"
                 class="px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-violet-600/25 transition-all flex items-center gap-2 cursor-pointer"
             >
@@ -65,7 +65,7 @@
 
     <!-- Navigation Tabs -->
     <div class="flex items-center gap-2 border-b border-white/10 pb-3">
-        <button 
+        <button
             type="button"
             @click="activeTab = 'core'"
             class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
@@ -75,7 +75,7 @@
             <span>Core Codebase Updates</span>
         </button>
 
-        <button 
+        <button
             type="button"
             @click="activeTab = 'database'"
             class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
@@ -86,7 +86,7 @@
             <span class="px-1.5 py-0.5 rounded-full text-[10px] bg-slate-900 text-slate-300 font-mono">{{ count($dbSnapshots) }}</span>
         </button>
 
-        <button 
+        <button
             type="button"
             @click="activeTab = 'health'"
             class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
@@ -120,20 +120,20 @@
                         </div>
 
                         @if(!empty($updateInfo['has_update']))
-                            <button 
-                                wire:click="applyUpdate" 
+                            <button
+                                wire:click="applyUpdate"
                                 wire:loading.attr="disabled"
                                 class="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:scale-105 active:scale-95 text-slate-950 font-black text-sm shadow-xl shadow-emerald-500/20 transition-all flex items-center gap-2.5 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
                             >
                                 <span wire:loading.remove wire:target="applyUpdate">⚡</span>
                                 <span wire:loading wire:target="applyUpdate" class="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
-                                
+
                                 <span wire:loading.remove wire:target="applyUpdate">Apply Update to {{ $updateInfo['latest_version'] }}</span>
                                 <span wire:loading wire:target="applyUpdate">Deploying & Health Checking...</span>
                             </button>
                         @else
-                            <button 
-                                wire:click="applyUpdate" 
+                            <button
+                                wire:click="applyUpdate"
                                 wire:loading.attr="disabled"
                                 class="px-4 py-2.5 rounded-xl bg-slate-900 border border-white/10 hover:border-violet-500/40 text-xs font-bold text-slate-300 hover:text-white transition-all flex items-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
                                 title="Re-sync and force verify with latest release"
@@ -223,9 +223,9 @@
                     </div>
 
                     <!-- Enterprise Terminal Output Console (Live Real-Time Telemetry) -->
-                    <div 
-                        class="mt-6 pt-6 border-t border-white/10 space-y-3" 
-                        x-data="{ 
+                    <div
+                        class="mt-6 pt-6 border-t border-white/10 space-y-3"
+                        x-data="{
                             copied: false,
                             autoScroll: true,
                             scrollToBottom() {
@@ -263,8 +263,8 @@
                                 </div>
 
                                 @if(!empty($updateLogs))
-                                    <button 
-                                        type="button" 
+                                    <button
+                                        type="button"
                                         wire:click="clearTerminalLogs"
                                         class="px-2 py-1 rounded-lg bg-slate-900 border border-white/10 hover:border-rose-500/40 text-[10px] font-mono text-slate-400 hover:text-rose-300 transition-colors cursor-pointer"
                                         title="Clear all logs"
@@ -272,8 +272,8 @@
                                         🧹 Clear
                                     </button>
 
-                                    <button 
-                                        type="button" 
+                                    <button
+                                        type="button"
                                         @click="navigator.clipboard.writeText(JSON.stringify(@js($updateLogs), null, 2)); copied = true; setTimeout(() => copied = false, 2000)"
                                         class="px-2 py-1 rounded-lg bg-slate-900 border border-white/10 hover:border-violet-500/40 text-[10px] font-mono text-slate-400 hover:text-white transition-colors cursor-pointer flex items-center gap-1"
                                     >
@@ -285,7 +285,7 @@
                         </div>
 
                         <!-- Terminal Output Window -->
-                        <div 
+                        <div
                             x-ref="terminalBody"
                             class="p-4 rounded-xl bg-slate-950/95 border border-white/15 font-mono text-xs text-slate-300 space-y-2 max-h-80 overflow-y-auto custom-scrollbar shadow-2xl select-text"
                         >
@@ -429,9 +429,9 @@
                     <!-- Selection Presets Dropdown -->
                     @if(count($restorePoints) > 0)
                         <div class="relative" x-data="{ open: false }">
-                            <button 
-                                type="button" 
-                                @click="open = !open" 
+                            <button
+                                type="button"
+                                @click="open = !open"
                                 @click.outside="open = false"
                                 class="px-3 py-1.5 rounded-xl bg-slate-900 border border-white/10 hover:border-violet-500/40 text-xs font-semibold text-slate-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
                             >
@@ -441,8 +441,8 @@
                                 </svg>
                             </button>
 
-                            <div 
-                                x-show="open" 
+                            <div
+                                x-show="open"
                                 x-transition:enter="transition ease-out duration-100"
                                 x-transition:enter-start="transform opacity-0 scale-95"
                                 x-transition:enter-end="transform opacity-100 scale-100"
@@ -452,38 +452,38 @@
                                 class="absolute right-0 mt-2 w-52 rounded-2xl bg-slate-900/98 border border-white/20 p-2 shadow-2xl z-30 space-y-1 backdrop-blur-2xl text-xs"
                                 style="display: none;"
                             >
-                                <button 
-                                    type="button" 
-                                    wire:click="selectAllRestorePoints" 
-                                    @click="open = false" 
+                                <button
+                                    type="button"
+                                    wire:click="selectAllRestorePoints"
+                                    @click="open = false"
                                     class="w-full text-left px-3 py-1.5 rounded-lg hover:bg-violet-600/20 text-slate-300 hover:text-white transition-colors flex items-center justify-between cursor-pointer"
                                 >
                                     <span>Select All</span>
                                     <span class="font-mono text-[10px] text-slate-500">{{ count($restorePoints) }}</span>
                                 </button>
-                                <button 
-                                    type="button" 
-                                    wire:click="selectAutoSnapshots" 
-                                    @click="open = false" 
+                                <button
+                                    type="button"
+                                    wire:click="selectAutoSnapshots"
+                                    @click="open = false"
                                     class="w-full text-left px-3 py-1.5 rounded-lg hover:bg-violet-600/20 text-slate-300 hover:text-white transition-colors flex items-center justify-between cursor-pointer"
                                 >
                                     <span>Select Auto Updates</span>
                                     <span>🤖</span>
                                 </button>
-                                <button 
-                                    type="button" 
-                                    wire:click="selectManualSnapshots" 
-                                    @click="open = false" 
+                                <button
+                                    type="button"
+                                    wire:click="selectManualSnapshots"
+                                    @click="open = false"
                                     class="w-full text-left px-3 py-1.5 rounded-lg hover:bg-violet-600/20 text-slate-300 hover:text-white transition-colors flex items-center justify-between cursor-pointer"
                                 >
                                     <span>Select Manual Snapshots</span>
                                     <span>👤</span>
                                 </button>
                                 <div class="border-t border-white/5 my-1"></div>
-                                <button 
-                                    type="button" 
-                                    wire:click="clearSelectedRestorePoints" 
-                                    @click="open = false" 
+                                <button
+                                    type="button"
+                                    wire:click="clearSelectedRestorePoints"
+                                    @click="open = false"
                                     class="w-full text-left px-3 py-1.5 rounded-lg hover:bg-white/5 text-slate-400 hover:text-slate-200 transition-colors flex items-center justify-between cursor-pointer"
                                 >
                                     <span>Clear Selection</span>
@@ -495,9 +495,9 @@
 
                     <!-- Prune Older Snapshots Quick Button -->
                     @if(count($restorePoints) > 3)
-                        <button 
-                            type="button" 
-                            wire:click="pruneOlderRestorePoints(3)" 
+                        <button
+                            type="button"
+                            wire:click="pruneOlderRestorePoints(3)"
                             wire:confirm="Prune older snapshots and keep only the 3 most recent backups? Older archives will be permanently removed to free disk space."
                             wire:loading.attr="disabled"
                             class="px-3 py-1.5 rounded-xl bg-slate-900 border border-white/10 hover:border-amber-500/40 text-xs font-semibold text-amber-300 hover:text-amber-200 transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
@@ -509,8 +509,8 @@
                     @endif
 
                     <!-- Create Snapshot Button -->
-                    <button 
-                        type="button" 
+                    <button
+                        type="button"
                         wire:click="createSnapshot"
                         wire:loading.attr="disabled"
                         class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-xs shadow-md shadow-violet-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
@@ -542,9 +542,9 @@
                     <!-- Bulk Actions Toolbar -->
                     <div class="flex flex-wrap items-center gap-2">
                         <!-- Bulk Download Button -->
-                        <button 
-                            type="button" 
-                            wire:click="bulkDownloadRestorePoints" 
+                        <button
+                            type="button"
+                            wire:click="bulkDownloadRestorePoints"
                             class="px-3 py-1.5 rounded-xl bg-slate-900/90 border border-white/10 hover:border-violet-500/40 text-xs font-semibold text-slate-200 hover:text-white transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
                             title="Download selected snapshot archives as zip"
                         >
@@ -553,9 +553,9 @@
                         </button>
 
                         <!-- Bulk Delete Button -->
-                        <button 
-                            type="button" 
-                            wire:click="bulkDeleteRestorePoints" 
+                        <button
+                            type="button"
+                            wire:click="bulkDeleteRestorePoints"
                             wire:confirm="Permanently delete the {{ count($selectedRestorePoints) }} selected snapshot archives from server disk? This action cannot be undone."
                             wire:loading.attr="disabled"
                             class="px-3 py-1.5 rounded-xl bg-rose-600/20 border border-rose-500/40 hover:bg-rose-600/40 text-xs font-semibold text-rose-300 hover:text-white transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
@@ -566,9 +566,9 @@
                         </button>
 
                         <!-- Clear Selection Button -->
-                        <button 
-                            type="button" 
-                            wire:click="clearSelectedRestorePoints" 
+                        <button
+                            type="button"
+                            wire:click="clearSelectedRestorePoints"
                             class="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
                             title="Clear selection"
                         >
@@ -584,10 +584,10 @@
                         <thead class="bg-slate-900/80 text-slate-400 border-b border-white/5 uppercase text-[10px]">
                             <tr>
                                 <th class="p-4 w-10 text-center">
-                                    <input 
-                                        type="checkbox" 
-                                        wire:model.live="selectAll" 
-                                        class="rounded border-white/20 bg-slate-900 text-violet-600 focus:ring-violet-500 focus:ring-offset-slate-950 w-4 h-4 cursor-pointer" 
+                                    <input
+                                        type="checkbox"
+                                        wire:model.live="selectAll"
+                                        class="rounded border-white/20 bg-slate-900 text-violet-600 focus:ring-violet-500 focus:ring-offset-slate-950 w-4 h-4 cursor-pointer"
                                         title="Select or deselect all snapshots"
                                     />
                                 </th>
@@ -606,10 +606,10 @@
                                 @endphp
                                 <tr class="hover:bg-white/5 transition-colors {{ $isSelected ? 'bg-violet-600/15 border-l-2 border-violet-500' : '' }}">
                                     <td class="p-4 w-10 text-center">
-                                        <input 
-                                            type="checkbox" 
-                                            wire:model.live="selectedRestorePoints" 
-                                            value="{{ $rp['id'] }}" 
+                                        <input
+                                            type="checkbox"
+                                            wire:model.live="selectedRestorePoints"
+                                            value="{{ $rp['id'] }}"
                                             class="rounded border-white/20 bg-slate-900 text-violet-600 focus:ring-violet-500 focus:ring-offset-slate-950 w-4 h-4 cursor-pointer"
                                         />
                                     </td>
@@ -641,7 +641,7 @@
                                     </td>
                                     <td class="p-4 text-right">
                                         <div class="flex items-center justify-end gap-2">
-                                            <button 
+                                            <button
                                                 wire:click="downloadRestorePoint('{{ $rp['id'] }}')"
                                                 class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-white/10 hover:border-violet-500/40 text-slate-300 hover:text-white text-xs font-semibold shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
                                                 title="Download complete website zip archive"
@@ -650,7 +650,7 @@
                                                 <span>Download</span>
                                             </button>
 
-                                            <button 
+                                            <button
                                                 wire:click="rollbackTo('{{ $rp['id'] }}')"
                                                 wire:loading.attr="disabled"
                                                 wire:confirm="Are you sure you want to roll back to this restore snapshot? All codebase files and database state will be reverted."
@@ -661,7 +661,7 @@
                                                 <span wire:loading wire:target="rollbackTo('{{ $rp['id'] }}')">Restoring...</span>
                                             </button>
 
-                                            <button 
+                                            <button
                                                 wire:click="deleteRestorePoint('{{ $rp['id'] }}')"
                                                 wire:loading.attr="disabled"
                                                 wire:confirm="Permanently delete snapshot [{{ $rp['id'] }}] and remove its underlying backup archive from server storage?"
@@ -724,8 +724,8 @@
         <!-- Database Action Buttons -->
         <div class="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-slate-900/60 border border-white/10">
             <div class="flex flex-wrap items-center gap-3">
-                <button 
-                    wire:click="createDbSnapshot" 
+                <button
+                    wire:click="createDbSnapshot"
                     wire:loading.attr="disabled"
                     class="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs shadow-lg transition-all flex items-center gap-2 cursor-pointer"
                 >
@@ -734,8 +734,8 @@
                     <span wire:loading wire:target="createDbSnapshot">Dumping Tables...</span>
                 </button>
 
-                <button 
-                    wire:click="runDbMigrations" 
+                <button
+                    wire:click="runDbMigrations"
                     wire:loading.attr="disabled"
                     class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/25 transition-all flex items-center gap-2 cursor-pointer"
                 >
@@ -745,8 +745,8 @@
                     <span wire:loading wire:target="runDbMigrations">Migrating Schema...</span>
                 </button>
 
-                <button 
-                    wire:click="rollbackMigrationStep" 
+                <button
+                    wire:click="rollbackMigrationStep"
                     wire:loading.attr="disabled"
                     wire:confirm="Roll back the last migration batch?"
                     class="px-4 py-2.5 rounded-xl bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/40 font-bold text-xs shadow-lg transition-all flex items-center gap-2 cursor-pointer"
@@ -764,8 +764,8 @@
 
         <!-- Database Terminal Output Console (Live Real-Time Telemetry) -->
         <x-glass.card variant="elevated" class="p-6 border border-white/10 space-y-3">
-            <div 
-                x-data="{ 
+            <div
+                x-data="{
                     copied: false,
                     autoScroll: true,
                     scrollToBottom() {
@@ -804,8 +804,8 @@
                         </div>
 
                         @if(!empty($updateLogs))
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 wire:click="clearTerminalLogs"
                                 class="px-2 py-1 rounded-lg bg-slate-900 border border-white/10 hover:border-rose-500/40 text-[10px] font-mono text-slate-400 hover:text-rose-300 transition-colors cursor-pointer"
                                 title="Clear all logs"
@@ -813,8 +813,8 @@
                                 🧹 Clear
                             </button>
 
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 @click="navigator.clipboard.writeText(JSON.stringify(@js($updateLogs), null, 2)); copied = true; setTimeout(() => copied = false, 2000)"
                                 class="px-2 py-1 rounded-lg bg-slate-900 border border-white/10 hover:border-violet-500/40 text-[10px] font-mono text-slate-400 hover:text-white transition-colors cursor-pointer flex items-center gap-1"
                             >
@@ -826,7 +826,7 @@
                 </div>
 
                 <!-- DB Terminal Output Window -->
-                <div 
+                <div
                     x-ref="dbTerminalBody"
                     class="p-4 rounded-xl bg-slate-950/95 border border-white/15 font-mono text-xs text-slate-300 space-y-2 max-h-56 overflow-y-auto custom-scrollbar shadow-inner select-text"
                 >
@@ -954,7 +954,7 @@
                                     <td class="p-4 text-slate-400 font-mono text-[11px]">{{ $snap['timestamp'] }}</td>
                                     <td class="p-4 text-right">
                                         <div class="flex items-center justify-end gap-2">
-                                            <button 
+                                            <button
                                                 wire:click="restoreDbSnapshot('{{ $snap['id'] }}')"
                                                 wire:loading.attr="disabled"
                                                 wire:confirm="Restore database state from this snapshot? Current database tables will be replaced."
@@ -965,7 +965,7 @@
                                                 <span wire:loading wire:target="restoreDbSnapshot('{{ $snap['id'] }}')">Restoring...</span>
                                             </button>
 
-                                            <button 
+                                            <button
                                                 wire:click="deleteDbSnapshot('{{ $snap['id'] }}')"
                                                 wire:loading.attr="disabled"
                                                 wire:confirm="Permanently delete database snapshot [{{ $snap['id'] }}]?"

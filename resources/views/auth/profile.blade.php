@@ -94,8 +94,8 @@
         <!-- Left Side Tabs Navigation Bar (Sticky on Desktop) -->
         <div class="lg:col-span-3 lg:sticky lg:top-24 space-y-4">
             <div class="flex flex-col gap-1.5 p-2 rounded-2xl bg-slate-900/90 border border-white/10 shadow-inner select-none">
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     wire:click="switchTab('profile')"
                     class="flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-left {{ $activeTab === 'profile' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-600/30 border border-indigo-400/40' : 'text-slate-400 hover:text-white hover:bg-white/5' }}"
                 >
@@ -106,8 +106,8 @@
                     <span class="text-[10px] {{ $activeTab === 'profile' ? 'text-white' : 'text-slate-500' }}">→</span>
                 </button>
 
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     wire:click="switchTab('tokens')"
                     class="flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-left {{ $activeTab === 'tokens' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-600/30 border border-indigo-400/40' : 'text-slate-400 hover:text-white hover:bg-white/5' }}"
                 >
@@ -120,8 +120,8 @@
                     </span>
                 </button>
 
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     wire:click="switchTab('content')"
                     class="flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-left {{ $activeTab === 'content' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-600/30 border border-indigo-400/40' : 'text-slate-400 hover:text-white hover:bg-white/5' }}"
                 >
@@ -134,8 +134,8 @@
                     </span>
                 </button>
 
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     wire:click="switchTab('byok')"
                     class="flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-left {{ $activeTab === 'byok' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-600/30 border border-indigo-400/40' : 'text-slate-400 hover:text-white hover:bg-white/5' }}"
                 >
@@ -148,8 +148,8 @@
                     </span>
                 </button>
 
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     wire:click="switchTab('connect')"
                     class="flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-left {{ $activeTab === 'connect' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-600/30 border border-indigo-400/40' : 'text-slate-400 hover:text-white hover:bg-white/5' }}"
                 >
@@ -162,8 +162,8 @@
                     </span>
                 </button>
 
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     wire:click="switchTab('preferences')"
                     class="flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-left {{ $activeTab === 'preferences' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-600/30 border border-indigo-400/40' : 'text-slate-400 hover:text-white hover:bg-white/5' }}"
                 >
@@ -272,7 +272,7 @@
 
                     <!-- Progress Bar -->
                     <div class="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-white/5">
-                        <div 
+                        <div
                             class="h-full transition-all duration-500 rounded-full {{ $quota['percentage_used'] >= 90 ? 'bg-gradient-to-r from-amber-500 to-rose-500' : ($quota['percentage_used'] >= 75 ? 'bg-gradient-to-r from-violet-500 to-amber-500' : 'bg-gradient-to-r from-cyan-500 to-emerald-400') }}"
                             style="width: {{ min(100, $quota['percentage_used']) }}%"
                         ></div>
@@ -501,9 +501,9 @@
                                             <a href="{{ route('documents.editor', $doc->id) }}" wire:navigate class="px-2.5 py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600 text-indigo-200 hover:text-white font-bold transition-all">
                                                 Edit
                                             </a>
-                                            <button 
-                                                type="button" 
-                                                wire:click="deleteDocument({{ $doc->id }})" 
+                                            <button
+                                                type="button"
+                                                wire:click="deleteDocument({{ $doc->id }})"
                                                 wire:confirm="Are you sure you want to trash this document?"
                                                 class="p-1 text-slate-500 hover:text-red-400 transition-colors cursor-pointer"
                                                 title="Delete Document"
@@ -570,10 +570,10 @@
 
                         <div>
                             <label class="block text-[11px] font-semibold text-slate-300 mb-1">Secret Key / Bearer Token</label>
-                            <input 
-                                type="password" 
-                                wire:model="byok_api_key" 
-                                placeholder="sk-..." 
+                            <input
+                                type="password"
+                                wire:model="byok_api_key"
+                                placeholder="sk-..."
                                 class="w-full bg-slate-950 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
                                 required
                             />
@@ -583,15 +583,15 @@
                         <div class="flex items-end gap-2">
                             <div class="flex-1">
                                 <label class="block text-[11px] font-semibold text-slate-300 mb-1">Custom Base URL (Optional)</label>
-                                <input 
-                                    type="text" 
-                                    wire:model="byok_custom_url" 
-                                    placeholder="http://localhost:11434/v1" 
+                                <input
+                                    type="text"
+                                    wire:model="byok_custom_url"
+                                    placeholder="http://localhost:11434/v1"
                                     class="w-full bg-slate-950 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
                                 />
                             </div>
-                            <button 
-                                type="submit" 
+                            <button
+                                type="submit"
                                 class="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold shadow-md shadow-indigo-600/30 transition-all cursor-pointer shrink-0"
                             >
                                 Register Key
@@ -638,9 +638,9 @@
                                                 <span class="text-slate-500 tracking-widest">••••••••••••••••••••••••••••</span>
                                             @endif
 
-                                            <button 
-                                                type="button" 
-                                                wire:click="toggleKeyVisibility({{ $key->id }})" 
+                                            <button
+                                                type="button"
+                                                wire:click="toggleKeyVisibility({{ $key->id }})"
                                                 class="text-xs text-slate-400 hover:text-white transition-colors cursor-pointer p-0.5"
                                                 title="{{ $isVisible ? 'Hide Key' : 'Reveal Raw Key' }}"
                                             >
@@ -654,9 +654,9 @@
                                         </span>
                                     </td>
                                     <td class="py-3 px-3 text-right">
-                                        <button 
-                                            type="button" 
-                                            wire:click="deleteApiKey({{ $key->id }})" 
+                                        <button
+                                            type="button"
+                                            wire:click="deleteApiKey({{ $key->id }})"
                                             wire:confirm="Remove this API key?"
                                             class="text-[11px] text-red-400 hover:text-red-300 font-semibold cursor-pointer"
                                         >
@@ -707,8 +707,8 @@
                         </div>
                         <div class="p-3 rounded-xl bg-black/80 border border-emerald-500/30 flex items-center justify-between gap-3">
                             <code class="font-mono text-xs text-emerald-400 select-all break-all">{{ $generatedPlainTextToken }}</code>
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 onclick="navigator.clipboard.writeText('{{ $generatedPlainTextToken }}'); this.innerText = 'Copied!';"
                                 class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors shrink-0 cursor-pointer"
                             >
@@ -725,10 +725,10 @@
                 <form wire:submit.prevent="generateStudioToken" class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-slate-900/80 border border-white/10">
                     <div class="sm:col-span-2">
                         <label class="block text-[11px] font-semibold text-slate-300 mb-1">Integration / Site Label</label>
-                        <input 
-                            type="text" 
-                            wire:model="newTokenName" 
-                            placeholder="e.g. My Tech Blog (WordPress)" 
+                        <input
+                            type="text"
+                            wire:model="newTokenName"
+                            placeholder="e.g. My Tech Blog (WordPress)"
                             class="w-full bg-slate-950 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-medium disabled:opacity-50"
                             wire:loading.attr="disabled"
                             wire:target="generateStudioToken"
@@ -738,8 +738,8 @@
                     </div>
 
                     <div class="flex items-end">
-                        <button 
-                            type="submit" 
+                        <button
+                            type="submit"
                             wire:loading.attr="disabled"
                             wire:target="generateStudioToken"
                             class="w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-60 disabled:cursor-not-allowed text-white text-xs font-bold shadow-md shadow-indigo-600/30 transition-all cursor-pointer flex items-center justify-center gap-2"
@@ -804,9 +804,9 @@
                                         </span>
                                     </td>
                                     <td class="py-3 px-3 text-right">
-                                        <button 
-                                            type="button" 
-                                            wire:click="deleteStudioToken({{ $token->id }})" 
+                                        <button
+                                            type="button"
+                                            wire:click="deleteStudioToken({{ $token->id }})"
                                             wire:confirm="Revoke this Studio Connect Key? The connected WordPress site will no longer be able to stream AI."
                                             class="text-[11px] text-red-400 hover:text-red-300 font-semibold cursor-pointer"
                                         >

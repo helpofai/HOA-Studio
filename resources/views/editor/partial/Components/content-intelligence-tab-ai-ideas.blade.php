@@ -25,9 +25,9 @@
                 <span class="text-cyan-400">🎯</span>
                 <span>Semantic Content Gaps</span>
             </span>
-            <button 
-                type="button" 
-                wire:click="generateContentGaps" 
+            <button
+                type="button"
+                wire:click="generateContentGaps"
                 wire:loading.attr="disabled"
                 wire:target="generateContentGaps"
                 class="px-3 py-1 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-mono text-[10.5px] font-bold shadow-md shadow-cyan-600/25 transition-all cursor-pointer disabled:opacity-50"
@@ -45,16 +45,16 @@
                         <p class="text-[10.5px] text-slate-400 leading-snug">{{ $gap['reason'] ?? '' }}</p>
                         @if(!empty($gap['suggested_h2']))
                             <div class="flex items-center gap-1.5 pt-1">
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     x-on:click="insertContentIntoCanvas('<h2>' + @js($gap['suggested_h2']) + '</h2><p>Comprehensive coverage of ' + @js($gap['topic']) + '...</p>', true)"
                                     class="py-1 px-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-[10px] font-mono font-bold transition-all shadow-sm cursor-pointer"
                                     title="Insert heading and outline into editor"
                                 >
                                     + Heading
                                 </button>
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     x-on:click="triggerAiTransform('custom', 'Write a comprehensive, authoritative section with the heading \'' + @js($gap['suggested_h2']) + '\' thoroughly addressing ' + @js($gap['topic']) + '. Provide in-depth explanations, bold terms, and actionable takeaways. Output clean semantic HTML.', 'insert_below')"
                                     class="flex-1 py-1 px-2 rounded-lg bg-cyan-600/30 hover:bg-cyan-600 text-cyan-300 hover:text-white text-[10px] font-mono font-bold transition-all shadow-sm cursor-pointer"
                                     title="Have AI draft this entire section into the canvas"
@@ -78,9 +78,9 @@
                 <span class="text-indigo-400">❓</span>
                 <span>Schema-Ready FAQs</span>
             </span>
-            <button 
-                type="button" 
-                wire:click="generateFaqSuggestions" 
+            <button
+                type="button"
+                wire:click="generateFaqSuggestions"
                 wire:loading.attr="disabled"
                 wire:target="generateFaqSuggestions"
                 class="px-3 py-1 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-mono text-[10.5px] font-bold shadow-md shadow-indigo-600/25 transition-all cursor-pointer disabled:opacity-50"
@@ -96,8 +96,8 @@
                     <div wire:key="ai-faq-{{ $loop->index }}" class="p-2.5 rounded-xl bg-slate-950/80 border border-white/5 space-y-1.5">
                         <div class="font-bold text-indigo-300 text-[11px]">Q: {{ $faq['question'] ?? '' }}</div>
                         <p class="text-[10.5px] text-slate-300 leading-relaxed">{{ $faq['answer'] ?? '' }}</p>
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             x-on:click="insertContentIntoCanvas('<h3>' + @js($faq['question']) + '</h3><p>' + @js($faq['answer']) + '</p>', true)"
                             class="w-full py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white text-[10px] font-mono font-bold transition-all shadow-sm cursor-pointer"
                         >
@@ -118,9 +118,9 @@
                 <span class="text-amber-400">⚡</span>
                 <span>Quick Answer Box</span>
             </span>
-            <button 
-                type="button" 
-                wire:click="generateQuickAnswer" 
+            <button
+                type="button"
+                wire:click="generateQuickAnswer"
                 wire:loading.attr="disabled"
                 wire:target="generateQuickAnswer"
                 class="px-3 py-1 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-mono text-[10.5px] font-bold shadow-md shadow-amber-600/25 transition-all cursor-pointer disabled:opacity-50"
@@ -133,8 +133,8 @@
         @if(!empty($aiQuickAnswer))
             <div class="p-2.5 rounded-xl bg-slate-950/80 border border-amber-500/30 space-y-2 text-xs text-slate-200">
                 <div class="text-[11px] leading-relaxed">{!! $aiQuickAnswer !!}</div>
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     x-on:click="insertContentIntoCanvas('<blockquote><strong>Quick Answer:</strong> ' + @js($aiQuickAnswer) + '</blockquote>', true)"
                     class="w-full py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold text-[10.5px] shadow-md transition-all cursor-pointer"
                 >
@@ -153,9 +153,9 @@
                 <span class="text-blue-400">▦</span>
                 <span>Structured Comparison Table</span>
             </span>
-            <button 
-                type="button" 
-                x-on:click="triggerAiTransform('comparison_table', '', 'insert_below')" 
+            <button
+                type="button"
+                x-on:click="triggerAiTransform('comparison_table', '', 'insert_below')"
                 class="px-3 py-1 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-mono text-[10.5px] font-bold shadow-md shadow-blue-600/25 transition-all cursor-pointer"
             >
                 ⚡ Generate Table
@@ -173,9 +173,9 @@
                 <span class="text-emerald-400">💡</span>
                 <span>E-E-A-T Methodology Box</span>
             </span>
-            <button 
-                type="button" 
-                x-on:click="triggerAiTransform('eeat_trust')" 
+            <button
+                type="button"
+                x-on:click="triggerAiTransform('eeat_trust')"
                 class="px-3 py-1 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-mono text-[10.5px] font-bold shadow-md shadow-emerald-600/25 transition-all cursor-pointer"
             >
                 ⚡ Generate & Insert

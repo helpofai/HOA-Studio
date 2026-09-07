@@ -86,10 +86,10 @@
     @endif
 
     <!-- Project Create / Edit Modal -->
-    <div 
-        x-data="{ show: $wire.entangle('showModal') }" 
-        x-show="show" 
-        class="fixed inset-0 z-50 flex items-center justify-center p-4" 
+    <div
+        x-data="{ show: $wire.entangle('showModal') }"
+        x-show="show"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4"
         style="display: none;"
     >
         <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" x-on:click="show = false"></div>

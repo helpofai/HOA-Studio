@@ -24,10 +24,10 @@
 --}}
 
 <x-layouts.app :title="$title ?? 'Workspace — HelpOfAi Studio'">
-    <div 
-        class="min-h-screen flex text-slate-100 selection:bg-indigo-500/30 selection:text-indigo-200" 
-        x-data="{ 
-            sidebarOpen: false, 
+    <div
+        class="min-h-screen flex text-slate-100 selection:bg-indigo-500/30 selection:text-indigo-200"
+        x-data="{
+            sidebarOpen: false,
             collapsed: false,
             init() {
                 try {
@@ -46,8 +46,8 @@
         }"
     >
         <!-- Mobile Sidebar Overlay Backdrop -->
-        <div 
-            x-show="sidebarOpen" 
+        <div
+            x-show="sidebarOpen"
             x-on:click="sidebarOpen = false"
             class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 lg:hidden"
             x-transition:enter="ease-out duration-200"
@@ -60,7 +60,7 @@
         ></div>
 
         <!-- Sleek Collapsible Sidebar Navigation (Fixed Viewport Height) -->
-        <aside 
+        <aside
             class="fixed inset-y-0 left-0 z-50 glass-standard border-r border-white/10 flex flex-col justify-between transition-[width,transform] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] lg:sticky lg:top-0 lg:h-screen lg:z-30 select-none shrink-0 overflow-hidden"
             :class="{
                 'w-64': !collapsed,
@@ -74,8 +74,8 @@
                 <div class="h-16 px-4 flex items-center border-b border-white/5 shrink-0 transition-all duration-300" :class="collapsed ? 'justify-center' : 'justify-between'">
                     <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center gap-3 overflow-hidden group">
                         <x-glass.logo size="sm" text="HOA" />
-                        <div 
-                            x-show="!collapsed" 
+                        <div
+                            x-show="!collapsed"
                             x-transition:enter="transition-all duration-300 ease-out"
                             x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                             x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -97,11 +97,11 @@
 
                 <!-- Navigation Links List (SPA Mode with wire:navigate) -->
                 <nav class="sidebar-nav-menu p-3 space-y-2.5 overflow-y-auto overflow-x-hidden flex-1 scrollbar-none">
-                    
+
                     <!-- 1. WORKSPACE SECTION -->
                     <div class="sidebar-nav-section space-y-0.5">
-                        <div 
-                            x-show="!collapsed" 
+                        <div
+                            x-show="!collapsed"
                             x-transition:enter="transition-all duration-200"
                             x-transition:enter-start="opacity-0"
                             x-transition:enter-end="opacity-100"
@@ -112,14 +112,14 @@
                         <div x-show="collapsed" class="py-0.5"></div>
 
                         <!-- Dashboard -->
-                        <a 
-                            href="{{ route('dashboard') }}" 
+                        <a
+                            href="{{ route('dashboard') }}"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('dashboard') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">📊</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -136,14 +136,14 @@
                         </a>
 
                         <!-- AI Text Editor -->
-                        <a 
-                            href="{{ route('editor') }}" 
+                        <a
+                            href="{{ route('editor') }}"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('documents.editor') || request()->routeIs('editor') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">✍️</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -159,14 +159,14 @@
                         </a>
 
                         <!-- Content Intelligence Hub -->
-                        <a 
-                            href="{{ route('content-intelligence.index') }}" 
+                        <a
+                            href="{{ route('content-intelligence.index') }}"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('content-intelligence.*') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🧠</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -182,14 +182,14 @@
                         </a>
 
                         <!-- All Documents -->
-                        <a 
-                            href="{{ route('documents.index') }}" 
+                        <a
+                            href="{{ route('documents.index') }}"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('documents.index') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">📄</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -205,14 +205,14 @@
                         </a>
 
                         <!-- Blog Articles -->
-                        <a 
-                            href="{{ route('dashboard.blog') }}" 
+                        <a
+                            href="{{ route('dashboard.blog') }}"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('dashboard.blog') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">📰</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -228,14 +228,14 @@
                         </a>
 
                         <!-- Projects -->
-                        <a 
-                            href="{{ route('projects.index') }}" 
+                        <a
+                            href="{{ route('projects.index') }}"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('projects.*') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">📁</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -253,8 +253,8 @@
 
                     <!-- 2. TOOLS MANAGEMENT SECTION -->
                     <div class="sidebar-nav-section space-y-0.5 pt-1">
-                        <div 
-                            x-show="!collapsed" 
+                        <div
+                            x-show="!collapsed"
                             x-transition:enter="transition-all duration-200"
                             x-transition:enter-start="opacity-0"
                             x-transition:enter-end="opacity-100"
@@ -267,14 +267,14 @@
 
 
                         <!-- Templates Hub -->
-                        <a 
-                            href="{{ route('templates.index') }}" 
+                        <a
+                            href="{{ route('templates.index') }}"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('templates.*') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">⚡</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -290,14 +290,14 @@
                         </a>
 
                         <!-- Brand Voices -->
-                        <a 
-                            href="{{ route('brand-voices.index') }}" 
+                        <a
+                            href="{{ route('brand-voices.index') }}"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('brand-voices.*') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🎭</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -313,14 +313,14 @@
                         </a>
 
                         <!-- Knowledge Base -->
-                        <a 
-                            href="{{ route('knowledge-base.index') }}" 
+                        <a
+                            href="{{ route('knowledge-base.index') }}"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('knowledge-base.*') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🧠</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -338,8 +338,8 @@
 
                     <!-- 3. SETTINGS & ACCOUNT SECTION -->
                     <div class="sidebar-nav-section space-y-0.5 pt-1">
-                        <div 
-                            x-show="!collapsed" 
+                        <div
+                            x-show="!collapsed"
                             x-transition:enter="transition-all duration-200"
                             x-transition:enter-start="opacity-0"
                             x-transition:enter-end="opacity-100"
@@ -350,14 +350,14 @@
                         <div x-show="collapsed" class="py-1 my-0.5 border-t border-white/5"></div>
 
                         <!-- AI Models & OmniRoute Setup -->
-                        <a 
-                            href="{{ route('ai-models.index') }}" 
+                        <a
+                            href="{{ route('ai-models.index') }}"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('ai-models.*') || request()->routeIs('ai-settings.*') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🤖</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -373,14 +373,14 @@
                         </a>
 
                         <!-- Usage & Quotas -->
-                        <a 
-                            href="{{ route('usage.index') }}" 
+                        <a
+                            href="{{ route('usage.index') }}"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('usage.*') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">📈</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -396,14 +396,14 @@
                         </a>
 
                         <!-- User Settings & Controls Hub -->
-                        <a 
-                            href="{{ route('settings') }}" 
+                        <a
+                            href="{{ route('settings') }}"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('settings') || request()->routeIs('profile') ? 'bg-gradient-to-r from-indigo-600/25 to-purple-600/15 text-indigo-200 border border-indigo-500/40 font-semibold shadow-md shadow-indigo-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">⚙️</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -422,8 +422,8 @@
                     <!-- 4. ADMINISTRATION (Admins Only) -->
                     @if(auth()->user()->isAdmin())
                         <div class="sidebar-nav-section space-y-1 pt-1">
-                            <div 
-                                x-show="!collapsed" 
+                            <div
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-200"
                                 x-transition:enter-start="opacity-0"
                                 x-transition:enter-end="opacity-100"
@@ -433,14 +433,14 @@
                             </div>
                             <div x-show="collapsed" class="py-1 my-0.5 border-t border-white/5"></div>
 
-                            <a 
-                                href="{{ route('admin.dashboard') }}" 
+                            <a
+                                href="{{ route('admin.dashboard') }}"
                                 wire:navigate
                                 class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-violet-600/20 to-purple-600/10 text-violet-300 border border-violet-500/30 text-[13.5px] font-semibold hover:border-violet-400 shadow-lg shadow-violet-500/10 transition-all duration-200 group relative"
                             >
                                 <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🛡️</span>
-                                <span 
-                                    x-show="!collapsed" 
+                                <span
+                                    x-show="!collapsed"
                                     x-transition:enter="transition-all duration-300 ease-out"
                                     x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                     x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -468,8 +468,8 @@
                 @endphp
 
                 <!-- Expanded Quota Card -->
-                <div 
-                    x-show="!collapsed" 
+                <div
+                    x-show="!collapsed"
                     x-transition:enter="transition-all duration-300 ease-out"
                     x-transition:enter-start="opacity-0 scale-95"
                     x-transition:enter-end="opacity-100 scale-100"
@@ -492,8 +492,8 @@
                 </div>
 
                 <!-- Collapsed Quota Mini Indicator -->
-                <div 
-                    x-show="collapsed" 
+                <div
+                    x-show="collapsed"
                     x-transition:enter="transition-all duration-300 ease-out"
                     x-transition:enter-start="opacity-0 scale-90"
                     x-transition:enter-end="opacity-100 scale-100"
@@ -515,8 +515,8 @@
                         <div class="w-8 h-8 rounded-lg bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-xs font-bold text-white shrink-0 group-hover:border-indigo-400 group-hover:scale-105 transition-all duration-200 shadow-sm">
                             {{ strtoupper(substr($u->name ?? 'U', 0, 1)) }}
                         </div>
-                        <div 
-                            x-show="!collapsed" 
+                        <div
+                            x-show="!collapsed"
                             x-transition:enter="transition-all duration-300 ease-out"
                             x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                             x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -552,9 +552,9 @@
                     </button>
 
                     <!-- Desktop Toggle Button in Top Header (Linear / VS Code style) -->
-                    <button 
-                        type="button" 
-                        x-on:click="toggleCollapse()" 
+                    <button
+                        type="button"
+                        x-on:click="toggleCollapse()"
                         class="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg bg-slate-900/80 border border-white/10 hover:border-indigo-500/40 text-slate-400 hover:text-white hover:scale-105 active:scale-95 transition-all duration-150 cursor-pointer shadow-sm"
                         :title="collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
                     >
@@ -619,10 +619,10 @@
 
                     <!-- User Profile & Quick Navigation Glass Dropdown -->
                     <div class="relative" x-data="{ userMenuOpen: false }" @click.outside="userMenuOpen = false" @keydown.escape.window="userMenuOpen = false">
-                        <button 
+                        <button
                             type="button"
-                            @click="userMenuOpen = !userMenuOpen" 
-                            class="flex items-center gap-2 p-1 pr-2 rounded-xl glass-subtle hover:border-indigo-500/40 transition-all border border-white/5 cursor-pointer focus:outline-none select-none group" 
+                            @click="userMenuOpen = !userMenuOpen"
+                            class="flex items-center gap-2 p-1 pr-2 rounded-xl glass-subtle hover:border-indigo-500/40 transition-all border border-white/5 cursor-pointer focus:outline-none select-none group"
                             title="User Profile & Settings"
                             :aria-expanded="userMenuOpen"
                         >
@@ -636,8 +636,8 @@
                         </button>
 
                         <!-- Transparent Glassmorphic Backdrop-Blur Dropdown Panel -->
-                        <div 
-                            x-show="userMenuOpen" 
+                        <div
+                            x-show="userMenuOpen"
                             x-transition:enter="transition ease-out duration-200"
                             x-transition:enter-start="opacity-0 translate-y-2 scale-95"
                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
@@ -668,7 +668,7 @@
                             <!-- Workspace Quick Navigation -->
                             <div class="py-1.5 border-b border-white/10 text-xs">
                                 <div class="px-3 py-1 text-[10px] uppercase font-bold text-slate-400 tracking-wider">Workspace</div>
-                                
+
                                 <a href="{{ route('dashboard') }}" wire:navigate @click="userMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 text-slate-300 hover:text-white hover:bg-white/10 transition-colors">
                                     <span class="text-indigo-400 text-sm">📊</span>
                                     <span>Dashboard Overview</span>

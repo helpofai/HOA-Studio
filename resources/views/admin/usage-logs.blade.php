@@ -33,10 +33,10 @@
     </div>
 
     <!-- Platform-Wide Multi-Color Telemetry Graph -->
-    <x-omniroute.telemetry-graph 
-        :graphData="$graphData" 
-        :timeRange="$graphTimeRange" 
-        :statusFilter="$graphStatusFilter" 
+    <x-omniroute.telemetry-graph
+        :graphData="$graphData"
+        :timeRange="$graphTimeRange"
+        :statusFilter="$graphStatusFilter"
     />
 
     <!-- Filters -->

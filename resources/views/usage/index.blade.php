@@ -63,7 +63,7 @@
 
             <!-- Progress Bar -->
             <div class="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-white/5">
-                <div 
+                <div
                     class="h-full transition-all duration-500 rounded-full {{ $quota['percentage_used'] >= 90 ? 'bg-gradient-to-r from-amber-500 to-rose-500' : ($quota['percentage_used'] >= 75 ? 'bg-gradient-to-r from-violet-500 to-amber-500' : 'bg-gradient-to-r from-cyan-500 to-emerald-400') }}"
                     style="width: {{ min(100, $quota['percentage_used']) }}%"
                 ></div>

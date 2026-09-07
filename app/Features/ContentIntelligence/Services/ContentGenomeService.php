@@ -55,10 +55,10 @@ class ContentGenomeService
         ];
 
         // 3. Entities DNA (Gather from WorldEntity if available or from text)
-        $entities = WorldEntity::where('project_id', $projectId)->take(15)->get();
+        $entities = WorldEntity::where('user_id', $userId)->take(15)->get();
         $entitiesDna = $entities->map(fn (WorldEntity $e) => [
-            'name' => $e->canonical_name,
-            'type' => $e->entity_type,
+            'name' => $e->name,
+            'type' => $e->category,
             'description' => $e->description,
         ])->toArray();
 
@@ -76,11 +76,11 @@ class ContentGenomeService
         $factsDna = array_values(array_unique($statMatches[0] ?? []));
 
         // 6. Sources DNA
-        $snippets = EvidenceSnippet::where('project_id', $projectId)->take(10)->get();
+        $snippets = EvidenceSnippet::where('mission_id', $mission->id)->take(10)->get();
         $sourcesDna = $snippets->map(fn (EvidenceSnippet $s) => [
-            'source_title' => $s->source->source_title ?? 'Domain Documentation',
-            'verbatim_quote' => $s->verbatim_quote,
-            'reliability' => $s->source->reliability_tier ?? 'authoritative',
+            'source_title' => $s->source?->title ?? 'Domain Documentation',
+            'verbatim_quote' => $s->extract_text ?? $s->verbatim_quote,
+            'reliability' => $s->source?->source_type?->value ?? 'authoritative',
         ])->toArray();
 
         // 7. Quality DNA
@@ -163,10 +163,10 @@ class ContentGenomeService
         ];
 
         // 3. Entities DNA
-        $entities = WorldEntity::where('project_id', $projectId)->take(15)->get();
+        $entities = WorldEntity::where('user_id', $userId)->take(15)->get();
         $entitiesDna = $entities->map(fn (WorldEntity $e) => [
-            'name' => $e->canonical_name,
-            'type' => $e->entity_type,
+            'name' => $e->name,
+            'type' => $e->category,
             'description' => $e->description,
         ])->toArray();
 
@@ -187,11 +187,11 @@ class ContentGenomeService
         $factsDna = array_values(array_unique($statMatches[0] ?? []));
 
         // 6. Sources DNA
-        $snippets = EvidenceSnippet::where('project_id', $projectId)->take(10)->get();
+        $snippets = EvidenceSnippet::whereIn('mission_id', \App\Features\ContentIntelligence\Models\ContentMission::where('user_id', $userId)->select('id'))->take(10)->get();
         $sourcesDna = $snippets->map(fn (EvidenceSnippet $s) => [
-            'source_title' => $s->source->source_title ?? 'Domain Documentation',
-            'verbatim_quote' => $s->verbatim_quote,
-            'reliability' => $s->source->reliability_tier ?? 'authoritative',
+            'source_title' => $s->source?->title ?? 'Domain Documentation',
+            'verbatim_quote' => $s->extract_text ?? $s->verbatim_quote,
+            'reliability' => $s->source?->source_type?->value ?? 'authoritative',
         ])->toArray();
 
         // 7. Quality DNA

@@ -10,7 +10,6 @@
 | Author      : Rajib Adhikary
 | Organization: HelpOfAi (HOA)
 | Website     : https://helpofai.com
-| Location    : Basta Purba Para, Aranghata, Nadia, West Bengal, India
 |
 |--------------------------------------------------------------------------
 */
@@ -23,12 +22,15 @@ use App\Features\ContentIntelligence\DTOs\SectionDraftDTO;
 use App\Features\ContentIntelligence\DTOs\SeoMetadataDTO;
 use App\Features\ContentIntelligence\Models\ContentSeoMetadata;
 use App\Features\ContentIntelligence\Models\WorkflowRun;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class SeoOptimizationService
 {
     /**
      * Conduct comprehensive SEO optimization, SERP metadata generation, and JSON-LD schema synthesis.
+     *
+     * NOW USES REAL AI to generate optimized metadata based on actual content.
      *
      * @param  array<SectionDraftDTO>  $drafts
      */
@@ -41,20 +43,61 @@ class SeoOptimizationService
         $slug = Str::slug($mission->topic);
         $canonicalUrl = "https://helpofai.com/insights/{$slug}";
 
-        // 1. Synthesize Meta Title (Optimal SERP Length <= 60 chars)
-        $metaTitle = Str::limit($blueprint->articleAngle ?: "{$mission->topic}: Complete Production Guide", 58, '');
+        Log::info("[SeoOptimizer] STEP 6: AI generating SEO metadata for: {$mission->topic}");
 
-        // 2. Synthesize Meta Description (Optimal SERP Length <= 160 chars)
-        $rawDesc = $blueprint->uniqueValueProposition ?: $mission->primaryObjective;
-        $metaDescription = Str::limit("Discover {$rawDesc} Step-by-step authoritative architecture guide.", 155, '...');
+        // Build content preview for AI context
+        $contentPreview = '';
+        foreach (array_slice($drafts, 0, 3) as $draft) {
+            $contentPreview .= ' ' . mb_substr($draft->contentMarkdown, 0, 500);
+        }
+        $contentPreview = trim($contentPreview);
 
-        // 3. Keyword Map & Density Analysis
-        $primaryKeyword = (string) ($blueprint->keywordMap['primary'] ?? $mission->topic);
-        $secondaryKeywords = (array) ($blueprint->keywordMap['secondary'] ?? []);
+        // ══════════════════════════════════════════════════════════════
+        // AI-Powered SEO Metadata Generation
+        // ══════════════════════════════════════════════════════════════
+
+        $audiencePersona = $mission->targetAudience['persona'] ?? 'General';
+        $seoPrompt = "Generate SEO metadata for an article about: \"{$mission->topic}\"
+Article Angle: {$blueprint->articleAngle}
+Target Audience: {$audiencePersona}
+Content Preview: {$contentPreview}
+
+Generate optimal SEO metadata:
+1. meta_title: Compelling title, max 60 characters, include primary keyword
+2. meta_description: Engaging description, max 155 characters, includes call to action
+3. primary_keyword: The single best keyword for this article
+4. secondary_keywords: Array of 5-7 related secondary keywords
+5. seo_recommendations: 3 specific recommendations to improve SEO
+
+Return JSON:
+{
+  \"meta_title\": \"...\",
+  \"meta_description\": \"...\",
+  \"primary_keyword\": \"...\",
+  \"secondary_keywords\": [\"...\", ...],
+  \"seo_recommendations\": [\"...\", ...]
+}";
+
+        $aiSeo = DynamicContentProvider::askJSON($seoPrompt, [
+            'meta_title' => "{$mission->topic}: Complete Guide",
+            'meta_description' => "Discover everything about {$mission->topic}. Expert insights and practical guides.",
+            'primary_keyword' => strtolower($mission->topic),
+            'secondary_keywords' => [],
+            'seo_recommendations' => []
+        ]);
+
+        $metaTitle = Str::limit($aiSeo['meta_title'] ?? "{$mission->topic}: Complete Production Guide", 60, '');
+        $metaDescription = Str::limit($aiSeo['meta_description'] ?? "Discover everything about {$mission->topic}. Expert insights and practical guidance.", 155, '...');
+
+        Log::info("[SeoOptimizer] Generated title: {$metaTitle}");
+
+        // 3. Keyword Map & Density Analysis (real computation)
+        $primaryKeyword = $aiSeo['primary_keyword'] ?? $mission->topic;
+        $secondaryKeywords = $aiSeo['secondary_keywords'] ?? [];
 
         $fullMarkdown = '';
         foreach ($drafts as $draft) {
-            $fullMarkdown .= ' '.$draft->contentMarkdown;
+            $fullMarkdown .= ' ' . $draft->contentMarkdown;
         }
         $totalWords = max(1, str_word_count($fullMarkdown));
 
@@ -86,11 +129,25 @@ class SeoOptimizationService
         ];
 
         // 6. Calculate Search Optimization Score (0-100)
-        $seoScore = 95;
-        if ($densityMap[$primaryKeyword] < 0.2) {
-            $seoScore -= 10;
-        } elseif ($densityMap[$primaryKeyword] > 3.5) {
-            $seoScore -= 15; // penalize keyword stuffing
+        $seoScore = 90; // Start with AI-optimized baseline
+        if (isset($densityMap[$primaryKeyword])) {
+            if ($densityMap[$primaryKeyword] < 0.1) {
+                $seoScore -= 5;
+            } elseif ($densityMap[$primaryKeyword] > 3.5) {
+                $seoScore -= 10; // penalize keyword stuffing
+            } else {
+                $seoScore += 5; // reward optimal density
+            }
+        }
+
+        // Check if meta title contains primary keyword
+        if (str_contains(strtolower($metaTitle), strtolower($primaryKeyword))) {
+            $seoScore += 3;
+        }
+
+        // Check if meta description contains primary keyword
+        if (str_contains(strtolower($metaDescription), strtolower($primaryKeyword))) {
+            $seoScore += 2;
         }
 
         $dto = new SeoMetadataDTO(
@@ -125,6 +182,8 @@ class SeoOptimizationService
                 'heading_hierarchy_valid' => $dto->headingHierarchyValid,
             ]
         );
+
+        Log::info("[SeoOptimizer] STEP 6 COMPLETE: SEO score = {$dto->seoScore}");
 
         return $dto;
     }

@@ -15,28 +15,28 @@
 */
 --}}
 
-<div 
-    class="hoa-blog-post-page min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-indigo-500/30 selection:text-indigo-200" 
+<div
+    class="hoa-blog-post-page min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-indigo-500/30 selection:text-indigo-200"
     x-data="hoaBlogPostReader('{{ $post->slug }}')"
 >
     <!-- Top Reading Progress Indicator (0% to 100%) -->
     <div class="fixed top-0 left-0 right-0 z-50 h-[3px] bg-transparent pointer-events-none">
-        <div 
+        <div
             class="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-cyan-400 transition-[width] duration-150 ease-out shadow-[0_0_12px_rgba(99,102,241,0.8)]"
             :style="`width: ${scrollProgress}%`"
         ></div>
     </div>
 
     <!-- Sticky Floating Mini-Header (Floats down when scrolled past hero) -->
-    <header 
-        x-show="showFloatingHeader" 
+    <header
+        x-show="showFloatingHeader"
         x-cloak
-        x-transition:enter="transition ease-out duration-300 transform" 
-        x-transition:enter-start="-translate-y-full opacity-0" 
-        x-transition:enter-end="translate-y-0 opacity-100" 
-        x-transition:leave="transition ease-in duration-200 transform" 
-        x-transition:leave-start="translate-y-0 opacity-100" 
-        x-transition:leave-end="-translate-y-full opacity-0" 
+        x-transition:enter="transition ease-out duration-300 transform"
+        x-transition:enter-start="-translate-y-full opacity-0"
+        x-transition:enter-end="translate-y-0 opacity-100"
+        x-transition:leave="transition ease-in duration-200 transform"
+        x-transition:leave-start="translate-y-0 opacity-100"
+        x-transition:leave-end="-translate-y-full opacity-0"
         class="fixed top-0 left-0 right-0 z-40 bg-slate-950/90 backdrop-blur-xl border-b border-white/10 shadow-2xl py-3 px-4 sm:px-8"
     >
         <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
@@ -61,9 +61,9 @@
                 </div>
 
                 <!-- Quick Copy Link -->
-                <button 
-                    type="button" 
-                    x-on:click="navigator.clipboard.writeText(window.location.href); copySuccess = true; setTimeout(() => copySuccess = false, 2500);" 
+                <button
+                    type="button"
+                    x-on:click="navigator.clipboard.writeText(window.location.href); copySuccess = true; setTimeout(() => copySuccess = false, 2500);"
                     class="px-3 py-1 rounded-xl glass-subtle hover:border-white/25 text-xs text-slate-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
                 >
                     <span x-show="!copySuccess">🔗 <span class="hidden sm:inline">Copy Link</span></span>
@@ -170,28 +170,28 @@
 
                 <!-- Inline Share Actions -->
                 <div class="flex items-center gap-2">
-                    <button 
-                        type="button" 
-                        x-on:click="navigator.clipboard.writeText(window.location.href); copySuccess = true; setTimeout(() => copySuccess = false, 2500);" 
-                        class="px-3.5 py-1.5 rounded-xl glass-subtle hover:border-white/25 text-xs text-slate-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer shadow-sm" 
+                    <button
+                        type="button"
+                        x-on:click="navigator.clipboard.writeText(window.location.href); copySuccess = true; setTimeout(() => copySuccess = false, 2500);"
+                        class="px-3.5 py-1.5 rounded-xl glass-subtle hover:border-white/25 text-xs text-slate-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
                         title="Copy link to clipboard"
                     >
                         <span x-show="!copySuccess">🔗 Copy Link</span>
                         <span x-show="copySuccess" class="text-emerald-400 font-bold">✓ Copied!</span>
                     </button>
 
-                    <a 
-                        href="https://twitter.com/intent/tweet?text={{ urlencode($post->title) }}&url={{ urlencode(request()->url()) }}" 
-                        target="_blank" 
+                    <a
+                        href="https://twitter.com/intent/tweet?text={{ urlencode($post->title) }}&url={{ urlencode(request()->url()) }}"
+                        target="_blank"
                         class="p-2 px-3 rounded-xl glass-subtle hover:border-sky-500/40 text-slate-400 hover:text-sky-400 text-xs transition-colors"
                         title="Share on X / Twitter"
                     >
                         𝕏
                     </a>
 
-                    <a 
-                        href="https://www.linkedin.com/sharing/share-offsite/?url={{ urlencode(request()->url()) }}" 
-                        target="_blank" 
+                    <a
+                        href="https://www.linkedin.com/sharing/share-offsite/?url={{ urlencode(request()->url()) }}"
+                        target="_blank"
                         class="p-2 px-3 rounded-xl glass-subtle hover:border-blue-500/40 text-slate-400 hover:text-blue-400 text-xs transition-colors"
                         title="Share on LinkedIn"
                     >
@@ -204,11 +204,11 @@
             @if(!empty($post->featured_image))
                 <div class="pt-2">
                     <div class="rounded-3xl overflow-hidden border border-white/10 bg-slate-900 hoa-editor-shadow aspect-[21/9] relative shadow-2xl">
-                        <img 
-                            src="{{ $post->featured_image }}" 
-                            alt="{{ $post->title }}" 
-                            class="w-full h-full object-cover" 
-                            onerror="this.style.display='none'" 
+                        <img
+                            src="{{ $post->featured_image }}"
+                            alt="{{ $post->title }}"
+                            class="w-full h-full object-cover"
+                            onerror="this.style.display='none'"
                         />
                     </div>
                 </div>
@@ -219,14 +219,14 @@
     <!-- Main Editorial Body (2-Column Magazine Grid) -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 xl:gap-16 items-start">
-            
+
             <!-- Left / Center: Reading Column -->
             <div class="lg:col-span-8 max-w-[740px] mx-auto lg:mx-0 w-full space-y-12">
                 <!-- Mobile Table of Contents Accordion (visible only on mobile/tablet when toc has items) -->
                 <div x-show="toc.length > 0" class="lg:hidden glass-standard rounded-2xl p-4 border border-white/10 space-y-3">
-                    <button 
-                        type="button" 
-                        @click="mobileTocOpen = !mobileTocOpen" 
+                    <button
+                        type="button"
+                        @click="mobileTocOpen = !mobileTocOpen"
                         class="w-full flex items-center justify-between text-xs font-bold text-slate-200 tracking-wide uppercase cursor-pointer"
                     >
                         <span class="flex items-center gap-2">
@@ -238,9 +238,9 @@
                     </button>
                     <div x-show="mobileTocOpen" class="pt-2 border-t border-white/10 space-y-1.5 max-h-64 overflow-y-auto">
                         <template x-for="item in toc" :key="item.id">
-                            <a 
-                                :href="'#' + item.id" 
-                                @click.prevent="scrollToHeading(item.id)" 
+                            <a
+                                :href="'#' + item.id"
+                                @click.prevent="scrollToHeading(item.id)"
                                 class="block text-xs py-1 transition-colors"
                                 :class="{
                                     'pl-2 font-medium': item.level === 'h2',
@@ -386,9 +386,9 @@
 
                     <nav class="space-y-1 max-h-56 overflow-y-auto pr-1 hoa-custom-scrollbar">
                         <template x-for="item in toc" :key="item.id">
-                            <a 
-                                :href="'#' + item.id" 
-                                @click.prevent="scrollToHeading(item.id)" 
+                            <a
+                                :href="'#' + item.id"
+                                @click.prevent="scrollToHeading(item.id)"
                                 class="block text-xs py-1.5 transition-all duration-200 leading-snug rounded-lg"
                                 :class="{
                                     'font-semibold text-indigo-300 bg-indigo-500/15 border-l-2 border-indigo-400 pl-2.5': activeHeading === item.id,
@@ -406,25 +406,25 @@
                     <!-- Tab Controls Header -->
                     <div class="flex items-center justify-between pb-3 border-b border-white/10">
                         <div class="flex items-center p-1 rounded-xl bg-slate-900/80 border border-white/10 w-full gap-1">
-                            <button 
-                                type="button" 
-                                @click="sidebarTab = 'similar'" 
+                            <button
+                                type="button"
+                                @click="sidebarTab = 'similar'"
                                 class="flex-1 py-1.5 px-2 rounded-lg text-[11px] font-medium transition-all text-center cursor-pointer select-none"
                                 :class="sidebarTab === 'similar' ? 'bg-indigo-600/35 text-indigo-200 font-bold border border-indigo-500/40 shadow-sm' : 'text-slate-400 hover:text-white'"
                             >
                                 Similar
                             </button>
-                            <button 
-                                type="button" 
-                                @click="sidebarTab = 'author'" 
+                            <button
+                                type="button"
+                                @click="sidebarTab = 'author'"
                                 class="flex-1 py-1.5 px-2 rounded-lg text-[11px] font-medium transition-all text-center cursor-pointer select-none"
                                 :class="sidebarTab === 'author' ? 'bg-indigo-600/35 text-indigo-200 font-bold border border-indigo-500/40 shadow-sm' : 'text-slate-400 hover:text-white'"
                             >
                                 By Author
                             </button>
-                            <button 
-                                type="button" 
-                                @click="sidebarTab = 'trending'" 
+                            <button
+                                type="button"
+                                @click="sidebarTab = 'trending'"
                                 class="flex-1 py-1.5 px-2 rounded-lg text-[11px] font-medium transition-all text-center cursor-pointer select-none"
                                 :class="sidebarTab === 'trending' ? 'bg-indigo-600/35 text-indigo-200 font-bold border border-indigo-500/40 shadow-sm' : 'text-slate-400 hover:text-white'"
                             >
@@ -545,9 +545,9 @@
                 <div class="glass-subtle rounded-2xl p-4 border border-white/10 space-y-3 shadow-lg">
                     <span class="text-[10px] uppercase font-mono tracking-wider text-slate-400 font-bold block">Share this story</span>
                     <div class="grid grid-cols-3 gap-2">
-                        <button 
-                            type="button" 
-                            x-on:click="navigator.clipboard.writeText(window.location.href); copySuccess = true; setTimeout(() => copySuccess = false, 2500);" 
+                        <button
+                            type="button"
+                            x-on:click="navigator.clipboard.writeText(window.location.href); copySuccess = true; setTimeout(() => copySuccess = false, 2500);"
                             class="p-2.5 rounded-xl glass-subtle hover:border-white/25 text-xs text-slate-300 hover:text-white transition-all flex flex-col items-center gap-1 cursor-pointer"
                             title="Copy Link"
                         >
@@ -556,9 +556,9 @@
                             <span class="text-[10px]" x-text="copySuccess ? 'Copied' : 'Copy'"></span>
                         </button>
 
-                        <a 
-                            href="https://twitter.com/intent/tweet?text={{ urlencode($post->title) }}&url={{ urlencode(request()->url()) }}" 
-                            target="_blank" 
+                        <a
+                            href="https://twitter.com/intent/tweet?text={{ urlencode($post->title) }}&url={{ urlencode(request()->url()) }}"
+                            target="_blank"
                             class="p-2.5 rounded-xl glass-subtle hover:border-sky-500/40 text-slate-400 hover:text-sky-400 text-xs transition-all flex flex-col items-center gap-1"
                             title="Share on X / Twitter"
                         >
@@ -566,9 +566,9 @@
                             <span class="text-[10px]">Post</span>
                         </a>
 
-                        <a 
-                            href="https://www.linkedin.com/sharing/share-offsite/?url={{ urlencode(request()->url()) }}" 
-                            target="_blank" 
+                        <a
+                            href="https://www.linkedin.com/sharing/share-offsite/?url={{ urlencode(request()->url()) }}"
+                            target="_blank"
                             class="p-2.5 rounded-xl glass-subtle hover:border-blue-500/40 text-slate-400 hover:text-blue-400 text-xs transition-all flex flex-col items-center gap-1"
                             title="Share on LinkedIn"
                         >
@@ -594,8 +594,8 @@
     </main>
 
     <!-- Floating Resume Reading Toast Banner -->
-    <div 
-        x-show="showResumeBanner" 
+    <div
+        x-show="showResumeBanner"
         x-cloak
         x-transition:enter="transition ease-out duration-300 transform"
         x-transition:enter-start="translate-y-8 opacity-0"
@@ -613,16 +613,16 @@
             <p class="text-[10px] text-slate-400">Jump straight back to your saved reading point</p>
         </div>
         <div class="flex items-center gap-1.5 shrink-0">
-            <button 
-                type="button" 
-                @click="jumpToSavedPosition()" 
+            <button
+                type="button"
+                @click="jumpToSavedPosition()"
                 class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md shadow-indigo-600/30 transition-all cursor-pointer hover:scale-105"
             >
                 Jump &rarr;
             </button>
-            <button 
-                type="button" 
-                @click="dismissResumeBanner()" 
+            <button
+                type="button"
+                @click="dismissResumeBanner()"
                 class="p-1 text-slate-400 hover:text-white text-xs cursor-pointer transition-colors"
                 title="Dismiss"
             >

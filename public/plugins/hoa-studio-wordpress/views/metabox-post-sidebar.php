@@ -48,13 +48,13 @@ if (! defined('ABSPATH')) {
         <label for="hoa_target_keyword" class="hoa-form-label-sm">
             🎯 <?php esc_html_e('Target Focus Keyword', 'hoa-studio'); ?>
         </label>
-        <input 
-            type="text" 
-            id="hoa_target_keyword" 
-            name="hoa_target_keyword" 
-            value="<?php echo esc_attr($targetKeyword); ?>" 
-            placeholder="<?php esc_attr_e('e.g. artificial intelligence editor', 'hoa-studio'); ?>" 
-            class="hoa-input-sm" 
+        <input
+            type="text"
+            id="hoa_target_keyword"
+            name="hoa_target_keyword"
+            value="<?php echo esc_attr($targetKeyword); ?>"
+            placeholder="<?php esc_attr_e('e.g. artificial intelligence editor', 'hoa-studio'); ?>"
+            class="hoa-input-sm"
         />
     </div>
 
@@ -63,11 +63,11 @@ if (! defined('ABSPATH')) {
         <label for="hoa_meta_description" class="hoa-form-label-sm">
             📝 <?php esc_html_e('SEO Meta Description', 'hoa-studio'); ?>
         </label>
-        <textarea 
-            id="hoa_meta_description" 
-            name="hoa_meta_description" 
-            rows="2" 
-            placeholder="<?php esc_attr_e('Summary for Google SERP results...', 'hoa-studio'); ?>" 
+        <textarea
+            id="hoa_meta_description"
+            name="hoa_meta_description"
+            rows="2"
+            placeholder="<?php esc_attr_e('Summary for Google SERP results...', 'hoa-studio'); ?>"
             class="hoa-input-sm"
         ><?php echo esc_textarea($metaDesc); ?></textarea>
     </div>

@@ -27,8 +27,8 @@
             </p>
         </div>
 
-        <button 
-            type="button" 
+        <button
+            type="button"
             wire:click="openIngestModal"
             class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-violet-600/30 transition-all cursor-pointer flex items-center gap-2"
         >
@@ -56,12 +56,12 @@
                 <span class="text-indigo-400 text-base">⚡</span>
                 <h3 class="text-sm font-bold text-white tracking-tight">Two-Tier Vector Cache Telemetry (L1 Memory + L2 DB)</h3>
             </div>
-            
+
             <div class="flex items-center gap-3">
                 <div class="flex items-center gap-2 text-xs font-mono text-slate-400">
                     <span>TTL:</span>
-                    <select 
-                        wire:model="cacheTtlDays" 
+                    <select
+                        wire:model="cacheTtlDays"
                         wire:change="updateCacheTtl"
                         class="bg-slate-900 border border-white/15 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-indigo-500"
                     >
@@ -72,8 +72,8 @@
                     </select>
                 </div>
 
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     wire:click="purgeCache"
                     wire:confirm="Are you sure you want to purge the vector cache buffer?"
                     class="px-2.5 py-1 rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-300 border border-red-500/30 text-[11px] font-mono transition-colors cursor-pointer"
@@ -122,7 +122,7 @@
             </div>
             <div class="flex items-center gap-2 text-xs font-mono">
                 <span class="text-slate-400">Category Filter:</span>
-                <select 
+                <select
                     wire:model="searchCategory"
                     class="bg-slate-900 border border-white/15 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-indigo-500"
                 >
@@ -137,15 +137,15 @@
         </div>
 
         <div class="flex items-center gap-3">
-            <input 
-                type="text" 
-                wire:model="searchQuery" 
+            <input
+                type="text"
+                wire:model="searchQuery"
                 wire:keydown.enter="performSemanticSearch"
-                placeholder="Ask or query your Brain (e.g. 'What are our primary core values?', 'Pricing tiers and refund terms')..." 
+                placeholder="Ask or query your Brain (e.g. 'What are our primary core values?', 'Pricing tiers and refund terms')..."
                 class="flex-1 bg-slate-900 border border-white/15 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-500 font-mono"
             />
-            <button 
-                type="button" 
+            <button
+                type="button"
                 wire:click="performSemanticSearch"
                 wire:loading.attr="disabled"
                 class="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs transition-all cursor-pointer disabled:opacity-50 flex items-center gap-2 shrink-0 shadow-lg shadow-violet-600/30"
@@ -217,8 +217,8 @@
                         Add your company guidelines, product documentation, FAQs, or reference URLs to ground all AI generation in verified facts.
                     </p>
                 </div>
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     wire:click="openIngestModal"
                     class="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-2"
                 >
@@ -244,8 +244,8 @@
                                 </div>
 
                                 <!-- Active Status Toggle Button -->
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     wire:click="toggleSourceActive({{ $source->id }})"
                                     class="px-2 py-0.5 rounded-full text-[10px] font-bold cursor-pointer transition-colors shrink-0 {{ $source->is_active ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-900/50' : 'bg-slate-800 text-slate-500 border border-white/10 hover:text-slate-300' }}"
                                     title="Click to toggle active status"
@@ -267,16 +267,16 @@
                             </div>
 
                             <div class="flex items-center gap-2">
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     wire:click="reindex({{ $source->id }})"
                                     class="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
                                     title="Re-index and vectorize"
                                 >
                                     🔄
                                 </button>
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     wire:click="deleteSource({{ $source->id }})"
                                     wire:confirm="Are you sure you want to delete this knowledge source?"
                                     class="p-1.5 rounded-lg hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors cursor-pointer"
@@ -316,7 +316,7 @@
                 <!-- Source Category -->
                 <div class="space-y-1.5">
                     <label class="text-xs font-mono text-slate-300 font-bold">Brain Category Collection</label>
-                    <select 
+                    <select
                         wire:model="category"
                         class="w-full bg-slate-900 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-violet-500 font-mono"
                     >
@@ -331,9 +331,9 @@
                 <!-- Source Title -->
                 <div class="space-y-1.5">
                     <label class="text-xs font-mono text-slate-300 font-bold">Source Title</label>
-                    <input 
-                        type="text" 
-                        wire:model="title" 
+                    <input
+                        type="text"
+                        wire:model="title"
                         placeholder="e.g. 2026 Company Brand Guidelines, API Technical Documentation"
                         class="w-full bg-slate-900 border border-white/15 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-violet-500 font-mono"
                     />
@@ -341,16 +341,16 @@
 
                 <!-- Tab Navigation: Text vs URL -->
                 <div class="flex items-center gap-2 border-b border-white/10 pb-2">
-                    <button 
-                        type="button" 
+                    <button
+                        type="button"
                         @click="ingestTab = 'text'"
                         :class="ingestTab === 'text' ? 'bg-violet-600 text-white font-bold' : 'text-slate-400 hover:text-white'"
                         class="px-3 py-1.5 rounded-lg text-xs font-mono transition-colors cursor-pointer"
                     >
                         📝 Plain Text / Markdown
                     </button>
-                    <button 
-                        type="button" 
+                    <button
+                        type="button"
                         @click="ingestTab = 'url'"
                         :class="ingestTab === 'url' ? 'bg-violet-600 text-white font-bold' : 'text-slate-400 hover:text-white'"
                         class="px-3 py-1.5 rounded-lg text-xs font-mono transition-colors cursor-pointer"
@@ -362,14 +362,14 @@
                 <div x-show="ingestTab === 'url'" class="space-y-2 p-3 rounded-xl bg-slate-900/60 border border-white/5" style="display: none;">
                     <label class="text-xs font-mono text-slate-300">Public Web URL</label>
                     <div class="flex items-center gap-2">
-                        <input 
-                            type="url" 
+                        <input
+                            type="url"
                             wire:model="urlInput"
                             placeholder="https://example.com/docs/terms"
                             class="flex-1 bg-slate-900 border border-white/15 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-violet-500 font-mono"
                         />
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             wire:click="fetchFromUrl"
                             wire:loading.attr="disabled"
                             class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold cursor-pointer disabled:opacity-50"
@@ -383,24 +383,24 @@
                 <!-- Content Area -->
                 <div class="space-y-1.5">
                     <label class="text-xs font-mono text-slate-300 font-bold">Knowledge Content</label>
-                    <textarea 
+                    <textarea
                         wire:model="content"
-                        rows="8" 
+                        rows="8"
                         placeholder="Paste full documentation, guidelines, product catalog items, or FAQ pairs here..."
                         class="w-full bg-slate-900 border border-white/15 rounded-xl p-3.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-500 font-mono leading-relaxed resize-y"
                     ></textarea>
                 </div>
 
                 <div class="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
-                    <button 
-                        type="button" 
+                    <button
+                        type="button"
                         wire:click="$set('showIngestModal', false)"
                         class="px-4 py-2 rounded-xl hover:bg-white/10 text-slate-400 hover:text-white text-xs font-mono cursor-pointer"
                     >
                         Cancel
                     </button>
-                    <button 
-                        type="button" 
+                    <button
+                        type="button"
                         wire:click="saveSource"
                         wire:loading.attr="disabled"
                         class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-violet-600/30 transition-all cursor-pointer disabled:opacity-50 flex items-center gap-2"

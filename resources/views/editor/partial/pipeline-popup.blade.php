@@ -15,8 +15,8 @@
 */
 --}}
 
-<div 
-    x-show="showPipelinePopup" 
+<div
+    x-show="showPipelinePopup"
     x-cloak
     x-transition:enter="transition ease-out duration-200"
     x-transition:enter-start="opacity-0 scale-95"
@@ -32,7 +32,7 @@
     <div class="fixed inset-0" @click="showPipelinePopup = false"></div>
 
     <!-- Modal Dialog Window -->
-    <div 
+    <div
         class="relative w-full max-w-3xl rounded-3xl glass-elevated border border-indigo-500/30 shadow-2xl flex flex-col max-h-[88vh] overflow-hidden bg-slate-900/95 text-slate-100 z-10"
         @click.stop
     >
@@ -47,10 +47,10 @@
                         <h3 class="text-xs sm:text-sm font-extrabold text-white tracking-wide uppercase">
                             15-Stage Production Pipeline
                         </h3>
-                        <span 
+                        <span
                             class="text-[9.5px] font-mono font-bold px-2 py-0.5 rounded-full border transition-all"
-                            :class="isTransforming 
-                                ? 'bg-indigo-600/30 border-indigo-400/50 text-indigo-300 animate-pulse' 
+                            :class="isTransforming
+                                ? 'bg-indigo-600/30 border-indigo-400/50 text-indigo-300 animate-pulse'
                                 : 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'"
                             x-text="isTransforming ? 'LIVE EXECUTING' : 'COMPLETED'"
                         ></span>
@@ -60,9 +60,9 @@
             </div>
 
             <!-- (x) Close Button -->
-            <button 
-                type="button" 
-                @click="showPipelinePopup = false" 
+            <button
+                type="button"
+                @click="showPipelinePopup = false"
                 class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/15 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer border border-white/10"
                 title="Close Pipeline Popup (x)"
                 aria-label="Close"
@@ -82,10 +82,10 @@
                     <span class="text-indigo-300 font-bold" x-text="getPipelineCompletedCount()"></span> / 15 Stages (<span x-text="Math.round((getPipelineCompletedCount() / 15) * 100) + '%'"></span>)
                 </div>
             </div>
-            
+
             <!-- Animated Progress Bar -->
             <div class="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden relative">
-                <div 
+                <div
                     class="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-400 transition-all duration-300 rounded-full"
                     :style="'width: ' + Math.max(5, Math.round((getPipelineCompletedCount() / 15) * 100)) + '%'"
                 ></div>
@@ -94,36 +94,36 @@
 
         <!-- Navigation Tabs -->
         <div class="px-5 pt-3 pb-2 border-b border-white/5 flex items-center gap-2 shrink-0 bg-slate-900/40 text-xs font-mono">
-            <button 
-                type="button" 
-                @click="pipelineActiveTab = 'stages'" 
+            <button
+                type="button"
+                @click="pipelineActiveTab = 'stages'"
                 class="px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 font-bold"
-                :class="pipelineActiveTab === 'stages' 
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' 
+                :class="pipelineActiveTab === 'stages'
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                     : 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white'"
             >
                 <span>🚀 15 Stages</span>
                 <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-black/30" x-text="getPipelineCompletedCount() + '/15'"></span>
             </button>
 
-            <button 
-                type="button" 
-                @click="pipelineActiveTab = 'intelligence'" 
+            <button
+                type="button"
+                @click="pipelineActiveTab = 'intelligence'"
                 class="px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 font-bold"
-                :class="pipelineActiveTab === 'intelligence' 
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' 
+                :class="pipelineActiveTab === 'intelligence'
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                     : 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white'"
             >
                 <span>🧠 Extracted Intelligence</span>
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400" x-show="pipelinePopupData.outline.length > 0 || pipelinePopupData.lsiKeywords"></span>
             </button>
 
-            <button 
-                type="button" 
-                @click="pipelineActiveTab = 'log'" 
+            <button
+                type="button"
+                @click="pipelineActiveTab = 'log'"
                 class="px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 font-bold"
-                :class="pipelineActiveTab === 'log' 
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' 
+                :class="pipelineActiveTab === 'log'
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                     : 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white'"
             >
                 <span>📟 Execution Terminal</span>
@@ -135,12 +135,12 @@
         <div x-show="pipelineActiveTab === 'stages'" class="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-2">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 font-sans">
                 <template x-for="stage in pipelinePopupData.stages" :key="stage.id">
-                    <div 
+                    <div
                         class="p-3 rounded-2xl border transition-all flex items-start gap-2.5 select-none"
-                        :class="stage.status === 'completed' 
-                            ? 'bg-indigo-950/30 border-indigo-500/30 text-white' 
-                            : (stage.status === 'running' 
-                                ? 'bg-indigo-900/40 border-indigo-400/60 ring-1 ring-indigo-500/40' 
+                        :class="stage.status === 'completed'
+                            ? 'bg-indigo-950/30 border-indigo-500/30 text-white'
+                            : (stage.status === 'running'
+                                ? 'bg-indigo-900/40 border-indigo-400/60 ring-1 ring-indigo-500/40'
                                 : 'bg-slate-950/40 border-white/5 text-slate-400 opacity-70')"
                     >
                         <!-- Stage Icon / Status Marker -->
@@ -164,7 +164,7 @@
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center justify-between gap-1">
                                 <span class="text-xs font-bold truncate" :class="stage.status === 'completed' ? 'text-white' : (stage.status === 'running' ? 'text-indigo-300' : 'text-slate-400')" x-text="stage.icon + ' ' + stage.name"></span>
-                                <span 
+                                <span
                                     class="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded"
                                     :class="stage.status === 'completed' ? 'bg-emerald-950 text-emerald-300' : (stage.status === 'running' ? 'bg-indigo-950 text-indigo-300 animate-pulse' : 'text-slate-600')"
                                     x-text="stage.status"
@@ -189,10 +189,10 @@
             <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-white/10 space-y-2">
                 <div class="flex items-center justify-between">
                     <span class="text-[10px] uppercase font-bold text-purple-400">Extracted LSI Entities & SERP Signals</span>
-                    <button 
-                        type="button" 
+                    <button
+                        type="button"
                         x-show="pipelinePopupData.lsiKeywords"
-                        @click="navigator.clipboard.writeText(pipelinePopupData.lsiKeywords); alert('LSI Entities copied to clipboard!')" 
+                        @click="navigator.clipboard.writeText(pipelinePopupData.lsiKeywords); alert('LSI Entities copied to clipboard!')"
                         class="text-[9.5px] text-slate-400 hover:text-white underline cursor-pointer"
                     >Copy</button>
                 </div>
@@ -222,10 +222,10 @@
             <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-white/10 space-y-2">
                 <div class="flex items-center justify-between">
                     <span class="text-[10px] uppercase font-bold text-cyan-400">Schema.org Article & FAQ Metadata</span>
-                    <button 
-                        type="button" 
+                    <button
+                        type="button"
                         x-show="pipelinePopupData.schemaJsonLd"
-                        @click="navigator.clipboard.writeText(pipelinePopupData.schemaJsonLd); alert('Schema code copied!')" 
+                        @click="navigator.clipboard.writeText(pipelinePopupData.schemaJsonLd); alert('Schema code copied!')"
                         class="text-[9.5px] text-slate-400 hover:text-white underline cursor-pointer"
                     >Copy Schema</button>
                 </div>
@@ -256,16 +256,16 @@
             </div>
 
             <div class="flex items-center gap-2 self-end sm:self-auto">
-                <button 
-                    type="button" 
-                    @click="copyPipelineData()" 
+                <button
+                    type="button"
+                    @click="copyPipelineData()"
                     class="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 hover:text-white text-xs font-semibold transition-colors cursor-pointer"
                 >
                     Copy Intelligence Report
                 </button>
-                <button 
-                    type="button" 
-                    @click="showPipelinePopup = false" 
+                <button
+                    type="button"
+                    @click="showPipelinePopup = false"
                     class="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/30 transition-all cursor-pointer"
                 >
                     Close (x)

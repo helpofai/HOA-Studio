@@ -72,9 +72,9 @@
     $activeTheme = $layers[$statusFilter] ?? $layers['all'];
 @endphp
 
-<div 
+<div
     wire:key="telemetry-graph-{{ $timeRange }}-{{ $statusFilter }}"
-    x-data="{ 
+    x-data="{
         hoverIndex: null,
         activePoint: null,
         points: @js($points),
@@ -92,7 +92,7 @@
             this.hoverIndex = null;
             this.activePoint = null;
         }
-    }" 
+    }"
     class="relative rounded-2xl bg-gradient-to-b from-slate-900/95 via-slate-950/95 to-slate-950 border border-white/10 p-5 sm:p-6 shadow-2xl backdrop-blur-2xl overflow-hidden group"
 >
     <!-- Background Ambient Neon Glows -->
@@ -127,8 +127,8 @@
             <!-- Combined Status Filter Buttons with Color Badges -->
             <div class="flex items-center bg-slate-900/90 p-1 rounded-xl border border-white/10 text-xs font-mono shadow-inner">
                 <!-- All Traffic (Violet/Indigo) -->
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     wire:click="$set('graphStatusFilter', 'all')"
                     class="px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 {{ $statusFilter === 'all' ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold shadow-md' : 'text-slate-400 hover:text-white' }}"
                     title="View all combined telemetry stream layers"
@@ -138,8 +138,8 @@
                 </button>
 
                 <!-- Pass (Emerald Green) -->
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     wire:click="$set('graphStatusFilter', 'pass')"
                     class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 {{ $statusFilter === 'pass' ? 'bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40 shadow-sm' : 'text-slate-400 hover:text-emerald-300' }}"
                     title="Filter 200 OK successful responses"
@@ -149,8 +149,8 @@
                 </button>
 
                 <!-- Info (Sky Blue) -->
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     wire:click="$set('graphStatusFilter', 'info')"
                     class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 {{ $statusFilter === 'info' ? 'bg-sky-500/20 text-sky-300 font-bold border border-sky-500/40 shadow-sm' : 'text-slate-400 hover:text-sky-300' }}"
                     title="Filter routed & fallback responses"
@@ -160,8 +160,8 @@
                 </button>
 
                 <!-- Warning (Amber/Gold) -->
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     wire:click="$set('graphStatusFilter', 'warning')"
                     class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 {{ $statusFilter === 'warning' ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40 shadow-sm' : 'text-slate-400 hover:text-amber-300' }}"
                     title="Filter high latency or 429 rate limit retries"
@@ -171,8 +171,8 @@
                 </button>
 
                 <!-- Fail (Rose/Crimson) -->
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     wire:click="$set('graphStatusFilter', 'fail')"
                     class="px-2.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 {{ $statusFilter === 'fail' ? 'bg-red-500/20 text-red-300 font-bold border border-red-500/40 shadow-sm' : 'text-slate-400 hover:text-red-300' }}"
                     title="Filter 500 error and connection timeouts"
@@ -185,8 +185,8 @@
             <!-- Time Window Selector (1h, 5h, 12h, 24h) -->
             <div class="flex items-center bg-slate-900/90 p-1 rounded-xl border border-white/10 text-xs font-mono font-bold shadow-inner">
                 @foreach([1 => '1H', 5 => '5H', 12 => '12H', 24 => '24H'] as $val => $lbl)
-                    <button 
-                        type="button" 
+                    <button
+                        type="button"
                         wire:click="$set('graphTimeRange', {{ $val }})"
                         class="px-3 py-1.5 rounded-lg transition-all cursor-pointer {{ (int)$timeRange === $val ? 'bg-violet-600 text-white shadow-md' : 'text-slate-400 hover:text-white' }}"
                     >
@@ -233,7 +233,7 @@
     </div>
 
     <!-- Premium Multi-Layer Curved SVG Area Chart Canvas -->
-    <div 
+    <div
         wire:key="telemetry-svg-container-{{ $timeRange }}-{{ $statusFilter }}"
         x-ref="svgContainer"
         x-on:mousemove="handleMouseMove($event)"
@@ -358,39 +358,39 @@
             <!-- Interactive Cursor Tracking Line -->
             <g x-show="$data.activePoint" x-cloak style="display: none;">
                 <!-- Vertical Crosshair Line -->
-                <line 
-                    :x1="($data.activePoint && $data.activePoint.x !== undefined) ? $data.activePoint.x : 0" 
-                    y1="10" 
-                    :x2="($data.activePoint && $data.activePoint.x !== undefined) ? $data.activePoint.x : 0" 
-                    y2="155" 
-                    stroke="rgba(255, 255, 255, 0.4)" 
-                    stroke-width="1.5" 
-                    stroke-dasharray="3 3" 
+                <line
+                    :x1="($data.activePoint && $data.activePoint.x !== undefined) ? $data.activePoint.x : 0"
+                    y1="10"
+                    :x2="($data.activePoint && $data.activePoint.x !== undefined) ? $data.activePoint.x : 0"
+                    y2="155"
+                    stroke="rgba(255, 255, 255, 0.4)"
+                    stroke-width="1.5"
+                    stroke-dasharray="3 3"
                 />
                 <!-- Outer Glowing Ring -->
-                <circle 
-                    :cx="($data.activePoint && $data.activePoint.x !== undefined) ? $data.activePoint.x : 0" 
-                    :cy="($data.activePoint && $data.activePoint.y !== undefined) ? $data.activePoint.y : 0" 
-                    r="7" 
-                    fill="none" 
-                    stroke="{{ $activeTheme['stroke'] }}" 
-                    stroke-width="2.5" 
+                <circle
+                    :cx="($data.activePoint && $data.activePoint.x !== undefined) ? $data.activePoint.x : 0"
+                    :cy="($data.activePoint && $data.activePoint.y !== undefined) ? $data.activePoint.y : 0"
+                    r="7"
+                    fill="none"
+                    stroke="{{ $activeTheme['stroke'] }}"
+                    stroke-width="2.5"
                     class="animate-ping"
                 />
                 <!-- Inner Solid Dot -->
-                <circle 
-                    :cx="($data.activePoint && $data.activePoint.x !== undefined) ? $data.activePoint.x : 0" 
-                    :cy="($data.activePoint && $data.activePoint.y !== undefined) ? $data.activePoint.y : 0" 
-                    r="5" 
-                    fill="#ffffff" 
-                    stroke="{{ $activeTheme['stroke'] }}" 
-                    stroke-width="2.5" 
+                <circle
+                    :cx="($data.activePoint && $data.activePoint.x !== undefined) ? $data.activePoint.x : 0"
+                    :cy="($data.activePoint && $data.activePoint.y !== undefined) ? $data.activePoint.y : 0"
+                    r="5"
+                    fill="#ffffff"
+                    stroke="{{ $activeTheme['stroke'] }}"
+                    stroke-width="2.5"
                 />
             </g>
         </svg>
 
         <!-- Floating Live HUD Tooltip -->
-        <div 
+        <div
             x-show="$data.activePoint && $data.activePoint.bucket"
             x-cloak
             class="absolute z-30 pointer-events-none min-w-[170px] p-3 rounded-xl bg-slate-900/95 border border-violet-500/40 shadow-2xl text-xs font-mono text-white backdrop-blur-xl transition-all duration-75"
@@ -433,7 +433,7 @@
     <!-- Time Axis Footer & Multi-Color Legend -->
     <div class="relative z-10 flex flex-col sm:flex-row justify-between items-center text-[11px] font-mono text-slate-400 mt-2 px-1 gap-2">
         <span>{{ $buckets[0]['time_label'] ?? 'Start' }}</span>
-        
+
         <!-- Multi-Color Layer Indicators Legend -->
         <div class="flex flex-wrap items-center gap-3 text-[10px]">
             <span class="flex items-center gap-1 text-emerald-400">

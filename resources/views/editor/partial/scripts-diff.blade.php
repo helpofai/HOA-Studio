@@ -38,7 +38,7 @@ diffViewMode: 'split', // 'split' | 'unified'
 computeWordDiff(oldStr = '', newStr = '') {
     const cleanOld = (oldStr || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
     const cleanNew = (newStr || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-    
+
     if (!cleanOld && !cleanNew) return { oldHtml: '', newHtml: '', unifiedHtml: '' };
     if (!cleanOld) return { oldHtml: '', newHtml: `<ins class="bg-emerald-500/30 text-emerald-300 font-semibold px-1 py-0.5 rounded border border-emerald-500/40">${cleanNew}</ins>`, unifiedHtml: `<ins class="bg-emerald-500/30 text-emerald-300 font-semibold px-1 py-0.5 rounded border border-emerald-500/40">${cleanNew}</ins>` };
     if (!cleanNew) return { oldHtml: `<del class="bg-rose-500/30 text-rose-300 line-through px-1 py-0.5 rounded border border-rose-500/40">${cleanOld}</del>`, newHtml: '', unifiedHtml: `<del class="bg-rose-500/30 text-rose-300 line-through px-1 py-0.5 rounded border border-rose-500/40">${cleanOld}</del>` };
@@ -124,7 +124,7 @@ computeMetricsDelta() {
         const wordCount = words.length || 1;
         const sentenceCount = sentences.length || 1;
         const syllables = words.reduce((acc, w) => acc + Math.max(1, Math.floor(w.length / 3)), 0);
-        
+
         const flesch = 206.835 - (1.015 * (wordCount / sentenceCount)) - (84.6 * (syllables / wordCount));
         const score = Math.max(0, Math.min(100, Math.round(flesch)));
         let label = 'Standard';

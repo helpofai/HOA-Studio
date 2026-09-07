@@ -26,8 +26,12 @@ class NotificationBell extends Component
 
     protected $listeners = [
         'refreshNotifications' => '$refresh',
-        'echo:notifications,NotificationCreated' => '$refresh',
     ];
+
+    public function pollNotifications()
+    {
+        $this->refreshNotifications();
+    }
 
     public function markAsRead(string $notificationId)
     {

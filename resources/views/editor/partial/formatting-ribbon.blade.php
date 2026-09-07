@@ -21,7 +21,7 @@
 */
 --}}
 
-<div 
+<div
     x-data="{ isRibbonExpanded: true }"
     class="mb-4 rounded-2xl bg-slate-950/90 border border-white/12 shadow-xl backdrop-blur-2xl transition-all duration-200 sticky top-0 z-30 ring-1 ring-white/5"
     x-on:mousedown.prevent
@@ -30,10 +30,10 @@
     <div class="p-2 sm:p-2.5 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
         <div class="flex items-center gap-1.5 flex-wrap min-w-0">
             <!-- Inline AI Trigger Button -->
-            <button 
-                type="button" 
+            <button
+                type="button"
                 x-on:mousedown.prevent
-                x-on:click="openInlineAiPrompt()" 
+                x-on:click="openInlineAiPrompt()"
                 class="shrink-0 px-2.5 py-1 rounded-xl bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white font-bold flex items-center gap-1 border border-indigo-500/30 transition-all shadow-sm cursor-pointer text-xs active:scale-95"
                 title="Open in-canvas AI Prompt Bar (Ctrl+K or /)"
             >
@@ -57,10 +57,10 @@
             </div>
 
             <!-- Expand / Collapse Toggle Button -->
-            <button 
-                type="button" 
+            <button
+                type="button"
                 x-on:mousedown.prevent
-                x-on:click="isRibbonExpanded = !isRibbonExpanded" 
+                x-on:click="isRibbonExpanded = !isRibbonExpanded"
                 class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95"
                 :title="isRibbonExpanded ? 'Collapse Formatting Toolbar' : 'Expand Formatting Toolbar'"
             >
@@ -71,7 +71,7 @@
     </div>
 
     <!-- Expanded Rich Formatting Suite Controls -->
-    <div 
+    <div
         x-show="isRibbonExpanded"
         x-cloak
         x-transition:enter="transition ease-out duration-200"
@@ -89,124 +89,124 @@
                 <div class="w-full max-w-full flex flex-wrap items-center gap-1">
                     <!-- Group 1: Headings (H1, H2, H3, H4) -->
                     <div class="flex flex-wrap items-center gap-0.5 p-0.5 rounded-lg bg-slate-900/80 border border-white/5 shrink-0">
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             x-on:mousedown.prevent
-                            x-on:click="applyFormat('heading', 1)" 
-                            :class="activeFormats.heading1 ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" 
-                            class="px-1.5 sm:px-2 py-1 rounded-md font-bold transition-all cursor-pointer font-mono text-[11px] sm:text-xs" 
+                            x-on:click="applyFormat('heading', 1)"
+                            :class="activeFormats.heading1 ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'"
+                            class="px-1.5 sm:px-2 py-1 rounded-md font-bold transition-all cursor-pointer font-mono text-[11px] sm:text-xs"
                             title="Heading 1"
                         >H1</button>
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             x-on:mousedown.prevent
-                            x-on:click="applyFormat('heading', 2)" 
-                            :class="activeFormats.heading2 ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" 
-                            class="px-1.5 sm:px-2 py-1 rounded-md font-bold transition-all cursor-pointer font-mono text-[11px] sm:text-xs" 
+                            x-on:click="applyFormat('heading', 2)"
+                            :class="activeFormats.heading2 ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'"
+                            class="px-1.5 sm:px-2 py-1 rounded-md font-bold transition-all cursor-pointer font-mono text-[11px] sm:text-xs"
                             title="Heading 2"
                         >H2</button>
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             x-on:mousedown.prevent
-                            x-on:click="applyFormat('heading', 3)" 
-                            :class="activeFormats.heading3 ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" 
-                            class="px-1.5 sm:px-2 py-1 rounded-md font-bold transition-all cursor-pointer font-mono text-[11px] sm:text-xs" 
+                            x-on:click="applyFormat('heading', 3)"
+                            :class="activeFormats.heading3 ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'"
+                            class="px-1.5 sm:px-2 py-1 rounded-md font-bold transition-all cursor-pointer font-mono text-[11px] sm:text-xs"
                             title="Heading 3"
                         >H3</button>
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             x-on:mousedown.prevent
-                            x-on:click="applyFormat('heading', 4)" 
-                            :class="activeFormats.heading4 ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" 
-                            class="px-1.5 sm:px-2 py-1 rounded-md font-bold transition-all cursor-pointer font-mono text-[10px] sm:text-[11px]" 
+                            x-on:click="applyFormat('heading', 4)"
+                            :class="activeFormats.heading4 ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'"
+                            class="px-1.5 sm:px-2 py-1 rounded-md font-bold transition-all cursor-pointer font-mono text-[10px] sm:text-[11px]"
                             title="Heading 4"
                         >H4</button>
                     </div>
 
                     <!-- Group 2: Marks (Bold, Italic, Underline, Strike, Sub, Sup, Highlight) -->
                     <div class="flex items-center gap-0.5 p-0.5 rounded-lg bg-slate-900/80 border border-white/5">
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             x-on:mousedown.prevent
-                            x-on:click="applyFormat('bold')" 
-                            :class="activeFormats.bold ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" 
-                            class="px-2 py-1 rounded-md font-bold transition-all cursor-pointer" 
+                            x-on:click="applyFormat('bold')"
+                            :class="activeFormats.bold ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'"
+                            class="px-2 py-1 rounded-md font-bold transition-all cursor-pointer"
                             title="Bold (Ctrl+B)"
                         >B</button>
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             x-on:mousedown.prevent
-                            x-on:click="applyFormat('italic')" 
-                            :class="activeFormats.italic ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" 
-                            class="px-2 py-1 rounded-md italic transition-all cursor-pointer font-serif" 
+                            x-on:click="applyFormat('italic')"
+                            :class="activeFormats.italic ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'"
+                            class="px-2 py-1 rounded-md italic transition-all cursor-pointer font-serif"
                             title="Italic (Ctrl+I)"
                         >I</button>
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             x-on:mousedown.prevent
-                            x-on:click="applyFormat('underline')" 
-                            :class="activeFormats.underline ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" 
-                            class="px-2 py-1 rounded-md underline transition-all cursor-pointer" 
+                            x-on:click="applyFormat('underline')"
+                            :class="activeFormats.underline ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'"
+                            class="px-2 py-1 rounded-md underline transition-all cursor-pointer"
                             title="Underline (Ctrl+U)"
                         >U</button>
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             x-on:mousedown.prevent
-                            x-on:click="applyFormat('strike')" 
-                            :class="activeFormats.strike ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" 
-                            class="px-2 py-1 rounded-md line-through transition-all cursor-pointer" 
+                            x-on:click="applyFormat('strike')"
+                            :class="activeFormats.strike ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'"
+                            class="px-2 py-1 rounded-md line-through transition-all cursor-pointer"
                             title="Strikethrough"
                         >S</button>
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             x-on:mousedown.prevent
-                            x-on:click="applyFormat('subscript')" 
-                            :class="activeFormats.subscript ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" 
-                            class="px-1.5 py-1 rounded-md text-xs font-mono transition-all cursor-pointer" 
+                            x-on:click="applyFormat('subscript')"
+                            :class="activeFormats.subscript ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'"
+                            class="px-1.5 py-1 rounded-md text-xs font-mono transition-all cursor-pointer"
                             title="Subscript (X₂)"
                         >X₂</button>
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             x-on:mousedown.prevent
-                            x-on:click="applyFormat('superscript')" 
-                            :class="activeFormats.superscript ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" 
-                            class="px-1.5 py-1 rounded-md text-xs font-mono transition-all cursor-pointer" 
+                            x-on:click="applyFormat('superscript')"
+                            :class="activeFormats.superscript ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'"
+                            class="px-1.5 py-1 rounded-md text-xs font-mono transition-all cursor-pointer"
                             title="Superscript (X²)"
                         >X²</button>
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             x-on:mousedown.prevent
-                            x-on:click="applyFormat('highlight')" 
-                            :class="activeFormats.highlight ? 'bg-amber-500/80 text-black font-bold shadow-md shadow-amber-500/30' : 'text-slate-300 hover:bg-white/10'" 
-                            class="px-2 py-1 rounded-md transition-all cursor-pointer" 
+                            x-on:click="applyFormat('highlight')"
+                            :class="activeFormats.highlight ? 'bg-amber-500/80 text-black font-bold shadow-md shadow-amber-500/30' : 'text-slate-300 hover:bg-white/10'"
+                            class="px-2 py-1 rounded-md transition-all cursor-pointer"
                             title="Highlight Text"
                         >⬚</button>
                     </div>
 
                     <!-- Group 3: Lists & Alignments -->
                     <div class="flex items-center gap-0.5 p-0.5 rounded-lg bg-slate-900/80 border border-white/5">
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             x-on:mousedown.prevent
-                            x-on:click="applyFormat('bulletList')" 
-                            :class="activeFormats.bulletList ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" 
-                            class="px-2 py-1 rounded-md transition-all cursor-pointer" 
+                            x-on:click="applyFormat('bulletList')"
+                            :class="activeFormats.bulletList ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'"
+                            class="px-2 py-1 rounded-md transition-all cursor-pointer"
                             title="Bullet List"
                         >● List</button>
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             x-on:mousedown.prevent
-                            x-on:click="applyFormat('orderedList')" 
-                            :class="activeFormats.orderedList ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" 
-                            class="px-2 py-1 rounded-md transition-all cursor-pointer" 
+                            x-on:click="applyFormat('orderedList')"
+                            :class="activeFormats.orderedList ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'"
+                            class="px-2 py-1 rounded-md transition-all cursor-pointer"
                             title="Numbered List"
                         >1. List</button>
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             x-on:mousedown.prevent
-                            x-on:click="applyFormat('taskList')" 
-                            :class="activeFormats.taskList ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" 
-                            class="px-2 py-1 rounded-md transition-all cursor-pointer" 
+                            x-on:click="applyFormat('taskList')"
+                            :class="activeFormats.taskList ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'"
+                            class="px-2 py-1 rounded-md transition-all cursor-pointer"
                             title="Interactive Task Checklist"
                         >✓ Task</button>
 
@@ -220,35 +220,35 @@
 
                     <!-- Group 4: Advanced Elements (Table, Quote, Code, Callouts, Blocks) -->
                     <div class="flex items-center gap-0.5 p-0.5 rounded-lg bg-slate-900/80 border border-white/5">
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             x-on:mousedown.prevent
-                            x-on:click="editorInstance?.insertTable?.({ rows: 3, cols: 3, withHeaderRow: true })" 
-                            :class="activeFormats.table ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" 
-                            class="px-2 py-1 rounded-md transition-all cursor-pointer" 
+                            x-on:click="editorInstance?.insertTable?.({ rows: 3, cols: 3, withHeaderRow: true })"
+                            :class="activeFormats.table ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'"
+                            class="px-2 py-1 rounded-md transition-all cursor-pointer"
                             title="Insert 3x3 Table"
                         >▦ Table</button>
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             x-on:mousedown.prevent
-                            x-on:click="applyFormat('blockquote')" 
-                            :class="activeFormats.blockquote ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" 
-                            class="px-2 py-1 rounded-md font-serif transition-all cursor-pointer font-bold" 
+                            x-on:click="applyFormat('blockquote')"
+                            :class="activeFormats.blockquote ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'"
+                            class="px-2 py-1 rounded-md font-serif transition-all cursor-pointer font-bold"
                             title="Blockquote"
                         >"</button>
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             x-on:mousedown.prevent
-                            x-on:click="applyFormat('codeBlock')" 
-                            :class="activeFormats.codeBlock ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'" 
-                            class="px-2 py-1 rounded-md font-mono text-[11px] transition-all cursor-pointer" 
+                            x-on:click="applyFormat('codeBlock')"
+                            :class="activeFormats.codeBlock ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-white/10'"
+                            class="px-2 py-1 rounded-md font-mono text-[11px] transition-all cursor-pointer"
                             title="Syntax Code Block"
                         >&lt;/&gt;</button>
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             x-on:mousedown.prevent
-                            x-on:click="applyFormat('hr')" 
-                            class="px-2 py-1 rounded-md text-slate-300 hover:bg-white/10 text-xs transition-all cursor-pointer font-mono" 
+                            x-on:click="applyFormat('hr')"
+                            class="px-2 py-1 rounded-md text-slate-300 hover:bg-white/10 text-xs transition-all cursor-pointer font-mono"
                             title="Horizontal Divider"
                         >—</button>
 
@@ -256,19 +256,19 @@
 
                         <!-- Callouts Dropdown -->
                         <div class="relative" x-data="{ calloutOpen: false }">
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 x-on:mousedown.prevent
-                                x-on:click="calloutOpen = !calloutOpen" 
+                                x-on:click="calloutOpen = !calloutOpen"
                                 class="px-2 py-1 rounded-md bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs flex items-center gap-1 cursor-pointer transition-colors"
                                 title="Insert Callout Boxes"
                             >
                                 <span>💡 Callouts</span>
                                 <span class="text-[9px]">▼</span>
                             </button>
-                            <div 
-                                x-show="calloutOpen" 
-                                x-on:click.outside="calloutOpen = false" 
+                            <div
+                                x-show="calloutOpen"
+                                x-on:click.outside="calloutOpen = false"
                                 x-on:mousedown.prevent
                                 class="absolute left-0 mt-2 w-48 rounded-2xl bg-slate-900/98 border border-white/20 p-1.5 shadow-2xl z-50 space-y-1 backdrop-blur-2xl text-xs"
                                 style="display: none;"
@@ -290,19 +290,19 @@
 
                         <!-- Interactive Blocks Dropdown -->
                         <div class="relative" x-data="{ blockOpen: false }">
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 x-on:mousedown.prevent
-                                x-on:click="blockOpen = !blockOpen" 
+                                x-on:click="blockOpen = !blockOpen"
                                 class="px-2 py-1 rounded-md bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs flex items-center gap-1 cursor-pointer transition-colors"
                                 title="Insert Interactive Editorial Blocks"
                             >
                                 <span>🧩 Blocks</span>
                                 <span class="text-[9px]">▼</span>
                             </button>
-                            <div 
-                                x-show="blockOpen" 
-                                x-on:click.outside="blockOpen = false" 
+                            <div
+                                x-show="blockOpen"
+                                x-on:click.outside="blockOpen = false"
                                 x-on:mousedown.prevent
                                 class="absolute left-0 mt-2 w-52 rounded-2xl bg-slate-900/98 border border-white/20 p-1.5 shadow-2xl z-50 space-y-1 backdrop-blur-2xl text-xs"
                                 style="display: none;"
@@ -323,20 +323,20 @@
                         </div>
 
                         <!-- Image & Clear Formatting -->
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             x-on:mousedown.prevent
-                            x-on:click="insertImageFromUrl()" 
-                            class="px-2 py-1 rounded-md text-slate-300 hover:bg-white/10 text-xs transition-all cursor-pointer flex items-center gap-1" 
+                            x-on:click="insertImageFromUrl()"
+                            class="px-2 py-1 rounded-md text-slate-300 hover:bg-white/10 text-xs transition-all cursor-pointer flex items-center gap-1"
                             title="Insert Image by URL"
                         >
                             <span>🖼</span>
                         </button>
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             x-on:mousedown.prevent
-                            x-on:click="editorInstance?.clearFormatting?.()" 
-                            class="px-2 py-1 rounded-md text-slate-400 hover:text-red-300 hover:bg-red-600/10 text-xs transition-all cursor-pointer" 
+                            x-on:click="editorInstance?.clearFormatting?.()"
+                            class="px-2 py-1 rounded-md text-slate-400 hover:text-red-300 hover:bg-red-600/10 text-xs transition-all cursor-pointer"
                             title="Clear Formatting (Tx)"
                         >
                             Tx

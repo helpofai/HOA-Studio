@@ -16,11 +16,11 @@
 --}}
 
 <!-- ─── TAB 1: WORDPRESS-STYLE POST SETTINGS & PUBLISHING (SECTION 1) ──── -->
-<div 
-    x-show="rightTab === 'post'" 
-    class="space-y-4" 
-    style="display: none;" 
-    x-data="{ 
+<div
+    x-show="rightTab === 'post'"
+    class="space-y-4"
+    style="display: none;"
+    x-data="{
         currentStatus: $wire.entangle('blogStatus'),
         currentCategory: $wire.entangle('blogCategory'),
         currentImage: $wire.entangle('blogFeaturedImage'),
@@ -46,14 +46,14 @@
     @endif
 
     <!-- 1. SUMMARY / STATUS & VISIBILITY ACCORDION -->
-    <div 
+    <div
         wire:key="post-section-summary"
         x-data="{ isOpen: true }"
         class="rounded-2xl bg-slate-900/90 border border-white/10 shadow-inner overflow-hidden transition-colors"
     >
-        <button 
-            type="button" 
-            @click="isOpen = !isOpen" 
+        <button
+            type="button"
+            @click="isOpen = !isOpen"
             class="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/5 transition-colors cursor-pointer select-none"
         >
             <div class="flex items-center gap-2">
@@ -76,7 +76,7 @@
             <div class="grid grid-cols-2 gap-2 pt-2">
                 <div>
                     <label class="text-[10px] text-slate-400 font-mono block mb-1">Status</label>
-                    <select 
+                    <select
                         x-model="currentStatus"
                         @change="$wire.blogStatus = currentStatus"
                         class="w-full bg-slate-950 border border-white/15 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500 font-mono cursor-pointer"
@@ -119,9 +119,9 @@
                         <div class="text-[10px] text-slate-400">Display as Featured Spotlight Hero</div>
                     </div>
                 </div>
-                <input 
-                    type="checkbox" 
-                    wire:model.live="blogIsFeatured" 
+                <input
+                    type="checkbox"
+                    wire:model.live="blogIsFeatured"
                     class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 bg-slate-900 border-white/20 cursor-pointer"
                 />
             </label>
@@ -131,18 +131,18 @@
                 <label class="text-[10px] text-slate-400 font-mono block">Permalink / Slug</label>
                 <div class="flex items-center gap-1.5">
                     <span class="text-[11px] text-slate-500 font-mono select-none">/blog/</span>
-                    <input 
-                        type="text" 
-                        wire:model.blur="blogSlug" 
-                        placeholder="article-slug" 
+                    <input
+                        type="text"
+                        wire:model.blur="blogSlug"
+                        placeholder="article-slug"
                         class="flex-1 bg-slate-950 border border-white/15 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono shadow-inner"
                     />
                 </div>
                 @if($blogPublishedUrl)
                     <div class="flex items-center justify-between pt-1">
-                        <button 
-                            type="button" 
-                            @click="navigator.clipboard.writeText('{{ $blogPublishedUrl }}'); copiedUrl = true; setTimeout(() => copiedUrl = false, 2000)" 
+                        <button
+                            type="button"
+                            @click="navigator.clipboard.writeText('{{ $blogPublishedUrl }}'); copiedUrl = true; setTimeout(() => copiedUrl = false, 2000)"
                             class="text-[10px] text-indigo-400 hover:text-indigo-300 cursor-pointer flex items-center gap-1 font-mono transition-colors"
                         >
                             <span x-show="!copiedUrl">📋 Copy Live URL</span>
@@ -159,14 +159,14 @@
     </div>
 
     <!-- 2. FEATURED IMAGE ACCORDION ("Set featured image") -->
-    <div 
+    <div
         wire:key="post-section-image"
         x-data="{ isOpen: {{ !empty($blogFeaturedImage) ? 'true' : 'false' }}, isDropping: false }"
         class="rounded-2xl bg-slate-900/90 border border-white/10 shadow-inner overflow-hidden transition-colors"
     >
-        <button 
-            type="button" 
-            @click="isOpen = !isOpen" 
+        <button
+            type="button"
+            @click="isOpen = !isOpen"
             class="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/5 transition-colors cursor-pointer select-none"
         >
             <div class="flex items-center gap-2">
@@ -182,19 +182,19 @@
 
         <div x-show="isOpen" x-cloak class="p-3.5 pt-0 space-y-3 border-t border-white/5 text-xs">
             <!-- Unified Drag-and-Drop Dropzone & Preview Container with Progress Bar -->
-            <div 
+            <div
                 class="pt-2"
-                x-data="{ 
-                    isDropping: false, 
-                    isUploading: false, 
-                    progress: 0 
+                x-data="{
+                    isDropping: false,
+                    isUploading: false,
+                    progress: 0
                 }"
                 x-on:livewire-upload-start="isUploading = true; progress = 0"
                 x-on:livewire-upload-finish="isUploading = false"
                 x-on:livewire-upload-error="isUploading = false"
                 x-on:livewire-upload-progress="progress = $event.detail.progress"
             >
-                <div 
+                <div
                     class="relative rounded-2xl border-2 border-dashed border-white/20 hover:border-indigo-500/50 bg-slate-950/50 hover:bg-slate-950/80 transition-all text-center group flex flex-col items-center justify-center cursor-pointer overflow-hidden shadow-inner aspect-video"
                     x-on:dragover.prevent="isDropping = true"
                     x-on:dragleave.prevent="isDropping = false"
@@ -202,9 +202,9 @@
                     :class="{ 'border-indigo-500 bg-indigo-950/30 ring-2 ring-indigo-500/20': isDropping }"
                 >
                     <!-- Transparent File Input covering entire dropzone -->
-                    <input 
-                        type="file" 
-                        wire:model="featuredImageUpload" 
+                    <input
+                        type="file"
+                        wire:model="featuredImageUpload"
                         accept="image/png,image/jpeg,image/jpg,image/webp,image/gif,image/svg+xml,image/avif,image/bmp,image/x-icon,image/tiff"
                         class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
                         :class="{ 'pointer-events-none': isUploading }"
@@ -212,9 +212,9 @@
                     />
 
                     <!-- 1. ACTIVE PROGRESS BAR OVERLAY -->
-                    <div 
-                        x-show="isUploading" 
-                        x-cloak 
+                    <div
+                        x-show="isUploading"
+                        x-cloak
                         class="absolute inset-0 z-30 bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center gap-2.5 p-4"
                     >
                         <div class="flex items-center justify-between w-full max-w-[220px] text-[11px]">
@@ -224,10 +224,10 @@
                             </span>
                             <span class="text-indigo-400 font-mono font-bold" x-text="`${progress}%`"></span>
                         </div>
-                        
+
                         <!-- Smooth Visual Progress Bar -->
                         <div class="w-full max-w-[220px] bg-slate-800/80 rounded-full h-2.5 p-0.5 border border-white/10 overflow-hidden shadow-inner">
-                            <div 
+                            <div
                                 class="bg-gradient-to-r from-indigo-500 via-violet-500 to-pink-500 h-full rounded-full transition-all duration-150 shadow-sm"
                                 :style="`width: ${Math.max(progress, 5)}%`"
                             ></div>
@@ -237,10 +237,10 @@
                     </div>
 
                     <!-- 2. SERVER PROCESSING INDICATOR (Livewire final storage step) -->
-                    <div 
-                        wire:loading 
-                        wire:target="featuredImageUpload" 
-                        x-show="!isUploading" 
+                    <div
+                        wire:loading
+                        wire:target="featuredImageUpload"
+                        x-show="!isUploading"
                         class="absolute inset-0 z-30 bg-slate-950/90 backdrop-blur-sm flex flex-col items-center justify-center gap-2"
                     >
                         <div class="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
@@ -250,9 +250,9 @@
 
                     <!-- 3. PREVIEW DISPLAY (Shown after upload is complete) -->
                     <div x-show="currentImage && !isUploading" class="absolute inset-0 w-full h-full z-10 overflow-hidden group/imgpreview">
-                        <img 
-                            :src="currentImage" 
-                            alt="Featured image preview" 
+                        <img
+                            :src="currentImage"
+                            alt="Featured image preview"
                             class="w-full h-full object-cover group-hover/imgpreview:scale-105 transition-transform duration-300"
                             x-on:error="$el.src='https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80'"
                         />
@@ -296,9 +296,9 @@
 
                 <!-- Preview Actions (Under the Box) -->
                 <div x-show="currentImage" class="flex items-center justify-between text-[11px] text-slate-400 pt-1.5 px-0.5">
-                    <button 
-                        type="button" 
-                        @click="currentImage = ''; $wire.removeFeaturedImage()" 
+                    <button
+                        type="button"
+                        @click="currentImage = ''; $wire.removeFeaturedImage()"
                         class="text-red-400 hover:text-red-300 cursor-pointer transition-colors flex items-center gap-1 font-medium"
                     >
                         <span>🗑️ Remove featured image</span>
@@ -327,11 +327,11 @@
             <!-- Image URL Input -->
             <div class="space-y-1">
                 <label class="text-[10px] text-slate-400 font-mono block">Image URL</label>
-                <input 
-                    type="url" 
+                <input
+                    type="url"
                     x-model="currentImage"
                     @input.debounce.300ms="$wire.set('blogFeaturedImage', currentImage)"
-                    placeholder="https://images.unsplash.com/photo-..." 
+                    placeholder="https://images.unsplash.com/photo-..."
                     class="w-full bg-slate-950 border border-white/15 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono shadow-inner"
                 />
             </div>
@@ -340,23 +340,23 @@
             <div class="space-y-1.5 pt-1">
                 <span class="text-[10px] text-slate-400 font-mono block">Quick Presets:</span>
                 <div class="grid grid-cols-3 gap-1.5">
-                    <button 
-                        type="button" 
-                        @click="currentImage = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&auto=format&fit=crop&q=80'; $wire.set('blogFeaturedImage', currentImage)" 
+                    <button
+                        type="button"
+                        @click="currentImage = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&auto=format&fit=crop&q=80'; $wire.set('blogFeaturedImage', currentImage)"
                         class="p-1 rounded-lg border border-white/10 hover:border-indigo-400/50 text-[10px] text-slate-300 hover:text-white bg-slate-950 transition-colors truncate cursor-pointer"
                     >
                         🔮 Gradient
                     </button>
-                    <button 
-                        type="button" 
-                        @click="currentImage = 'https://images.unsplash.com/photo-1677442136019-21780efad99a?w=1200&auto=format&fit=crop&q=80'; $wire.set('blogFeaturedImage', currentImage)" 
+                    <button
+                        type="button"
+                        @click="currentImage = 'https://images.unsplash.com/photo-1677442136019-21780efad99a?w=1200&auto=format&fit=crop&q=80'; $wire.set('blogFeaturedImage', currentImage)"
                         class="p-1 rounded-lg border border-white/10 hover:border-indigo-400/50 text-[10px] text-slate-300 hover:text-white bg-slate-950 transition-colors truncate cursor-pointer"
                     >
                         🤖 AI Circuit
                     </button>
-                    <button 
-                        type="button" 
-                        @click="currentImage = 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&auto=format&fit=crop&q=80'; $wire.set('blogFeaturedImage', currentImage)" 
+                    <button
+                        type="button"
+                        @click="currentImage = 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1200&auto=format&fit=crop&q=80'; $wire.set('blogFeaturedImage', currentImage)"
                         class="p-1 rounded-lg border border-white/10 hover:border-indigo-400/50 text-[10px] text-slate-300 hover:text-white bg-slate-950 transition-colors truncate cursor-pointer"
                     >
                         📈 Growth
@@ -367,14 +367,14 @@
     </div>
 
     <!-- 3. CATEGORIES ACCORDION (WordPress-style Category Checklist) -->
-    <div 
+    <div
         wire:key="post-section-categories"
         x-data="{ isOpen: true }"
         class="rounded-2xl bg-slate-900/90 border border-white/10 shadow-inner overflow-hidden transition-colors"
     >
-        <button 
-            type="button" 
-            @click="isOpen = !isOpen" 
+        <button
+            type="button"
+            @click="isOpen = !isOpen"
             class="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/5 transition-colors cursor-pointer select-none"
         >
             <div class="flex items-center gap-2">
@@ -395,17 +395,17 @@
                     $availableCats = !empty($blogCategories) ? $blogCategories : \App\Features\Blog\Models\BlogPost::defaultCategories();
                 @endphp
                 @foreach($availableCats as $cat)
-                    <label 
+                    <label
                         wire:key="post-cat-{{ \Illuminate\Support\Str::slug($cat) }}"
                         @click="currentCategory = '{{ addslashes($cat) }}'; $wire.setBlogCategory('{{ addslashes($cat) }}')"
                         :class="currentCategory === '{{ addslashes($cat) }}' ? 'bg-indigo-600/20 border border-indigo-500/40 text-white font-semibold' : 'hover:bg-white/5 text-slate-300 border border-transparent'"
                         class="flex items-center justify-between p-2 rounded-xl transition-all cursor-pointer select-none"
                     >
                         <div class="flex items-center gap-2.5">
-                            <input 
-                                type="radio" 
-                                name="blogCategoryRadio" 
-                                value="{{ $cat }}" 
+                            <input
+                                type="radio"
+                                name="blogCategoryRadio"
+                                value="{{ $cat }}"
                                 :checked="currentCategory === '{{ addslashes($cat) }}'"
                                 class="text-indigo-600 focus:ring-indigo-500 bg-slate-950 border-white/20 cursor-pointer pointer-events-none"
                             />
@@ -419,9 +419,9 @@
             <!-- Add New Category Toggle & Input -->
             <div class="pt-2 border-t border-white/5">
                 <div x-show="!showNewCategory">
-                    <button 
-                        type="button" 
-                        @click="showNewCategory = true" 
+                    <button
+                        type="button"
+                        @click="showNewCategory = true"
                         class="text-[11px] text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1 cursor-pointer transition-colors"
                     >
                         <span>+ Add New Category</span>
@@ -429,24 +429,24 @@
                 </div>
                 <div x-show="showNewCategory" class="space-y-2" style="display: none;">
                     <div class="flex items-center gap-1.5">
-                        <input 
-                            type="text" 
-                            x-model="newCategoryInput" 
+                        <input
+                            type="text"
+                            x-model="newCategoryInput"
                             @keydown.enter.prevent="if (newCategoryInput.trim()) { currentCategory = newCategoryInput.trim(); $wire.setBlogCategory(newCategoryInput.trim()); newCategoryInput = ''; showNewCategory = false; }"
-                            placeholder="New category name..." 
+                            placeholder="New category name..."
                             class="flex-1 bg-slate-950 border border-white/15 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono shadow-inner"
                         />
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             @click="if (newCategoryInput.trim()) { currentCategory = newCategoryInput.trim(); $wire.setBlogCategory(newCategoryInput.trim()); newCategoryInput = ''; showNewCategory = false; }"
                             class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs cursor-pointer shadow-md transition-all"
                         >
                             Add
                         </button>
                     </div>
-                    <button 
-                        type="button" 
-                        @click="showNewCategory = false" 
+                    <button
+                        type="button"
+                        @click="showNewCategory = false"
                         class="text-[10px] text-slate-400 hover:text-slate-300 cursor-pointer"
                     >
                         Cancel
@@ -457,9 +457,9 @@
     </div>
 
     <!-- 4. TAGS ACCORDION (WordPress-style Tag Chips) -->
-    <div 
+    <div
         wire:key="post-section-tags"
-        x-data="{ 
+        x-data="{
             isOpen: true,
             newTagInput: '',
             tagsList: @js(array_values(array_filter(array_map('trim', explode(',', $blogTags ?? ''))))),
@@ -492,9 +492,9 @@
         }"
         class="rounded-2xl bg-slate-900/90 border border-white/10 shadow-inner overflow-hidden transition-colors"
     >
-        <button 
-            type="button" 
-            @click="isOpen = !isOpen" 
+        <button
+            type="button"
+            @click="isOpen = !isOpen"
             class="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/5 transition-colors cursor-pointer select-none"
         >
             <div class="flex items-center gap-2">
@@ -512,15 +512,15 @@
         <div x-show="isOpen" x-cloak class="p-3.5 pt-0 space-y-3 border-t border-white/5 text-xs">
             <!-- Add Tag Input -->
             <div class="flex items-center gap-1.5 pt-2">
-                <input 
-                    type="text" 
-                    x-model="newTagInput" 
+                <input
+                    type="text"
+                    x-model="newTagInput"
                     @keydown.enter.prevent="addTag(newTagInput)"
-                    placeholder="Add new tag (press Enter)..." 
+                    placeholder="Add new tag (press Enter)..."
                     class="flex-1 bg-slate-950 border border-white/15 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono shadow-inner"
                 />
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     @click="addTag(newTagInput)"
                     class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs cursor-pointer shadow-md transition-all"
                 >
@@ -533,9 +533,9 @@
                 <template x-for="tag in tagsList" :key="tag">
                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950 border border-white/15 text-[11px] text-slate-200 shadow-sm group">
                         <span x-text="'#' + tag"></span>
-                        <button 
-                            type="button" 
-                            @click="removeTag(tag)" 
+                        <button
+                            type="button"
+                            @click="removeTag(tag)"
                             class="text-slate-400 hover:text-red-400 font-bold cursor-pointer text-xs transition-colors"
                             title="Remove tag"
                         >
@@ -551,10 +551,10 @@
                 <span class="text-[10px] text-slate-400 font-mono block">Suggested Tags:</span>
                 <div class="flex items-center flex-wrap gap-1">
                     @foreach(['AI Writing', 'SEO Strategy', 'TipTap', 'Gutenberg', 'Automation', 'Tutorial', 'DeepSeek'] as $popularTag)
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             wire:key="post-popular-tag-{{ \Illuminate\Support\Str::slug($popularTag) }}"
-                            @click="addTag('{{ addslashes($popularTag) }}')" 
+                            @click="addTag('{{ addslashes($popularTag) }}')"
                             :class="hasTag('{{ addslashes($popularTag) }}') ? 'bg-indigo-600/25 border-indigo-500/50 text-indigo-300 opacity-70 cursor-default' : 'bg-slate-950/80 hover:bg-indigo-600/30 border-white/10 hover:border-indigo-500/40 text-slate-300 hover:text-white cursor-pointer'"
                             class="px-2 py-0.5 rounded-md border text-[10px] transition-all flex items-center gap-1 select-none"
                         >
@@ -568,14 +568,14 @@
     </div>
 
     <!-- 5. EXCERPT ACCORDION (WordPress-style Excerpt) -->
-    <div 
+    <div
         wire:key="post-section-excerpt"
         x-data="{ isOpen: {{ !empty($blogExcerpt) ? 'true' : 'false' }} }"
         class="rounded-2xl bg-slate-900/90 border border-white/10 shadow-inner overflow-hidden transition-colors"
     >
-        <button 
-            type="button" 
-            @click="isOpen = !isOpen" 
+        <button
+            type="button"
+            @click="isOpen = !isOpen"
             class="w-full p-3.5 flex items-center justify-between text-left hover:bg-white/5 transition-colors cursor-pointer select-none"
         >
             <div class="flex items-center gap-2">
@@ -594,9 +594,9 @@
             <div class="space-y-1.5 pt-2">
                 <div class="flex items-center justify-between text-[10px] text-slate-400 font-mono">
                     <span>Summary description</span>
-                    <button 
-                        type="button" 
-                        wire:click="generateBlogExcerpt" 
+                    <button
+                        type="button"
+                        wire:click="generateBlogExcerpt"
                         wire:loading.attr="disabled"
                         wire:target="generateBlogExcerpt"
                         class="text-indigo-400 hover:text-indigo-300 font-semibold cursor-pointer flex items-center gap-1 transition-colors disabled:opacity-50"
@@ -605,11 +605,11 @@
                         <span wire:loading wire:target="generateBlogExcerpt" class="inline-block animate-pulse text-[9px]">Generating...</span>
                     </button>
                 </div>
-                <textarea 
+                <textarea
                     x-model="currentExcerpt"
-                    wire:model.blur="blogExcerpt" 
-                    rows="3" 
-                    placeholder="Write an excerpt (optional summary for search and article cards)..." 
+                    wire:model.blur="blogExcerpt"
+                    rows="3"
+                    placeholder="Write an excerpt (optional summary for search and article cards)..."
                     class="w-full bg-slate-950 border border-white/15 rounded-xl p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 shadow-inner resize-none custom-scrollbar"
                 ></textarea>
                 <p class="text-[10px] text-slate-500 leading-tight">
@@ -621,9 +621,9 @@
 
     <!-- 6. PRIMARY PUBLISH / UPDATE ACTIONS -->
     <div wire:key="post-section-actions" class="p-3.5 rounded-2xl bg-slate-900/90 border border-white/10 shadow-inner space-y-2.5">
-        <button 
-            type="button" 
-            wire:click="publishToBlog" 
+        <button
+            type="button"
+            wire:click="publishToBlog"
             wire:loading.attr="disabled"
             wire:target="publishToBlog"
             class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
@@ -643,9 +643,9 @@
 
         @if($isPublishedToBlog)
             <div class="flex items-center gap-2">
-                <button 
-                    type="button" 
-                    wire:click="unpublishFromBlog" 
+                <button
+                    type="button"
+                    wire:click="unpublishFromBlog"
                     wire:loading.attr="disabled"
                     wire:target="unpublishFromBlog"
                     class="flex-1 py-1.5 px-3 rounded-xl bg-slate-950 hover:bg-red-500/10 border border-white/10 hover:border-red-500/30 text-slate-400 hover:text-red-300 text-xs font-semibold transition-colors cursor-pointer text-center disabled:opacity-50"
@@ -654,9 +654,9 @@
                     <span wire:loading wire:target="unpublishFromBlog">Switching...</span>
                 </button>
                 @if($blogPublishedUrl)
-                    <a 
-                        href="{{ $blogPublishedUrl }}" 
-                        target="_blank" 
+                    <a
+                        href="{{ $blogPublishedUrl }}"
+                        target="_blank"
                         class="flex-1 py-1.5 px-3 rounded-xl bg-slate-950 hover:bg-white/10 border border-white/10 text-indigo-300 hover:text-white text-xs font-semibold transition-colors text-center"
                     >
                         View Post ↗

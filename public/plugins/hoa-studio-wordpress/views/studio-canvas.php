@@ -176,10 +176,10 @@ $defaultModel = HOA_Settings::getDefaultModel();
             <!-- Dedicated Prompt Input -->
             <div class="hoa-panel-section">
                 <label for="hoa-dedicated-ai-prompt" class="hoa-section-label"><?php esc_html_e('Custom Instruction', 'hoa-studio'); ?></label>
-                <textarea 
-                    id="hoa-dedicated-ai-prompt" 
-                    rows="4" 
-                    class="hoa-sidebar-textarea" 
+                <textarea
+                    id="hoa-dedicated-ai-prompt"
+                    rows="4"
+                    class="hoa-sidebar-textarea"
                     placeholder="<?php esc_attr_e('Instruct AI to write, expand, restructure, or generate custom editorial blocks...', 'hoa-studio'); ?>"
                 ></textarea>
                 <button type="button" id="hoa-dedicated-ai-run-btn" class="hoa-btn hoa-btn-run-ai hoa-mt-2">
@@ -201,24 +201,24 @@ $defaultModel = HOA_Settings::getDefaultModel();
             <div class="hoa-canvas-paper">
                 <!-- Document Title Input -->
                 <div class="hoa-title-wrapper">
-                    <input 
-                        type="text" 
-                        id="hoa-post-title-input" 
-                        class="hoa-document-title-input" 
-                        value="<?php echo esc_attr($title); ?>" 
-                        placeholder="<?php esc_attr_e('Enter article title here...', 'hoa-studio'); ?>" 
+                    <input
+                        type="text"
+                        id="hoa-post-title-input"
+                        class="hoa-document-title-input"
+                        value="<?php echo esc_attr($title); ?>"
+                        placeholder="<?php esc_attr_e('Enter article title here...', 'hoa-studio'); ?>"
                     />
                 </div>
 
                 <!-- Slug & Permalink Quick Bar -->
                 <div class="hoa-slug-bar">
                     <span class="hoa-slug-prefix"><?php echo esc_html(get_home_url()); ?>/</span>
-                    <input 
-                        type="text" 
-                        id="hoa-post-slug-input" 
-                        class="hoa-slug-input" 
-                        value="<?php echo esc_attr($slug); ?>" 
-                        placeholder="<?php esc_attr_e('post-slug-url', 'hoa-studio'); ?>" 
+                    <input
+                        type="text"
+                        id="hoa-post-slug-input"
+                        class="hoa-slug-input"
+                        value="<?php echo esc_attr($slug); ?>"
+                        placeholder="<?php esc_attr_e('post-slug-url', 'hoa-studio'); ?>"
                     />
                 </div>
 
@@ -283,12 +283,12 @@ $defaultModel = HOA_Settings::getDefaultModel();
                 <!-- Target Focus Keyword -->
                 <div class="hoa-panel-section">
                     <label for="hoa-target-keyword" class="hoa-section-label">🎯 <?php esc_html_e('Focus Keyword', 'hoa-studio'); ?></label>
-                    <input 
-                        type="text" 
-                        id="hoa-target-keyword" 
-                        class="hoa-sidebar-input" 
-                        value="<?php echo esc_attr($targetKeyword); ?>" 
-                        placeholder="<?php esc_attr_e('e.g. ai editor tiptap', 'hoa-studio'); ?>" 
+                    <input
+                        type="text"
+                        id="hoa-target-keyword"
+                        class="hoa-sidebar-input"
+                        value="<?php echo esc_attr($targetKeyword); ?>"
+                        placeholder="<?php esc_attr_e('e.g. ai editor tiptap', 'hoa-studio'); ?>"
                     />
                 </div>
 
@@ -298,10 +298,10 @@ $defaultModel = HOA_Settings::getDefaultModel();
                         <label for="hoa-meta-description" class="hoa-section-label">📝 <?php esc_html_e('Meta Description', 'hoa-studio'); ?></label>
                         <span class="hoa-char-limit" id="hoa-meta-desc-counter">0/155</span>
                     </div>
-                    <textarea 
-                        id="hoa-meta-description" 
-                        rows="3" 
-                        class="hoa-sidebar-textarea" 
+                    <textarea
+                        id="hoa-meta-description"
+                        rows="3"
+                        class="hoa-sidebar-textarea"
                         placeholder="<?php esc_attr_e('Search snippet preview text...', 'hoa-studio'); ?>"
                     ><?php echo esc_textarea($metaDescription); ?></textarea>
                 </div>
@@ -372,11 +372,11 @@ $defaultModel = HOA_Settings::getDefaultModel();
                     <div class="hoa-categories-checklist" id="hoa-post-categories-list">
                         <?php foreach ($allCategories as $cat) { ?>
                             <label class="hoa-checkbox-label-sm">
-                                <input 
-                                    type="checkbox" 
-                                    name="hoa_categories[]" 
-                                    value="<?php echo esc_attr($cat->term_id); ?>" 
-                                    <?php checked(in_array($cat->term_id, $selectedCategories, true)); ?> 
+                                <input
+                                    type="checkbox"
+                                    name="hoa_categories[]"
+                                    value="<?php echo esc_attr($cat->term_id); ?>"
+                                    <?php checked(in_array($cat->term_id, $selectedCategories, true)); ?>
                                 />
                                 <span><?php echo esc_html($cat->name); ?></span>
                             </label>
@@ -387,12 +387,12 @@ $defaultModel = HOA_Settings::getDefaultModel();
                 <!-- Tags -->
                 <div class="hoa-panel-section">
                     <label for="hoa-post-tags" class="hoa-section-label"><?php esc_html_e('Tags (comma separated)', 'hoa-studio'); ?></label>
-                    <input 
-                        type="text" 
-                        id="hoa-post-tags" 
-                        class="hoa-sidebar-input" 
-                        value="<?php echo esc_attr($tags); ?>" 
-                        placeholder="<?php esc_attr_e('ai, wordpress, tiptap', 'hoa-studio'); ?>" 
+                    <input
+                        type="text"
+                        id="hoa-post-tags"
+                        class="hoa-sidebar-input"
+                        value="<?php echo esc_attr($tags); ?>"
+                        placeholder="<?php esc_attr_e('ai, wordpress, tiptap', 'hoa-studio'); ?>"
                     />
                 </div>
             </div>

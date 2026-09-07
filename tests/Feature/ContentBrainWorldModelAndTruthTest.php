@@ -57,12 +57,12 @@ class ContentBrainWorldModelAndTruthTest extends TestCase
         parent::setUp();
 
         $this->user = User::factory()->create([
-            'email' => 'researcher@helpofai.com',
+            'email' => 'researcher_'.uniqid().'@helpofai.com',
             'role' => 'user',
         ]);
 
         $this->admin = User::factory()->create([
-            'email' => 'chief_architect@helpofai.com',
+            'email' => 'chief_architect_'.uniqid().'@helpofai.com',
             'role' => 'admin',
         ]);
     }

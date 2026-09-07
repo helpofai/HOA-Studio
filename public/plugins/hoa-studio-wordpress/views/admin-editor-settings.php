@@ -54,11 +54,11 @@ $allPostTypes = get_post_types(['public' => true], 'objects');
                                 continue;
                             } ?>
                             <label class="hoa-checkbox-item">
-                                <input 
-                                    type="checkbox" 
-                                    name="hoa_studio_enabled_post_types[]" 
-                                    value="<?php echo esc_attr($pt->name); ?>" 
-                                    <?php checked(in_array($pt->name, $enabledPostTypes, true)); ?> 
+                                <input
+                                    type="checkbox"
+                                    name="hoa_studio_enabled_post_types[]"
+                                    value="<?php echo esc_attr($pt->name); ?>"
+                                    <?php checked(in_array($pt->name, $enabledPostTypes, true)); ?>
                                 />
                                 <span class="hoa-checkbox-label"><?php echo esc_html($pt->label); ?> (<code><?php echo esc_html($pt->name); ?></code>)</span>
                             </label>
@@ -69,11 +69,11 @@ $allPostTypes = get_post_types(['public' => true], 'objects');
                 <div class="hoa-form-group hoa-mt-6">
                     <label class="hoa-form-label"><?php esc_html_e('Bidirectional Cloud Auto-Sync', 'hoa-studio'); ?></label>
                     <label class="hoa-toggle-switch">
-                        <input 
-                            type="checkbox" 
-                            name="hoa_studio_auto_sync" 
-                            value="yes" 
-                            <?php checked($isAutoSync); ?> 
+                        <input
+                            type="checkbox"
+                            name="hoa_studio_auto_sync"
+                            value="yes"
+                            <?php checked($isAutoSync); ?>
                         />
                         <span class="hoa-toggle-slider"></span>
                         <span class="hoa-toggle-text"><?php esc_html_e('Automatically push articles to HOA Studio Cloud Documents whenever published in WordPress', 'hoa-studio'); ?></span>

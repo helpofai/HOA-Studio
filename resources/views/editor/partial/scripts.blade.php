@@ -53,7 +53,7 @@
         const data = window._activeAiProposals ? window._activeAiProposals[proposalId] : null;
         const container = document.getElementById('tiptap-content-target');
         const boxEl = document.getElementById(proposalId) || (container ? container.querySelector('#' + proposalId) : null) || document.querySelector('.ai-proposal-green-box');
-        
+
         if (data && data.proposalText) {
             const newText = data.proposalText;
             const originalText = data.originalText || '';
@@ -130,7 +130,7 @@
         const ed = window.hoaEditorInstance ? (Alpine.raw ? Alpine.raw(window.hoaEditorInstance) : window.hoaEditorInstance) : null;
         const container = document.getElementById('tiptap-content-target');
         const boxEl = document.getElementById(proposalId) || (container ? container.querySelector('#' + proposalId) : null) || document.querySelector('.ai-proposal-green-box');
-        
+
         if (boxEl && boxEl.parentNode) {
             boxEl.remove();
         }
