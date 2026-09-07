@@ -1268,107 +1268,108 @@ Modern content production platforms demand high-throughput intelligence routing 
                         readScore: 82,
                         targetGoal: 1500,
 
-                gtBlocks: [
-                    { id: 1, type: 'heading', level: 2, content: 'Architectural Blueprint: Universal Document Model' },
-                    { id: 2, type: 'paragraph', content: 'In 2026, content platforms decouple the storage format from the editor UI. A single canonical representation converts seamlessly between ProseMirror JSON, Gutenberg blocks, and Markdown.' },
-                    { id: 3, type: 'quote', content: 'The canonical document must never belong to a single editor engine. — Architecture Rule #1' }
-                ],
-                addGtBlock(type) {
-                    this.gtBlocks.push({
-                        id: Date.now(),
-                        type: type,
-                        level: type === 'heading' ? 2 : undefined,
-                        content: type === 'heading' ? 'New Section Heading' : (type === 'quote' ? 'Blockquote text...' : 'New paragraph content...')
-                    });
-                    this.wordCount += 12;
-                },
-                removeGtBlock(idx) {
-                    this.gtBlocks.splice(idx, 1);
-                },
+                        gtBlocks: [
+                            { id: 1, type: 'heading', level: 2, content: 'Architectural Blueprint: Universal Document Model' },
+                            { id: 2, type: 'paragraph', content: 'In 2026, content platforms decouple the storage format from the editor UI. A single canonical representation converts seamlessly between ProseMirror JSON, Gutenberg blocks, and Markdown.' },
+                            { id: 3, type: 'quote', content: 'The canonical document must never belong to a single editor engine. — Architecture Rule #1' }
+                        ],
+                        addGtBlock(type) {
+                            this.gtBlocks.push({
+                                id: Date.now(),
+                                type: type,
+                                level: type === 'heading' ? 2 : undefined,
+                                content: type === 'heading' ? 'New Section Heading' : (type === 'quote' ? 'Blockquote text...' : 'New paragraph content...')
+                            });
+                            this.wordCount += 12;
+                        },
+                        removeGtBlock(idx) {
+                            this.gtBlocks.splice(idx, 1);
+                        },
 
-                notionBlocks: [
-                    { id: 1, type: 'heading', text: 'Universal Content Workspace' },
-                    { id: 2, type: 'callout', text: '💡 Notion-style drag handle ⠿ and slash command / trigger quick structural mutations.' },
-                    { id: 3, type: 'text', text: 'Click anywhere to edit, drag to rearrange, or use / for fast formatting blocks.' }
-                ],
+                        notionBlocks: [
+                            { id: 1, type: 'heading', text: 'Universal Content Workspace' },
+                            { id: 2, type: 'callout', text: '💡 Notion-style drag handle ⠿ and slash command / trigger quick structural mutations.' },
+                            { id: 3, type: 'text', text: 'Click anywhere to edit, drag to rearrange, or use / for fast formatting blocks.' }
+                        ],
 
-                titlesList: [
-                    { title: 'The 2026 Guide to Decoupled AI Writing Platforms', score: 98, viral: true },
-                    { title: 'How to Build High-Ranking Content with Multi-Editor AI', score: 95, viral: true },
-                    { title: 'Why 8 Writing Engines Beat Vendor Lock-in Every Time', score: 92, viral: false }
-                ],
+                        titlesList: [
+                            { title: 'The 2026 Guide to Decoupled AI Writing Platforms', score: 98, viral: true },
+                            { title: 'How to Build High-Ranking Content with Multi-Editor AI', score: 95, viral: true },
+                            { title: 'Why 8 Writing Engines Beat Vendor Lock-in Every Time', score: 92, viral: false }
+                        ],
 
-                contentGaps: [
-                    { topic: 'Zero-CLI Shared Hosting Deployment Guide', impact: 'High', status: 'Missing' },
-                    { topic: 'Token Quota Circuit Breakers & Failover', impact: 'High', status: 'Added' },
-                    { topic: 'ProseMirror to Markdown Conversion Matrix', impact: 'Medium', status: 'Missing' }
-                ],
+                        contentGaps: [
+                            { topic: 'Zero-CLI Shared Hosting Deployment Guide', impact: 'High', status: 'Missing' },
+                            { topic: 'Token Quota Circuit Breakers and Failover', impact: 'High', status: 'Added' },
+                            { topic: 'ProseMirror to Markdown Conversion Matrix', impact: 'Medium', status: 'Missing' }
+                        ],
 
-                snapshots: [
-                    { id: 1, name: 'Initial AI Outline Draft', time: '10 mins ago', words: 210 },
-                    { id: 2, name: 'Added Gutenberg Modular Blocks', time: '5 mins ago', words: 340 },
-                    { id: 3, name: 'SEO Optimization & LSI Infusion', time: 'Just now', words: 428 }
-                ],
+                        snapshots: [
+                            { id: 1, name: 'Initial AI Outline Draft', time: '10 mins ago', words: 210 },
+                            { id: 2, name: 'Added Gutenberg Modular Blocks', time: '5 mins ago', words: 340 },
+                            { id: 3, name: 'SEO Optimization and LSI Infusion', time: 'Just now', words: 428 }
+                        ],
 
-                restoreSnapshot(snap) {
-                    this.streamingToken = '✓ Restored snapshot: ' + snap.name;
-                    this.wordCount = snap.words;
-                },
+                        restoreSnapshot(snap) {
+                            this.streamingToken = '✓ Restored snapshot: ' + snap.name;
+                            this.wordCount = snap.words;
+                        },
 
-                toggleLeftPanel() {
-                    this.showLeftPanel = !this.showLeftPanel;
-                },
-                toggleRightPanel() {
-                    this.showRightPanel = !this.showRightPanel;
-                },
-                toggleFocusMode() {
-                    if (this.showLeftPanel || this.showRightPanel) {
-                        this.showLeftPanel = false;
-                        this.showRightPanel = false;
-                    } else {
-                        this.showLeftPanel = true;
-                        this.showRightPanel = true;
-                    }
-                },
+                        toggleLeftPanel() {
+                            this.showLeftPanel = !this.showLeftPanel;
+                        },
+                        toggleRightPanel() {
+                            this.showRightPanel = !this.showRightPanel;
+                        },
+                        toggleFocusMode() {
+                            if (this.showLeftPanel || this.showRightPanel) {
+                                this.showLeftPanel = false;
+                                this.showRightPanel = false;
+                            } else {
+                                this.showLeftPanel = true;
+                                this.showRightPanel = true;
+                            }
+                        },
 
-                runDemoAi(type) {
-                    this.isStreaming = true;
-                    this.receivedTokens = 0;
-                    this.streamingToken = 'Routing prompt to ' + this.selectedAiModel + ' via OmniRoute proxy...';
-                    
-                    let interval = setInterval(() => {
-                        if (this.receivedTokens < 180) {
-                            this.receivedTokens += 36;
+                        runDemoAi(type) {
+                            this.isStreaming = true;
+                            this.receivedTokens = 0;
+                            this.streamingToken = 'Routing prompt to ' + this.selectedAiModel + ' via OmniRoute proxy...';
+                            
+                            let interval = setInterval(() => {
+                                if (this.receivedTokens < 180) {
+                                    this.receivedTokens += 36;
+                                }
+                            }, 120);
+
+                            setTimeout(() => {
+                                clearInterval(interval);
+                                this.receivedTokens = 240;
+                                if (type === 'generate') {
+                                    this.streamingToken = '✓ Generated 240 tokens in 0.6s: Multi-tier streaming proxy provides token quota pre-flight checks and real-time SSE multiplexing across distributed AI clusters.';
+                                    this.wordCount += 24;
+                                    this.seoScore = 98;
+                                } else if (type === 'rewrite') {
+                                    this.streamingToken = '✓ Polished and Refined: Decoupled AI routing ensures resilient failover and zero downtime for mission-critical enterprise publishing teams.';
+                                } else if (type === 'seo') {
+                                    this.streamingToken = '✓ SEO Boost Complete: Integrated 4 LSI keywords, optimized H2 scannability, and generated schema metadata.';
+                                    this.seoScore = 100;
+                                } else if (type === 'humanize') {
+                                    this.streamingToken = '✓ Humanized: Balanced sentence variation, conversational transitions, and improved reading ease to 88/100.';
+                                    this.readScore = 88;
+                                }
+                                this.isStreaming = false;
+                            }, 750);
                         }
-                    }, 120);
-
-                    setTimeout(() => {
-                        clearInterval(interval);
-                        this.receivedTokens = 240;
-                        if (type === 'generate') {
-                            this.streamingToken = '✓ Generated 240 tokens in 0.6s: Multi-tier streaming proxy provides token quota pre-flight checks and real-time SSE multiplexing across distributed AI clusters.';
-                            this.wordCount += 24;
-                            this.seoScore = 98;
-                        } else if (type === 'rewrite') {
-                            this.streamingToken = '✓ Polished & Refined: Decoupled AI routing ensures resilient failover and zero downtime for mission-critical enterprise publishing teams.';
-                        } else if (type === 'seo') {
-                            this.streamingToken = '✓ SEO Boost Complete: Integrated 4 LSI keywords, optimized H2 scannability, and generated schema metadata.';
-                            this.seoScore = 100;
-                        } else if (type === 'humanize') {
-                            this.streamingToken = '✓ Humanized: Balanced sentence variation, conversational transitions, and improved reading ease to 88/100.';
-                            this.readScore = 88;
-                        }
-                        this.isStreaming = false;
-                    }, 750);
+                    }));
                 }
-            }));
-        };
+            };
 
-        if (window.Alpine && typeof window.Alpine.data === 'function') {
-            registerMultiEditorDemo();
-        } else {
-            document.addEventListener('alpine:init', registerMultiEditorDemo);
-        }
-    })();
-</script>
+            if (window.Alpine && typeof window.Alpine.data === 'function') {
+                registerMultiEditorDemo();
+            } else {
+                document.addEventListener('alpine:init', registerMultiEditorDemo);
+            }
+        })();
+    </script>
 </x-layouts.app>
