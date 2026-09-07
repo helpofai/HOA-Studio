@@ -130,48 +130,48 @@
 
     <!-- Navigation Tabs Switcher -->
     <div class="flex items-center gap-2 border-b border-white/10 pb-3 overflow-x-auto scrollbar-none">
-        <button 
-            type="button" 
+        <button
+            type="button"
             wire:click="$set('activeTab', 'overview')"
             class="px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap {{ $activeTab === 'overview' ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/25' : 'text-slate-400 hover:text-white hover:bg-white/5' }}"
         >
             📊 Security Overview
         </button>
 
-        <button 
-            type="button" 
+        <button
+            type="button"
             wire:click="$set('activeTab', 'security_logs')"
             class="px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap {{ $activeTab === 'security_logs' ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/25' : 'text-slate-400 hover:text-white hover:bg-white/5' }}"
         >
             📑 Live Auth Logs
         </button>
 
-        <button 
-            type="button" 
+        <button
+            type="button"
             wire:click="$set('activeTab', 'blocked_ips')"
             class="px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap {{ $activeTab === 'blocked_ips' ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/25' : 'text-slate-400 hover:text-white hover:bg-white/5' }}"
         >
             🚫 Blocked IP Blacklist ({{ $activeBlockedIpsCount }})
         </button>
 
-        <button 
-            type="button" 
+        <button
+            type="button"
             wire:click="$set('activeTab', 'online_users')"
             class="px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap {{ $activeTab === 'online_users' ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/25' : 'text-slate-400 hover:text-white hover:bg-white/5' }}"
         >
             🟢 Live Online Users ({{ $onlineUsers->count() }})
         </button>
 
-        <button 
-            type="button" 
+        <button
+            type="button"
             wire:click="$set('activeTab', 'banned_users')"
             class="px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap {{ $activeTab === 'banned_users' ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/25' : 'text-slate-400 hover:text-white hover:bg-white/5' }}"
         >
             🔒 Suspended Accounts ({{ $bannedUsersCount }})
         </button>
 
-        <button 
-            type="button" 
+        <button
+            type="button"
             wire:click="$set('activeTab', 'config')"
             class="px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap {{ $activeTab === 'config' ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/25' : 'text-slate-400 hover:text-white hover:bg-white/5' }}"
         >
@@ -273,8 +273,8 @@
                                     <td class="py-3 font-mono text-slate-300">{{ $log->ip_address }}</td>
                                     <td class="py-3 text-slate-300">{{ $log->email ?: 'N/A' }}</td>
                                     <td class="py-3 text-right">
-                                        <button 
-                                            type="button" 
+                                        <button
+                                            type="button"
                                             wire:click="$set('new_block_ip', '{{ $log->ip_address }}'); $set('showBlockIpModal', true)"
                                             class="px-2 py-1 rounded-lg bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 text-[11px] font-semibold transition-colors"
                                         >
@@ -299,14 +299,14 @@
         <x-glass.card variant="elevated" class="p-6 border-white/15 space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="flex items-center gap-2 flex-1">
-                    <x-glass.input 
+                    <x-glass.input
                         wire:model.live.debounce.300ms="searchLog"
                         type="text"
                         placeholder="Search IP or Email..."
                         class="w-full sm:max-w-xs text-xs"
                     />
 
-                    <select 
+                    <select
                         wire:model.live="eventFilter"
                         class="bg-slate-900/80 border border-white/15 text-white text-xs rounded-xl px-3 py-2 focus:ring-violet-500 focus:border-violet-500"
                     >
@@ -350,8 +350,8 @@
                                 <td class="py-3 text-slate-200">{{ $log->email ?: 'N/A' }}</td>
                                 <td class="py-3 text-slate-500 truncate max-w-xs" title="{{ $log->user_agent }}">{{ $log->user_agent ?: 'Unknown' }}</td>
                                 <td class="py-3 text-right whitespace-nowrap">
-                                    <button 
-                                        type="button" 
+                                    <button
+                                        type="button"
                                         wire:click="$set('new_block_ip', '{{ $log->ip_address }}'); $set('showBlockIpModal', true)"
                                         class="px-2 py-1 rounded-lg bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 text-[11px] font-semibold transition-colors"
                                     >
@@ -412,8 +412,8 @@
                                     {{ $block->blocked_until ? $block->blocked_until->format('Y-m-d H:i') . ' (' . $block->blocked_until->diffForHumans() . ')' : 'Permanent' }}
                                 </td>
                                 <td class="py-3 text-right">
-                                    <button 
-                                        type="button" 
+                                    <button
+                                        type="button"
                                         wire:click="unblockIp({{ $block->id }})"
                                         class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 text-xs font-semibold transition-colors"
                                     >
@@ -515,8 +515,8 @@
                                     <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">Banned</span>
                                 </td>
                                 <td class="py-3 text-right">
-                                    <button 
-                                        type="button" 
+                                    <button
+                                        type="button"
                                         wire:click="toggleUserBan({{ $user->id }})"
                                         class="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 text-xs font-semibold transition-colors"
                                     >
@@ -563,7 +563,7 @@
                                 <span class="text-slate-400 text-[11px]">Maximum failed attempts allowed per minute before IP rate lock.</span>
                             </div>
                             <div class="w-24">
-                                <x-glass.input 
+                                <x-glass.input
                                     wire:model="maxLoginAttemptsPerIp"
                                     type="number"
                                     min="1"
@@ -587,7 +587,7 @@
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="text-[11px] text-slate-400 block mb-1">Failed Attempts Limit</label>
-                                <x-glass.input 
+                                <x-glass.input
                                     wire:model="maxAccountAttempts"
                                     type="number"
                                     min="1"
@@ -599,7 +599,7 @@
                             </div>
                             <div>
                                 <label class="text-[11px] text-slate-400 block mb-1">Cooldown Duration (Minutes)</label>
-                                <x-glass.input 
+                                <x-glass.input
                                     wire:model="lockoutDurationMinutes"
                                     type="number"
                                     min="1"
@@ -627,7 +627,7 @@
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="text-[11px] text-slate-400 block mb-1">Failure Hits Threshold</label>
-                                <x-glass.input 
+                                <x-glass.input
                                     wire:model="autoBlockThreshold"
                                     type="number"
                                     min="3"
@@ -639,7 +639,7 @@
                             </div>
                             <div>
                                 <label class="text-[11px] text-slate-400 block mb-1">Auto-Block Duration (Hours)</label>
-                                <x-glass.input 
+                                <x-glass.input
                                     wire:model="autoBlockHours"
                                     type="number"
                                     min="1"
@@ -666,7 +666,7 @@
                                 <span class="text-slate-400 text-[11px]">Max accounts that can be registered per hour from the same IP network.</span>
                             </div>
                             <div class="w-24">
-                                <x-glass.input 
+                                <x-glass.input
                                     wire:model="maxRegistrationsPerHour"
                                     type="number"
                                     min="1"
@@ -719,7 +719,7 @@
                     <!-- Site Key Input -->
                     <div>
                         <label class="block text-slate-300 font-semibold mb-1">Cloudflare Turnstile Site Key (Public Key)</label>
-                        <x-glass.input 
+                        <x-glass.input
                             wire:model="turnstileSiteKey"
                             type="text"
                             placeholder="0x4AAAAAA..."
@@ -733,7 +733,7 @@
                     <!-- Secret Key Input -->
                     <div>
                         <label class="block text-slate-300 font-semibold mb-1">Cloudflare Turnstile Secret Key (Private Key)</label>
-                        <x-glass.input 
+                        <x-glass.input
                             wire:model="turnstileSecretKey"
                             type="password"
                             placeholder="0x4AAAAAA..."
@@ -783,7 +783,7 @@
                 <div class="space-y-3 text-xs">
                     <div>
                         <label class="block text-slate-300 font-semibold mb-1">IP Address to Block</label>
-                        <x-glass.input 
+                        <x-glass.input
                             wire:model="new_block_ip"
                             type="text"
                             placeholder="e.g. 192.168.1.1 or 203.0.113.195"
@@ -796,7 +796,7 @@
 
                     <div>
                         <label class="block text-slate-300 font-semibold mb-1">Block Duration</label>
-                        <select 
+                        <select
                             wire:model="new_block_duration"
                             class="w-full bg-slate-950 border border-white/15 text-white text-xs rounded-xl px-3 py-2.5 focus:ring-violet-500 focus:border-violet-500"
                         >
@@ -809,7 +809,7 @@
 
                     <div>
                         <label class="block text-slate-300 font-semibold mb-1">Reason for Block (Optional)</label>
-                        <x-glass.input 
+                        <x-glass.input
                             wire:model="new_block_reason"
                             type="text"
                             placeholder="e.g. Suspicious brute force attack"

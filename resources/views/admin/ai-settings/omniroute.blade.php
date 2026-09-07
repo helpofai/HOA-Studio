@@ -23,7 +23,7 @@
 */
 --}}
 
-<div 
+<div
     class="space-y-8 max-w-6xl mx-auto"
     x-data="{
         showKey: false,
@@ -47,9 +47,9 @@
                         const t0 = performance.now();
                         const res = await fetch(ep, {
                             method: 'GET',
-                            headers: { 
+                            headers: {
                                 'Authorization': 'Bearer ' + ($wire.get('api_key') || 'omniroute-default-key'),
-                                'Accept': 'application/json' 
+                                'Accept': 'application/json'
                             }
                         });
                         if (res.ok || res.status === 401 || res.status === 403) {
@@ -135,10 +135,10 @@
     </div>
 
     <!-- Live Telemetry Stream Graph & SLA Metrics -->
-    <x-omniroute.telemetry-graph 
-        :graphData="$graphData" 
-        :timeRange="$graphTimeRange" 
-        :statusFilter="$graphStatusFilter" 
+    <x-omniroute.telemetry-graph
+        :graphData="$graphData"
+        :timeRange="$graphTimeRange"
+        :statusFilter="$graphStatusFilter"
     />
 
     @if (session('status'))
@@ -177,7 +177,7 @@
                                 <span class="text-[10px] text-violet-400 font-mono">Dynamic Endpoint</span>
                             </div>
                             <x-glass.input wire:model.live.debounce.400ms="base_url" required placeholder="http://localhost:20128/v1 or https://*.trycloudflare.com/v1" />
-                            
+
                             <!-- Quick Switch Presets -->
                             <div class="flex flex-wrap items-center gap-1.5 mt-2">
                                 <span class="text-[10px] text-slate-400 font-semibold">Quick Presets:</span>
@@ -207,9 +207,9 @@
                         <div>
                             <div class="flex items-center justify-between mb-1.5">
                                 <label class="text-xs font-medium text-slate-300">Master Gateway API Key</label>
-                                <button 
-                                    type="button" 
-                                    x-on:click="$data.showKey = !$data.showKey" 
+                                <button
+                                    type="button"
+                                    x-on:click="$data.showKey = !$data.showKey"
                                     class="text-[11px] text-violet-400 hover:text-violet-300 flex items-center gap-1 transition-colors cursor-pointer"
                                 >
                                     <span x-show="!$data.showKey" class="flex items-center gap-1">
@@ -228,16 +228,16 @@
                                 </button>
                             </div>
                             <div wire:key="admin-omniroute-key-input-wrapper" class="relative">
-                                <input 
-                                    wire:model="api_key" 
-                                    x-bind:type="($data.showKey ?? false) ? 'text' : 'password'" 
-                                    required 
-                                    placeholder="omniroute-default-key" 
+                                <input
+                                    wire:model="api_key"
+                                    x-bind:type="($data.showKey ?? false) ? 'text' : 'password'"
+                                    required
+                                    placeholder="omniroute-default-key"
                                     class="w-full bg-slate-900/90 border border-white/10 rounded-xl pl-3.5 pr-10 py-2.5 text-xs text-white focus:outline-none focus:border-violet-500 font-mono tracking-wider transition-all placeholder:text-slate-500"
                                 />
-                                <button 
-                                    type="button" 
-                                    x-on:click="$data.showKey = !$data.showKey" 
+                                <button
+                                    type="button"
+                                    x-on:click="$data.showKey = !$data.showKey"
                                     class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
                                     title="Toggle API Key Visibility"
                                 >
@@ -256,8 +256,8 @@
 
                     <!-- Dynamic Sync Action Button -->
                     <div class="pt-2 flex flex-col sm:flex-row items-center gap-3">
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             x-on:click="triggerDynamicSync()"
                             wire:loading.attr="disabled"
                             :disabled="isHybridSyncing"
@@ -285,8 +285,8 @@
                             </span>
                         </button>
 
-                        <button 
-                            type="submit" 
+                        <button
+                            type="submit"
                             wire:loading.attr="disabled"
                             class="shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-md flex items-center gap-1.5 {{ $saveStatus === 'success' ? 'bg-emerald-600 text-white border border-emerald-400 shadow-emerald-500/25' : ($saveStatus === 'error' ? 'bg-red-600 text-white border border-red-400 shadow-red-500/25' : 'bg-slate-900/80 hover:bg-slate-800 text-slate-200 border border-white/20 hover:border-white/40') }}"
                         >
@@ -369,8 +369,8 @@
                     </div>
 
                     <div class="pt-4 border-t border-white/5 flex justify-end">
-                        <button 
-                            type="submit" 
+                        <button
+                            type="submit"
                             wire:loading.attr="disabled"
                             class="px-5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-md flex items-center gap-1.5 {{ $saveStatus === 'success' ? 'bg-emerald-600 text-white border border-emerald-400 shadow-emerald-500/25' : ($saveStatus === 'error' ? 'bg-red-600 text-white border border-red-400 shadow-red-500/25' : 'bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-violet-500/20') }}"
                         >
@@ -492,28 +492,28 @@
                             @endif
                         </div>
 
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             x-on:click="$dispatch('open-omni-terminal')"
-                            class="px-2 py-1 rounded-lg text-violet-300 hover:text-white bg-violet-950/80 hover:bg-violet-900 border border-violet-500/30 transition-colors cursor-pointer text-xs flex items-center gap-1" 
+                            class="px-2 py-1 rounded-lg text-violet-300 hover:text-white bg-violet-950/80 hover:bg-violet-900 border border-violet-500/30 transition-colors cursor-pointer text-xs flex items-center gap-1"
                             title="Pop out Draggable & Minimizable Terminal Window (Persists across pages)"
                         >
                             <span>↗️ Pop Out</span>
                         </button>
 
-                        <button 
-                            type="button" 
-                            wire:click="fetchConsoleLogs" 
-                            class="px-2 py-1 rounded-lg text-slate-300 hover:text-white bg-slate-900/80 hover:bg-slate-800 border border-white/5 transition-colors cursor-pointer text-xs flex items-center gap-1" 
+                        <button
+                            type="button"
+                            wire:click="fetchConsoleLogs"
+                            class="px-2 py-1 rounded-lg text-slate-300 hover:text-white bg-slate-900/80 hover:bg-slate-800 border border-white/5 transition-colors cursor-pointer text-xs flex items-center gap-1"
                             title="Refresh Console Logs"
                         >
                             <span>🔄</span>
                         </button>
 
-                        <button 
-                            type="button" 
-                            wire:click="clearConsoleLogs" 
-                            class="px-2 py-1 rounded-lg text-slate-400 hover:text-red-400 bg-slate-900/80 hover:bg-red-500/10 border border-white/5 transition-colors cursor-pointer text-xs flex items-center gap-1" 
+                        <button
+                            type="button"
+                            wire:click="clearConsoleLogs"
+                            class="px-2 py-1 rounded-lg text-slate-400 hover:text-red-400 bg-slate-900/80 hover:bg-red-500/10 border border-white/5 transition-colors cursor-pointer text-xs flex items-center gap-1"
                             title="Clear Console Buffer"
                         >
                             <span>🧹</span>
@@ -525,8 +525,8 @@
                 <div class="flex flex-col sm:flex-row items-center gap-2">
                     <!-- Level Filter Dropdown -->
                     <div class="w-full sm:w-32">
-                        <select 
-                            wire:model.live="logLevelFilter" 
+                        <select
+                            wire:model.live="logLevelFilter"
                             class="w-full bg-[#0d1117] border border-[#30363d] rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
                         >
                             <option value="all">All Levels</option>
@@ -539,17 +539,17 @@
 
                     <!-- Search Input -->
                     <div class="w-full sm:flex-1">
-                        <input 
-                            type="text" 
-                            wire:model.live.debounce.200ms="logSearch" 
-                            placeholder="Filter console logs (message, component, correlationId)..." 
+                        <input
+                            type="text"
+                            wire:model.live.debounce.200ms="logSearch"
+                            placeholder="Filter console logs (message, component, correlationId)..."
                             class="w-full bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-1.5 text-xs font-mono text-slate-200 placeholder-[#8b949e] focus:outline-none focus:border-cyan-500"
                         />
                     </div>
                 </div>
 
                 <!-- Terminal Output Box (Native OmniRoute macOS Style) -->
-                <div 
+                <div
                     x-data="{ autoScroll: true }"
                     class="rounded-xl border border-[#30363d] bg-[#0d1117] overflow-hidden font-mono text-xs leading-relaxed shadow-2xl"
                 >
@@ -570,7 +570,7 @@
                     </div>
 
                     <!-- Log Stream Lines Window -->
-                    <div 
+                    <div
                         x-ref="logWindow"
                         class="p-3 space-y-1 max-h-72 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-[#30363d] text-[11px]"
                     >
@@ -617,7 +617,7 @@
                                 <!-- Message body -->
                                 <span class="text-[#c9d1d9] flex-1 break-all select-text">
                                     {{ $entry['message'] ?? '' }}
-                                    
+
                                     @if(!empty($entry['correlationId']))
                                         <span class="text-[#484f58] ml-1.5 text-[9px]">cid:{{ substr($entry['correlationId'], 0, 8) }}</span>
                                     @endif
@@ -670,9 +670,9 @@
             <!-- Bulk Diagnostics & Per Page Selector -->
             <div class="flex flex-wrap items-center gap-3">
                 <!-- Batch Test Visible Models Button -->
-                <button 
-                    type="button" 
-                    wire:click="testCurrentPageModels" 
+                <button
+                    type="button"
+                    wire:click="testCurrentPageModels"
                     wire:loading.attr="disabled"
                     class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold shadow-md shadow-emerald-600/20 transition-all cursor-pointer disabled:opacity-50"
                     title="Run live probe test on all visible models on this page"
@@ -685,8 +685,8 @@
                 </button>
 
                 <!-- Resync from Gateway Button -->
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     x-on:click="triggerDynamicSync()"
                     wire:loading.attr="disabled"
                     :disabled="isHybridSyncing"
@@ -724,9 +724,9 @@
             <div class="flex flex-col sm:flex-row items-center gap-3">
                 <!-- Search Input -->
                 <div class="w-full sm:flex-1">
-                    <x-glass.input 
-                        wire:model.live.debounce.250ms="modelSearch" 
-                        placeholder="Search models by name, vendor, or ID (e.g. deepseek, claude, gpt-4o, llama, combo)..." 
+                    <x-glass.input
+                        wire:model.live.debounce.250ms="modelSearch"
+                        placeholder="Search models by name, vendor, or ID (e.g. deepseek, claude, gpt-4o, llama, combo)..."
                     />
                 </div>
 
@@ -749,10 +749,10 @@
             <!-- Quick Engine & Capability Filter Pills -->
             <div class="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
                 <span class="text-[11px] text-slate-400 mr-1 font-bold">Providers:</span>
-                
-                <button 
-                    type="button" 
-                    wire:click="$set('modelVendorFilter', '')" 
+
+                <button
+                    type="button"
+                    wire:click="$set('modelVendorFilter', '')"
                     class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelVendorFilter === '' ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
                 >
                     All Providers ({{ $totalModelsCount }})
@@ -774,10 +774,10 @@
                             default => '🌐',
                         };
                     @endphp
-                    <button 
+                    <button
                         wire:key="admin-omni-vendor-{{ $v->owned_by }}"
-                        type="button" 
-                        wire:click="$set('modelVendorFilter', '{{ $v->owned_by }}')" 
+                        type="button"
+                        wire:click="$set('modelVendorFilter', '{{ $v->owned_by }}')"
                         class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] flex items-center gap-1 {{ $modelVendorFilter === $v->owned_by ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
                     >
                         <span>{{ $vendorIcon }}</span>
@@ -791,33 +791,33 @@
             <div class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-white/5 text-xs">
                 <span class="text-[11px] text-slate-400 mr-1 font-bold">Capabilities:</span>
 
-                <button 
-                    type="button" 
-                    wire:click="$set('modelStatusFilter', 'working')" 
+                <button
+                    type="button"
+                    wire:click="$set('modelStatusFilter', 'working')"
                     class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelStatusFilter === 'working' ? 'bg-emerald-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-emerald-400 hover:text-white border border-emerald-500/20' }}"
                 >
                     🟢 Working Only ({{ $workingCount }})
                 </button>
 
-                <button 
-                    type="button" 
-                    wire:click="$set('modelStatusFilter', 'free_tier')" 
+                <button
+                    type="button"
+                    wire:click="$set('modelStatusFilter', 'free_tier')"
                     class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelStatusFilter === 'free_tier' ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
                 >
                     ⚡ Free Tier ({{ $freeTierCount }})
                 </button>
 
-                <button 
-                    type="button" 
-                    wire:click="$set('modelStatusFilter', 'reasoning')" 
+                <button
+                    type="button"
+                    wire:click="$set('modelStatusFilter', 'reasoning')"
                     class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelStatusFilter === 'reasoning' ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
                 >
                     🧠 Reasoning ({{ $reasoningCount }})
                 </button>
 
-                <button 
-                    type="button" 
-                    wire:click="$set('modelStatusFilter', 'combos')" 
+                <button
+                    type="button"
+                    wire:click="$set('modelStatusFilter', 'combos')"
                     class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelStatusFilter === 'combos' ? 'bg-violet-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
                 >
                     🔀 Auto Combos ({{ $combosCount }})
@@ -902,18 +902,18 @@
                     <div class="pt-3 border-t border-white/5 flex items-center justify-between gap-2">
                         <div class="flex items-center gap-2">
                             <!-- Active / Offline Status Toggle Button -->
-                            <button 
-                                type="button" 
-                                wire:click="toggleModelStatus({{ $m->id }})" 
+                            <button
+                                type="button"
+                                wire:click="toggleModelStatus({{ $m->id }})"
                                 class="px-2 py-1 rounded-lg text-[10px] font-bold uppercase cursor-pointer transition-all {{ $m->is_active ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20' }}"
                             >
                                 {{ $m->is_active ? '● Active' : '○ Offline' }}
                             </button>
 
                             <!-- Live Single Model Test Button -->
-                            <button 
-                                type="button" 
-                                wire:click="testSingleModel({{ $m->id }})" 
+                            <button
+                                type="button"
+                                wire:click="testSingleModel({{ $m->id }})"
                                 wire:loading.attr="disabled"
                                 class="px-2 py-1 rounded-lg text-[10px] font-mono font-bold bg-slate-900 border border-white/10 hover:border-emerald-500/50 hover:bg-emerald-950/50 text-slate-300 hover:text-emerald-300 transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1"
                                 title="Send live inference probe to test if model is working right now"
@@ -925,9 +925,9 @@
 
                         <!-- Set as Default Action -->
                         @if(!$isCurrentDefault)
-                            <button 
-                                type="button" 
-                                wire:click="setDefaultRoutingModel('{{ $m->model_id }}')" 
+                            <button
+                                type="button"
+                                wire:click="setDefaultRoutingModel('{{ $m->model_id }}')"
                                 class="text-[11px] text-slate-400 hover:text-violet-300 transition-colors font-medium cursor-pointer"
                             >
                                 Set Default
@@ -964,9 +964,9 @@
                 <!-- Centered Pagination Buttons -->
                 <div class="flex items-center justify-center flex-wrap gap-1.5 text-xs">
                     <!-- Previous Button -->
-                    <button 
+                    <button
                         type="button"
-                        wire:click="previousPage('modelsPage')" 
+                        wire:click="previousPage('modelsPage')"
                         @disabled($models->onFirstPage())
                         class="px-3 py-1.5 rounded-lg border border-white/10 text-slate-300 hover:text-white hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
                     >
@@ -989,9 +989,9 @@
                     @endif
 
                     @for($page = $start; $page <= $end; $page++)
-                        <button 
-                            type="button" 
-                            wire:click="gotoPage({{ $page }}, 'modelsPage')" 
+                        <button
+                            type="button"
+                            wire:click="gotoPage({{ $page }}, 'modelsPage')"
                             class="w-8 h-8 rounded-lg font-mono transition-all cursor-pointer {{ $page === $currentPage ? 'bg-violet-600 text-white font-bold shadow-md shadow-violet-500/20' : 'border border-white/10 text-slate-300 hover:text-white hover:bg-white/5' }}"
                         >
                             {{ $page }}
@@ -1006,9 +1006,9 @@
                     @endif
 
                     <!-- Next Button -->
-                    <button 
+                    <button
                         type="button"
-                        wire:click="nextPage('modelsPage')" 
+                        wire:click="nextPage('modelsPage')"
                         @disabled(!$models->hasMorePages())
                         class="px-3 py-1.5 rounded-lg border border-white/10 text-slate-300 hover:text-white hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
                     >
@@ -1023,9 +1023,9 @@
     <!-- REAL-TIME DIAGNOSTIC & SYNC PROGRESS TERMINAL POPUP MODAL                 -->
     <!-- ========================================================================= -->
     @if($showProgressModal)
-        <div 
+        <div
             class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md"
-            x-data="{ 
+            x-data="{
                 init() {
                     this.$nextTick(() => {
                         const el = document.getElementById('progressLogTerminal');
@@ -1034,16 +1034,16 @@
                 }
             }"
         >
-            <div 
+            <div
                 class="w-full max-w-2xl bg-[#0d1117] border border-[#30363d] rounded-2xl shadow-[0_25px_70px_rgba(0,0,0,0.95)] ring-1 ring-white/10 overflow-hidden font-mono text-xs flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-200"
             >
                 <!-- macOS Interactive Terminal Header -->
                 <div class="h-11 px-4 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between shrink-0 select-none">
                     <div class="flex items-center gap-2">
                         <!-- Red (X) Close button -->
-                        <button 
-                            type="button" 
-                            wire:click="closeProgressModal" 
+                        <button
+                            type="button"
+                            wire:click="closeProgressModal"
                             class="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E] flex items-center justify-center text-[8px] font-bold text-black/70 hover:opacity-100 opacity-90 transition-all cursor-pointer group"
                             title="Close Diagnostics Window (X)"
                         >
@@ -1087,7 +1087,7 @@
                 <!-- Animated Progress Bar -->
                 @if($progressTotal > 0)
                     <div class="h-1 bg-slate-900 overflow-hidden shrink-0">
-                        <div 
+                        <div
                             class="h-full bg-gradient-to-r from-violet-500 via-indigo-500 to-emerald-400 transition-all duration-300"
                             style="width: {{ round(($progressCurrent / max(1, $progressTotal)) * 100) }}%;"
                         ></div>
@@ -1095,7 +1095,7 @@
                 @endif
 
                 <!-- Terminal Log Stream -->
-                <div 
+                <div
                     id="progressLogTerminal"
                     class="p-4 space-y-1.5 overflow-y-auto overflow-x-hidden flex-1 select-text bg-[#0d1117] text-[11px] leading-relaxed scrollbar-thin scrollbar-thumb-[#30363d] min-h-[220px]"
                 >
@@ -1145,9 +1145,9 @@
                     </div>
 
                     <div class="flex items-center gap-2">
-                        <button 
-                            type="button" 
-                            wire:click="closeProgressModal" 
+                        <button
+                            type="button"
+                            wire:click="closeProgressModal"
                             class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/10 hover:border-white/20 text-white text-xs font-semibold transition-all cursor-pointer"
                         >
                             {{ $progressDone ? 'Done & Review Models (X)' : 'Close Window (X)' }}

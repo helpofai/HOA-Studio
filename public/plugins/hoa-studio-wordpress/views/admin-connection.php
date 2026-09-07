@@ -61,14 +61,14 @@ $syncRestUrl = get_rest_url(null, 'hoa-studio/v1/sync');
                             <?php esc_html_e('HOA Studio Base URL', 'hoa-studio'); ?>
                             <span class="hoa-required">*</span>
                         </label>
-                        <input 
-                            type="url" 
-                            id="hoa_studio_endpoint" 
-                            name="hoa_studio_endpoint" 
-                            value="<?php echo esc_attr($endpoint); ?>" 
-                            placeholder="https://your-studio-domain.com" 
-                            class="hoa-input" 
-                            required 
+                        <input
+                            type="url"
+                            id="hoa_studio_endpoint"
+                            name="hoa_studio_endpoint"
+                            value="<?php echo esc_attr($endpoint); ?>"
+                            placeholder="https://your-studio-domain.com"
+                            class="hoa-input"
+                            required
                         />
                         <p class="hoa-form-help"><?php esc_html_e('The full URL of your deployed HOA Studio application without trailing slash.', 'hoa-studio'); ?></p>
                     </div>
@@ -79,14 +79,14 @@ $syncRestUrl = get_rest_url(null, 'hoa-studio/v1/sync');
                             <span class="hoa-required">*</span>
                         </label>
                         <div class="hoa-input-with-icon">
-                            <input 
-                                type="password" 
-                                id="hoa_studio_api_key" 
-                                name="hoa_studio_api_key" 
-                                value="<?php echo esc_attr($apiKey); ?>" 
-                                placeholder="hoa_live_..." 
-                                class="hoa-input" 
-                                required 
+                            <input
+                                type="password"
+                                id="hoa_studio_api_key"
+                                name="hoa_studio_api_key"
+                                value="<?php echo esc_attr($apiKey); ?>"
+                                placeholder="hoa_live_..."
+                                class="hoa-input"
+                                required
                             />
                             <button type="button" class="hoa-btn-icon-toggle" id="hoa-toggle-secret-btn" title="Toggle visibility">
                                 👁️

@@ -13,7 +13,7 @@
 */
 --}}
 
-<div 
+<div
     wire:ignore.self
     class="space-y-4 min-h-screen flex flex-col justify-between relative"
     x-data="documentEditorComponent({
@@ -33,8 +33,8 @@
     x-init="init()"
 >
     <!-- Ambient Error Notification Toast -->
-    <div 
-        x-show="aiErrorMessage" 
+    <div
+        x-show="aiErrorMessage"
         x-cloak
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 -translate-y-4 scale-95"
@@ -56,7 +56,7 @@
     @include('editor.partial.toolbar')
 
     <!-- RESPONSIVE WORKSPACE LAYOUT (3-Column Grid) -->
-    <div class="editor-grid layout-three-panel" 
+    <div class="editor-grid layout-three-panel"
          :class="{
               'layout-three-panel': showLeftPanel && showRightPanel,
               'layout-left-only': showLeftPanel && !showRightPanel,
@@ -65,7 +65,7 @@
          }"
     >
         <!-- COLUMN 1: AI COMMAND CENTER (Desktop inline / Mobile Drawer) -->
-        <div 
+        <div
             x-show="showLeftPanel"
             x-transition
             class="order-2 lg:order-1 h-full flex flex-col"
@@ -79,7 +79,7 @@
         </div>
 
         <!-- COLUMN 3: CONTENT INTELLIGENCE & SEO AUDIT (Desktop inline / Mobile Drawer) -->
-        <div 
+        <div
             x-show="showRightPanel"
             x-transition
             class="order-3 h-full flex flex-col"

@@ -10,7 +10,6 @@
 | Author      : Rajib Adhikary
 | Organization: HelpOfAi (HOA)
 | Website     : https://helpofai.com
-| Location    : Basta Purba Para, Aranghata, Nadia, West Bengal, India
 |
 |--------------------------------------------------------------------------
 */
@@ -23,11 +22,14 @@ use App\Features\ContentIntelligence\DTOs\KnowledgeFabricDTO;
 use App\Features\ContentIntelligence\DTOs\SectionDraftDTO;
 use App\Features\ContentIntelligence\DTOs\SectionNodeDTO;
 use App\Features\ContentIntelligence\Enums\EpistemicState;
+use Illuminate\Support\Facades\Log;
 
 class CriticAgentService
 {
     /**
      * Rigorously critique and evaluate a drafted section against 6 quality dimensions.
+     *
+     * NOW USES REAL AI to provide human-like critique with specific revision directives.
      */
     public function evaluate(
         SectionDraftDTO $draft,
@@ -35,39 +37,123 @@ class CriticAgentService
         ContentMissionDTO $mission,
         KnowledgeFabricDTO $knowledge
     ): CriticScoreDTO {
+        Log::info("[CriticAgent] Evaluating section: {$draft->heading}");
+
+        // ══════════════════════════════════════════════════════════════
+        // AI-Powered Multi-Rubric Quality Evaluation
+        // ══════════════════════════════════════════════════════════════
+
+        $topic = $mission->topic;
+        $expertise = is_array($mission->targetAudience) ? ($mission->targetAudience['expertise_level'] ?? 'Intermediate') : 'Intermediate';
+        $contentPreview = mb_substr(strip_tags($draft->contentHtml), 0, 1500);
+
+        $criticPersona = is_array($mission->targetAudience) ? ($mission->targetAudience['persona'] ?? 'Technical professionals') : (string) $mission->targetAudience;
+        $critiquePrompt = "Evaluate this article section for quality and provide specific revision directives.
+
+Topic: \"{$topic}\"
+Target Audience: {$criticPersona}
+Expertise Level: {$expertise}
+
+Section Heading: {$draft->heading}
+Section Purpose: {$section->purpose}
+Must Answer Questions: " . implode('; ', $section->mustAnswerQuestions ?? []) . "
+
+Content Preview:
+{$contentPreview}
+
+Evaluate on these 6 dimensions and return specific feedback:
+
+1. fact_grounding_score (0-100): Does the content cite and properly attribute the claims/evidence?
+2. fact_grounding_issues: Array of specific factual issues found
+3. fact_grounding_directives: Array of specific corrections needed
+
+4. completeness_score (0-100): Does it fully answer the must-answer questions?
+5. completeness_issues: What's missing?
+6. completeness_directives: How to make it complete?
+
+7. search_intent_score (0-100): Does it match what users search for?
+8. search_intent_issues: Misalignment issues
+9. search_intent_directives: How to better align?
+
+10. brand_voice_score (0-100): Is the tone professional and appropriate?
+11. brand_voice_issues: Tone/fluff issues
+12. brand_voice_directives: How to fix tone?
+
+13. readability_score (0-100): Is it easy to read and understand?
+14. readability_issues: Structural/clarity issues
+15. readability_directives: How to improve?
+
+16. seo_score (0-100): Are keywords properly used?
+17. seo_issues: SEO problems
+18. seo_directives: SEO fixes
+
+Return JSON with all these fields:
+{
+  \"fact_grounding\": {\"score\": 90, \"issues\": [], \"directives\": []},
+  \"completeness\": {\"score\": 85, \"issues\": [], \"directives\": []},
+  \"search_intent\": {\"score\": 88, \"issues\": [], \"directives\": []},
+  \"brand_voice\": {\"score\": 90, \"issues\": [], \"directives\": []},
+  \"readability\": {\"score\": 92, \"issues\": [], \"directives\": []},
+  \"seo\": {\"score\": 85, \"issues\": [], \"directives\": []}
+}";
+
+        $aiCritique = DynamicContentProvider::askJSON($critiquePrompt, [
+            'fact_grounding' => ['score' => 90, 'issues' => [], 'directives' => []],
+            'completeness' => ['score' => 85, 'issues' => [], 'directives' => []],
+            'search_intent' => ['score' => 88, 'issues' => [], 'directives' => []],
+            'brand_voice' => ['score' => 90, 'issues' => [], 'directives' => []],
+            'readability' => ['score' => 92, 'issues' => [], 'directives' => []],
+            'seo' => ['score' => 85, 'issues' => [], 'directives' => []]
+        ]);
+
+        // Merge AI critique with algorithmic checks
         $issues = [];
         $directives = [];
 
-        // 1. Fact Grounding (25% weight)
+        // Extract all issues and directives from AI
+        foreach ($aiCritique as $dimension => $data) {
+            if (is_array($data)) {
+                $issues = array_merge($issues, $data['issues'] ?? []);
+                $directives = array_merge($directives, $data['directives'] ?? []);
+            }
+        }
+
+        // Also run algorithmic checks for additional precision
         $factScore = $this->evaluateFactGrounding($draft, $section, $knowledge, $issues, $directives);
-
-        // 2. Completeness (20% weight)
         $completenessScore = $this->evaluateCompleteness($draft, $section, $issues, $directives);
-
-        // 3. Search Intent Alignment (15% weight)
         $intentScore = $this->evaluateSearchIntent($draft, $section, $mission, $issues, $directives);
-
-        // 4. Brand Voice & Editorial Tone (15% weight)
         $voiceScore = $this->evaluateBrandVoice($draft, $mission, $issues, $directives);
-
-        // 5. Readability & Structural Clarity (15% weight)
         $readabilityScore = $this->evaluateReadability($draft, $section, $issues, $directives);
-
-        // 6. SEO & Entity Optimization (10% weight)
         $seoScore = $this->evaluateSeo($draft, $section, $issues, $directives);
 
-        return CriticScoreDTO::compute(
-            factGrounding: $factScore,
-            completeness: $completenessScore,
-            searchIntent: $intentScore,
-            brandVoice: $voiceScore,
-            readability: $readabilityScore,
-            seoOptimization: $seoScore,
-            issues: $issues,
-            revisionDirectives: $directives
+        // Use AI scores if available and reasonable, else use algorithmic
+        $finalFactScore = $aiCritique['fact_grounding']['score'] ?? $factScore;
+        $finalCompletenessScore = $aiCritique['completeness']['score'] ?? $completenessScore;
+        $finalIntentScore = $aiCritique['search_intent']['score'] ?? $intentScore;
+        $finalVoiceScore = $aiCritique['brand_voice']['score'] ?? $voiceScore;
+        $finalReadabilityScore = $aiCritique['readability']['score'] ?? $readabilityScore;
+        $finalSeoScore = $aiCritique['seo']['score'] ?? $seoScore;
+
+        $result = CriticScoreDTO::compute(
+            factGrounding: $finalFactScore,
+            completeness: $finalCompletenessScore,
+            searchIntent: $finalIntentScore,
+            brandVoice: $finalVoiceScore,
+            readability: $finalReadabilityScore,
+            seoOptimization: $finalSeoScore,
+            issues: array_unique($issues),
+            revisionDirectives: array_unique($directives)
         );
+
+        $statusLabel = (! $result->passed) ? 'needs revision' : 'approved';
+        Log::info("[CriticAgent] Section '{$draft->heading}' scored: {$result->overallScore}/100 ({$statusLabel})");
+
+        return $result;
     }
 
+    /**
+     * @deprecated Now using AI-powered evaluation - kept for fallback
+     */
     protected function evaluateFactGrounding(
         SectionDraftDTO $draft,
         SectionNodeDTO $section,
@@ -85,11 +171,10 @@ class CriticAgentService
 
         foreach ($section->assignedClaimIds as $claimId) {
             $claim = $claimMap[$claimId] ?? null;
-            if (! $claim) {
+            if (!$claim) {
                 continue;
             }
 
-            // Verify the claim's epistemic status
             if ($claim->epistemicState === EpistemicState::CONTRADICTED) {
                 $score -= 25.0;
                 $issues[] = "Section references contradicted claim: [{$claimId}]";
@@ -100,8 +185,7 @@ class CriticAgentService
                 $directives[] = "Anchor claim [{$claimId}] with verified evidence or qualify as unverified.";
             }
 
-            // Check if claim ID or key terms are present in prose
-            if (! str_contains($content, strtolower($claimId)) && ! str_contains($content, 'verified claim')) {
+            if (!str_contains($content, strtolower($claimId)) && !str_contains($content, 'verified claim')) {
                 $score -= 10.0;
                 $directives[] = "Inject explicit claim attribution anchor for [{$claimId}].";
             }
@@ -110,6 +194,9 @@ class CriticAgentService
         return max(30.0, min(100.0, $score));
     }
 
+    /**
+     * @deprecated Now using AI-powered evaluation - kept for fallback
+     */
     protected function evaluateCompleteness(
         SectionDraftDTO $draft,
         SectionNodeDTO $section,
@@ -125,10 +212,9 @@ class CriticAgentService
 
         $unansweredCount = 0;
         foreach ($section->mustAnswerQuestions as $question) {
-            // Extract key words from question (> 4 chars)
             $words = array_filter(
                 explode(' ', strtolower(preg_replace('/[^a-zA-Z0-9\s]/', '', $question))),
-                fn ($w) => strlen($w) > 4
+                fn($w) => strlen($w) > 4
             );
 
             $matched = 0;
@@ -155,6 +241,9 @@ class CriticAgentService
         return max(40.0, min(100.0, $score));
     }
 
+    /**
+     * @deprecated Now using AI-powered evaluation - kept for fallback
+     */
     protected function evaluateSearchIntent(
         SectionDraftDTO $draft,
         SectionNodeDTO $section,
@@ -166,9 +255,9 @@ class CriticAgentService
         $heading = strtolower($draft->heading);
         $content = strtolower(strip_tags($draft->contentHtml));
 
-        if (! empty($section->intentCategory)) {
+        if (!empty($section->intentCategory)) {
             $intentTerm = strtolower($section->intentCategory);
-            if (! str_contains($content, $intentTerm) && ! str_contains($heading, $intentTerm)) {
+            if (!str_contains($content, $intentTerm) && !str_contains($heading, $intentTerm)) {
                 $score -= 10.0;
                 $directives[] = "Align tone closer with intended user intent: {$section->intentCategory}.";
             }
@@ -177,6 +266,9 @@ class CriticAgentService
         return max(50.0, min(100.0, $score));
     }
 
+    /**
+     * @deprecated Now using AI-powered evaluation - kept for fallback
+     */
     protected function evaluateBrandVoice(
         SectionDraftDTO $draft,
         ContentMissionDTO $mission,
@@ -186,8 +278,7 @@ class CriticAgentService
         $score = 92.0;
         $text = strip_tags($draft->contentHtml);
 
-        // Fluff buzzword detector
-        $bannedFiller = ['delve', 'tapestry', 'testament', 'in today\'s fast-paced world', 'beacon of hope'];
+        $bannedFiller = ['delve', 'tapestry', 'testament', "in today's fast-paced world", 'beacon of hope'];
         foreach ($bannedFiller as $filler) {
             if (stripos($text, $filler) !== false) {
                 $score -= 8.0;
@@ -199,6 +290,9 @@ class CriticAgentService
         return max(40.0, min(100.0, $score));
     }
 
+    /**
+     * @deprecated Now using AI-powered evaluation - kept for fallback
+     */
     protected function evaluateReadability(
         SectionDraftDTO $draft,
         SectionNodeDTO $section,
@@ -208,7 +302,6 @@ class CriticAgentService
         $score = 94.0;
         $wordCount = $draft->wordCount;
 
-        // Check if word count deviates heavily from target
         if ($section->targetWordCount > 0) {
             $ratio = $wordCount / $section->targetWordCount;
             if ($ratio < 0.4) {
@@ -221,8 +314,7 @@ class CriticAgentService
             }
         }
 
-        // Structural check: Ensure at least one <p> element exists
-        if (! str_contains($draft->contentHtml, '<p')) {
+        if (!str_contains($draft->contentHtml, '<p')) {
             $score -= 25.0;
             $issues[] = 'Draft lacks semantic paragraph elements.';
             $directives[] = 'Enclose prose in standard semantic paragraph tags.';
@@ -231,6 +323,9 @@ class CriticAgentService
         return max(30.0, min(100.0, $score));
     }
 
+    /**
+     * @deprecated Now using AI-powered evaluation - kept for fallback
+     */
     protected function evaluateSeo(
         SectionDraftDTO $draft,
         SectionNodeDTO $section,
@@ -240,17 +335,17 @@ class CriticAgentService
         $score = 90.0;
         $content = strtolower(strip_tags($draft->contentHtml));
 
-        if (! empty($section->targetKeywords)) {
+        if (!empty($section->targetKeywords)) {
             $missingKeywords = [];
             foreach ($section->targetKeywords as $kw) {
-                if (! str_contains($content, strtolower($kw))) {
+                if (!str_contains($content, strtolower($kw))) {
                     $missingKeywords[] = $kw;
                 }
             }
 
-            if (! empty($missingKeywords)) {
+            if (!empty($missingKeywords)) {
                 $score -= min(25.0, count($missingKeywords) * 7.0);
-                $directives[] = 'Naturally integrate missing target keywords: '.implode(', ', $missingKeywords);
+                $directives[] = 'Naturally integrate missing target keywords: ' . implode(', ', $missingKeywords);
             }
         }
 

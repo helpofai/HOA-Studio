@@ -36,8 +36,8 @@
             </p>
         </div>
 
-        <button 
-            type="button" 
+        <button
+            type="button"
             wire:click="openCreateModal"
             class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-violet-600/30 transition-all cursor-pointer flex items-center gap-2"
         >
@@ -105,8 +105,8 @@
                 <div class="pt-4 mt-4 border-t border-white/5 flex items-center justify-between gap-2">
                     <div class="flex items-center gap-2">
                         @if(!$voice->is_default)
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 wire:click="setDefault({{ $voice->id }})"
                                 class="text-[11px] text-slate-400 hover:text-violet-300 transition-colors font-medium cursor-pointer"
                             >
@@ -118,16 +118,16 @@
                     </div>
 
                     <div class="flex items-center gap-1.5">
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             wire:click="openEditModal({{ $voice->id }})"
                             class="px-2 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/10 text-xs transition-all cursor-pointer"
                             title="Edit Profile"
                         >
                             ✏️ Edit
                         </button>
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             wire:click="delete({{ $voice->id }})"
                             wire:confirm="Are you sure you want to delete this brand voice profile?"
                             class="px-2 py-1 rounded-lg bg-slate-900 hover:bg-red-500/20 text-slate-400 hover:text-red-400 border border-white/10 text-xs transition-all cursor-pointer"
@@ -147,8 +147,8 @@
                     <p class="text-xs text-slate-400">
                         Create your first brand voice to guide all AI generation, ensuring every article, cold email, and social post sounds distinctly like your company.
                     </p>
-                    <button 
-                        type="button" 
+                    <button
+                        type="button"
                         wire:click="openCreateModal"
                         class="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-all cursor-pointer"
                     >
@@ -170,8 +170,8 @@
                     <h3 class="text-sm font-bold text-white flex items-center gap-2">
                         <span>🎭 {{ $editingId ? 'Edit Brand Voice' : 'Create New Brand Voice' }}</span>
                     </h3>
-                    <button 
-                        type="button" 
+                    <button
+                        type="button"
                         wire:click="$set('showCreateModal', false); $set('showEditModal', false);"
                         class="text-slate-400 hover:text-white text-sm cursor-pointer"
                     >
@@ -187,9 +187,9 @@
                             <label class="font-bold text-slate-300 block">⚡ Quick Start Presets (Optional)</label>
                             <div class="grid grid-cols-2 gap-2">
                                 @foreach($presets as $idx => $p)
-                                    <button 
+                                    <button
                                         wire:key="voice-preset-{{ $idx }}"
-                                        type="button" 
+                                        type="button"
                                         wire:click="applyPreset({{ $idx }})"
                                         class="p-2.5 text-left rounded-xl bg-slate-900/80 hover:bg-violet-950/40 border border-white/5 hover:border-violet-500/30 transition-all cursor-pointer"
                                     >
@@ -204,9 +204,9 @@
                     <!-- Voice Name -->
                     <div class="space-y-1.5">
                         <label class="font-bold text-slate-300 block">Profile Name <span class="text-red-400">*</span></label>
-                        <input 
-                            type="text" 
-                            wire:model="name" 
+                        <input
+                            type="text"
+                            wire:model="name"
                             placeholder="e.g. Acme Tech Visionary, B2B SaaS Executive, Friendly Coach"
                             class="w-full bg-slate-900 border border-white/15 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
                         />
@@ -216,8 +216,8 @@
                     <!-- Tone Description -->
                     <div class="space-y-1.5">
                         <label class="font-bold text-slate-300 block">Tone & Style Description <span class="text-red-400">*</span></label>
-                        <textarea 
-                            wire:model="tone_description" 
+                        <textarea
+                            wire:model="tone_description"
                             rows="3"
                             placeholder="Describe how the AI should sound (e.g. Authoritative, direct, punchy, optimistic, data-driven)..."
                             class="w-full bg-slate-900 border border-white/15 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
@@ -228,9 +228,9 @@
                     <!-- Target Audience -->
                     <div class="space-y-1.5">
                         <label class="font-bold text-slate-300 block">Target Audience Persona (Optional)</label>
-                        <input 
-                            type="text" 
-                            wire:model="target_audience" 
+                        <input
+                            type="text"
+                            wire:model="target_audience"
                             placeholder="e.g. Early-Stage Tech Founders, Growth Marketers, Enterprise CTOs"
                             class="w-full bg-slate-900 border border-white/15 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
                         />
@@ -239,8 +239,8 @@
                     <!-- Specific Writing Guidelines -->
                     <div class="space-y-1.5">
                         <label class="font-bold text-slate-300 block">Specific Writing Rules & Guidelines (Optional)</label>
-                        <textarea 
-                            wire:model="guidelines" 
+                        <textarea
+                            wire:model="guidelines"
                             rows="2"
                             placeholder="e.g. Always use active voice. Format lists with bullet points. Emphasize speed and ROI."
                             class="w-full bg-slate-900 border border-white/15 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
@@ -250,9 +250,9 @@
                     <!-- Forbidden Words -->
                     <div class="space-y-1.5">
                         <label class="font-bold text-slate-300 block">Words to Avoid / Forbidden Words (Comma-separated)</label>
-                        <input 
-                            type="text" 
-                            wire:model="forbidden_words_input" 
+                        <input
+                            type="text"
+                            wire:model="forbidden_words_input"
                             placeholder="e.g. synergy, utilize, game-changing, revolutionize, leverage"
                             class="w-full bg-slate-900 border border-white/15 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
                         />
@@ -261,8 +261,8 @@
                     <!-- Sample Content -->
                     <div class="space-y-1.5">
                         <label class="font-bold text-slate-300 block">Reference Sample Content (Optional)</label>
-                        <textarea 
-                            wire:model="sample_content" 
+                        <textarea
+                            wire:model="sample_content"
                             rows="3"
                             placeholder="Paste an excerpt of writing that perfectly exemplifies this brand voice..."
                             class="w-full bg-slate-900 border border-white/15 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-500 font-mono text-[11px]"
@@ -271,9 +271,9 @@
 
                     <!-- Is Default Toggle -->
                     <div class="flex items-center gap-3 pt-2">
-                        <input 
-                            type="checkbox" 
-                            id="is_default_checkbox" 
+                        <input
+                            type="checkbox"
+                            id="is_default_checkbox"
                             wire:model="is_default"
                             class="w-4 h-4 rounded bg-slate-900 border-white/20 text-violet-600 focus:ring-0 cursor-pointer"
                         />
@@ -284,14 +284,14 @@
 
                     <!-- Modal Actions -->
                     <div class="pt-4 border-t border-white/5 flex items-center justify-end gap-3">
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             wire:click="$set('showCreateModal', false); $set('showEditModal', false);"
                             class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white font-semibold transition-all cursor-pointer"
                         >
                             Cancel
                         </button>
-                        <button 
+                        <button
                             type="submit"
                             wire:loading.attr="disabled"
                             class="px-5 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold shadow-lg shadow-violet-600/30 transition-all cursor-pointer"

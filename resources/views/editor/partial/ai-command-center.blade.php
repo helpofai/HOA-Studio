@@ -45,8 +45,8 @@
                         <label class="text-[9px] uppercase font-bold text-slate-400 tracking-wider">1. AI Provider (Configured & Active)</label>
                         <span class="text-[9px] font-mono text-indigo-400" x-text="availableProviders.length + ' Available'"></span>
                     </div>
-                    <select 
-                        x-model="selectedProvider" 
+                    <select
+                        x-model="selectedProvider"
                         x-on:change="fetchModelsForProvider($event.target.value)"
                         class="w-full bg-slate-900 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 font-mono shadow-inner cursor-pointer"
                     >
@@ -63,8 +63,8 @@
                         <label class="text-[9px] uppercase font-bold text-slate-400 tracking-wider">2. Provider Models</label>
                         <span class="text-[9px] font-mono text-emerald-400" x-text="availableModels.length + ' Models'"></span>
                     </div>
-                    <select 
-                        x-model="aiModel" 
+                    <select
+                        x-model="aiModel"
                         class="w-full bg-slate-900 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 font-mono shadow-inner cursor-pointer"
                     >
                         <option value="auto">⚡ Auto (OmniRoute Smart Router)</option>
@@ -100,13 +100,13 @@
         <div id="full-content-main-agent" class="full-content-main-agent p-3 rounded-2xl bg-slate-900/90 border border-indigo-500/30 shadow-inner space-y-2.5 font-mono" x-data="{ showSwarmSteps: false }">
             <div class="flex items-center justify-between text-[11px] font-bold text-white">
                 <span class="flex items-center gap-1.5 text-indigo-300">
-                    <span>🤖</span> 
+                    <span>🤖</span>
                     <span>Multi-Agent Swarm</span>
                     <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-purple-950/80 text-purple-300 border border-purple-500/40 font-bold" title="Full Content Main Agent Engine">full-content-main-agent</span>
                 </span>
-                <button 
-                    type="button" 
-                    x-on:click="showSwarmSteps = !showSwarmSteps" 
+                <button
+                    type="button"
+                    x-on:click="showSwarmSteps = !showSwarmSteps"
                     class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-indigo-950 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-900 transition-colors cursor-pointer"
                 >
                     <span x-text="showSwarmSteps ? '▼ Hide Steps' : '⚙️ Custom Steps'"></span>
@@ -227,7 +227,7 @@
             </div>
 
             <!-- Topic / Prompt Textarea -->
-            <textarea 
+            <textarea
                 id="ai-command-prompt"
                 x-model="aiPrompt"
                 rows="3"
@@ -238,8 +238,8 @@
             <!-- 15-Stage Pipeline Interactive Selector Accordion -->
             <div class="space-y-2 pt-1" x-data="{ showPipelineDetails: false }">
                 <div class="flex items-center justify-between pb-1 border-b border-white/5">
-                    <button 
-                        type="button" 
+                    <button
+                        type="button"
                         x-on:click="showPipelineDetails = !showPipelineDetails"
                         class="text-[11px] font-bold text-indigo-300 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
@@ -275,8 +275,8 @@
 
                 <!-- View Pipeline Data Popup Trigger -->
                 <div class="pt-1">
-                    <button 
-                        type="button" 
+                    <button
+                        type="button"
                         x-on:click="showPipelinePopup = true"
                         class="w-full py-1.5 px-2.5 rounded-xl bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-300 hover:text-white border border-indigo-500/30 flex items-center justify-between text-[10.5px] font-mono transition-colors cursor-pointer"
                         title="Open 15-Stage Production Pipeline Monitor Popup (x)"
@@ -293,8 +293,8 @@
             <!-- Action Buttons: Write Live & Multi-Agent Swarm -->
             <div class="space-y-1.5 pt-1">
                 <!-- 5. Animated Bars Multi-Agent Swarm Button -->
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     x-on:click="triggerAiTransform('multi_agent_pipeline', aiPrompt, 'document')"
                     :disabled="isTransforming"
                     class="w-full py-2.5 px-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs shadow-md shadow-amber-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer select-none"
@@ -305,8 +305,8 @@
                     <span x-text="isTransforming ? 'Streaming...' : 'AI Transform'"></span>
                 </button>
 
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     x-on:click="triggerAiTransform('custom', aiPrompt)"
                     :disabled="isTransforming"
                     class="w-full py-2 px-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-semibold border border-white/10 flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer"

@@ -52,8 +52,8 @@
                         </div>
                     </div>
                     <!-- SEO Heatmap Toggle -->
-                    <button 
-                        type="button" 
+                    <button
+                        type="button"
                         x-on:click="toggleSeoHeatmap()"
                         :class="showSeoHeatmap ? 'bg-indigo-600 text-white border-indigo-400 shadow-indigo-500/30 ring-2 ring-indigo-500/50' : 'bg-slate-950/50 text-slate-300 border-white/10 hover:text-white hover:border-white/20'"
                         class="px-2.5 py-1.5 rounded-xl border text-xs font-bold shadow-sm transition-all flex flex-col items-center justify-center h-[42px] cursor-pointer gap-0.5"
@@ -62,7 +62,7 @@
                         <svg x-show="showSeoHeatmap" style="display:none;" class="w-3.5 h-3.5 text-white animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                         <span x-text="showSeoHeatmap ? 'CLOSE' : '👁️ HEATMAP'"></span>
                     </button>
-                    
+
 
 
 
@@ -132,9 +132,9 @@
 
 
 
-                    <button 
-                        type="button" 
-                        @click="showSeoDrawerLocal = !showSeoDrawerLocal; $wire.showSeoDrawer = showSeoDrawerLocal" 
+                    <button
+                        type="button"
+                        @click="showSeoDrawerLocal = !showSeoDrawerLocal; $wire.showSeoDrawer = showSeoDrawerLocal"
                         class="px-2.5 py-1 rounded-lg font-mono text-[10.5px] font-bold border border-indigo-500/30 transition-colors shrink-0 cursor-pointer"
                         :class="showSeoDrawerLocal ? 'bg-indigo-600 text-white shadow-sm' : 'bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white'"
                     >
@@ -181,33 +181,33 @@
                 </div>
 
                 <div class="flex items-center gap-1.5">
-                    <input 
-                        type="text" 
-                        wire:model.lazy="targetKeyword" 
-                        wire:keydown.enter="runSeoAudit" 
-                        placeholder="e.g. deepseek v4 flash review" 
-                        class="flex-1 bg-slate-950 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono shadow-inner" 
-                    /> 
-                    <button 
-                        type="button" 
-                        wire:click="runSeoAudit" 
+                    <input
+                        type="text"
+                        wire:model.lazy="targetKeyword"
+                        wire:keydown.enter="runSeoAudit"
+                        placeholder="e.g. deepseek v4 flash review"
+                        class="flex-1 bg-slate-950 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono shadow-inner"
+                    />
+                    <button
+                        type="button"
+                        wire:click="runSeoAudit"
                         wire:loading.attr="disabled"
                         wire:target="runSeoAudit"
-                        class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5" 
-                    > 
+                        class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition-all cursor-pointer flex items-center gap-1.5"
+                    >
                         <span wire:loading.remove wire:target="runSeoAudit">Analyze</span>
                         <span wire:loading wire:target="runSeoAudit" class="inline-block animate-spin text-[10px]">⏳</span>
                         <span wire:loading wire:target="runSeoAudit">Auditing...</span>
-                    </button> 
-                    <button 
-                        type="button" 
-                        @click="showSeoDrawerLocal = false; $wire.showSeoDrawer = false" 
-                        class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-white/10 text-slate-400 hover:text-white text-xs font-semibold border border-white/10 transition-all cursor-pointer" 
-                        title="Close drawer" 
-                    > 
-                        ✕ 
-                    </button> 
-                </div> 
+                    </button>
+                    <button
+                        type="button"
+                        @click="showSeoDrawerLocal = false; $wire.showSeoDrawer = false"
+                        class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-white/10 text-slate-400 hover:text-white text-xs font-semibold border border-white/10 transition-all cursor-pointer"
+                        title="Close drawer"
+                    >
+                        ✕
+                    </button>
+                </div>
             </div>
 
 
@@ -228,7 +228,7 @@
 
 
 
-            
+
             <!-- ⚡ 1-CLICK MAGIC SEO & GEO AUTO-HEAL MASTER ACTION -->
             @php
                 $allPillarChecks = [];
@@ -256,8 +256,8 @@
                     <p class="text-[10.5px] text-slate-300 leading-relaxed">
                         Holistically weaves missing keywords, structures direct answers for Google AI Overviews, breaks bulky text, and integrates citations in a single pass.
                     </p>
-                    <button 
-                        type="button" 
+                    <button
+                        type="button"
                         x-on:click="autoHealDocumentSeo()"
                         :disabled="isTransforming"
                         class="w-full py-2.5 px-3.5 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 select-none"
@@ -311,16 +311,16 @@
                 }
                 if (empty($rmPillars)) {
                     $fresh = app(\App\Features\SEO\Services\SeoAnalyzer::class)->analyze(
-                        $contentHtml ?? '', 
-                        $title ?? '', 
-                        $targetKeyword ?: null, 
+                        $contentHtml ?? '',
+                        $title ?? '',
+                        $targetKeyword ?: null,
                         $secondaryKeywords ?? []
                     );
                     $rmPillars = $fresh['rank_math'] ?? [];
                 }
             @endphp
 
-            <div class="space-y-2.5" wire:key="seo-checklist-master-matrix" x-data="{ 
+            <div class="space-y-2.5" wire:key="seo-checklist-master-matrix" x-data="{
                 allExpanded: false,
                 toggleAllPillars() {
                     this.allExpanded = !this.allExpanded;
@@ -335,15 +335,15 @@
                 </div>
 
                 @foreach($rmPillars as $pillarKey => $pillarData)
-                <div 
-                    wire:key="seo-pillar-{{ $pillarKey }}" 
-                    x-data="{ isOpen: @js(in_array($pillarKey, ['basic_seo', 'additional_seo', 'title_readability', 'content_readability'])) }" 
+                <div
+                    wire:key="seo-pillar-{{ $pillarKey }}"
+                    x-data="{ isOpen: @js(in_array($pillarKey, ['basic_seo', 'additional_seo', 'title_readability', 'content_readability'])) }"
                     x-on:seo-toggle-all-pillars.window="isOpen = $event.detail"
                     class="border border-white/10 bg-slate-900/50 rounded-xl overflow-hidden shadow-sm shadow-black/20"
                 >
-                    <button 
+                    <button
                         type="button"
-                        x-on:click="isOpen = !isOpen" 
+                        x-on:click="isOpen = !isOpen"
                         class="w-full flex items-center justify-between p-3 bg-slate-800/80 hover:bg-slate-700/80 transition-all cursor-pointer select-none text-left"
                     >
                         <div class="flex items-center gap-2">
@@ -359,8 +359,8 @@
 
                     <div x-show="isOpen" x-transition class="p-2 space-y-1.5 bg-slate-900/95 border-t border-white/5 max-h-[500px] overflow-y-auto hoa-custom-scrollbar">
                         @foreach($pillarData['checks'] ?? [] as $check)
-                            <div 
-                                wire:key="seo-check-{{ $pillarKey }}-{{ $check['id'] }}" 
+                            <div
+                                wire:key="seo-check-{{ $pillarKey }}-{{ $check['id'] }}"
                                 x-data="{ manualOpen: false }"
                                 class="p-2.5 rounded-xl border {{ $check['pass'] ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-slate-800/80 border-white/10' }} flex flex-col gap-2 transition-all"
                             >
@@ -373,23 +373,23 @@
                                         @php
                                             $sev = $check['severity'] ?? 'warning';
                                             $isGeo = str_starts_with($check['id'], 'geo_');
-                                            $badgeBg = $isGeo 
-                                                ? 'bg-purple-500/20 border-purple-500/40 text-purple-400 shadow-purple-500/20' 
+                                            $badgeBg = $isGeo
+                                                ? 'bg-purple-500/20 border-purple-500/40 text-purple-400 shadow-purple-500/20'
                                                 : ($sev === 'critical' ? 'bg-rose-500/20 border-rose-500/40 text-rose-400 shadow-rose-500/20' : ($sev === 'warning' ? 'bg-amber-500/20 border-amber-500/40 text-amber-400 shadow-amber-500/20' : 'bg-blue-500/20 border-blue-500/40 text-blue-400 shadow-blue-500/20'));
                                         @endphp
                                         <div class="w-5 h-5 shrink-0 rounded-full {{ $badgeBg }} border flex items-center justify-center mt-0.5 shadow-sm">
                                             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                                         </div>
                                     @endif
-                                    
+
                                     <div class="flex-1 min-w-0">
                                         <div class="flex items-center justify-between gap-1.5 mb-0.5">
                                             <h4 class="text-[11px] font-bold {{ $check['pass'] ? 'text-white' : 'text-slate-200' }} leading-tight truncate">{{ $check['title'] }}</h4>
                                             @if(!$check['pass'] && isset($check['severity']))
                                                 @php
                                                     $isGeo = str_starts_with($check['id'], 'geo_');
-                                                    $sevPill = $isGeo 
-                                                        ? 'bg-purple-500/25 text-purple-300 border-purple-500/40' 
+                                                    $sevPill = $isGeo
+                                                        ? 'bg-purple-500/25 text-purple-300 border-purple-500/40'
                                                         : ($check['severity'] === 'critical' ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' : ($check['severity'] === 'warning' ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-blue-500/20 text-blue-300 border-blue-500/40'));
                                                 @endphp
                                                 <div class="flex items-center gap-1 shrink-0">
@@ -405,7 +405,7 @@
                                         <p class="text-[10px] {{ $check['pass'] ? 'text-emerald-300' : 'text-slate-400' }} leading-snug">{{ $check['desc'] }}</p>
                                     </div>
                                 </div>
-                                
+
                                 <div class="mt-1 p-2 rounded-xl bg-slate-950/80 border border-white/10 space-y-2 text-[10px]">
                                     @if(isset($check['current_val']) || isset($check['goal_val']))
                                         <div class="flex items-center justify-between font-mono text-[9.5px] text-slate-400 border-b border-white/5 pb-1">
@@ -420,11 +420,11 @@
                                             <span>{{ $check['actionable_tip'] }}</span>
                                         </div>
                                     @endif
-                                    
+
                                     <div class="flex items-center gap-1.5 pt-0.5 flex-wrap">
                                         @if(isset($check['ai_prompt']))
-                                            <button 
-                                                type="button" 
+                                            <button
+                                                type="button"
                                                 @php
                                                     $aiFixTarget = in_array($check['id'], ['kw_in_title', 'kw_at_beginning_of_title', 'title_has_number', 'title_has_power_word', 'title_length_optimal', 'title_sentiment_positive']) ? 'title' : ($check['id'] === 'kw_in_meta' ? 'meta' : 'insert');
                                                 @endphp
@@ -437,10 +437,10 @@
                                                 <span x-text="activeAction === '{{ $check['id'] }}' ? 'Working...' : '✨ AI Fix'"></span>
                                             </button>
                                         @endif
-                                        
+
                                         @if(isset($check['target_canvas_id']))
-                                            <button 
-                                                type="button" 
+                                            <button
+                                                type="button"
                                                 x-on:click="locateSeoTarget('{{ $check['target_canvas_id'] }}', '{{ $check['id'] }}')"
                                                 class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-white/15 text-slate-300 hover:text-white border border-white/10 transition-all flex items-center gap-1 cursor-pointer text-[10px]"
                                                 title="Locate line in content editor"
@@ -449,8 +449,8 @@
                                             </button>
                                         @endif
 
-                                        <button 
-                                            type="button" 
+                                        <button
+                                            type="button"
                                             x-on:click="manualOpen = !manualOpen"
                                             class="px-2 py-1 rounded-lg bg-slate-900 hover:bg-white/10 text-slate-400 hover:text-slate-200 border border-white/10 transition-all flex items-center gap-1 cursor-pointer text-[10px]"
                                         >
@@ -500,13 +500,13 @@
                         @foreach($semanticEntities as $entity)
                             @php
                                 $status = $entity['status'] ?? 'optimal';
-                                $chipStyle = $status === 'underused' 
-                                    ? 'bg-amber-500/10 text-amber-300 border-amber-500/30 hover:bg-amber-500/20' 
-                                    : ($status === 'overused' 
-                                        ? 'bg-rose-500/10 text-rose-300 border-rose-500/30 hover:bg-rose-500/20' 
+                                $chipStyle = $status === 'underused'
+                                    ? 'bg-amber-500/10 text-amber-300 border-amber-500/30 hover:bg-amber-500/20'
+                                    : ($status === 'overused'
+                                        ? 'bg-rose-500/10 text-rose-300 border-rose-500/30 hover:bg-rose-500/20'
                                         : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20');
                             @endphp
-                            <button 
+                            <button
                                 type="button"
                                 wire:key="seo-entity-{{ $loop->index }}"
                                 x-show="entityFilter === 'all' || entityFilter === '{{ $status }}'"
@@ -532,8 +532,8 @@
 
             @if(!empty($schemaData))
                 <div class="border border-white/10 bg-slate-900/60 rounded-xl overflow-hidden shadow-sm" x-data="{ showSchemaStudio: false, schemaCopied: false, activeSchemaTab: 'code' }">
-                    <button 
-                        type="button" 
+                    <button
+                        type="button"
                         x-on:click="showSchemaStudio = !showSchemaStudio"
                         class="w-full flex items-center justify-between p-3 bg-slate-800/80 hover:bg-slate-700/80 transition-all text-left cursor-pointer"
                     >
@@ -563,15 +563,15 @@
                                 </button>
                             </div>
                             <div class="flex items-center gap-1.5">
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     x-on:click="navigator.clipboard.writeText(@js($schemaData['script_tag'])); schemaCopied = true; setTimeout(() => schemaCopied = false, 2000)"
                                     class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 font-mono text-[10px] transition-all flex items-center gap-1 cursor-pointer"
                                 >
                                     <span x-text="schemaCopied ? '✓ Copied!' : '📋 Copy Code'"></span>
                                 </button>
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     x-on:click="insertContentIntoCanvas(@js($schemaData['script_tag']), false); $dispatch('autosave'); addLog('SEO', 'Injected Schema.org JSON-LD structured data into document footer.');"
                                     class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-[10px] font-bold shadow-sm transition-all flex items-center gap-1 cursor-pointer"
                                 >

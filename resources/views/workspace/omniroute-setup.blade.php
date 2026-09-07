@@ -23,7 +23,7 @@
 */
 --}}
 
-<div 
+<div
     class="space-y-8 animate-fade-in pb-12"
     x-data="{
         showKey: false,
@@ -71,9 +71,9 @@
         </div>
 
         <div class="flex items-center gap-3">
-            <button 
-                type="button" 
-                wire:click="testGatewayConnection" 
+            <button
+                type="button"
+                wire:click="testGatewayConnection"
                 wire:loading.attr="disabled"
                 class="px-4 py-2 rounded-xl bg-slate-900 border border-white/15 text-xs font-bold text-slate-200 hover:text-white hover:border-indigo-500/50 transition-all cursor-pointer inline-flex items-center gap-2 shadow-md"
             >
@@ -93,10 +93,10 @@
     </div>
 
     <!-- Live Telemetry Stream Graph & SLA Metrics -->
-    <x-omniroute.telemetry-graph 
-        :graphData="$graphData" 
-        :timeRange="$graphTimeRange" 
-        :statusFilter="$graphStatusFilter" 
+    <x-omniroute.telemetry-graph
+        :graphData="$graphData"
+        :timeRange="$graphTimeRange"
+        :statusFilter="$graphStatusFilter"
     />
 
     <!-- Status Banner Alert -->
@@ -123,7 +123,7 @@
 
     <!-- Top Two-Column Section: Configuration (Left) & Diagnostics/Console (Right) -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
+
         <!-- Left: Gateway Configuration & Telemetry (2 Cols) -->
         <div class="lg:col-span-2 space-y-6">
             <!-- Gateway Telemetry Metrics Grid -->
@@ -196,9 +196,9 @@
                         @endif
 
                         @if($hasPersonalKey)
-                            <button 
-                                type="button" 
-                                wire:click="removeUserKey" 
+                            <button
+                                type="button"
+                                wire:click="removeUserKey"
                                 wire:confirm="Remove your personal OmniRoute API key and revert to managed platform key?"
                                 class="px-3 py-1.5 rounded-xl bg-red-500/10 text-red-300 border border-red-500/20 hover:bg-red-500/20 text-xs font-bold transition-all cursor-pointer"
                             >
@@ -228,9 +228,9 @@
                         </label>
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                             <!-- 1. Local Device Daemon -->
-                            <button 
-                                type="button" 
-                                wire:click="setConnectionType('local_daemon')" 
+                            <button
+                                type="button"
+                                wire:click="setConnectionType('local_daemon')"
                                 class="p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between {{ $connection_type === 'local_daemon' ? 'bg-indigo-600/20 border-indigo-500 shadow-lg shadow-indigo-500/10 text-white' : 'bg-slate-900/60 border-white/10 text-slate-400 hover:border-white/20 hover:text-slate-200' }}"
                             >
                                 <div>
@@ -247,9 +247,9 @@
                             </button>
 
                             <!-- 2. Cloudflare Tunnel / Ngrok -->
-                            <button 
-                                type="button" 
-                                wire:click="setConnectionType('cloudflare_tunnel')" 
+                            <button
+                                type="button"
+                                wire:click="setConnectionType('cloudflare_tunnel')"
                                 class="p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between {{ $connection_type === 'cloudflare_tunnel' ? 'bg-indigo-600/20 border-indigo-500 shadow-lg shadow-indigo-500/10 text-white' : 'bg-slate-900/60 border-white/10 text-slate-400 hover:border-white/20 hover:text-slate-200' }}"
                             >
                                 <div>
@@ -266,9 +266,9 @@
                             </button>
 
                             <!-- 3. Admin Platform Cluster -->
-                            <button 
-                                type="button" 
-                                wire:click="setConnectionType('admin_cluster')" 
+                            <button
+                                type="button"
+                                wire:click="setConnectionType('admin_cluster')"
                                 class="p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between {{ $connection_type === 'admin_cluster' ? 'bg-indigo-600/20 border-indigo-500 shadow-lg shadow-indigo-500/10 text-white' : 'bg-slate-900/60 border-white/10 text-slate-400 hover:border-white/20 hover:text-slate-200' }}"
                             >
                                 <div>
@@ -285,9 +285,9 @@
                             </button>
 
                             <!-- 4. Custom Enterprise Proxy -->
-                            <button 
-                                type="button" 
-                                wire:click="setConnectionType('custom_proxy')" 
+                            <button
+                                type="button"
+                                wire:click="setConnectionType('custom_proxy')"
                                 class="p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between {{ $connection_type === 'custom_proxy' ? 'bg-indigo-600/20 border-indigo-500 shadow-lg shadow-indigo-500/10 text-white' : 'bg-slate-900/60 border-white/10 text-slate-400 hover:border-white/20 hover:text-slate-200' }}"
                             >
                                 <div>
@@ -338,9 +338,9 @@
                                     <label class="text-xs font-medium text-slate-300">
                                         Personal Gateway API Key
                                     </label>
-                                    <button 
-                                        type="button" 
-                                        x-on:click="$data.showKey = !$data.showKey" 
+                                    <button
+                                        type="button"
+                                        x-on:click="$data.showKey = !$data.showKey"
                                         class="text-[11px] text-indigo-400 hover:text-indigo-300 font-mono flex items-center gap-1 transition-colors cursor-pointer"
                                     >
                                         <span x-show="!$data.showKey">👁️ Show Key</span>
@@ -348,16 +348,16 @@
                                     </button>
                                 </div>
                                 <div wire:key="omniroute-user-key-input-wrapper" class="relative">
-                                    <input 
-                                        :type="($data.showKey ?? false) ? 'text' : 'password'" 
-                                        wire:model="user_api_key" 
-                                        placeholder="sk-or-v1-..." 
+                                    <input
+                                        :type="($data.showKey ?? false) ? 'text' : 'password'"
+                                        wire:model="user_api_key"
+                                        placeholder="sk-or-v1-..."
                                         class="w-full bg-slate-900 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono pr-10"
                                         required
                                     />
-                                    <button 
-                                        type="button" 
-                                        x-on:click="$data.showKey = !$data.showKey" 
+                                    <button
+                                        type="button"
+                                        x-on:click="$data.showKey = !$data.showKey"
                                         class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs cursor-pointer p-1"
                                         :title="($data.showKey ?? false) ? 'Hide key' : 'Show key'"
                                     >
@@ -376,10 +376,10 @@
                                     </label>
                                     <span class="text-[10px] text-violet-400 font-mono">Dynamic Route</span>
                                 </div>
-                                <input 
-                                    type="text" 
-                                    wire:model.live.debounce.400ms="user_custom_url" 
-                                    placeholder="{{ $connection_type === 'cloudflare_tunnel' ? 'https://omni-gateway.yourdomain.com/v1' : 'http://localhost:20128/v1' }}" 
+                                <input
+                                    type="text"
+                                    wire:model.live.debounce.400ms="user_custom_url"
+                                    placeholder="{{ $connection_type === 'cloudflare_tunnel' ? 'https://omni-gateway.yourdomain.com/v1' : 'http://localhost:20128/v1' }}"
                                     class="w-full bg-slate-900 border border-white/15 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
                                 />
                                 <div class="flex flex-wrap items-center gap-1.5 mt-2">
@@ -394,8 +394,8 @@
                         </div>
 
                         <div class="flex items-center justify-between gap-3 pt-3 border-t border-white/5">
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 wire:click="testGatewayConnection"
                                 wire:loading.attr="disabled"
                                 class="px-4 py-2 rounded-xl bg-slate-900 border border-white/10 hover:border-emerald-500/50 hover:bg-emerald-950/30 text-slate-300 hover:text-emerald-300 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
@@ -407,8 +407,8 @@
                                 </span>
                             </button>
 
-                            <button 
-                                type="submit" 
+                            <button
+                                type="submit"
                                 wire:loading.attr="disabled"
                                 class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/30 transition-all cursor-pointer flex items-center gap-2"
                             >
@@ -456,10 +456,10 @@
 
                 <!-- Console Filter Bar -->
                 <div class="flex items-center gap-2 text-xs">
-                    <input 
-                        type="text" 
-                        wire:model.live.debounce.150ms="logSearch" 
-                        placeholder="Search logs..." 
+                    <input
+                        type="text"
+                        wire:model.live.debounce.150ms="logSearch"
+                        placeholder="Search logs..."
                         class="w-full bg-slate-950 border border-white/10 rounded-lg px-2.5 py-1 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 font-mono"
                     />
 
@@ -525,9 +525,9 @@
 
             <!-- Bulk Diagnostics & Per Page Selector -->
             <div class="flex flex-wrap items-center gap-3">
-                <button 
-                    type="button" 
-                    wire:click="testCurrentPageModels" 
+                <button
+                    type="button"
+                    wire:click="testCurrentPageModels"
                     wire:loading.attr="disabled"
                     class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-semibold shadow-md shadow-emerald-600/20 transition-all cursor-pointer disabled:opacity-50"
                     title="Run live probe test on all visible models on this page"
@@ -540,9 +540,9 @@
                 </button>
 
                 <!-- Resync from Gateway Button -->
-                <button 
-                    type="button" 
-                    wire:click="resyncModels" 
+                <button
+                    type="button"
+                    wire:click="resyncModels"
                     wire:loading.attr="disabled"
                     class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-indigo-500/30 hover:border-indigo-500/60 text-indigo-300 hover:text-white text-xs font-semibold transition-all cursor-pointer"
                     title="Re-synchronize catalog directly from OmniRoute /v1/models"
@@ -571,10 +571,10 @@
             <div class="flex flex-col sm:flex-row items-center gap-3">
                 <!-- Search Input -->
                 <div class="w-full sm:flex-1">
-                    <input 
-                        type="text" 
-                        wire:model.live.debounce.250ms="modelSearch" 
-                        placeholder="Search models by name, vendor, or ID (e.g. deepseek, claude, gpt-4o, llama, combo)..." 
+                    <input
+                        type="text"
+                        wire:model.live.debounce.250ms="modelSearch"
+                        placeholder="Search models by name, vendor, or ID (e.g. deepseek, claude, gpt-4o, llama, combo)..."
                         class="w-full bg-slate-900 border border-white/15 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-medium"
                     />
                 </div>
@@ -595,10 +595,10 @@
             <!-- Quick Engine & Capability Filter Pills -->
             <div class="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
                 <span class="text-[11px] text-slate-400 mr-1 font-bold">Providers:</span>
-                
-                <button 
-                    type="button" 
-                    wire:click="$set('modelVendorFilter', '')" 
+
+                <button
+                    type="button"
+                    wire:click="$set('modelVendorFilter', '')"
                     class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelVendorFilter === '' ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
                 >
                     All Providers ({{ $totalModelsCount }})
@@ -620,10 +620,10 @@
                             default => '🌐',
                         };
                     @endphp
-                    <button 
+                    <button
                         wire:key="omni-vendor-{{ $v->owned_by }}"
-                        type="button" 
-                        wire:click="$set('modelVendorFilter', '{{ $v->owned_by }}')" 
+                        type="button"
+                        wire:click="$set('modelVendorFilter', '{{ $v->owned_by }}')"
                         class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] flex items-center gap-1 {{ $modelVendorFilter === $v->owned_by ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
                     >
                         <span>{{ $vendorIcon }}</span>
@@ -637,33 +637,33 @@
             <div class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-white/5 text-xs">
                 <span class="text-[11px] text-slate-400 mr-1 font-bold">Capabilities:</span>
 
-                <button 
-                    type="button" 
-                    wire:click="$set('modelStatusFilter', 'working')" 
+                <button
+                    type="button"
+                    wire:click="$set('modelStatusFilter', 'working')"
                     class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelStatusFilter === 'working' ? 'bg-emerald-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-emerald-400 hover:text-white border border-emerald-500/20' }}"
                 >
                     🟢 Working Only ({{ $workingCount }})
                 </button>
 
-                <button 
-                    type="button" 
-                    wire:click="$set('modelStatusFilter', 'free_tier')" 
+                <button
+                    type="button"
+                    wire:click="$set('modelStatusFilter', 'free_tier')"
                     class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelStatusFilter === 'free_tier' ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
                 >
                     ⚡ Free Tier ({{ $freeTierCount }})
                 </button>
 
-                <button 
-                    type="button" 
-                    wire:click="$set('modelStatusFilter', 'reasoning')" 
+                <button
+                    type="button"
+                    wire:click="$set('modelStatusFilter', 'reasoning')"
                     class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelStatusFilter === 'reasoning' ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
                 >
                     🧠 Reasoning ({{ $reasoningCount }})
                 </button>
 
-                <button 
-                    type="button" 
-                    wire:click="$set('modelStatusFilter', 'combos')" 
+                <button
+                    type="button"
+                    wire:click="$set('modelStatusFilter', 'combos')"
                     class="px-2.5 py-1 rounded-lg transition-all cursor-pointer text-[11px] {{ $modelStatusFilter === 'combos' ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
                 >
                     🔀 Auto Combos ({{ $combosCount }})
@@ -751,9 +751,9 @@
                             {{ $m->is_free_tier ? '🎁 Zero Quota Cost' : 'Standard Rate' }}
                         </span>
 
-                        <button 
-                            type="button" 
-                            wire:click="probeModelHealth({{ $m->id }})" 
+                        <button
+                            type="button"
+                            wire:click="probeModelHealth({{ $m->id }})"
                             wire:loading.attr="disabled"
                             class="px-3 py-1 rounded-lg bg-slate-900 border border-white/10 hover:border-indigo-500/40 text-xs text-indigo-300 hover:text-white transition-all cursor-pointer flex items-center gap-1.5"
                             title="Run instant real-time completion test"

@@ -15,11 +15,11 @@
 */
 --}}
 
-<div class="relative hoa-notification-bell-container" x-data="{ open: false }" @click.outside="open = false">
+<div wire:poll.15s class="relative hoa-notification-bell-container" x-data="{ open: false }" @click.outside="open = false">
     <!-- Bell Button with Dynamic Badge -->
-    <button 
-        type="button" 
-        @click="open = !open" 
+    <button
+        type="button"
+        @click="open = !open"
         class="relative flex items-center justify-center w-9 h-9 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-white/10 hover:border-violet-500/40 text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95"
         title="Notifications Center"
     >
@@ -33,8 +33,8 @@
     </button>
 
     <!-- Glassmorphic Dropdown Panel -->
-    <div 
-        x-show="open" 
+    <div
+        x-show="open"
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 translate-y-2 scale-95"
         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
@@ -58,17 +58,17 @@
 
             @if ($notifications->isNotEmpty())
                 <div class="flex items-center gap-2">
-                    <button 
-                        type="button" 
-                        wire:click="markAllAsRead" 
+                    <button
+                        type="button"
+                        wire:click="markAllAsRead"
                         class="text-[10px] text-indigo-400 hover:text-indigo-300 font-semibold transition-colors"
                     >
                         Mark all read
                     </button>
                     <span class="text-slate-600">•</span>
-                    <button 
-                        type="button" 
-                        wire:click="clearAll" 
+                    <button
+                        type="button"
+                        wire:click="clearAll"
                         class="text-[10px] text-slate-400 hover:text-rose-400 transition-colors"
                     >
                         Clear
@@ -91,7 +91,7 @@
                         default => '📢'
                     };
                 @endphp
-                <div 
+                <div
                     wire:click="markAsRead('{{ $notification->id }}')"
                     class="p-3.5 hover:bg-white/5 transition-all cursor-pointer flex gap-3 items-start {{ $isUnread ? 'bg-indigo-500/5' : '' }}"
                 >
@@ -115,8 +115,8 @@
 
                         @if (!empty($data['action_url']))
                             <div class="mt-2">
-                                <a 
-                                    href="{{ $data['action_url'] }}" 
+                                <a
+                                    href="{{ $data['action_url'] }}"
                                     class="inline-flex items-center gap-1 text-[10px] text-indigo-400 hover:text-indigo-300 font-bold"
                                     @click.stop
                                 >

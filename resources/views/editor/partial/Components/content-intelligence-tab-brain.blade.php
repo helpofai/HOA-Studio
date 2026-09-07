@@ -30,9 +30,9 @@
                 </span>
             </div>
 
-            <button 
-                type="button" 
-                wire:click="loadBrainState" 
+            <button
+                type="button"
+                wire:click="loadBrainState"
                 class="px-2 py-0.5 rounded-lg bg-violet-600/30 hover:bg-violet-600 text-violet-300 hover:text-white font-mono text-[10px] font-bold border border-violet-500/30 transition-all cursor-pointer flex items-center gap-1"
                 wire:loading.attr="disabled"
                 title="Synchronize real-time neuro-brain state"
@@ -57,45 +57,45 @@
 
         {{-- Sub-Navigation Pills --}}
         <div class="grid grid-cols-5 gap-1 p-1 rounded-xl bg-slate-950/80 border border-white/10 text-[10px] select-none">
-            <button 
-                type="button" 
-                x-on:click="brainSubTab = 'lineage'" 
+            <button
+                type="button"
+                x-on:click="brainSubTab = 'lineage'"
                 :class="brainSubTab === 'lineage' ? 'bg-violet-600 text-white font-bold shadow' : 'text-slate-400 hover:text-white'"
                 class="py-1 px-1 rounded-lg text-center transition-all cursor-pointer truncate"
                 title="7-Tier Sentence Lineage & Stale Alert"
             >
                 Lineage
             </button>
-            <button 
-                type="button" 
-                x-on:click="brainSubTab = 'health'" 
+            <button
+                type="button"
+                x-on:click="brainSubTab = 'health'"
                 :class="brainSubTab === 'health' ? 'bg-violet-600 text-white font-bold shadow' : 'text-slate-400 hover:text-white'"
                 class="py-1 px-1 rounded-lg text-center transition-all cursor-pointer truncate"
                 title="15-Dimension Content Health Assessment"
             >
                 Health
             </button>
-            <button 
-                type="button" 
-                x-on:click="brainSubTab = 'style'" 
+            <button
+                type="button"
+                x-on:click="brainSubTab = 'style'"
                 :class="brainSubTab === 'style' ? 'bg-violet-600 text-white font-bold shadow' : 'text-slate-400 hover:text-white'"
                 class="py-1 px-1 rounded-lg text-center transition-all cursor-pointer truncate"
                 title="Continuous Author Style Intelligence"
             >
                 Style
             </button>
-            <button 
-                type="button" 
-                x-on:click="brainSubTab = 'cannibalization'" 
+            <button
+                type="button"
+                x-on:click="brainSubTab = 'cannibalization'"
                 :class="brainSubTab === 'cannibalization' ? 'bg-violet-600 text-white font-bold shadow' : 'text-slate-400 hover:text-white'"
                 class="py-1 px-1 rounded-lg text-center transition-all cursor-pointer truncate"
                 title="Site Cannibalization Shield & Linking"
             >
                 Cannibal
             </button>
-            <button 
-                type="button" 
-                x-on:click="brainSubTab = 'genome'" 
+            <button
+                type="button"
+                x-on:click="brainSubTab = 'genome'"
                 :class="brainSubTab === 'genome' ? 'bg-violet-600 text-white font-bold shadow' : 'text-slate-400 hover:text-white'"
                 class="py-1 px-1 rounded-lg text-center transition-all cursor-pointer truncate"
                 title="Content Genome Snapshot Synthesizer"
@@ -135,8 +135,8 @@
                             @if (! empty($staleNode['invalidation_reason']))
                                 <div class="text-[10px] text-amber-300">Reason: {{ $staleNode['invalidation_reason'] }}</div>
                             @endif
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 wire:click="repairStaleSentence({{ $staleNode['id'] }})"
                                 class="w-full py-1 px-2 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-[10.5px] shadow transition-all cursor-pointer flex items-center justify-center gap-1"
                             >
@@ -153,8 +153,8 @@
                     <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Select Sentence to Trace:</div>
                     <div class="max-h-36 overflow-y-auto space-y-1 pr-1 hoa-custom-scrollbar">
                         @foreach ($brainLineageNodes as $node)
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 wire:click="selectLineageNode({{ $node['id'] }})"
                                 class="w-full text-left p-2 rounded-lg border text-[11px] font-sans transition-all cursor-pointer flex items-start gap-2 {{ $selectedLineageNodeId === $node['id'] ? 'bg-violet-950/60 border-violet-500/60 text-white shadow' : 'bg-slate-950/50 border-white/5 text-slate-300 hover:bg-white/5' }}"
                             >
@@ -297,8 +297,8 @@
                             <p class="text-[10.5px] font-sans text-slate-300 leading-relaxed">{{ $rule['description'] }}</p>
                             <div class="flex items-center justify-between text-[9.5px] text-slate-500 font-mono pt-1 border-t border-white/5">
                                 <span>Evidence Diffs: {{ $rule['diff_count'] }}</span>
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     wire:click="toggleBrainStyleRule({{ $rule['id'] }}, {{ $rule['is_active'] ? 'false' : 'true' }})"
                                     class="text-[10px] font-bold {{ $rule['is_active'] ? 'text-emerald-400 hover:text-emerald-300' : 'text-slate-500 hover:text-slate-300' }} cursor-pointer"
                                 >
@@ -392,9 +392,9 @@
                 </div>
             @endif
 
-            <button 
-                type="button" 
-                wire:click="synthesizeGenomeForCurrentDocument" 
+            <button
+                type="button"
+                wire:click="synthesizeGenomeForCurrentDocument"
                 class="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-mono text-xs font-bold shadow-md shadow-violet-600/30 transition-all cursor-pointer flex items-center justify-center gap-2"
                 wire:loading.attr="disabled"
             >

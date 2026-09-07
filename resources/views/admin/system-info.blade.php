@@ -40,7 +40,7 @@
 
     <!-- Navigation Tabs -->
     <div class="flex flex-wrap items-center gap-2 border-b border-white/10 pb-3">
-        <button 
+        <button
             type="button"
             @click="activeTab = 'server'"
             class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
@@ -50,7 +50,7 @@
             <span>Server & Requirements</span>
         </button>
 
-        <button 
+        <button
             type="button"
             @click="activeTab = 'readme'"
             class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
@@ -60,7 +60,7 @@
             <span>README.md</span>
         </button>
 
-        <button 
+        <button
             type="button"
             @click="activeTab = 'changelog'"
             class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
@@ -70,7 +70,7 @@
             <span>CHANGELOG.md</span>
         </button>
 
-        <button 
+        <button
             type="button"
             @click="activeTab = 'documents'"
             class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
@@ -80,7 +80,7 @@
             <span>DOCUMENTS.md</span>
         </button>
 
-        <button 
+        <button
             type="button"
             @click="activeTab = 'others'"
             class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
@@ -265,7 +265,7 @@
     <!-- TAB 5: OTHER DOCS & GUIDES -->
     <div x-show="activeTab === 'others'" class="space-y-6" style="display: none;">
         <div class="flex items-center gap-2">
-            <button 
+            <button
                 type="button"
                 @click="otherDocKey = 'production'"
                 class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer"
@@ -273,7 +273,7 @@
             >
                 PRODUCTION-GUIDE.md
             </button>
-            <button 
+            <button
                 type="button"
                 @click="otherDocKey = 'multieditor'"
                 class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer"
@@ -281,7 +281,7 @@
             >
                 ADVANCED MULTI-EDITOR.md
             </button>
-            <button 
+            <button
                 type="button"
                 @click="otherDocKey = 'license'"
                 class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer"

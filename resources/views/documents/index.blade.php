@@ -108,7 +108,7 @@
                         <a href="{{ route('documents.editor', $doc->id) }}" wire:navigate class="block group">
                             <h3 class="text-base font-bold text-white mb-2 line-clamp-1 group-hover:text-indigo-300 transition-colors">{{ $doc->title }}</h3>
                         </a>
-                        
+
                         @if($doc->project)
                             <div class="inline-flex items-center gap-1 text-[11px] text-indigo-400 mb-3">
                                 <span>📁</span>
@@ -139,9 +139,9 @@
     </div>
 
     <!-- Create Document Modal -->
-    <div 
-        x-show="showCreateModal" 
-        class="fixed inset-0 z-50 flex items-center justify-center p-4" 
+    <div
+        x-show="showCreateModal"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4"
         style="display: none;"
     >
         <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" x-on:click="showCreateModal = false"></div>
@@ -177,9 +177,9 @@
     </div>
 
     <!-- Import Document File Modal -->
-    <div 
-        x-show="showImportModal" 
-        class="fixed inset-0 z-50 flex items-center justify-center p-4" 
+    <div
+        x-show="showImportModal"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4"
         style="display: none;"
     >
         <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" x-on:click="showImportModal = false"></div>
@@ -199,10 +199,10 @@
             <form wire:submit="importDocument" class="space-y-4">
                 <div>
                     <label class="text-xs font-medium text-slate-300 block mb-1.5">Select File (Max 10MB)</label>
-                    <input 
-                        type="file" 
-                        wire:model="importFile" 
-                        accept=".md,.markdown,.html,.htm,.txt" 
+                    <input
+                        type="file"
+                        wire:model="importFile"
+                        accept=".md,.markdown,.html,.htm,.txt"
                         class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer bg-slate-900 border border-white/10 rounded-xl p-2"
                         required
                     />

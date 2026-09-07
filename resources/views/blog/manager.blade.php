@@ -29,8 +29,8 @@
         </div>
 
         <div class="flex items-center gap-2.5">
-            <a 
-                href="{{ route('blog.index') }}" 
+            <a
+                href="{{ route('blog.index') }}"
                 target="_blank"
                 class="px-3.5 py-2 rounded-xl bg-slate-900 border border-white/10 hover:border-violet-500/40 text-slate-300 hover:text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
             >
@@ -38,8 +38,8 @@
                 <span>Visit Public Blog ↗</span>
             </a>
 
-            <button 
-                type="button" 
+            <button
+                type="button"
                 wire:click="createNewBlogArticle"
                 class="px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-violet-500/25 transition-all flex items-center gap-2 cursor-pointer"
             >
@@ -131,22 +131,22 @@
 
         <!-- Status Filter Buttons -->
         <div class="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto">
-            <button 
-                type="button" 
+            <button
+                type="button"
                 wire:click="$set('statusFilter', 'all')"
                 class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer {{ $statusFilter === 'all' ? 'bg-violet-600 text-white shadow-md' : 'bg-slate-900 border border-white/10 text-slate-300 hover:text-white' }}"
             >
                 All ({{ $stats['total'] }})
             </button>
-            <button 
-                type="button" 
+            <button
+                type="button"
                 wire:click="$set('statusFilter', 'published')"
                 class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer {{ $statusFilter === 'published' ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-900 border border-white/10 text-slate-300 hover:text-white' }}"
             >
                 Published ({{ $stats['published'] }})
             </button>
-            <button 
-                type="button" 
+            <button
+                type="button"
                 wire:click="$set('statusFilter', 'draft')"
                 class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer {{ $statusFilter === 'draft' ? 'bg-amber-600 text-white shadow-md' : 'bg-slate-900 border border-white/10 text-slate-300 hover:text-white' }}"
             >
@@ -218,8 +218,8 @@
 
                             <!-- Status Button -->
                             <td class="p-4">
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     wire:click="togglePostStatus({{ $post->id }})"
                                     class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase transition-all cursor-pointer {{ $post->status === 'published' ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20' : 'bg-amber-500/10 text-amber-300 border border-amber-500/30 hover:bg-amber-500/20' }}"
                                     title="Click to toggle between Published and Draft"
@@ -245,8 +245,8 @@
                                 <div class="flex items-center justify-end gap-2">
                                     <!-- Edit in Studio -->
                                     @if($post->document_id)
-                                        <a 
-                                            href="{{ route('documents.editor', $post->document_id) }}" 
+                                        <a
+                                            href="{{ route('documents.editor', $post->document_id) }}"
                                             class="px-3 py-1.5 rounded-xl bg-violet-600/20 border border-violet-500/30 hover:bg-violet-600 hover:text-white text-violet-300 text-xs font-semibold transition-all cursor-pointer"
                                             title="Edit article in AI Document Studio"
                                         >
@@ -255,9 +255,9 @@
                                     @endif
 
                                     <!-- View Live Post -->
-                                    <a 
-                                        href="{{ route('blog.show', $post->slug) }}" 
-                                        target="_blank" 
+                                    <a
+                                        href="{{ route('blog.show', $post->slug) }}"
+                                        target="_blank"
                                         class="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-white/10 hover:border-white/25 text-slate-300 hover:text-white text-xs font-semibold transition-all cursor-pointer"
                                         title="View live post on public blog"
                                     >
@@ -265,10 +265,10 @@
                                     </a>
 
                                     <!-- Delete Post -->
-                                    <button 
-                                        type="button" 
-                                        wire:click="deletePost({{ $post->id }})" 
-                                        wire:confirm="Are you sure you want to delete this blog post?" 
+                                    <button
+                                        type="button"
+                                        wire:click="deletePost({{ $post->id }})"
+                                        wire:confirm="Are you sure you want to delete this blog post?"
                                         class="p-1.5 rounded-xl bg-rose-950/60 border border-rose-500/30 text-rose-300 hover:bg-rose-900 hover:text-white text-xs transition-all cursor-pointer"
                                         title="Delete blog post"
                                     >
@@ -285,9 +285,9 @@
                                 <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
                                     You haven't published any articles to the blog yet. Open any document in the AI Document Studio and click "Post to Blog".
                                 </p>
-                                <button 
-                                    type="button" 
-                                    wire:click="createNewBlogArticle" 
+                                <button
+                                    type="button"
+                                    wire:click="createNewBlogArticle"
                                     class="mt-4 px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-violet-500/25 transition-all cursor-pointer"
                                 >
                                     ✍️ Write Your First Article

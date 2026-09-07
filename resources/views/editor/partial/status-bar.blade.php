@@ -47,18 +47,18 @@
         <span class="text-slate-700 hidden xs:inline">&bull;</span>
 
         <!-- SEO Score Badge (Clickable to open SEO Drawer, Livewire Reactive) -->
-        <button 
-            type="button" 
+        <button
+            type="button"
             x-on:click="if (!showRightPanel) { toggleRightPanel(); } rightTab = 'seo'"
             class="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-900/80 hover:bg-white/10 border border-white/5 transition-colors cursor-pointer group text-[11px] sm:text-xs"
             title="Click to open Real-Time SEO Analyzer"
         >
-            <span 
+            <span
                 class="w-2 h-2 rounded-full"
                 :class="($wire.seoData?.score ?? 0) >= 80 ? 'bg-emerald-400' : (($wire.seoData?.score ?? 0) >= 60 ? 'bg-amber-400' : 'bg-red-400')"
             ></span>
             <span class="text-slate-400 group-hover:text-slate-200 hidden xs:inline">SEO:</span>
-            <strong 
+            <strong
                 class="font-bold"
                 :class="($wire.seoData?.score ?? 0) >= 80 ? 'text-emerald-400' : (($wire.seoData?.score ?? 0) >= 60 ? 'text-amber-400' : 'text-red-400')"
                 x-text="($wire.seoData?.score ?? 0) + '/100'"
@@ -70,7 +70,7 @@
         <!-- Readability Grade (Livewire Reactive) -->
         <div class="hidden xl:flex items-center gap-1">
             <span>Readability:</span>
-            <strong 
+            <strong
                 class="text-cyan-400 font-bold"
                 x-text="($wire.seoData?.readability_score ?? 0) >= 60 ? 'Good' : 'Standard'"
             >Good</strong>
@@ -86,9 +86,9 @@
         </div>
 
         <!-- Active Model Indicator (Clickable to open AI Center) -->
-        <button 
-            type="button" 
-            x-on:click="if (!showLeftPanel) { toggleLeftPanel(); }" 
+        <button
+            type="button"
+            x-on:click="if (!showLeftPanel) { toggleLeftPanel(); }"
             class="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-900/80 hover:bg-white/10 border border-white/5 text-slate-300 hover:text-white transition-colors cursor-pointer text-[11px] sm:text-xs"
             title="Click to configure AI Router"
         >
@@ -102,11 +102,11 @@
         <!-- Cloud Auto-Sync & Save Status Pill (Livewire Reactive) -->
         <div class="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1 rounded-xl bg-slate-900/70 border border-white/5 text-[10px] sm:text-[11px]">
             <span class="relative flex h-2 w-2">
-                <span 
+                <span
                     x-show="$wire.isSaving"
                     class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"
                 ></span>
-                <span 
+                <span
                     class="relative inline-flex rounded-full h-2 w-2"
                     :class="$wire.isSaving ? 'bg-amber-500' : 'bg-emerald-400'"
                 ></span>
@@ -115,8 +115,8 @@
         </div>
 
         <!-- Quick Manual Snapshot Save Button -->
-        <button 
-            type="button" 
+        <button
+            type="button"
             wire:click="saveExplicitSnapshot"
             wire:loading.attr="disabled"
             class="hidden lg:flex px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] shadow-md shadow-emerald-600/30 items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
@@ -128,9 +128,9 @@
         </button>
 
         <!-- Focus Mode Toggle -->
-        <button 
-            type="button" 
-            x-on:click="toggleFocusMode()" 
+        <button
+            type="button"
+            x-on:click="toggleFocusMode()"
             class="p-1 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer text-xs"
             :title="showLeftPanel || showRightPanel ? 'Enable Zen Focus Mode (Hide Panels)' : 'Exit Focus Mode'"
         >

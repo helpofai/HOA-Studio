@@ -125,40 +125,40 @@
 
     <!-- Navigation Tabs -->
     <div class="flex items-center gap-2 border-b border-white/10 pb-3 overflow-x-auto scrollbar-none">
-        <button 
-            type="button" 
+        <button
+            type="button"
             wire:click="$set('activeTab', 'mail_server')"
             class="px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap {{ $activeTab === 'mail_server' ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/25' : 'text-slate-400 hover:text-white hover:bg-white/5' }}"
         >
             ⚙️ Mail Server Gateway
         </button>
 
-        <button 
-            type="button" 
+        <button
+            type="button"
             wire:click="$set('activeTab', 'templates')"
             class="px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap {{ $activeTab === 'templates' ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/25' : 'text-slate-400 hover:text-white hover:bg-white/5' }}"
         >
             📑 System Email Templates
         </button>
 
-        <button 
-            type="button" 
+        <button
+            type="button"
             wire:click="$set('activeTab', 'notification_channels')"
             class="px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap {{ $activeTab === 'notification_channels' ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/25' : 'text-slate-400 hover:text-white hover:bg-white/5' }}"
         >
             🔔 Security Triggers & Channels
         </button>
 
-        <button 
-            type="button" 
+        <button
+            type="button"
             wire:click="$set('activeTab', 'broadcast')"
             class="px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap {{ $activeTab === 'broadcast' ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/25' : 'text-slate-400 hover:text-white hover:bg-white/5' }}"
         >
             📢 Broadcast Announcements
         </button>
 
-        <button 
-            type="button" 
+        <button
+            type="button"
             wire:click="$set('activeTab', 'test_delivery')"
             class="px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap {{ $activeTab === 'test_delivery' ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/25' : 'text-slate-400 hover:text-white hover:bg-white/5' }}"
         >
@@ -199,7 +199,7 @@
                 <div class="pt-4 border-t border-white/10 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-slate-300 mb-1">Sender Email Address (From)</label>
-                        <x-glass.input 
+                        <x-glass.input
                             wire:model="mail_from_address"
                             type="email"
                             placeholder="support@helpofai.com"
@@ -210,7 +210,7 @@
 
                     <div>
                         <label class="block text-xs font-semibold text-slate-300 mb-1">Sender Name</label>
-                        <x-glass.input 
+                        <x-glass.input
                             wire:model="mail_from_name"
                             type="text"
                             placeholder="HelpOfAi Studio"
@@ -228,7 +228,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                             <div class="md:col-span-2">
                                 <label class="block text-slate-300 font-semibold mb-1">SMTP Host</label>
-                                <x-glass.input 
+                                <x-glass.input
                                     wire:model="mail_host"
                                     type="text"
                                     placeholder="smtp.mailtrap.io or smtp.gmail.com"
@@ -238,7 +238,7 @@
 
                             <div>
                                 <label class="block text-slate-300 font-semibold mb-1">SMTP Port</label>
-                                <x-glass.input 
+                                <x-glass.input
                                     wire:model="mail_port"
                                     type="number"
                                     placeholder="587"
@@ -248,7 +248,7 @@
 
                             <div>
                                 <label class="block text-slate-300 font-semibold mb-1">Encryption Protocol</label>
-                                <select 
+                                <select
                                     wire:model="mail_encryption"
                                     class="w-full bg-slate-950 border border-white/15 text-white text-xs rounded-xl px-3 py-2.5 focus:ring-violet-500 focus:border-violet-500"
                                 >
@@ -260,7 +260,7 @@
 
                             <div>
                                 <label class="block text-slate-300 font-semibold mb-1">SMTP Username</label>
-                                <x-glass.input 
+                                <x-glass.input
                                     wire:model="mail_username"
                                     type="text"
                                     placeholder="username or api key"
@@ -269,7 +269,7 @@
 
                             <div>
                                 <label class="block text-slate-300 font-semibold mb-1">SMTP Password</label>
-                                <x-glass.input 
+                                <x-glass.input
                                     wire:model="mail_password"
                                     type="password"
                                     placeholder="••••••••••••"
@@ -282,7 +282,7 @@
                         <h4 class="text-xs font-bold text-indigo-300 uppercase tracking-wider">Resend API Configuration</h4>
                         <div>
                             <label class="block text-xs text-slate-300 font-semibold mb-1">Resend API Key</label>
-                            <x-glass.input 
+                            <x-glass.input
                                 wire:model="mail_resend_api_key"
                                 type="password"
                                 placeholder="re_123456789..."
@@ -364,9 +364,9 @@
 
                     <div class="space-y-1.5 pt-2">
                         @foreach ($templatesList as $tKey => $tData)
-                            <button 
+                            <button
                                 wire:key="admin-mail-tpl-{{ $tKey }}"
-                                type="button" 
+                                type="button"
                                 wire:click="selectTemplate('{{ $tKey }}')"
                                 class="w-full text-left p-3 rounded-2xl border transition-all flex items-start gap-3 cursor-pointer {{ $selectedTemplateKey === $tKey ? 'bg-violet-600/20 border-violet-500 text-white shadow-lg shadow-violet-500/10 ring-1 ring-violet-500' : 'bg-slate-900/60 border-white/10 text-slate-300 hover:bg-white/5 hover:border-white/20' }}"
                             >
@@ -399,8 +399,8 @@
                                 </div>
 
                                 <div class="flex items-center gap-2">
-                                    <button 
-                                        type="button" 
+                                    <button
+                                        type="button"
                                         wire:click="previewTemplate"
                                         class="px-3 py-1.5 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/20 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
                                     >
@@ -408,7 +408,7 @@
                                         <span>Live HTML Preview</span>
                                     </button>
 
-                                    <button 
+                                    <button
                                         type="button"
                                         x-data="{ copiedTpl: false }"
                                         x-on:click="navigator.clipboard.writeText($wire.template_body); copiedTpl = true; setTimeout(() => copiedTpl = false, 2000)"
@@ -419,8 +419,8 @@
                                         <span x-show="copiedTpl" class="text-emerald-400 font-bold">✓ Copied!</span>
                                     </button>
 
-                                    <button 
-                                        type="button" 
+                                    <button
+                                        type="button"
                                         wire:click="resetTemplateToDefault"
                                         class="px-3 py-1.5 rounded-xl bg-slate-900 border border-white/10 text-slate-400 hover:text-rose-300 hover:border-rose-500/30 text-xs font-semibold transition-all cursor-pointer"
                                         title="Restore default copy"
@@ -433,7 +433,7 @@
                             <!-- Subject Line -->
                             <div>
                                 <label class="block text-xs font-semibold text-slate-300 mb-1">Email Subject Line</label>
-                                <x-glass.input 
+                                <x-glass.input
                                     wire:model="template_subject"
                                     type="text"
                                     placeholder="Subject line..."
@@ -445,7 +445,7 @@
                             <!-- Heading Line -->
                             <div>
                                 <label class="block text-xs font-semibold text-slate-300 mb-1">Email Main Heading (H1 Inside Email)</label>
-                                <x-glass.input 
+                                <x-glass.input
                                     wire:model="template_heading"
                                     type="text"
                                     placeholder="Heading..."
@@ -457,7 +457,7 @@
                             <!-- Message Body -->
                             <div>
                                 <label class="block text-xs font-semibold text-slate-300 mb-1">Email Body Content (Markdown & Linebreaks Supported)</label>
-                                <textarea 
+                                <textarea
                                     wire:model="template_body"
                                     rows="7"
                                     class="w-full bg-slate-950/80 border border-white/15 rounded-2xl p-4 text-xs font-mono text-white placeholder-slate-500 focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all outline-none leading-relaxed"
@@ -469,7 +469,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-300 mb-1">Call-To-Action Button Text</label>
-                                    <x-glass.input 
+                                    <x-glass.input
                                         wire:model="template_action_text"
                                         type="text"
                                         placeholder="e.g. Open Workspace"
@@ -478,7 +478,7 @@
 
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-300 mb-1">Action Button Target URL</label>
-                                    <x-glass.input 
+                                    <x-glass.input
                                         wire:model="template_action_url"
                                         type="text"
                                         placeholder="e.g. {app_url}/dashboard"
@@ -497,7 +497,7 @@
                                 </div>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
                                     @foreach ($currentTpl['placeholders'] as $tag => $tagDesc)
-                                        <div 
+                                        <div
                                             wire:key="admin-mail-ph-{{ $tag }}"
                                             x-data="{ copied: false }"
                                             x-on:click="navigator.clipboard.writeText('{{ $tag }}'); copied = true; setTimeout(() => copied = false, 2000)"
@@ -508,15 +508,15 @@
                                                 <code class="text-violet-300 font-bold font-mono group-hover:text-cyan-300 transition-colors">{{ $tag }}</code>
                                                 <span class="text-slate-400 truncate text-[10px]">&rarr; {{ $tagDesc }}</span>
                                             </div>
-                                            <span 
-                                                x-show="copied" 
-                                                x-transition 
+                                            <span
+                                                x-show="copied"
+                                                x-transition
                                                 class="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded"
                                             >
                                                 Copied!
                                             </span>
-                                            <span 
-                                                x-show="!copied" 
+                                            <span
+                                                x-show="!copied"
                                                 class="text-[10px] text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity"
                                             >
                                                 📋
@@ -605,7 +605,7 @@
 
                 <div class="p-3.5 rounded-2xl bg-slate-900/70 border border-white/10 space-y-2">
                     <label class="block text-xs font-semibold text-white">Administrator Alert Recipient Email</label>
-                    <x-glass.input 
+                    <x-glass.input
                         wire:model="admin_alert_email"
                         type="email"
                         placeholder="admin@helpofai.com"
@@ -690,7 +690,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-slate-300 font-semibold mb-1">Target Audience</label>
-                            <select 
+                            <select
                                 wire:model="broadcast_target"
                                 class="w-full bg-slate-950 border border-white/15 text-white text-xs rounded-xl px-3 py-2.5 focus:ring-violet-500 focus:border-violet-500"
                             >
@@ -702,7 +702,7 @@
 
                         <div>
                             <label class="block text-slate-300 font-semibold mb-1">Notification Badge Type</label>
-                            <select 
+                            <select
                                 wire:model="broadcast_type"
                                 class="w-full bg-slate-950 border border-white/15 text-white text-xs rounded-xl px-3 py-2.5 focus:ring-violet-500 focus:border-violet-500"
                             >
@@ -716,7 +716,7 @@
 
                     <div>
                         <label class="block text-slate-300 font-semibold mb-1">Announcement Title</label>
-                        <x-glass.input 
+                        <x-glass.input
                             wire:model="broadcast_title"
                             type="text"
                             placeholder="e.g. Scheduled AI Engine Maintenance on Saturday"
@@ -727,7 +727,7 @@
 
                     <div>
                         <label class="block text-slate-300 font-semibold mb-1">Announcement Message Body</label>
-                        <textarea 
+                        <textarea
                             wire:model="broadcast_message"
                             rows="4"
                             placeholder="Type your message here..."
@@ -772,7 +772,7 @@
 
                 <div class="p-4 rounded-2xl bg-slate-900/60 border border-white/10 space-y-3">
                     <label class="block text-xs font-semibold text-white">Target Recipient Email Address</label>
-                    <x-glass.input 
+                    <x-glass.input
                         wire:model="test_recipient_email"
                         type="email"
                         placeholder="your-email@example.com"

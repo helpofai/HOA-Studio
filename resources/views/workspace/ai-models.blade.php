@@ -205,10 +205,10 @@
 
             <!-- Search & Filters -->
             <div class="flex flex-wrap items-center gap-2">
-                <input 
-                    type="text" 
-                    wire:model.live.debounce.300ms="search" 
-                    placeholder="Search models..." 
+                <input
+                    type="text"
+                    wire:model.live.debounce.300ms="search"
+                    placeholder="Search models..."
                     class="bg-slate-900/90 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 min-w-[200px]"
                 />
 
@@ -293,9 +293,9 @@
                                     </span>
                                 @endif
 
-                                <button 
-                                    type="button" 
-                                    wire:click="pingModel({{ $model->id }})" 
+                                <button
+                                    type="button"
+                                    wire:click="pingModel({{ $model->id }})"
                                     wire:loading.attr="disabled"
                                     class="px-2.5 py-1 rounded-lg bg-slate-900 border border-white/10 hover:border-indigo-500/50 text-[11px] text-slate-300 hover:text-white transition-all cursor-pointer inline-flex items-center gap-1.5"
                                 >
@@ -363,10 +363,10 @@
 
                     <div>
                         <label class="block text-[11px] font-semibold text-slate-300 mb-1">API Key / Token</label>
-                        <input 
-                            type="password" 
-                            wire:model="byok_api_key" 
-                            placeholder="sk-..." 
+                        <input
+                            type="password"
+                            wire:model="byok_api_key"
+                            placeholder="sk-..."
                             class="w-full bg-slate-900 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
                             required
                         />
@@ -376,15 +376,15 @@
                     <div class="flex items-end gap-2">
                         <div class="flex-1">
                             <label class="block text-[11px] font-semibold text-slate-300 mb-1">Custom Base URL (Optional)</label>
-                            <input 
-                                type="text" 
-                                wire:model="byok_custom_url" 
-                                placeholder="http://localhost:11434/v1" 
+                            <input
+                                type="text"
+                                wire:model="byok_custom_url"
+                                placeholder="http://localhost:11434/v1"
                                 class="w-full bg-slate-900 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
                             />
                         </div>
-                        <button 
-                            type="submit" 
+                        <button
+                            type="submit"
                             wire:loading.attr="disabled"
                             class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/30 transition-all cursor-pointer shrink-0"
                         >
@@ -430,9 +430,9 @@
                                         <span class="text-slate-300">
                                             {{ $isVisible ? $rawKey : '••••••••••••••••' . substr($rawKey, -4) }}
                                         </span>
-                                        <button 
-                                            type="button" 
-                                            wire:click="toggleKeyVisibility({{ $key->id }})" 
+                                        <button
+                                            type="button"
+                                            wire:click="toggleKeyVisibility({{ $key->id }})"
                                             class="text-[10px] text-indigo-400 hover:text-indigo-300 cursor-pointer"
                                         >
                                             {{ $isVisible ? 'Hide' : 'Reveal' }}
@@ -445,9 +445,9 @@
                                     </span>
                                 </td>
                                 <td class="py-3 px-3 text-right">
-                                    <button 
-                                        type="button" 
-                                        wire:click="deleteApiKey({{ $key->id }})" 
+                                    <button
+                                        type="button"
+                                        wire:click="deleteApiKey({{ $key->id }})"
                                         wire:confirm="Remove this custom API key?"
                                         class="text-red-400 hover:text-red-300 text-xs cursor-pointer font-semibold"
                                     >

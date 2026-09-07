@@ -106,10 +106,10 @@
     </div>
 
     <!-- User Live AI Inference Telemetry Graph -->
-    <x-omniroute.telemetry-graph 
-        :graphData="$graphData" 
-        :timeRange="$graphTimeRange" 
-        :statusFilter="$graphStatusFilter" 
+    <x-omniroute.telemetry-graph
+        :graphData="$graphData"
+        :timeRange="$graphTimeRange"
+        :statusFilter="$graphStatusFilter"
     />
 
     <!-- Multi-Agent Swarm Activity Monitor -->

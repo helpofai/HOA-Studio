@@ -14,9 +14,9 @@
         const ed = this.getEditor();
         const newText = this.getCurrentTransformedText();
         if (!ed || !newText) return;
-        
+
         this.insertContentIntoCanvas(newText, true, 'ai-accept-feedback');
-        
+
         const finalHtmlVal = ed.getHTML ? ed.getHTML() : '';
         Livewire.dispatch('autosave', { html: finalHtmlVal, json: null });
         this.saveLocalDraft(finalHtmlVal);
@@ -29,9 +29,9 @@
     rejectAiDiff() {
         const ed = this.getEditor();
         if (!ed) return;
-        
+
         this.insertContentIntoCanvas(this.getCurrentTransformedText(), true, 'ai-decline-feedback');
-        
+
         this.addLog('WARN', '✕ Discarded AI proposed changes.');
         this.dismissDiffReview();
     },
@@ -39,7 +39,7 @@
     clearAiFeedback() {
         const ed = this.getEditor();
         if (!ed) return;
-        
+
         const elements = ed.view.dom.querySelectorAll('.ai-marked-yellow, .ai-proposal-green-box, .ai-accept-feedback, .ai-decline-feedback, .hoa-feedback-node');
         elements.forEach(el => {
             if (el.classList.contains('ai-proposal-green-box') || el.classList.contains('hoa-feedback-node')) {
@@ -50,7 +50,7 @@
                 parent.removeChild(el);
             }
         });
-        
+
         this.addLog('AI', '✦ All proposal highlights cleared.');
     },
 

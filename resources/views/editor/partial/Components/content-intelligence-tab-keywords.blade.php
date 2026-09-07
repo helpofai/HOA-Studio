@@ -14,9 +14,9 @@
 --}}
 
 <!-- ─── TAB 4: KEYWORDS & REAL-TIME DENSITY MATRIX ────────────────── -->
-<div 
-    x-show="rightTab === 'keywords'" 
-    class="space-y-3.5" 
+<div
+    x-show="rightTab === 'keywords'"
+    class="space-y-3.5"
     style="display: none;"
     x-data="{
         keywords: @js($secondaryKeywords ?? []),
@@ -52,9 +52,9 @@
                 <span class="text-indigo-400">🏷️</span>
                 <span>Keywords & Entity Matrix</span>
             </label>
-            <button 
-                type="button" 
-                wire:click="suggestLsiKeywords" 
+            <button
+                type="button"
+                wire:click="suggestLsiKeywords"
                 wire:loading.attr="disabled"
                 wire:target="suggestLsiKeywords"
                 class="px-3 py-1 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-mono text-[10.5px] font-bold shadow-md shadow-indigo-600/25 transition-all cursor-pointer disabled:opacity-50"
@@ -66,15 +66,15 @@
 
         <!-- Add Keyword Input (0ms Instant) -->
         <div class="flex items-center gap-1.5">
-            <input 
-                type="text" 
+            <input
+                type="text"
                 x-model="newKeywordInput"
                 x-on:keydown.enter.prevent="addKeyword()"
-                placeholder="Add secondary / LSI keyword..." 
+                placeholder="Add secondary / LSI keyword..."
                 class="flex-1 bg-slate-950 border border-white/15 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono shadow-inner"
             />
-            <button 
-                type="button" 
+            <button
+                type="button"
                 x-on:click="addKeyword()"
                 class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs cursor-pointer shadow-md transition-all flex items-center justify-center min-w-[28px]"
             >
@@ -86,7 +86,7 @@
             $plainContent = strip_tags($contentHtml ?? '');
             $lowerPlain = mb_strtolower($plainContent);
             $totalDocWords = max(1, $wordCount ?: str_word_count($plainContent));
-            
+
             $pkCount = 0;
             $pkDensity = 0.0;
             if (!empty($targetKeyword)) {
@@ -143,18 +143,18 @@
                             @endif
                         </div>
                         <div class="flex items-center gap-1.5 shrink-0">
-                            <button 
-                                type="button" 
-                                x-on:click="triggerAiTransform('custom', 'Naturally integrate the secondary keyword \'' + @js($skw) + '\' into the document. Output clean HTML.')" 
+                            <button
+                                type="button"
+                                x-on:click="triggerAiTransform('custom', 'Naturally integrate the secondary keyword \'' + @js($skw) + '\' into the document. Output clean HTML.')"
                                 class="px-2 py-0.5 rounded bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white text-[10px] font-bold transition-colors cursor-pointer"
                                 title="Have AI naturally weave this keyword into the content"
                             >
                                 ⚡ Weave
                             </button>
-                            <button 
-                                type="button" 
-                                x-on:click="removeKeyword({{ $index }})" 
-                                class="text-slate-400 hover:text-red-400 text-xs px-1 cursor-pointer transition-colors" 
+                            <button
+                                type="button"
+                                x-on:click="removeKeyword({{ $index }})"
+                                class="text-slate-400 hover:text-red-400 text-xs px-1 cursor-pointer transition-colors"
                                 title="Remove keyword"
                             >✕</button>
                         </div>
@@ -171,8 +171,8 @@
                 <span class="text-[10px] font-bold uppercase text-slate-400">AI Suggested Entities (Click + to add)</span>
                 <div class="flex flex-wrap gap-1">
                     @foreach($aiSeoResults as $suggested)
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             wire:key="ai-suggested-kw-{{ $loop->index }}"
                             x-on:click="addKeyword(@js($suggested))"
                             class="px-2 py-0.5 rounded-md border text-[10.5px] font-mono flex items-center gap-1 cursor-pointer transition-all duration-150"

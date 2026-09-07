@@ -17,12 +17,12 @@
 */
 --}}
 
-<div 
+<div
     class="editor-canvas"
     @contextmenu.prevent="openContextMenu($event)"
 >
     <!-- Direct In-Canvas AI Generation Active Telemetry Stream Bar (Positioned at Top of Canvas & Formatting Ribbon) -->
-    <div 
+    <div
         x-show="isTransforming"
         x-cloak
         x-transition:enter="transition ease-out duration-150"
@@ -46,9 +46,9 @@
             <span class="text-indigo-300 font-bold" x-text="streamSpeedTokSec + ' tok/s'"></span>
             <span class="text-slate-500">&bull;</span>
             <span class="text-slate-300" x-text="receivedTokens + ' tok'"></span>
-            <button 
-                type="button" 
-                x-on:click="abortAiTransform()" 
+            <button
+                type="button"
+                x-on:click="abortAiTransform()"
                 class="px-2.5 py-1 rounded-xl bg-red-600/30 hover:bg-red-600 text-red-300 hover:text-white font-bold text-xs transition-colors flex items-center gap-1 cursor-pointer"
             >
                 <span>■</span> <span>Stop (Esc)</span>
@@ -62,7 +62,7 @@
     </div>
 
     <!-- In-Canvas Floating AI Prompt Bar (Cmd+K / / / Slash command) -->
-    <div 
+    <div
         x-show="showInlineAiPrompt"
         x-cloak
         x-transition:enter="transition ease-out duration-200"
@@ -91,17 +91,17 @@
                     <span class="text-white italic truncate" x-text="'&ldquo;' + (selectedText.length > 50 ? selectedText.substring(0, 50) + '...' : selectedText) + '&rdquo;'"></span>
                 </div>
                 <div class="flex items-center gap-1 shrink-0 text-[10px]">
-                    <button 
-                        type="button" 
-                        x-on:click="inlineAiPlacement = 'replace'" 
+                    <button
+                        type="button"
+                        x-on:click="inlineAiPlacement = 'replace'"
                         :class="inlineAiPlacement === 'replace' ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-900 text-slate-400 hover:text-white'"
                         class="px-2 py-0.5 rounded-lg border border-white/10 transition-colors cursor-pointer"
                     >
                         ✓ Replace Selection
                     </button>
-                    <button 
-                        type="button" 
-                        x-on:click="inlineAiPlacement = 'insert_below'" 
+                    <button
+                        type="button"
+                        x-on:click="inlineAiPlacement = 'insert_below'"
                         :class="inlineAiPlacement === 'insert_below' ? 'bg-indigo-600 text-white font-bold shadow-sm' : 'bg-slate-900 text-slate-400 hover:text-white'"
                         class="px-2 py-0.5 rounded-lg border border-white/10 transition-colors cursor-pointer"
                     >
@@ -112,17 +112,17 @@
         </template>
 
         <div class="flex items-center gap-2">
-            <input 
+            <input
                 id="inline-ai-input"
-                type="text" 
-                x-model="inlineAiPrompt" 
-                x-on:keydown.enter="submitInlineAiPrompt()" 
+                type="text"
+                x-model="inlineAiPrompt"
+                x-on:keydown.enter="submitInlineAiPrompt()"
                 placeholder="Instruct AI: e.g. Rewrite with technical depth, improve clarity, add comparison..."
                 class="flex-1 bg-slate-950/90 border border-white/15 rounded-2xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-sans shadow-inner"
             />
-            <button 
-                type="button" 
-                x-on:click="submitInlineAiPrompt()" 
+            <button
+                type="button"
+                x-on:click="submitInlineAiPrompt()"
                 :disabled="isTransforming || !inlineAiPrompt.trim()"
                 class="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 flex items-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer"
             >
@@ -143,8 +143,8 @@
     </div>
 
     <!-- Local Draft Auto-Recovery Ambient Banner -->
-    <div 
-        x-show="showRestoredDraftBanner" 
+    <div
+        x-show="showRestoredDraftBanner"
         x-cloak
         x-transition
         class="mb-4 p-3 rounded-2xl bg-emerald-950/60 border border-emerald-500/40 shadow-xl backdrop-blur-xl flex flex-wrap items-center justify-between gap-3 text-xs font-sans animate-in"
@@ -169,8 +169,8 @@
     </div>
 
     <!-- Interactive Visual AI Red/Green Diff Review Inspector with Multi-Candidate Variations -->
-    <div 
-        x-show="showDiffReview" 
+    <div
+        x-show="showDiffReview"
         x-cloak
         x-transition:enter="transition ease-out duration-200"
         x-transition:enter-start="opacity-0 -translate-y-3 scale-98"
@@ -190,25 +190,25 @@
 
             <!-- Review Action Controls (Accept ✓, Keep Both, Reject ✕) -->
             <div class="flex items-center gap-2 font-mono">
-                <button 
-                    type="button" 
-                    x-on:click="acceptAiDiff()" 
+                <button
+                    type="button"
+                    x-on:click="acceptAiDiff()"
                     class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-600/30 transition-all cursor-pointer active:scale-95"
                     title="Accept active variation and replace selection"
                 >
                     <span>✓</span> <span>Accept & Apply</span>
                 </button>
-                <button 
-                    type="button" 
-                    x-on:click="keepBothDiff()" 
+                <button
+                    type="button"
+                    x-on:click="keepBothDiff()"
                     class="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-indigo-600/30 hover:bg-indigo-600 text-indigo-200 hover:text-white font-bold text-xs border border-indigo-500/30 transition-all cursor-pointer"
                     title="Keep both original and active variation"
                 >
                     <span>⚡</span> <span>Keep Both</span>
                 </button>
-                <button 
-                    type="button" 
-                    x-on:click="rejectAiDiff()" 
+                <button
+                    type="button"
+                    x-on:click="rejectAiDiff()"
                     class="px-3 py-1.5 rounded-xl bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white font-bold text-xs border border-rose-500/30 transition-all cursor-pointer active:scale-95"
                     title="Discard AI proposed change"
                 >
@@ -223,9 +223,9 @@
             <div class="flex items-center gap-1.5 overflow-x-auto hoa-custom-scrollbar max-w-full">
                 <span class="text-slate-400 text-[10px] uppercase font-bold shrink-0">Variations:</span>
                 <template x-for="(candidate, cIdx) in (pendingDiff.candidates || [])" :key="cIdx">
-                    <button 
-                        type="button" 
-                        x-on:click="selectCandidate(cIdx)" 
+                    <button
+                        type="button"
+                        x-on:click="selectCandidate(cIdx)"
                         class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shrink-0"
                         :class="activeCandidateIndex === cIdx ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/40 border border-indigo-400/50' : 'bg-slate-950/80 hover:bg-white/10 text-slate-400 hover:text-white border border-white/10'"
                     >
@@ -239,19 +239,19 @@
             <div class="flex items-center gap-2 shrink-0">
                 <!-- Split / Unified Toggle -->
                 <div class="flex items-center bg-slate-950 p-0.5 rounded-lg border border-white/10 text-[10px]">
-                    <button 
-                        type="button" 
-                        x-on:click="diffViewMode = 'split'" 
-                        :class="diffViewMode === 'split' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-white'" 
+                    <button
+                        type="button"
+                        x-on:click="diffViewMode = 'split'"
+                        :class="diffViewMode === 'split' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-white'"
                         class="px-2 py-0.5 rounded-md transition-all cursor-pointer"
                         title="Side-by-Side Split View"
                     >
                         ◫ Split
                     </button>
-                    <button 
-                        type="button" 
-                        x-on:click="diffViewMode = 'unified'" 
-                        :class="diffViewMode === 'unified' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-white'" 
+                    <button
+                        type="button"
+                        x-on:click="diffViewMode = 'unified'"
+                        :class="diffViewMode === 'unified' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-white'"
                         class="px-2 py-0.5 rounded-md transition-all cursor-pointer"
                         title="Unified Inline Git-Style Diff"
                     >
@@ -262,10 +262,10 @@
                 <span class="text-slate-600">|</span>
 
                 <!-- Sliders & Modifiers Drawer Toggle -->
-                <button 
-                    type="button" 
-                    x-on:click="showControlsDrawer = !showControlsDrawer" 
-                    :class="showControlsDrawer ? 'bg-indigo-600/30 text-indigo-300 border-indigo-500/50' : 'bg-white/5 text-slate-400 hover:text-white border-white/10'" 
+                <button
+                    type="button"
+                    x-on:click="showControlsDrawer = !showControlsDrawer"
+                    :class="showControlsDrawer ? 'bg-indigo-600/30 text-indigo-300 border-indigo-500/50' : 'bg-white/5 text-slate-400 hover:text-white border-white/10'"
                     class="px-2 py-0.5 rounded-lg border text-[10px] font-bold flex items-center gap-1 transition-all cursor-pointer"
                     title="Fine-tune Intensity, Tone & Length Modifiers"
                 >
@@ -274,9 +274,9 @@
                 </button>
 
                 <!-- Regenerate Variation Button -->
-                <button 
-                    type="button" 
-                    x-on:click="regenerateVariation()" 
+                <button
+                    type="button"
+                    x-on:click="regenerateVariation()"
                     :disabled="isRegeneratingCandidate"
                     class="px-2.5 py-0.5 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-[10px] shadow-sm shadow-indigo-600/30 cursor-pointer transition-all disabled:opacity-50 flex items-center gap-1 active:scale-95"
                     title="Regenerate alternate candidate variation"
@@ -294,7 +294,7 @@
                 <span class="text-slate-400 text-[10px]">Words:</span>
                 <div class="flex items-center gap-1">
                     <span class="text-slate-200 font-bold" x-text="computeMetricsDelta().newWords"></span>
-                    <span 
+                    <span
                         class="text-[9.5px] font-bold px-1 rounded"
                         :class="computeMetricsDelta().wordDelta >= 0 ? 'bg-emerald-950 text-emerald-400' : 'bg-amber-950 text-amber-400'"
                         x-text="(computeMetricsDelta().wordDelta >= 0 ? '+' : '') + computeMetricsDelta().wordDelta"
@@ -307,7 +307,7 @@
                 <span class="text-slate-400 text-[10px]">Readability:</span>
                 <div class="flex items-center gap-1">
                     <span class="text-cyan-300 font-bold" x-text="computeMetricsDelta().newReadability.score + '/100'"></span>
-                    <span 
+                    <span
                         class="text-[9.5px] font-bold px-1 rounded"
                         :class="computeMetricsDelta().readabilityDelta >= 0 ? 'bg-emerald-950 text-emerald-400' : 'bg-rose-950 text-rose-400'"
                         x-text="(computeMetricsDelta().readabilityDelta >= 0 ? '+' : '') + computeMetricsDelta().readabilityDelta"
@@ -320,7 +320,7 @@
                 <span class="text-slate-400 text-[10px] truncate max-w-[80px]" :title="'Focus Keyword: ' + computeMetricsDelta().targetKeyword">Focus KW:</span>
                 <div class="flex items-center gap-1">
                     <span class="text-indigo-300 font-bold" x-text="computeMetricsDelta().newKwCount + 'x'"></span>
-                    <span 
+                    <span
                         class="text-[9.5px] font-bold px-1 rounded"
                         :class="computeMetricsDelta().kwDelta > 0 ? 'bg-emerald-950 text-emerald-400' : 'bg-slate-900 text-slate-400'"
                         x-text="(computeMetricsDelta().kwDelta >= 0 ? '+' : '') + computeMetricsDelta().kwDelta"
@@ -333,7 +333,7 @@
                 <span class="text-slate-400 text-[10px]">Power Words:</span>
                 <div class="flex items-center gap-1">
                     <span class="text-emerald-300 font-bold" x-text="computeMetricsDelta().newPowerCount"></span>
-                    <span 
+                    <span
                         class="text-[9.5px] font-bold px-1 rounded"
                         :class="computeMetricsDelta().powerDelta > 0 ? 'bg-emerald-950 text-emerald-400' : 'bg-slate-900 text-slate-400'"
                         x-text="(computeMetricsDelta().powerDelta >= 0 ? '+' : '') + computeMetricsDelta().powerDelta"
@@ -343,8 +343,8 @@
         </div>
 
         <!-- Interactive AI Intensity & Tone Tuning Drawer -->
-        <div 
-            x-show="showControlsDrawer" 
+        <div
+            x-show="showControlsDrawer"
             x-transition:enter="transition ease-out duration-150"
             x-transition:enter-start="opacity-0 -translate-y-2"
             x-transition:enter-end="opacity-100 translate-y-0"
@@ -408,7 +408,7 @@
             <div class="rounded-xl bg-emerald-950/40 border border-emerald-500/30 p-3 space-y-1.5">
                 <div class="flex items-center justify-between text-[10px] text-emerald-400 font-bold uppercase tracking-wider pb-1 border-b border-emerald-500/20 select-none">
                     <span class="flex items-center gap-1">
-                        <span>✓</span> 
+                        <span>✓</span>
                         <span x-text="'AI Variation #' + (activeCandidateIndex + 1) + ' (Highlighted = Added)'"></span>
                         <span x-show="isRegeneratingCandidate" class="text-amber-400 text-[9px] animate-pulse">(Generating...)</span>
                     </span>
@@ -433,7 +433,7 @@
 
     <!-- Advanced TipTap Floating Selection Bubble Toolbar (Teleported to body to avoid backdrop-filter coordinate displacement) -->
     <template x-teleport="body">
-        <div 
+        <div
             id="tiptap-bubble-menu"
             x-ref="bubbleMenu"
             x-on:mousedown.prevent
@@ -442,18 +442,18 @@
         >
             <!-- 1. AI Actions Group -->
             <div class="flex items-center gap-1 bg-white/[0.04] p-0.5 rounded-xl border border-white/5" x-data="{ bubbleAiOpen: false }">
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     x-on:mousedown.prevent
-                    x-on:click="bubbleAiOpen = !bubbleAiOpen" 
+                    x-on:click="bubbleAiOpen = !bubbleAiOpen"
                     class="px-2.5 py-1 rounded-lg bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold flex items-center gap-1.5 shadow-md shadow-indigo-600/30 cursor-pointer text-xs transition-transform active:scale-95"
                 >
                     <span>✦ Ask AI</span>
                     <span class="text-[9px]">▼</span>
                 </button>
-                <div 
-                    x-show="bubbleAiOpen" 
-                    x-on:click.outside="bubbleAiOpen = false" 
+                <div
+                    x-show="bubbleAiOpen"
+                    x-on:click.outside="bubbleAiOpen = false"
                     x-on:mousedown.prevent
                     class="absolute left-0 mt-2 w-56 rounded-2xl bg-slate-900/98 border border-white/20 p-1.5 shadow-2xl z-50 space-y-0.5 backdrop-blur-2xl text-xs"
                     style="display: none;"
@@ -520,7 +520,7 @@
 
     <!-- Floating Table Operations Toolbar (Teleported to body, reactive to activeFormats.table) -->
     <template x-teleport="body">
-        <div 
+        <div
             id="tiptap-table-toolbar"
             x-show="activeFormats.table"
             x-cloak
@@ -581,7 +581,7 @@
 
     <!-- Custom Right-Click Context Menu (Teleported to body to avoid backdrop-filter coordinate displacement) -->
     <template x-teleport="body">
-        <div 
+        <div
             id="hoa-editor-context-menu"
             x-show="showContextMenu"
             x-cloak
@@ -750,7 +750,7 @@
     </template>
 
     <!-- Interactive Floating Slash Commands Palette (Triggered on '/') -->
-    <div 
+    <div
         x-show="showSlashMenu"
         x-cloak
         x-transition:enter="transition ease-out duration-150"
@@ -893,7 +893,7 @@ style="display: none;"
     </div>
 
     <!-- SUB-CONTENT-SUB-AGENT In-Canvas Paragraph Proposal Inspector -->
-    <div 
+    <div
         x-show="showSubAgentProposal"
         x-cloak
         x-transition:enter="transition ease-out duration-200"
@@ -911,18 +911,18 @@ style="display: none;"
             </div>
 
             <div class="ai-proposal-actions flex items-center gap-2">
-                <button 
-                    type="button" 
-                    x-show="!isTransforming && subAgentProposedText" 
-                    x-on:click="acceptSubAgentProposal()" 
+                <button
+                    type="button"
+                    x-show="!isTransforming && subAgentProposedText"
+                    x-on:click="acceptSubAgentProposal()"
                     class="ai-btn-tick px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-600/40 transition-all cursor-pointer active:scale-95"
                     title="Accept AI recreation and replace yellow selection in document"
                 >
                     ✓ Accept & Replace
                 </button>
-                <button 
-                    type="button" 
-                    x-on:click="discardSubAgentProposal()" 
+                <button
+                    type="button"
+                    x-on:click="discardSubAgentProposal()"
                     class="ai-btn-cross px-3 py-1.5 rounded-xl bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white font-bold text-xs border border-rose-500/30 transition-all cursor-pointer active:scale-95"
                     title="Discard AI proposal and restore original text"
                 >
@@ -944,15 +944,15 @@ style="display: none;"
     </div>
 
     <!-- Active Editor Engine Canvas Mount Target (wire:ignore for zero-latency, error-free typing & high-capacity 10,000+ words scrollbar) -->
-    <div 
-        id="tiptap-content-target" 
+    <div
+        id="tiptap-content-target"
         x-show="!showSeoHeatmap"
-        class="flex-1 min-h-0 overflow-y-auto hoa-custom-scrollbar px-3 sm:px-6 py-4 scroll-smooth focus:outline-none" 
+        class="flex-1 min-h-0 overflow-y-auto hoa-custom-scrollbar px-3 sm:px-6 py-4 scroll-smooth focus:outline-none"
         wire:ignore
     ></div>
 
     <!-- Dedicated Visual SEO & GEO Heatmap Inspection Mode Overlay -->
-    <div 
+    <div
         x-show="showSeoHeatmap"
         x-cloak
         class="flex-1 min-h-0 overflow-y-auto hoa-custom-scrollbar px-3 sm:px-6 py-4 scroll-smooth focus:outline-none flex flex-col"
@@ -977,9 +977,9 @@ style="display: none;"
             </div>
 
             <div class="flex items-center gap-2">
-                <button 
-                    type="button" 
-                    x-on:click="refreshSeoHeatmap()" 
+                <button
+                    type="button"
+                    x-on:click="refreshSeoHeatmap()"
                     :disabled="isAnalyzingHeatmap"
                     class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-medium border border-white/10 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                     title="Re-run SEO audit on current content and refresh heatmap"
@@ -987,9 +987,9 @@ style="display: none;"
                     <svg class="w-3.5 h-3.5 text-indigo-400" :class="isAnalyzingHeatmap ? 'animate-spin' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                     <span x-text="isAnalyzingHeatmap ? 'Auditing...' : 'Refresh'"></span>
                 </button>
-                <button 
-                    type="button" 
-                    x-on:click="toggleSeoHeatmap(false)" 
+                <button
+                    type="button"
+                    x-on:click="toggleSeoHeatmap(false)"
                     class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer active:scale-95"
                 >
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -999,7 +999,7 @@ style="display: none;"
         </div>
 
         <!-- Rendered Heatmap Markup -->
-        <div 
+        <div
             class="prose prose-invert max-w-none text-slate-200 leading-relaxed text-base font-normal tracking-wide break-words select-text"
             x-html="seoHeatmapHtml"
             x-on:click="handleHeatmapClick($event)"

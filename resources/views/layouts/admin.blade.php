@@ -24,10 +24,10 @@
 --}}
 
 <x-layouts.app :title="$title ?? 'Admin Control Center — HelpOfAi Studio'">
-    <div 
-        class="min-h-screen flex text-slate-100 selection:bg-violet-500/30 selection:text-violet-200" 
-        x-data="{ 
-            sidebarOpen: false, 
+    <div
+        class="min-h-screen flex text-slate-100 selection:bg-violet-500/30 selection:text-violet-200"
+        x-data="{
+            sidebarOpen: false,
             collapsed: false,
             init() {
                 try {
@@ -46,8 +46,8 @@
         }"
     >
         <!-- Mobile Sidebar Overlay Backdrop -->
-        <div 
-            x-show="sidebarOpen" 
+        <div
+            x-show="sidebarOpen"
             x-on:click="sidebarOpen = false"
             class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 lg:hidden"
             x-transition:enter="ease-out duration-200"
@@ -60,7 +60,7 @@
         ></div>
 
         <!-- Collapsible Admin Sidebar (Fixed Viewport Height) -->
-        <aside 
+        <aside
             class="fixed inset-y-0 left-0 z-50 glass-standard border-r border-violet-500/20 flex flex-col justify-between transition-[width,transform] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] lg:sticky lg:top-0 lg:h-screen lg:z-30 select-none shrink-0 overflow-hidden"
             :class="{
                 'w-64': !collapsed,
@@ -74,8 +74,8 @@
                 <div class="h-16 px-4 flex items-center border-b border-white/5 bg-gradient-to-r from-violet-950/40 to-transparent shrink-0 transition-all duration-300" :class="collapsed ? 'justify-center' : 'justify-between'">
                     <a href="{{ route('admin.dashboard') }}" wire:navigate class="flex items-center gap-3 overflow-hidden group">
                         <x-glass.logo size="sm" text="HOA" subtitle="ADMIN" />
-                        <div 
-                            x-show="!collapsed" 
+                        <div
+                            x-show="!collapsed"
                             x-transition:enter="transition-all duration-300 ease-out"
                             x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                             x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -99,8 +99,8 @@
                 <nav class="sidebar-nav-menu p-3 space-y-2.5 overflow-y-auto overflow-x-hidden flex-1 scrollbar-none">
                                      <!-- 1. MANAGEMENT SECTION -->
                     <div class="sidebar-nav-section space-y-0.5">
-                        <div 
-                            x-show="!collapsed" 
+                        <div
+                            x-show="!collapsed"
                             x-transition:enter="transition-all duration-200"
                             x-transition:enter-start="opacity-0"
                             x-transition:enter-end="opacity-100"
@@ -111,14 +111,14 @@
                         <div x-show="collapsed" class="py-0.5"></div>
 
                         <!-- System Overview -->
-                        <a 
-                            href="{{ route('admin.dashboard') }}" 
+                        <a
+                            href="{{ route('admin.dashboard') }}"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.dashboard') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">📊</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -134,14 +134,14 @@
                         </a>
 
                         <!-- Users & Quotas -->
-                        <a 
-                            href="{{ route('admin.users') }}" 
+                        <a
+                            href="{{ route('admin.users') }}"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.users') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">👥</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -157,14 +157,14 @@
                         </a>
 
                         <!-- Auth & Security Settings -->
-                        <a 
-                            href="{{ route('admin.auth-settings') }}" 
+                        <a
+                            href="{{ route('admin.auth-settings') }}"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.auth-settings') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🛡️</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -180,14 +180,14 @@
                         </a>
 
                         <!-- Mail & Notifications Server -->
-                        <a 
-                            href="{{ route('admin.mail-notifications') }}" 
+                        <a
+                            href="{{ route('admin.mail-notifications') }}"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.mail-notifications') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">📬</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -203,14 +203,14 @@
                         </a>
 
                         <!-- AI Usage & Logs -->
-                        <a 
-                            href="{{ route('admin.usage') }}" 
+                        <a
+                            href="{{ route('admin.usage') }}"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.usage') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">📈</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -228,8 +228,8 @@
 
                     <!-- 2. AI INFRASTRUCTURE & TOOLS SECTION -->
                     <div class="sidebar-nav-section space-y-0.5 pt-1">
-                        <div 
-                            x-show="!collapsed" 
+                        <div
+                            x-show="!collapsed"
                             x-transition:enter="transition-all duration-200"
                             x-transition:enter-start="opacity-0"
                             x-transition:enter-end="opacity-100"
@@ -240,14 +240,14 @@
                         <div x-show="collapsed" class="py-1 my-0.5 border-t border-white/5"></div>
 
                         <!-- AI Providers & Gateway -->
-                        <a 
-                            href="{{ route('admin.ai-settings.index') }}" 
+                        <a
+                            href="{{ route('admin.ai-settings.index') }}"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.ai-settings.index') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">⚡</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -263,14 +263,14 @@
                         </a>
 
                         <!-- OmniRoute Config -->
-                        <a 
-                            href="{{ route('admin.ai-settings.omniroute') }}" 
+                        <a
+                            href="{{ route('admin.ai-settings.omniroute') }}"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.ai-settings.omniroute') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🤖</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -286,14 +286,14 @@
                         </a>
 
                         <!-- Content Intelligence Hub -->
-                        <a 
-                            href="{{ route('content-intelligence.index') }}" 
+                        <a
+                            href="{{ route('content-intelligence.index') }}"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('content-intelligence.*') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🧠</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -311,8 +311,8 @@
 
                     <!-- 3. GOVERNANCE & SETTINGS SECTION -->
                     <div class="sidebar-nav-section space-y-0.5 pt-1">
-                        <div 
-                            x-show="!collapsed" 
+                        <div
+                            x-show="!collapsed"
                             x-transition:enter="transition-all duration-200"
                             x-transition:enter-start="opacity-0"
                             x-transition:enter-end="opacity-100"
@@ -323,14 +323,14 @@
                         <div x-show="collapsed" class="py-1 my-0.5 border-t border-white/5"></div>
 
                         <!-- System Settings -->
-                        <a 
-                            href="{{ route('admin.settings') }}" 
+                        <a
+                            href="{{ route('admin.settings') }}"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.settings') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">⚙️</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -346,14 +346,14 @@
                         </a>
 
                         <!-- System Info & Docs -->
-                        <a 
-                            href="{{ route('admin.system-info') }}" 
+                        <a
+                            href="{{ route('admin.system-info') }}"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.system-info') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">ℹ️</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -369,14 +369,14 @@
                         </a>
 
                         <!-- Core Updates & Time Machine -->
-                        <a 
-                            href="{{ route('admin.updates') }}" 
+                        <a
+                            href="{{ route('admin.updates') }}"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative {{ request()->routeIs('admin.updates') ? 'bg-gradient-to-r from-violet-600/25 to-indigo-600/15 text-violet-200 border border-violet-500/40 font-semibold shadow-md shadow-violet-500/10' : 'text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5' }}"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🔄</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -392,14 +392,14 @@
                         </a>
 
                         <!-- Circuit Breaker & Safety -->
-                        <a 
-                            href="{{ route('admin.ai-settings.index') }}#circuit-breaker" 
+                        <a
+                            href="{{ route('admin.ai-settings.index') }}#circuit-breaker"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium transition-all duration-200 group relative text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🛡️</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -417,8 +417,8 @@
 
                     <!-- 4. QUICK SWITCH -->
                     <div class="sidebar-nav-section pt-1">
-                        <div 
-                            x-show="!collapsed" 
+                        <div
+                            x-show="!collapsed"
                             x-transition:enter="transition-all duration-200"
                             x-transition:enter-start="opacity-0"
                             x-transition:enter-end="opacity-100"
@@ -428,14 +428,14 @@
                         </div>
                         <div x-show="collapsed" class="py-1 my-0.5 border-t border-white/5"></div>
 
-                        <a 
-                            href="{{ route('dashboard') }}" 
+                        <a
+                            href="{{ route('dashboard') }}"
                             wire:navigate
                             class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium text-slate-300 hover:text-white hover:bg-white/5 border border-transparent hover:border-white/5 transition-all duration-200 group relative"
                         >
                             <span class="w-8 h-8 flex items-center justify-center text-lg shrink-0 group-hover:scale-110 group-active:scale-95 transition-transform duration-200">🚀</span>
-                            <span 
-                                x-show="!collapsed" 
+                            <span
+                                x-show="!collapsed"
                                 x-transition:enter="transition-all duration-300 ease-out"
                                 x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                                 x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -459,8 +459,8 @@
                     <div class="w-8 h-8 rounded-lg bg-violet-900/60 border border-violet-500/30 flex items-center justify-center text-xs font-bold text-violet-200 shrink-0 group-hover:border-violet-400 group-hover:scale-105 transition-all duration-200 shadow-sm">
                         🛡️
                     </div>
-                    <div 
-                        x-show="!collapsed" 
+                    <div
+                        x-show="!collapsed"
                         x-transition:enter="transition-all duration-300 ease-out"
                         x-transition:enter-start="opacity-0 -translate-x-2 max-w-0"
                         x-transition:enter-end="opacity-100 translate-x-0 max-w-[180px]"
@@ -493,9 +493,9 @@
                     </button>
 
                     <!-- Desktop Toggle Button in Top Header (Linear / VS Code style, outside sidebar flex) -->
-                    <button 
-                        type="button" 
-                        x-on:click="toggleCollapse()" 
+                    <button
+                        type="button"
+                        x-on:click="toggleCollapse()"
                         class="hidden lg:flex items-center justify-center w-8 h-8 rounded-lg bg-slate-900/80 border border-white/10 hover:border-violet-500/40 text-slate-400 hover:text-white hover:scale-105 active:scale-95 transition-all duration-150 cursor-pointer shadow-sm"
                         :title="collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
                     >
@@ -515,7 +515,7 @@
                     <livewire:admin.notification-bell />
 
                     <!-- Global Floating Console Trigger Button -->
-                    <button 
+                    <button
                         type="button"
                         x-on:click="$dispatch('toggle-omni-terminal')"
                         class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-violet-500/30 text-xs font-mono text-violet-300 hover:text-white shadow-sm hover:border-violet-500/50 transition-all cursor-pointer"
@@ -534,10 +534,10 @@
 
                     <!-- Admin Profile & Quick Navigation Glass Dropdown -->
                     <div class="relative" x-data="{ userMenuOpen: false }" @click.outside="userMenuOpen = false" @keydown.escape.window="userMenuOpen = false">
-                        <button 
+                        <button
                             type="button"
-                            @click="userMenuOpen = !userMenuOpen" 
-                            class="flex items-center gap-2 p-1 pr-2 rounded-xl glass-subtle hover:border-violet-500/40 transition-all border border-white/5 cursor-pointer focus:outline-none select-none group" 
+                            @click="userMenuOpen = !userMenuOpen"
+                            class="flex items-center gap-2 p-1 pr-2 rounded-xl glass-subtle hover:border-violet-500/40 transition-all border border-white/5 cursor-pointer focus:outline-none select-none group"
                             title="Admin Profile & Menu"
                             :aria-expanded="userMenuOpen"
                         >
@@ -551,8 +551,8 @@
                         </button>
 
                         <!-- Transparent Glassmorphic Backdrop-Blur Dropdown Panel -->
-                        <div 
-                            x-show="userMenuOpen" 
+                        <div
+                            x-show="userMenuOpen"
                             x-transition:enter="transition ease-out duration-200"
                             x-transition:enter-start="opacity-0 translate-y-2 scale-95"
                             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
@@ -579,7 +579,7 @@
                             <!-- Admin Quick Navigation -->
                             <div class="py-1.5 border-b border-white/10 text-xs">
                                 <div class="px-3 py-1 text-[10px] uppercase font-bold text-slate-400 tracking-wider">Admin Control</div>
-                                
+
                                 <a href="{{ route('admin.dashboard') }}" wire:navigate @click="userMenuOpen = false" class="flex items-center gap-2.5 px-3 py-2 text-slate-300 hover:text-white hover:bg-white/10 transition-colors">
                                     <span class="text-violet-400 text-sm">📊</span>
                                     <span>Control Center</span>
@@ -650,15 +650,15 @@
         <!-- ========================================================================= -->
         <!-- GLOBAL PERSISTENT DRAGGABLE & MINIMIZABLE OMNIROUTE CONSOLE TERMINAL      -->
         <!-- ========================================================================= -->
-        <div 
+        <div
             x-data="floatingOmniTerminal()"
             x-on:toggle-omni-terminal.window="toggleOpen()"
             x-on:open-omni-terminal.window="openTerminal()"
             x-cloak
         >
             <!-- 1. FLOATING MINIMIZED PILL (Bottom Right) -->
-            <div 
-                x-show="isOpen && isMinimized" 
+            <div
+                x-show="isOpen && isMinimized"
                 x-transition:enter="ease-out duration-200"
                 x-transition:enter-start="opacity-0 translate-y-4 scale-95"
                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
@@ -676,7 +676,7 @@
             </div>
 
             <!-- 2. DRAGGABLE FLOATING POPUP TERMINAL WINDOW -->
-            <div 
+            <div
                 x-show="isOpen && !isMinimized"
                 x-transition:enter="ease-out duration-200"
                 x-transition:enter-start="opacity-0 scale-95"
@@ -687,7 +687,7 @@
                 style="display: none;"
             >
                 <!-- macOS Interactive Window Titlebar (Drag Handle) -->
-                <div 
+                <div
                     class="h-10 px-4 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between cursor-move shrink-0"
                     x-on:mousedown="startDrag($event)"
                     x-on:touchstart="startTouchDrag($event)"
@@ -695,9 +695,9 @@
                     <!-- Window Controls (Red / Yellow / Green Dots) -->
                     <div class="flex items-center gap-2">
                         <!-- Red Dot (Close completely) -->
-                        <button 
-                            type="button" 
-                            x-on:click.stop="close()" 
+                        <button
+                            type="button"
+                            x-on:click.stop="close()"
                             class="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E] flex items-center justify-center text-[8px] font-bold text-black/70 hover:opacity-100 opacity-90 transition-all cursor-pointer group"
                             title="Close Terminal (X)"
                         >
@@ -705,9 +705,9 @@
                         </button>
 
                         <!-- Yellow Dot (Minimize to bottom pill) -->
-                        <button 
-                            type="button" 
-                            x-on:click.stop="minimize()" 
+                        <button
+                            type="button"
+                            x-on:click.stop="minimize()"
                             class="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123] flex items-center justify-center text-[8px] font-bold text-black/70 hover:opacity-100 opacity-90 transition-all cursor-pointer group"
                             title="Minimize Terminal (—)"
                         >
@@ -715,9 +715,9 @@
                         </button>
 
                         <!-- Green Dot (Maximize / Restore Size) -->
-                        <button 
-                            type="button" 
-                            x-on:click.stop="toggleMaximize()" 
+                        <button
+                            type="button"
+                            x-on:click.stop="toggleMaximize()"
                             class="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29] flex items-center justify-center text-[8px] font-bold text-black/70 hover:opacity-100 opacity-90 transition-all cursor-pointer group"
                             title="Maximize / Restore (+)"
                         >
@@ -743,8 +743,8 @@
                 <!-- Terminal Controls Toolbar -->
                 <div class="px-3.5 py-2.5 bg-[#161b22]/70 border-b border-[#30363d] flex flex-wrap items-center gap-2 select-text shrink-0">
                     <!-- Level Filter Dropdown -->
-                    <select 
-                        x-model="levelFilter" 
+                    <select
+                        x-model="levelFilter"
                         class="bg-[#0d1117] border border-[#30363d] rounded-lg px-2.5 py-1 text-[11px] text-slate-200 focus:outline-none focus:border-cyan-500 font-mono"
                     >
                         <option value="all">All Levels</option>
@@ -755,17 +755,17 @@
                     </select>
 
                     <!-- Realtime Search Box -->
-                    <input 
-                        type="text" 
-                        x-model="search" 
-                        placeholder="Search logs (message, component, cid)..." 
+                    <input
+                        type="text"
+                        x-model="search"
+                        placeholder="Search logs (message, component, cid)..."
                         class="flex-1 min-w-[150px] bg-[#0d1117] border border-[#30363d] rounded-lg px-2.5 py-1 text-[11px] font-mono text-slate-200 placeholder-[#8b949e] focus:outline-none focus:border-cyan-500"
                     />
 
                     <!-- Auto-Scroll Toggle Button -->
-                    <button 
-                        type="button" 
-                        x-on:click="autoScroll = !autoScroll" 
+                    <button
+                        type="button"
+                        x-on:click="autoScroll = !autoScroll"
                         :class="autoScroll ? 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30 font-semibold' : 'bg-[#0d1117] text-slate-400 border-[#30363d]'"
                         class="px-2.5 py-1 rounded-lg border text-[11px] font-mono transition-colors cursor-pointer"
                         title="Toggle Auto-Scroll to bottom on new logs"
@@ -774,20 +774,20 @@
                     </button>
 
                     <!-- Manual Refresh Button -->
-                    <button 
-                        type="button" 
-                        x-on:click="fetchLogs()" 
-                        class="p-1 rounded-lg bg-[#0d1117] border border-[#30363d] text-slate-300 hover:text-white transition-colors cursor-pointer text-xs" 
+                    <button
+                        type="button"
+                        x-on:click="fetchLogs()"
+                        class="p-1 rounded-lg bg-[#0d1117] border border-[#30363d] text-slate-300 hover:text-white transition-colors cursor-pointer text-xs"
                         title="Refresh Logs Immediately"
                     >
                         🔄
                     </button>
 
                     <!-- Clear Log Stream Button -->
-                    <button 
-                        type="button" 
-                        x-on:click="clearLogs()" 
-                        class="p-1 rounded-lg bg-[#0d1117] border border-[#30363d] text-slate-400 hover:text-red-400 transition-colors cursor-pointer text-xs" 
+                    <button
+                        type="button"
+                        x-on:click="clearLogs()"
+                        class="p-1 rounded-lg bg-[#0d1117] border border-[#30363d] text-slate-400 hover:text-red-400 transition-colors cursor-pointer text-xs"
                         title="Clear Buffer"
                     >
                         🧹
@@ -795,13 +795,13 @@
                 </div>
 
                 <!-- Log Stream Lines Window -->
-                <div 
+                <div
                     x-ref="logContainer"
                     class="p-3 space-y-1 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-[#30363d] text-[11px] leading-relaxed flex-1 select-text"
                     :style="isMaximized ? 'height: calc(100vh - 170px);' : 'height: ' + height + 'px;'"
                 >
                     <template x-for="(entry, index) in filteredLogs" :key="index">
-                        <div 
+                        <div
                             class="group flex items-start gap-2 px-1.5 py-0.5 rounded hover:bg-white/5 transition-colors"
                             :class="entry.level === 'error' || entry.level === 'fatal' ? 'bg-red-500/10' : ''"
                         >
@@ -809,7 +809,7 @@
                             <span class="text-[#484f58] whitespace-nowrap shrink-0 select-none text-[10px]" x-text="formatTime(entry.timestamp)"></span>
 
                             <!-- Level badge -->
-                            <span 
+                            <span
                                 class="inline-block px-1.5 py-0 rounded text-[9px] font-semibold uppercase border shrink-0"
                                 :class="getLevelClasses(entry.level)"
                                 x-text="entry.level.toUpperCase()"
@@ -829,9 +829,9 @@
                             </span>
 
                             <!-- Quick Copy Button -->
-                            <button 
-                                type="button" 
-                                x-on:click="copyEntry(entry, index)" 
+                            <button
+                                type="button"
+                                x-on:click="copyEntry(entry, index)"
                                 class="opacity-0 group-hover:opacity-100 text-[#8b949e] hover:text-white transition-opacity text-[10px] shrink-0"
                                 title="Copy JSON"
                             >
@@ -860,7 +860,7 @@
                     </div>
 
                     <!-- Resize Grabber Handle (Bottom-Right Corner) -->
-                    <div 
+                    <div
                         class="absolute bottom-0 right-0 w-5 h-5 cursor-se-resize flex items-end justify-end p-1 z-20 text-slate-500 hover:text-cyan-400 select-none transition-colors group"
                         x-on:mousedown.stop="startResize($event)"
                         x-on:touchstart.stop="startTouchResize($event)"

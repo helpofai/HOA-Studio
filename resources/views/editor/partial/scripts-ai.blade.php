@@ -189,7 +189,7 @@ copyPipelineData() {
     report += "Topic: " + (d.topic || 'N/A') + "\n";
     report += "Title: " + (d.title || 'N/A') + "\n";
     report += "Completed Stages: " + this.getPipelineCompletedCount() + " / 15\n\n";
-    
+
     if (d.lsiKeywords) {
         report += "--- Extracted LSI Entities ---\n" + d.lsiKeywords + "\n\n";
     }
@@ -203,7 +203,7 @@ copyPipelineData() {
     if (d.schemaJsonLd) {
         report += "--- Schema.org JSON-LD ---\n" + d.schemaJsonLd + "\n\n";
     }
-    
+
     navigator.clipboard.writeText(report).then(() => {
         alert("Pipeline Intelligence Report copied to clipboard!");
     }).catch(() => {});
@@ -215,7 +215,7 @@ extractCleanFinalArticle(rawText) {
 
     // 1. If output contains raw pipeline directives or stage dumps, extract to popup and strip from article
     const pipelineMarkerRegex = /(?:===+\s*⚡?\s*ACTIVE ENTERPRISE PRODUCTION PIPELINE[\s\S]*?===+\s*END OF PIPELINE DIRECTIVES\s*===+|#+\s*15-Stage Production Pipeline[\s\S]*?(?=(?:^#\s+|<h1|\Z))|Stage\s+\d+:\s*[^\n]+(?:\n+(?:Target Intent|LSI Entities|Focus|Drafting)[^\n]+)*)/gi;
-    
+
     if (pipelineMarkerRegex.test(text)) {
         const matches = text.match(pipelineMarkerRegex);
         if (matches && matches.length > 0) {
@@ -307,8 +307,8 @@ isContentEmpty(content) {
         return true;
     }
     const plain = trimmed.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
-    return plain === '' || 
-           plain === 'Start writing your AI-powered content...' || 
+    return plain === '' ||
+           plain === 'Start writing your AI-powered content...' ||
            plain === 'Start building your block content...';
 },
 
@@ -412,7 +412,7 @@ async applyTargetedIntelligenceFix(checkId, title, aiPrompt, targetType = 'inser
     // 3. SURGICAL TARGET: INTRODUCTION PARAGRAPHS ONLY (Preserves rest of canvas)
     if (targetType === 'intro' || checkId === 'kw_in_intro') {
         this.addLog('SEO', 'Surgically rewriting opening introduction paragraphs only...');
-        
+
         const parser = new DOMParser();
         const docDom = parser.parseFromString(currentFullHtml || '<p></p>', 'text/html');
         const paragraphs = docDom.querySelectorAll('p');
@@ -448,7 +448,7 @@ async applyTargetedIntelligenceFix(checkId, title, aiPrompt, targetType = 'inser
             try { data = JSON.parse(respText); } catch (e) { data = { success: false }; }
             if (data.success && data.result) {
                 const newIntro = data.result.trim();
-                
+
                 let remainingHtml = '';
                 let skipped = 0;
                 docDom.body.childNodes.forEach(node => {
@@ -506,7 +506,7 @@ async applyTargetedIntelligenceFix(checkId, title, aiPrompt, targetType = 'inser
         try { data = JSON.parse(respText); } catch (e) { data = { success: false }; }
         if (data.success && data.result) {
             const blockToInsert = data.result.trim();
-            
+
             if (this.hasSelection) {
                 this.pendingDiff = {
                     originalText: this.selectedText,
@@ -598,9 +598,9 @@ locateSeoTarget(targetId, checkId = null) {
 
     // 1. If targeting title, focus title input directly in the toolbar
     if (targetId === 'seo-loc-title' || (checkId && checkId.startsWith('title_')) || checkId === 'kw_in_title' || checkId === 'kw_at_beginning_of_title') {
-        const titleInput = document.querySelector('input[wire\\:model\\.lazy="title"]') 
-            || document.querySelector('input[placeholder*="Untitled Document"]') 
-            || document.querySelector('input[x-model="title"]') 
+        const titleInput = document.querySelector('input[wire\\:model\\.lazy="title"]')
+            || document.querySelector('input[placeholder*="Untitled Document"]')
+            || document.querySelector('input[x-model="title"]')
             || document.querySelector('input[placeholder*="Title"]');
         if (titleInput) {
             titleInput.focus();
@@ -640,19 +640,19 @@ locateSeoTarget(targetId, checkId = null) {
             if (!container) return;
 
             const editorRoot = container.querySelector('.ProseMirror') || container.querySelector('.tiptap') || container;
-            
+
             // Scope queries strictly to real content elements
             const allHeadings = Array.from(editorRoot.querySelectorAll('h1, h2, h3, h4, h5, h6'))
                 .filter(h => !h.closest('.seo-heatmap-legend-bar') && !h.closest('.seo-canvas-callout'));
-            
+
             const h1Element = allHeadings.find(h => h.tagName.toLowerCase() === 'h1');
             // Subheadings are strictly H2, H3, H4 - NEVER H1 (which is the document title)
             const subheadings = allHeadings.filter(h => ['h2', 'h3', 'h4', 'h5', 'h6'].includes(h.tagName.toLowerCase()));
             const h2List = subheadings.filter(h => h.tagName.toLowerCase() === 'h2');
-            
+
             const paragraphs = Array.from(editorRoot.querySelectorAll('p'))
                 .filter(p => !p.closest('.seo-heatmap-legend-bar') && !p.closest('.seo-canvas-callout') && p.textContent.trim().length > 0);
-            
+
             const tables = Array.from(editorRoot.querySelectorAll('table'));
             const images = Array.from(editorRoot.querySelectorAll('img'));
             const links = Array.from(editorRoot.querySelectorAll('a'));
@@ -789,7 +789,7 @@ locateSeoTarget(targetId, checkId = null) {
 
                 // 2. Smoothly scroll target into vertical center of editor container
                 el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                
+
                 // 3. Apply glowing neon indigo highlight ring
                 el.style.transition = 'box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s ease';
                 el.style.boxShadow = '0 0 0 3px #6366f1, 0 10px 25px -5px rgba(99, 102, 241, 0.5)';
@@ -828,7 +828,7 @@ async autoHealDocumentSeo() {
 
     const kw = (this.$wire ? this.$wire.targetKeyword : '') || '';
     const pillars = (this.$wire && this.$wire.seoData) ? (this.$wire.seoData.rank_math || {}) : {};
-    
+
     // 2. Gather failing checks and actionable recommendations
     const failingTips = [];
     Object.values(pillars).forEach(p => {
@@ -885,7 +885,7 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto', c
     if (!currentSelection) {
         currentSelection = window.getSelection ? window.getSelection().toString().trim() : '';
     }
-    
+
     if (placementMode === 'sub_content_sub_agent' || this.showSubAgentProposal) {
         this.selectedText = this.subAgentOriginalText || this.selectedText || currentSelection;
         this.hasSelection = true;
@@ -911,13 +911,13 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto', c
             effectivePlacement = 'document';
         }
     }
-    
+
     this.isTransforming = true;
     this.activeAction = type;
     this.liveAiStreamText = '';
     this.pipelineStageLog = [];
     this.showAiStreamBanner = true;
-    
+
     this.abortController = new AbortController();
     const signal = this.abortController.signal;
 
@@ -927,7 +927,7 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto', c
     }
     if (!promptToSend || !promptToSend.trim()) {
         promptToSend = (type === 'custom' && !hadSelection)
-            ? 'Write a comprehensive, in-depth technical deep-dive article with benchmarks, architecture, code, and FAQs.' 
+            ? 'Write a comprehensive, in-depth technical deep-dive article with benchmarks, architecture, code, and FAQs.'
             : type;
     }
 
@@ -1037,7 +1037,7 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto', c
             try {
                 this.addLog('ROUTER', '⚡ Local daemon detected (' + preparedData.routing.gateway_url + '). Connecting directly from browser with 0ms server latency...');
                 const directTargetUrl = preparedData.routing.chat_completions_url || 'http://127.0.0.1:20128/v1/chat/completions';
-                
+
                 const directResp = await fetch(directTargetUrl, {
                     method: 'POST',
                     headers: {
@@ -1163,9 +1163,9 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto', c
                         }
                         if (parsed.status_message) {
                             this.swarmStatusMessage = parsed.status_message;
-                            this.pipelineStageLog.push({ 
-                                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}), 
-                                msg: parsed.status_message 
+                            this.pipelineStageLog.push({
+                                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}),
+                                msg: parsed.status_message
                             });
                             this.$nextTick(() => {
                                 const logEl = document.getElementById('pipeline-log-container');
@@ -1189,7 +1189,7 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto', c
                 this.subAgentProposedText = fullResult;
                 const targetId = 'content_' + this.activeProposalId;
                 const canvasTarget = document.getElementById('tiptap-content-target');
-                const contentEl = document.getElementById(targetId) || 
+                const contentEl = document.getElementById(targetId) ||
                                   (canvasTarget ? canvasTarget.querySelector('#' + targetId) : null) ||
                                   document.querySelector(`[id="${targetId}"]`) ||
                                   document.querySelector('.ai-proposal-content');
@@ -1317,7 +1317,7 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto', c
             } else {
                 // 3. FULL CANVAS / DOCUMENT LEVEL GENERATION (Direct Insert)
                 const cleanFinalArticle = this.extractCleanFinalArticle(fullResult);
-                const docFinalHtml = isDocEmpty 
+                const docFinalHtml = isDocEmpty
                     ? cleanFinalArticle
                     : existingDocContent + '<p></p>' + cleanFinalArticle;
 
@@ -1582,7 +1582,7 @@ applyLocalParagraphAction(mode, text, context = {}) {
             ];
             let out = raw;
             replacements.forEach(([rgx, rep]) => { out = out.replace(rgx, rep); });
-            
+
             const sentences = out.split(/(?<=[.?!])\s+/).filter(Boolean);
             if (sentences.length > 0) {
                 const first = sentences[0].charAt(0).toLowerCase() + sentences[0].slice(1);
@@ -1723,7 +1723,7 @@ applyLocalParagraphAction(mode, text, context = {}) {
 
 triggerAiAction(action) {
     this.showSlashMenu = false;
-    
+
     const actionMap = {
         'rewrite': 'rewrite_polish',
         'summarize': 'summarize',
@@ -1737,7 +1737,7 @@ triggerAiAction(action) {
 // sub-content-sub-agent: Dedicated Paragraph Recreation Agent
 triggerSubContentSubAgent(mode = 'recreate', customInstruction = '') {
     const ed = this.getEditor ? this.getEditor() : (this.editorInstance || window.hoaEditorInstance);
-    
+
     // 1. Capture selection text and range from TipTap editor instance, locked context state, or DOM
     let textToRecreate = this.subAgentOriginalText || this.selectedText || '';
     let selRange = this.subAgentSelectionRange || null;
@@ -1746,7 +1746,7 @@ triggerSubContentSubAgent(mode = 'recreate', customInstruction = '') {
         const cur = ed.getSelectedText().trim();
         if (cur) textToRecreate = cur;
     }
-    
+
     if (ed && ed.state && ed.state.selection) {
         const { from, to } = ed.state.selection;
         if (from !== to) {
@@ -1786,7 +1786,7 @@ triggerSubContentSubAgent(mode = 'recreate', customInstruction = '') {
     this.hasSelection = true;
 
     this.addLog('AGENT', '🤖 Dispatching [sub-content-sub-agent] for: ' + (this.subAgentModeLabel || mode));
-    
+
     const proposalId = 'prop_' + Date.now();
     this.activeProposalId = proposalId;
 
@@ -1971,7 +1971,7 @@ acceptSubAgentProposal() {
 
 discardSubAgentProposal() {
     const ed = this.getEditor ? this.getEditor() : (this.editorInstance || window.hoaEditorInstance);
-    
+
     // Unset highlight if active
     if (ed && ed.editor && this.subAgentSelectionRange && this.subAgentSelectionRange.from !== undefined) {
         try {

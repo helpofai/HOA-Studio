@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.8.0] - 2026-09-08
+
+### Added
+- **Content Intelligence Pipeline — Full OmniRoute AI Research Integration (All 11 Services)**:
+  - **DynamicContentProvider Gateway (`DynamicContentProvider.php`)**: Centralized AI content gateway wrapping `OmniRouteClient` with `askJSON()`, `askText()`, and `askStream()` methods. All 8 pipeline services now route through this provider for real AI-generated research, analysis, and content creation. Graceful fallback to schema defaults in test/development environments; production calls hit GPT-4o-mini via OmniRoute.
+  - **Search Intelligence AI (`SearchIntelligenceService`)**: Real AI-powered query cluster generation, topic universe mapping, SERP competitor analysis, and content gap detection replacing algorithmic stubs.
+  - **Knowledge Fabric AI (`KnowledgeFabricService`)**: AI-generated verified claim graphs with epistemic state classification (`verified`, `partially_verified`, `contradicted`, `unverified`), evidence snippet extraction, and confidence scoring.
+  - **Content Blueprint AI (`ContentBlueprintService`)**: AI-synthesized article angles, unique value propositions, target transformations, and required entity/concept identification.
+  - **Adaptive Outline AI (`AdaptiveOutlineService`)**: AI-enhanced hierarchical section tree with must-answer questions, writing directives, claim assignments, and word count targets per section.
+  - **Section Draftsman AI (`SectionDraftsmanService`)**: Real AI content generation per section — topic-aware, claim-grounded, persona-matched, revision-directive-aware HTML prose writing via OmniRoute.
+  - **Critic Agent AI (`CriticAgentService`)**: AI-powered 6-dimension quality evaluation (fact grounding, completeness, search intent, brand voice, readability, SEO) producing specific revision directives, merged with algorithmic scoring.
+  - **SEO Optimizer AI (`SeoOptimizationService`)**: AI-generated meta titles, descriptions, primary/secondary keywords, and SEO recommendations, merged with real keyword density analysis and JSON-LD schema synthesis.
+- **Workflow Engine Telemetry (`ContentWorkflowEngine`)**:
+  - Every pipeline node execution now logs an `AgentActivity` record (tokens used, latency, status, input payload, output summary) and a `BrainDecision` record (question, decision, reasoning, confidence, alternatives). Fully visible in the Inspector's "🤖 Agents & Router" tab.
+- **Document Assembly Phase 5 Integration (`TipTapDocumentAssembler`)**:
+  - Document assembly now automatically triggers Content Health Quality Audit (15-dimension), Risk Assessment (YMYL + human gating), and Content Genome Synthesis at final document compilation, ensuring every published article carries a complete quality fingerprint.
+
+### Changed
+- **Test Suite Extended**: 317 tests passing (1836 assertions, 100% pass rate). New integration tests across Content Brain phases validating AI provider routing, memory operations, surgical repairs, world model truth layer, agent orchestration, lineage extraction, and learning engine harvesting.
+
+### Security
+- All AI calls route through the authenticated OmniRoute gateway with 15-second circuit breaker timeouts.
+- DynamicContentProvider gracefully falls back to schema defaults on provider failure — zero unhandled exceptions in production pipeline.
+
 ## [2.7.9] - 2026-09-07
 
 ### Added

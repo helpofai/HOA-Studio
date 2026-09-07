@@ -45,17 +45,17 @@
     <x-glass.card variant="subtle" class="p-4 space-y-4">
         <div class="flex flex-col sm:flex-row items-center gap-3">
             <div class="w-full sm:flex-1">
-                <x-glass.input 
-                    wire:model.live.debounce.250ms="search" 
-                    placeholder="Search templates (e.g. SEO article, landing page, cold email, LinkedIn, press release)..." 
+                <x-glass.input
+                    wire:model.live.debounce.250ms="search"
+                    placeholder="Search templates (e.g. SEO article, landing page, cold email, LinkedIn, press release)..."
                 />
             </div>
         </div>
 
         <!-- Category Pills -->
         <div class="flex flex-wrap items-center gap-2 pt-1">
-            <button 
-                type="button" 
+            <button
+                type="button"
                 wire:click="$set('selectedCategory', 'all')"
                 class="px-3 py-1.5 rounded-xl text-xs transition-all cursor-pointer font-medium {{ $selectedCategory === 'all' ? 'bg-violet-600 text-white font-bold shadow-md shadow-violet-600/30' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
             >
@@ -63,9 +63,9 @@
             </button>
 
             @foreach($categories as $cat)
-                <button 
+                <button
                     wire:key="tmpl-cat-{{ $cat->slug }}"
-                    type="button" 
+                    type="button"
                     wire:click="$set('selectedCategory', '{{ $cat->slug }}')"
                     class="px-3 py-1.5 rounded-xl text-xs transition-all cursor-pointer flex items-center gap-1.5 font-medium {{ $selectedCategory === $cat->slug ? 'bg-violet-600 text-white font-bold shadow-md shadow-violet-600/30' : 'bg-slate-900/80 text-slate-400 hover:text-white border border-white/5' }}"
                 >
@@ -80,8 +80,8 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @forelse($templates as $tmpl)
             <div wire:key="tmpl-card-{{ $tmpl->id }}" class="h-full">
-            <x-glass.card 
-                variant="elevated" 
+            <x-glass.card
+                variant="elevated"
                 class="p-6 flex flex-col justify-between hover:border-violet-500/50 hover:shadow-2xl hover:shadow-violet-500/10 transition-all cursor-pointer group relative h-full"
                 wire:click="selectTemplate({{ $tmpl->id }})"
             >
@@ -166,7 +166,7 @@
                             <!-- Brand Voice Selector -->
                             <div class="space-y-1">
                                 <label class="font-bold text-slate-300 block">🎭 Apply Brand Voice (Optional)</label>
-                                <select 
+                                <select
                                     wire:model="selectedBrandVoiceId"
                                     class="w-full bg-slate-900 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500"
                                 >
@@ -180,7 +180,7 @@
                             <!-- Model Selector -->
                             <div class="space-y-1">
                                 <label class="font-bold text-slate-300 block">⚡ Engine / Routing</label>
-                                <select 
+                                <select
                                     wire:model="selectedModel"
                                     class="w-full bg-slate-900 border border-white/15 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-violet-500 font-mono"
                                 >
@@ -203,15 +203,15 @@
                                 </label>
 
                                 @if(($field['type'] ?? 'text') === 'textarea')
-                                    <textarea 
+                                    <textarea
                                         wire:model="formInputs.{{ $field['name'] }}"
                                         rows="3"
                                         placeholder="{{ $field['placeholder'] ?? '' }}"
                                         class="w-full bg-slate-900 border border-white/15 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
                                     ></textarea>
                                 @else
-                                    <input 
-                                        type="text" 
+                                    <input
+                                        type="text"
                                         wire:model="formInputs.{{ $field['name'] }}"
                                         placeholder="{{ $field['placeholder'] ?? '' }}"
                                         class="w-full bg-slate-900 border border-white/15 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-500"
@@ -222,8 +222,8 @@
                         @endforeach
 
                         <div class="pt-2 flex items-center justify-end">
-                            <button 
-                                type="submit" 
+                            <button
+                                type="submit"
                                 wire:loading.attr="disabled"
                                 class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold shadow-lg shadow-violet-600/30 transition-all cursor-pointer disabled:opacity-50 flex items-center gap-2"
                             >
@@ -254,16 +254,16 @@
 
                             <!-- Export & Editor Action Bar -->
                             <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     onclick="navigator.clipboard.writeText({{ json_encode($generatedContent) }}); alert('Copied to clipboard!');"
                                     class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/10 text-slate-300 hover:text-white text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5"
                                 >
                                     <span>📋 Copy Output</span>
                                 </button>
 
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     wire:click="createDocumentFromGeneration"
                                     class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/20 transition-all cursor-pointer flex items-center gap-1.5"
                                 >

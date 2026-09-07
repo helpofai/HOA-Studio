@@ -29,7 +29,7 @@
 
         <div class="flex flex-wrap items-center gap-2.5">
             <!-- Export Options -->
-            <button 
+            <button
                 type="button"
                 wire:click="exportSelectedCsv"
                 class="px-3.5 py-2 rounded-xl bg-slate-900/90 border border-white/10 hover:border-violet-500/40 text-slate-200 hover:text-white text-xs font-semibold shadow-md transition-all flex items-center gap-2 cursor-pointer"
@@ -39,7 +39,7 @@
                 <span>Export CSV</span>
             </button>
 
-            <button 
+            <button
                 type="button"
                 wire:click="exportSelectedJson"
                 class="px-3.5 py-2 rounded-xl bg-slate-900/90 border border-white/10 hover:border-violet-500/40 text-slate-200 hover:text-white text-xs font-semibold shadow-md transition-all flex items-center gap-2 cursor-pointer"
@@ -49,8 +49,8 @@
                 <span>Export JSON</span>
             </button>
 
-            <button 
-                type="button" 
+            <button
+                type="button"
                 wire:click="openCreateModal"
                 class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-violet-500/25 transition-all flex items-center gap-2 cursor-pointer"
             >
@@ -142,8 +142,8 @@
 
         <!-- Card 4: Quota Utilization -->
         @php
-            $usagePct = $stats['total_quota_allocated'] > 0 
-                ? min(100, round(($stats['total_quota_used'] / $stats['total_quota_allocated']) * 100, 1)) 
+            $usagePct = $stats['total_quota_allocated'] > 0
+                ? min(100, round(($stats['total_quota_used'] / $stats['total_quota_allocated']) * 100, 1))
                 : 0;
         @endphp
         <x-glass.card variant="subtle" class="p-4 relative overflow-hidden border border-white/10">
@@ -163,8 +163,8 @@
 
     <!-- Navigation Tabs: Directory vs Roles Matrix -->
     <div class="flex items-center gap-2 border-b border-white/10 pb-2">
-        <button 
-            type="button" 
+        <button
+            type="button"
             x-on:click="currentTab = 'users'"
             :class="currentTab === 'users' ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30' : 'bg-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-800/80 border border-white/5'"
             class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
@@ -175,8 +175,8 @@
             </span>
         </button>
 
-        <button 
-            type="button" 
+        <button
+            type="button"
             x-on:click="currentTab = 'roles'"
             :class="currentTab === 'roles' ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/30' : 'bg-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-800/80 border border-white/5'"
             class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
@@ -279,9 +279,9 @@
                     </div>
 
                     @if($search !== '' || $selectedRole !== '' || $selectedPlan !== '' || $selectedStatus !== '' || $sortBy !== 'latest')
-                        <button 
-                            type="button" 
-                            wire:click="clearFilters" 
+                        <button
+                            type="button"
+                            wire:click="clearFilters"
                             class="px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-white/10 text-[11px] text-slate-300 hover:text-white transition-all cursor-pointer"
                         >
                             ✕ Clear Filters
@@ -312,8 +312,8 @@
                 <div class="flex flex-wrap items-center gap-2">
                     <!-- Bulk Role Select -->
                     <div class="relative">
-                        <select 
-                            onchange="if(this.value){ $wire.bulkAssignRole(this.value); this.value=''; }" 
+                        <select
+                            onchange="if(this.value){ $wire.bulkAssignRole(this.value); this.value=''; }"
                             class="bg-slate-900/90 border border-violet-500/30 hover:border-violet-500/60 rounded-xl px-2.5 py-1.5 text-xs text-violet-200 font-semibold focus:outline-none cursor-pointer"
                         >
                             <option value="">Set Role ▾</option>
@@ -327,8 +327,8 @@
 
                     <!-- Bulk Plan Select -->
                     <div class="relative">
-                        <select 
-                            onchange="if(this.value){ $wire.bulkChangePlan(this.value); this.value=''; }" 
+                        <select
+                            onchange="if(this.value){ $wire.bulkChangePlan(this.value); this.value=''; }"
                             class="bg-slate-900/90 border border-indigo-500/30 hover:border-indigo-500/60 rounded-xl px-2.5 py-1.5 text-xs text-indigo-200 font-semibold focus:outline-none cursor-pointer"
                         >
                             <option value="">Set Plan ▾</option>
@@ -339,7 +339,7 @@
                     </div>
 
                     <!-- Quota Boost Presets -->
-                    <button 
+                    <button
                         type="button"
                         wire:click="bulkGrantBonus(10000)"
                         class="px-2.5 py-1.5 rounded-xl bg-cyan-950/80 border border-cyan-500/30 hover:bg-cyan-900/90 text-cyan-300 text-xs font-bold transition-all cursor-pointer"
@@ -348,7 +348,7 @@
                         +10k Quota
                     </button>
 
-                    <button 
+                    <button
                         type="button"
                         wire:click="bulkGrantBonus(50000)"
                         class="px-2.5 py-1.5 rounded-xl bg-cyan-950/80 border border-cyan-500/30 hover:bg-cyan-900/90 text-cyan-300 text-xs font-bold transition-all cursor-pointer"
@@ -358,7 +358,7 @@
                     </button>
 
                     <!-- Reset Used Quota -->
-                    <button 
+                    <button
                         type="button"
                         wire:click="bulkResetUsedQuota"
                         wire:confirm="Are you sure you want to reset the used quota counter to 0 for all selected users?"
@@ -369,7 +369,7 @@
                     </button>
 
                     <!-- Status Actions -->
-                    <button 
+                    <button
                         type="button"
                         wire:click="bulkToggleActive(true)"
                         class="px-2.5 py-1.5 rounded-xl bg-emerald-950/80 border border-emerald-500/30 hover:bg-emerald-900/80 text-emerald-300 text-xs font-semibold transition-all cursor-pointer"
@@ -378,7 +378,7 @@
                         Activate
                     </button>
 
-                    <button 
+                    <button
                         type="button"
                         wire:click="bulkToggleActive(false)"
                         wire:confirm="Suspend logins for all selected users?"
@@ -389,7 +389,7 @@
                     </button>
 
                     <!-- Delete Selected -->
-                    <button 
+                    <button
                         type="button"
                         wire:click="bulkDeleteUsers"
                         wire:confirm="⚠️ DANGER: Permanently delete all selected users? This cannot be undone. (Your own admin account is safely protected)."
@@ -400,7 +400,7 @@
                     </button>
 
                     <!-- Clear Selection -->
-                    <button 
+                    <button
                         type="button"
                         wire:click="clearSelection"
                         class="px-2 py-1.5 rounded-xl text-xs text-slate-400 hover:text-white underline cursor-pointer"
@@ -419,8 +419,8 @@
                         <tr>
                             <!-- Master Selection Checkbox -->
                             <th class="p-4 w-10 text-center">
-                                <input 
-                                    type="checkbox" 
+                                <input
+                                    type="checkbox"
                                     wire:click="toggleSelectAll"
                                     @checked(count($users) > 0 && collect($users->items())->pluck('id')->every(fn($id) => in_array($id, $selectedUsers)))
                                     class="rounded bg-slate-950 border-white/20 text-violet-600 focus:ring-violet-500/30 cursor-pointer"
@@ -447,8 +447,8 @@
                             <tr wire:key="admin-user-row-{{ $user->id }}" class="transition-colors hover:bg-white/[0.03] {{ $isSelected ? 'bg-violet-950/25 border-l-4 border-l-violet-500' : '' }}">
                                 <!-- Checkbox -->
                                 <td class="p-4 text-center">
-                                    <input 
-                                        type="checkbox" 
+                                    <input
+                                        type="checkbox"
                                         wire:click="toggleUserSelection({{ $user->id }})"
                                         @checked($isSelected)
                                         class="rounded bg-slate-950 border-white/20 text-violet-600 focus:ring-violet-500/30 cursor-pointer"
@@ -524,7 +524,7 @@
                                     </div>
                                     <!-- Progress Bar -->
                                     <div class="w-32 bg-slate-950 rounded-full h-1.5 border border-white/5 overflow-hidden">
-                                        <div 
+                                        <div
                                             class="h-full rounded-full transition-all duration-300 {{ $percentUsed > 90 ? 'bg-rose-500' : ($percentUsed > 70 ? 'bg-amber-500' : 'bg-emerald-400') }}"
                                             style="width: {{ $percentUsed }}%"
                                         ></div>
@@ -534,9 +534,9 @@
 
                                 <!-- Status Toggle -->
                                 <td class="p-4">
-                                    <button 
+                                    <button
                                         type="button"
-                                        wire:click="toggleActive({{ $user->id }})" 
+                                        wire:click="toggleActive({{ $user->id }})"
                                         class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase transition-all cursor-pointer {{ $user->is_active ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border border-rose-500/30 hover:bg-rose-500/20' }}"
                                         title="{{ $user->is_active ? 'Click to suspend account' : 'Click to activate account' }}"
                                     >
@@ -548,9 +548,9 @@
                                 <td class="p-4 text-right">
                                     <div class="flex items-center justify-end gap-1.5" x-data="{ rowMenuOpen: false }">
                                         <!-- Quick +10k bonus -->
-                                        <button 
-                                            type="button" 
-                                            wire:click="grantBonusQuota({{ $user->id }}, 10000)" 
+                                        <button
+                                            type="button"
+                                            wire:click="grantBonusQuota({{ $user->id }}, 10000)"
                                             class="px-2 py-1 rounded-lg bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-900 text-[10px] font-bold transition-all cursor-pointer"
                                             title="Grant +10,000 bonus words immediately"
                                         >
@@ -558,7 +558,7 @@
                                         </button>
 
                                         <!-- Edit User Button -->
-                                        <button 
+                                        <button
                                             type="button"
                                             wire:click="openEditModal({{ $user->id }})"
                                             class="px-2.5 py-1 rounded-lg bg-violet-600/20 border border-violet-500/30 hover:bg-violet-600 hover:text-white text-violet-300 text-[11px] font-semibold transition-all cursor-pointer"
@@ -568,7 +568,7 @@
 
                                         <!-- Row Actions Popover Menu -->
                                         <div class="relative">
-                                            <button 
+                                            <button
                                                 type="button"
                                                 x-on:click="rowMenuOpen = !rowMenuOpen"
                                                 class="px-2 py-1 rounded-lg bg-slate-900 border border-white/10 hover:border-white/25 text-slate-300 text-[11px] cursor-pointer"
@@ -576,7 +576,7 @@
                                                 •••
                                             </button>
 
-                                            <div 
+                                            <div
                                                 x-show="rowMenuOpen"
                                                 x-on:click.outside="rowMenuOpen = false"
                                                 x-transition:enter="transition ease-out duration-100"
@@ -586,7 +586,7 @@
                                                 style="display: none;"
                                             >
                                                 <!-- Reset Used Quota -->
-                                                <button 
+                                                <button
                                                     type="button"
                                                     wire:click="resetUserQuota({{ $user->id }})"
                                                     x-on:click="rowMenuOpen = false"
@@ -598,7 +598,7 @@
 
                                                 <!-- Verify Email if not verified -->
                                                 @if(!$user->email_verified_at)
-                                                    <button 
+                                                    <button
                                                         type="button"
                                                         wire:click="markEmailVerified({{ $user->id }})"
                                                         x-on:click="rowMenuOpen = false"
@@ -610,7 +610,7 @@
                                                 @endif
 
                                                 <!-- Resend Welcome -->
-                                                <button 
+                                                <button
                                                     type="button"
                                                     wire:click="resendWelcomeEmail({{ $user->id }})"
                                                     x-on:click="rowMenuOpen = false"
@@ -623,7 +623,7 @@
                                                 <!-- Permanent Delete -->
                                                 @if($user->id !== auth()->id())
                                                     <div class="border-t border-white/10 my-1"></div>
-                                                    <button 
+                                                    <button
                                                         type="button"
                                                         wire:click="deleteUser({{ $user->id }})"
                                                         wire:confirm="Are you sure you want to permanently delete user '{{ $user->name }}'? This action cannot be undone."
@@ -645,8 +645,8 @@
                                     <div class="text-3xl mb-2">🔍</div>
                                     <div class="font-bold text-white text-sm">No Users Found</div>
                                     <div class="text-xs text-slate-400 mt-1">Try adjusting your search criteria or clearing filters.</div>
-                                    <button 
-                                        type="button" 
+                                    <button
+                                        type="button"
                                         wire:click="clearFilters"
                                         class="mt-3 px-3 py-1.5 rounded-xl bg-violet-600/30 border border-violet-500/40 text-violet-300 text-xs font-semibold hover:bg-violet-600 hover:text-white transition-all cursor-pointer"
                                     >
@@ -695,8 +695,8 @@
                     Review predefined roles, system capabilities, default word quotas, and active account distribution across the HelpOfAi Studio workspace.
                 </p>
             </div>
-            <button 
-                type="button" 
+            <button
+                type="button"
                 x-on:click="currentTab = 'users'"
                 class="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-white/15 hover:border-violet-500/40 text-xs font-semibold text-slate-200 hover:text-white transition-all cursor-pointer flex items-center gap-1.5"
             >
@@ -763,7 +763,7 @@
 
                         <!-- Footer Filter Trigger -->
                         <div class="pt-4 mt-4 border-t border-white/5">
-                            <button 
+                            <button
                                 type="button"
                                 wire:click="filterByRole('{{ $roleCard['key'] }}')"
                                 class="w-full py-2 rounded-xl bg-slate-900 border border-white/10 hover:border-violet-500/40 text-xs font-semibold text-slate-200 hover:text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer"
@@ -781,10 +781,10 @@
     <!-- ========================================================================= -->
     <!-- UPGRADED EDIT USER MODAL (Multi-Tab Dark Glassmorphic Dialog)             -->
     <!-- ========================================================================= -->
-    <div 
-        x-data="{ show: $wire.entangle('showEditModal'), editTab: $wire.entangle('editActiveTab') }" 
-        x-show="show" 
-        class="fixed inset-0 z-50 flex items-center justify-center p-4" 
+    <div
+        x-data="{ show: $wire.entangle('showEditModal'), editTab: $wire.entangle('editActiveTab') }"
+        x-show="show"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4"
         style="display: none;"
     >
         <div class="fixed inset-0 bg-slate-950/85 backdrop-blur-md" x-on:click="show = false"></div>
@@ -806,8 +806,8 @@
                     </div>
                 </div>
 
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     x-on:click="show = false"
                     class="w-8 h-8 rounded-xl bg-slate-900 border border-white/10 hover:border-white/25 text-slate-400 hover:text-white flex items-center justify-center text-sm cursor-pointer transition-all"
                 >
@@ -817,32 +817,32 @@
 
             <!-- Modal Sub-Tabs Strip -->
             <div class="flex items-center gap-2 px-6 pt-3 pb-0 border-b border-white/5 bg-slate-950/40 text-xs">
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     x-on:click="editTab = 'profile'"
                     :class="editTab === 'profile' ? 'border-violet-500 text-white' : 'border-transparent text-slate-400 hover:text-slate-200'"
                     class="pb-2 px-2 font-semibold border-b-2 transition-all cursor-pointer"
                 >
                     👤 Profile
                 </button>
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     x-on:click="editTab = 'role'"
                     :class="editTab === 'role' ? 'border-violet-500 text-white' : 'border-transparent text-slate-400 hover:text-slate-200'"
                     class="pb-2 px-2 font-semibold border-b-2 transition-all cursor-pointer"
                 >
                     🛡️ Role & Plan
                 </button>
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     x-on:click="editTab = 'quota'"
                     :class="editTab === 'quota' ? 'border-violet-500 text-white' : 'border-transparent text-slate-400 hover:text-slate-200'"
                     class="pb-2 px-2 font-semibold border-b-2 transition-all cursor-pointer"
                 >
                     ⚡ Quota Engine
                 </button>
-                <button 
-                    type="button" 
+                <button
+                    type="button"
                     x-on:click="editTab = 'security'"
                     :class="editTab === 'security' ? 'border-violet-500 text-white' : 'border-transparent text-slate-400 hover:text-slate-200'"
                     class="pb-2 px-2 font-semibold border-b-2 transition-all cursor-pointer"
@@ -948,35 +948,35 @@
                     <div class="space-y-2 pt-2 border-t border-white/5">
                         <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Instant Quota Boosters & Reset</span>
                         <div class="flex flex-wrap items-center gap-2">
-                            <button 
+                            <button
                                 type="button"
                                 wire:click="modalGrantBonus(10000)"
                                 class="px-2.5 py-1.5 rounded-lg bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-900 text-xs font-bold transition-all cursor-pointer"
                             >
                                 +10,000 Bonus
                             </button>
-                            <button 
+                            <button
                                 type="button"
                                 wire:click="modalGrantBonus(50000)"
                                 class="px-2.5 py-1.5 rounded-lg bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-900 text-xs font-bold transition-all cursor-pointer"
                             >
                                 +50,000 Bonus
                             </button>
-                            <button 
+                            <button
                                 type="button"
                                 wire:click="modalResetUsed"
                                 class="px-2.5 py-1.5 rounded-lg bg-amber-950/80 border border-amber-500/30 text-amber-300 hover:bg-amber-900 text-xs font-bold transition-all cursor-pointer"
                             >
                                 Reset Used to 0
                             </button>
-                            <button 
+                            <button
                                 type="button"
                                 wire:click="modalSetPlanQuota(15000)"
                                 class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-white/10 text-slate-300 hover:text-white text-xs cursor-pointer"
                             >
                                 Apply Starter (15k)
                             </button>
-                            <button 
+                            <button
                                 type="button"
                                 wire:click="modalSetPlanQuota(100000)"
                                 class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-white/10 text-slate-300 hover:text-white text-xs cursor-pointer"
@@ -1031,10 +1031,10 @@
     <!-- ========================================================================= -->
     <!-- CREATE USER MODAL                                                         -->
     <!-- ========================================================================= -->
-    <div 
-        x-data="{ show: $wire.entangle('showCreateModal') }" 
-        x-show="show" 
-        class="fixed inset-0 z-50 flex items-center justify-center p-4" 
+    <div
+        x-data="{ show: $wire.entangle('showCreateModal') }"
+        x-show="show"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4"
         style="display: none;"
     >
         <div class="fixed inset-0 bg-slate-950/85 backdrop-blur-md" x-on:click="show = false"></div>

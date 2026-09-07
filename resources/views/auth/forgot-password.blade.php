@@ -81,10 +81,10 @@
                 </div>
 
                 <!-- 1. Classic Spinner Submission Button -->
-                <x-glass.button 
-                    type="submit" 
-                    variant="primary" 
-                    size="md" 
+                <x-glass.button
+                    type="submit"
+                    variant="primary"
+                    size="md"
                     wire-target="sendResetLink"
                     loader="spinner"
                     loading-text="Dispatching Link..."

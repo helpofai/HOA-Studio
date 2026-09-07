@@ -25,9 +25,9 @@
                 <span>10-Point E-E-A-T Quality Audit</span>
             </span>
 
-            <button 
-                type="button" 
-                wire:click="generateQualityAudit" 
+            <button
+                type="button"
+                wire:click="generateQualityAudit"
                 class="px-2.5 py-1 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-mono text-[10.5px] font-bold shadow-md shadow-indigo-600/25 transition-all cursor-pointer flex items-center gap-1"
                 wire:loading.attr="disabled"
                 title="Recalculate all 10 E-E-A-T quality dimensions"
@@ -201,8 +201,8 @@
             </div>
 
             {{-- 1-Click Master E-E-A-T Auto-Heal Button --}}
-            <button 
-                type="button" 
+            <button
+                type="button"
                 x-on:click="triggerAiTransform('seo_auto_heal', 'Transform this entire article to achieve 100/100 E-E-A-T Quality: Inject first-hand testing phrases (\'in our lab tests\', \'we observed\'), add 3-4 verifiable benchmark data points with percentages, cite authoritative external sources, insert a concise 40-60 word direct definition box under the first H2, add a structured comparison table, format clear H2/H3 headings, and guarantee deep topical completeness. Output clean HTML.', 'document')"
                 class="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 hover:from-emerald-500 hover:to-indigo-500 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 title="Automatically boost content across all 10 E-E-A-T dimensions"
@@ -259,9 +259,9 @@
                             {{ $factor['status'] }}
                         </span>
 
-                        <button 
-                            type="button" 
-                            x-on:click="triggerAiTransform('{{ $factor['action_type'] }}'{{ !empty($factor['custom_prompt']) ? ", '" . addslashes($factor['custom_prompt']) . "'" : '' }})" 
+                        <button
+                            type="button"
+                            x-on:click="triggerAiTransform('{{ $factor['action_type'] }}'{{ !empty($factor['custom_prompt']) ? ", '" . addslashes($factor['custom_prompt']) . "'" : '' }})"
                             class="px-2 py-0.5 rounded-lg text-[9.5px] font-bold transition-all cursor-pointer shrink-0 shadow-sm {{ $factor['button_class'] ?? 'bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white' }}"
                             title="Run AI optimization for {{ $factor['title'] }}"
                         >
@@ -274,8 +274,8 @@
 
         {{-- E-E-A-T Quality Framework Reference Guide --}}
         <div x-data="{ showEeatGuide: false }" class="pt-1">
-            <button 
-                type="button" 
+            <button
+                type="button"
                 x-on:click="showEeatGuide = !showEeatGuide"
                 class="w-full text-left p-2 rounded-xl bg-slate-950/40 hover:bg-slate-950/70 border border-white/5 flex items-center justify-between text-[10.5px] text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
             >

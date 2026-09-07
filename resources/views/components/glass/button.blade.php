@@ -67,10 +67,10 @@ if (! $effectiveTarget) {
 $isLivewireAction = ! empty($effectiveTarget) || $attributes->whereStartsWith('wire:click')->isNotEmpty() || $attributes->whereStartsWith('wire:submit')->isNotEmpty();
 @endphp
 
-<button 
-    type="{{ $type }}" 
+<button
+    type="{{ $type }}"
     @if($effectiveTarget)
-        wire:loading.attr="disabled" 
+        wire:loading.attr="disabled"
         wire:target="{{ $effectiveTarget }}"
         wire:loading.class="opacity-75 cursor-wait"
     @elseif($isLivewireAction)

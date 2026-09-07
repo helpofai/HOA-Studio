@@ -94,7 +94,7 @@ class DocumentExporter
     <title>{$title} — HelpOfAi Studio</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap');
-        
+
         :root {
             --bg-color: #0d1117;
             --text-color: #e6edf3;

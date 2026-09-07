@@ -218,7 +218,7 @@ class PipelineCoordinator
             $fullDraft .= $sectionHeader;
             $sendEvent('chunk', $sectionHeader);
 
-            $sysPrompt = "You are a world-class Senior Writer and Publisher specializing in {$domain}. 
+            $sysPrompt = "You are a world-class Senior Writer and Publisher specializing in {$domain}.
 Write the body content for the section.
 Tone: {$tone}
 Format: Clean HTML (<p>, <ul>, <li>, <strong>, <em>).

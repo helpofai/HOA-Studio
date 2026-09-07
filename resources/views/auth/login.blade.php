@@ -125,7 +125,7 @@
 
                 <!-- Cloudflare Turnstile Challenge (Renders if site key is configured) -->
                 @if (!empty($turnstileSiteKey))
-                    <div 
+                    <div
                         x-data="{
                             initTurnstile() {
                                 if (window.turnstile) {
@@ -161,10 +161,10 @@
                 @endif
 
                 <!-- 1. Classic Spinner Submission Button -->
-                <x-glass.button 
-                    type="submit" 
-                    variant="primary" 
-                    size="md" 
+                <x-glass.button
+                    type="submit"
+                    variant="primary"
+                    size="md"
                     wire-target="login"
                     loader="spinner"
                     loading-text="Authenticating..."

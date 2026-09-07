@@ -20,10 +20,10 @@
 ])
 
 <!-- Navigation Header with Smooth Auto Hide/Show on Scroll -->
-<header 
-    x-data="{ 
-        mobileMenuOpen: false, 
-        showHeader: true, 
+<header
+    x-data="{
+        mobileMenuOpen: false,
+        showHeader: true,
         lastScrollY: 0,
         isScrolled: false,
         init() {
@@ -32,7 +32,7 @@
         handleScroll() {
             const currentScrollY = window.scrollY;
             this.isScrolled = currentScrollY > 20;
-            
+
             if (this.mobileMenuOpen) {
                 this.showHeader = true;
                 return;
@@ -104,10 +104,10 @@
 
                 <!-- User Profile & Quick Navigation Glass Dropdown -->
                 <div class="relative shrink-0" x-data="{ userMenuOpen: false }" @click.outside="userMenuOpen = false" @keydown.escape.window="userMenuOpen = false">
-                    <button 
-                        type="button" 
-                        @click="userMenuOpen = !userMenuOpen" 
-                        class="flex items-center gap-2 p-1 pr-2 rounded-xl glass-subtle hover:border-indigo-500/40 transition-all border border-white/5 cursor-pointer focus:outline-none select-none group" 
+                    <button
+                        type="button"
+                        @click="userMenuOpen = !userMenuOpen"
+                        class="flex items-center gap-2 p-1 pr-2 rounded-xl glass-subtle hover:border-indigo-500/40 transition-all border border-white/5 cursor-pointer focus:outline-none select-none group"
                         title="User Profile & Settings"
                         :aria-expanded="userMenuOpen"
                     >
@@ -121,8 +121,8 @@
                     </button>
 
                     <!-- Transparent Glassmorphic Backdrop-Blur Dropdown Panel -->
-                    <div 
-                        x-show="userMenuOpen" 
+                    <div
+                        x-show="userMenuOpen"
                         x-transition:enter="transition ease-out duration-200"
                         x-transition:enter-start="opacity-0 translate-y-2 scale-95"
                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
@@ -153,7 +153,7 @@
                         <!-- Workspace Quick Navigation -->
                         <div class="py-1.5 border-b border-white/10 text-xs">
                             <div class="px-3 py-1 text-[10px] uppercase font-bold text-slate-400 tracking-wider">Workspace</div>
-                            
+
                             <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5 px-3 py-2 text-slate-300 hover:text-white hover:bg-white/10 transition-colors">
                                 <span class="text-indigo-400 text-sm">📊</span>
                                 <span>Dashboard Overview</span>
@@ -225,8 +225,8 @@
             @endauth
 
             <!-- Mobile Menu Hamburger Button -->
-            <button 
-                type="button" 
+            <button
+                type="button"
                 @click="mobileMenuOpen = !mobileMenuOpen"
                 class="md:hidden p-2 rounded-xl bg-slate-900 border border-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer"
                 aria-label="Toggle navigation menu"
@@ -241,8 +241,8 @@
     <template x-teleport="body">
         <div>
             <!-- Backdrop Overlay -->
-            <div 
-                x-show="mobileMenuOpen" 
+            <div
+                x-show="mobileMenuOpen"
                 x-transition:enter="transition-opacity ease-linear duration-300"
                 x-transition:enter-start="opacity-0"
                 x-transition:enter-end="opacity-100"
@@ -255,8 +255,8 @@
             ></div>
 
             <!-- Slide-Over Drawer (Right Edge) -->
-            <div 
-                x-show="mobileMenuOpen" 
+            <div
+                x-show="mobileMenuOpen"
                 x-transition:enter="transform transition ease-in-out duration-300"
                 x-transition:enter-start="translate-x-full"
                 x-transition:enter-end="translate-x-0"
@@ -276,8 +276,8 @@
                                 <p class="text-[10px] text-slate-400 leading-none">Universal Workspace</p>
                             </div>
                         </div>
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             @click="mobileMenuOpen = false"
                             class="p-2 rounded-xl bg-slate-900 border border-white/10 text-slate-400 hover:text-white transition-colors cursor-pointer"
                             aria-label="Close navigation menu"
@@ -288,9 +288,9 @@
 
                     <!-- Navigation Items -->
                     <div class="space-y-2 font-medium text-sm">
-                        <a 
-                            href="{{ request()->is('/') ? '#demo' : url('/#demo') }}" 
-                            @click="mobileMenuOpen = false" 
+                        <a
+                            href="{{ request()->is('/') ? '#demo' : url('/#demo') }}"
+                            @click="mobileMenuOpen = false"
                             class="flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-indigo-600/20 via-violet-600/15 to-transparent border border-indigo-500/30 text-white font-semibold shadow-inner group hover:border-indigo-500/50 transition-all"
                         >
                             <div class="flex items-center gap-3">
@@ -305,9 +305,9 @@
                             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                         </a>
 
-                        <a 
-                            href="{{ request()->is('/') ? '#engines' : url('/#engines') }}" 
-                            @click="mobileMenuOpen = false" 
+                        <a
+                            href="{{ request()->is('/') ? '#engines' : url('/#engines') }}"
+                            @click="mobileMenuOpen = false"
                             class="flex items-center gap-3 p-3 rounded-2xl bg-slate-900/50 hover:bg-white/5 border border-white/5 hover:border-white/15 text-slate-300 hover:text-white transition-all group"
                         >
                             <div class="w-8 h-8 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center text-sm group-hover:scale-105 transition-transform">
@@ -319,9 +319,9 @@
                             </div>
                         </a>
 
-                        <a 
-                            href="{{ request()->is('/') ? '#features' : url('/#features') }}" 
-                            @click="mobileMenuOpen = false" 
+                        <a
+                            href="{{ request()->is('/') ? '#features' : url('/#features') }}"
+                            @click="mobileMenuOpen = false"
                             class="flex items-center gap-3 p-3 rounded-2xl bg-slate-900/50 hover:bg-white/5 border border-white/5 hover:border-white/15 text-slate-300 hover:text-white transition-all group"
                         >
                             <div class="w-8 h-8 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center text-sm group-hover:scale-105 transition-transform">
@@ -333,9 +333,9 @@
                             </div>
                         </a>
 
-                        <a 
-                            href="{{ route('blog.index') }}" 
-                            @click="mobileMenuOpen = false" 
+                        <a
+                            href="{{ route('blog.index') }}"
+                            @click="mobileMenuOpen = false"
                             class="flex items-center gap-3 p-3 rounded-2xl {{ request()->routeIs('blog.*') ? 'bg-violet-600/20 border border-violet-500/40 text-violet-200' : 'bg-slate-900/50 hover:bg-white/5 border border-white/5 hover:border-white/15 text-slate-300 hover:text-white' }} transition-all group"
                         >
                             <div class="w-8 h-8 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center text-sm group-hover:scale-105 transition-transform">
@@ -347,9 +347,9 @@
                             </div>
                         </a>
 
-                        <a 
-                            href="{{ request()->is('/') ? '#glass-system' : url('/#glass-system') }}" 
-                            @click="mobileMenuOpen = false" 
+                        <a
+                            href="{{ request()->is('/') ? '#glass-system' : url('/#glass-system') }}"
+                            @click="mobileMenuOpen = false"
                             class="flex items-center gap-3 p-3 rounded-2xl bg-slate-900/50 hover:bg-white/5 border border-white/5 hover:border-white/15 text-slate-300 hover:text-white transition-all group"
                         >
                             <div class="w-8 h-8 rounded-xl bg-slate-800 border border-white/10 flex items-center justify-center text-sm group-hover:scale-105 transition-transform">
@@ -363,9 +363,9 @@
 
                         @auth
                             @if(auth()->user()->isAdmin())
-                                <a 
-                                    href="{{ route('admin.dashboard') }}" 
-                                    @click="mobileMenuOpen = false" 
+                                <a
+                                    href="{{ route('admin.dashboard') }}"
+                                    @click="mobileMenuOpen = false"
                                     class="flex items-center gap-3 p-3 rounded-2xl bg-violet-950/40 border border-violet-500/30 text-violet-200 hover:bg-violet-900/40 transition-all group"
                                 >
                                     <div class="w-8 h-8 rounded-xl bg-violet-600/30 border border-violet-500/40 flex items-center justify-center text-sm">

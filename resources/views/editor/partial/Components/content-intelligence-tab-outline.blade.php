@@ -22,17 +22,17 @@
                 <span>Document Outline</span>
             </span>
             <div class="flex items-center gap-1">
-                <button 
-                    type="button" 
-                    x-on:click="updateOutline()" 
+                <button
+                    type="button"
+                    x-on:click="updateOutline()"
                     class="px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-[10px] font-bold border border-white/10 transition-colors cursor-pointer"
                     title="Refresh outline from live editor canvas"
                 >
                     ↻ Sync
                 </button>
-                <button 
-                    type="button" 
-                    x-on:click="triggerAiTransform('generate_outline')" 
+                <button
+                    type="button"
+                    x-on:click="triggerAiTransform('generate_outline')"
                     class="px-2.5 py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white text-[10px] font-bold border border-indigo-500/30 transition-colors cursor-pointer"
                     title="Generate AI structured heading taxonomy"
                 >
@@ -46,7 +46,7 @@
                 <p class="text-slate-500 text-xs italic py-3 text-center">No headings detected yet.<br><span class="text-[10px] text-slate-600">Add H1, H2, or H3 headings in the canvas or click "↻ Sync".</span></p>
             </template>
             <template x-for="(item, idx) in docOutline" :key="idx">
-                <div 
+                <div
                     x-on:click="scrollToHeading(item.text)"
                     class="p-2 rounded-xl hover:bg-white/10 transition-colors cursor-pointer text-slate-300 hover:text-white flex items-center justify-between gap-2"
                     :class="{

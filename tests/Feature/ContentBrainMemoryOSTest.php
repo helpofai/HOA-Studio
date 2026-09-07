@@ -54,12 +54,12 @@ class ContentBrainMemoryOSTest extends TestCase
         parent::setUp();
 
         $this->user = User::factory()->create([
-            'email' => 'author@helpofai.com',
+            'email' => 'author_'.uniqid().'@helpofai.com',
             'role' => 'user',
         ]);
 
         $this->admin = User::factory()->create([
-            'email' => 'admin@helpofai.com',
+            'email' => 'admin_'.uniqid().'@helpofai.com',
             'role' => 'admin',
         ]);
     }
@@ -169,7 +169,7 @@ class ContentBrainMemoryOSTest extends TestCase
         $this->assertFalse($res2->isAdmitted);
         $this->assertSame('duplicate_ignored', $res2->action);
         $this->assertSame($res1->memoryId, $res2->memoryId);
-        $this->assertDatabaseCount('brain_memories', 1);
+        $this->assertSame(1, BrainMemory::where('user_id', $this->user->id)->count());
     }
 
     public function test_admission_gate_reconciles_contradictions_and_increments_version_lineage(): void
