@@ -177,6 +177,7 @@ flowchart TD
 * **Inbound Synapses**:
   - Web Route `GET /documents/{id}/edit`
   - Alpine.js events (`content:changed`, `tiptap:save`, `seo:locate`)
+  - Surgical Micro-Section triggers from BubbleMenu & Context Menu (`inject_data_points`, `add_code_snippet`, `inject_counter_arguments`, `surgical_micro_repair`)
 * **Outbound Synapses**:
   - Dispatches to SSE Controller `POST /ai/stream` (Prompt generation)
   - Calls [`SeoAnalyzer.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/SEO/Services/SeoAnalyzer.php) via `runSeoAudit(liveHtml)`

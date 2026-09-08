@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.8.4] - 2026-09-08
+
+### Added
+- **TipTap Pro Canvas — Surgical Micro-Section Regenerator Suite**:
+  - **Data Points & Empirical Metrics (`inject_data_points`)**: Injects verifiable data points, percentage metrics, and benchmark statistics directly into selected paragraphs with bold emphasis.
+  - **Code Implementation Generator (`add_code_snippet`)**: Generates syntactically correct, multi-language code blocks (`\`\`\`language`) with macOS terminal chrome and copy buttons.
+  - **Trade-offs & Technical Nuance (`inject_counter_arguments`)**: Injects architectural caveats, limitations, and balanced objective perspectives into technical drafts.
+  - **Surgical Micro-Repair Engine (`surgical_micro_repair`)**: Optimizes information density, active voice, and cognitive flow while strictly retaining technical entity names and facts.
+  - **Dual Menu Integration**: Added 1-click execution across both the TipTap Selection Bubble Menu and the Right-Click Context Menu with sub-agent proposal preview diffs.
+
+---
+
 ## [2.8.3] - 2026-09-08
 
 ### Added

@@ -480,6 +480,18 @@
                     <button type="button" x-on:mousedown.prevent x-on:click="triggerAiTransform('key_takeaways'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
                         <span class="text-teal-400">💡</span> <span>Extract Key Takeaways</span>
                     </button>
+                    <button type="button" x-on:mousedown.prevent x-on:click="triggerSubContentSubAgent('inject_data_points'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
+                        <span class="text-emerald-400">📊</span> <span>Inject Data & Benchmarks</span>
+                    </button>
+                    <button type="button" x-on:mousedown.prevent x-on:click="triggerSubContentSubAgent('add_code_snippet'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
+                        <span class="text-indigo-400">💻</span> <span>Generate Code Snippet</span>
+                    </button>
+                    <button type="button" x-on:mousedown.prevent x-on:click="triggerSubContentSubAgent('inject_counter_arguments'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
+                        <span class="text-amber-400">⚖️</span> <span>Add Trade-offs & Nuance</span>
+                    </button>
+                    <button type="button" x-on:mousedown.prevent x-on:click="triggerSubContentSubAgent('surgical_micro_repair'); bubbleAiOpen = false" class="w-full text-left p-2 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-white flex items-center gap-2 cursor-pointer">
+                        <span class="text-cyan-400">🔬</span> <span>Surgical Micro-Repair</span>
+                    </button>
                 </div>
             </div>
 
@@ -702,6 +714,15 @@
                 </button>
                 <button type="button" x-on:click="closeContextMenu(); triggerSubContentSubAgent('seo_optimize')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer transition-colors">
                     <span class="text-emerald-400">⌁</span> <span>SEO Optimize Text</span>
+                </button>
+                <button type="button" x-on:click="closeContextMenu(); triggerSubContentSubAgent('inject_data_points')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer transition-colors">
+                    <span class="text-emerald-400">📊</span> <span>Inject Data & Benchmarks</span>
+                </button>
+                <button type="button" x-on:click="closeContextMenu(); triggerSubContentSubAgent('add_code_snippet')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer transition-colors">
+                    <span class="text-indigo-400">💻</span> <span>Generate Code Snippet</span>
+                </button>
+                <button type="button" x-on:click="closeContextMenu(); triggerSubContentSubAgent('inject_counter_arguments')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-indigo-600/25 text-slate-200 hover:text-indigo-200 flex items-center gap-2 cursor-pointer transition-colors">
+                    <span class="text-amber-400">⚖️</span> <span>Add Trade-offs & Nuance</span>
                 </button>
                 <button type="button" x-on:click="closeContextMenu(); triggerSubContentSubAgent('surgical_micro_repair')" class="w-full text-left px-2.5 py-1.5 rounded-xl hover:bg-emerald-600/25 text-emerald-300 hover:text-white flex items-center gap-2 cursor-pointer transition-colors">
                     <span class="text-emerald-400">🔬</span> <span>Surgical Micro-Repair</span>

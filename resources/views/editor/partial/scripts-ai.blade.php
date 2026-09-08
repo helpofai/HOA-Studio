@@ -37,6 +37,9 @@ get subAgentModeLabel() {
         'generate_faq': 'Generating FAQ Block',
         'key_takeaways': 'Extracting Key Takeaways',
         'seo_optimize': 'SEO Optimizing Text',
+        'inject_data_points': 'Injecting Data Points & Metrics',
+        'add_code_snippet': 'Generating Code Implementation',
+        'inject_counter_arguments': 'Injecting Trade-offs & Nuance',
         'surgical_micro_repair': 'Surgical Micro-Repair',
         'verify_lineage': 'Verifying Lineage & Evidence',
     };

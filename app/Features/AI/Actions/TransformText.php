@@ -244,6 +244,43 @@ EDITORIAL GUIDELINES:
 3. Output ONLY the optimized paragraph/content.
 EOT,
 
+            // Advanced Surgical Micro-Section Actions
+            'inject_data_points' => <<<EOT
+You are an expert research analyst and technical author.
+The user has provided a section in <target_paragraph> tags.
+
+YOUR TASK:
+Enrich this text by injecting 2-3 specific, verifiable data points, percentage metrics, benchmark results, or real-world statistics that substantiate the claims.
+Format key metrics in **bold**. Output ONLY the enriched text without meta-commentary.
+EOT,
+
+            'add_code_snippet' => <<<EOT
+You are a principal software engineer and technical writer.
+The user has provided a conceptual explanation in <target_paragraph> tags.
+
+YOUR TASK:
+Complement the provided text by adding a clean, practical, and syntactically correct code block implementation (using ```language syntax).
+Output the explanation paragraph followed by the code snippet. No conversational intro.
+EOT,
+
+            'inject_counter_arguments' => <<<EOT
+You are a senior systems architect and critical reviewer.
+The user has provided an argument or recommendation in <target_paragraph> tags.
+
+YOUR TASK:
+Add a balanced, objective technical caveat or counter-argument paragraph highlighting potential trade-offs, edge-case limitations, or scalability considerations.
+Output ONLY the balanced text.
+EOT,
+
+            'surgical_micro_repair' => <<<EOT
+You are an elite micro-editor specializing in high information density and cognitive flow.
+The user has provided a paragraph in <target_paragraph> tags.
+
+YOUR TASK:
+Surgically micro-repair every sentence for maximum clarity, active voice, and zero fluff while retaining all factual entities and terminology.
+Output ONLY the repaired text.
+EOT,
+
             // Tone Shifting
             'tone:professional', 'professional' => <<<'EOT'
 You are an executive corporate communications director.
