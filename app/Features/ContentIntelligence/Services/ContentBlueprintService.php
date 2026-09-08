@@ -183,25 +183,52 @@ Return JSON: {\"faqs\": [\"Question 1?\", \"Question 2?\", ...]}";
     }
 
     /**
-     * Extract specific user questions/inquiries from the thesis/objective string.
+     * Extract specific user questions, named entities, or comparison items from the thesis string.
      */
     protected function extractUserInquiries(string $thesis, string $topic): array
     {
+        $cleanThesis = ContentDomainClassifier::cleanRawText($thesis);
         $inquiries = [];
 
-        // Check for questions ending in '?' or separate lines/bullets
-        $lines = preg_split('/(?:\r\n|\r|\n|\?)/u', $thesis, -1, PREG_SPLIT_NO_EMPTY);
+        // 1. Check for named items formatted as "Item Name: Description" (e.g. "PUBG Mobile: A 100-player...", "Call of Duty: Mobile: Combines...")
+        if (preg_match_all('/(?:Top Alternatives\s*)?([A-Za-z0-9][A-Za-z0-9\s\(\)\:\/\-]{2,30}):\s*([A-Z][^:]+?)(?=(?:[A-Za-z0-9\s\(\)\:\/\-]{2,30}:)|$)/u', $cleanThesis, $matches, PREG_SET_ORDER)) {
+            $extractedItems = [];
+            foreach ($matches as $match) {
+                $itemName = trim($match[1]);
+                // Filter out non-entity labels
+                if (!preg_match('/^(top alternatives|alternatives|features|modes|options|note|summary)$/i', $itemName) && strlen($itemName) >= 3 && strlen($itemName) <= 35) {
+                    $extractedItems[] = $itemName;
+                }
+            }
+
+            if (count($extractedItems) >= 2) {
+                $inquiries[] = "Top Alternatives & Best Games Similar to " . ucwords(trim($topic));
+                foreach ($extractedItems as $item) {
+                    $inquiries[] = "{$item}: Gameplay, Features & Player Experience";
+                }
+                $inquiries[] = "Gameplay, Controls & Device Performance Comparison";
+                $inquiries[] = "Final Verdict: Which Game Should You Choose?";
+                return $inquiries;
+            }
+        }
+
+        // 2. Check for questions ending in '?' or interrogative statements
+        $lines = preg_split('/(?:\r\n|\r|\n|\?)/u', $cleanThesis, -1, PREG_SPLIT_NO_EMPTY);
         foreach ($lines as $line) {
             $trimmed = trim(preg_replace('/^[\s\-\*\d\.\)]+/', '', $line));
-            if (strlen($trimmed) > 8) {
+            if (strlen($trimmed) > 8 && strlen($trimmed) <= 85) {
                 // If it looks like a question or substantive inquiry
                 if (preg_match('/^(what|how|why|does|can|is|are|which|when|where|who|will|should)/i', $trimmed)) {
                     $inquiry = rtrim($trimmed, '?') . '?';
                     if (!in_array($inquiry, $inquiries)) {
                         $inquiries[] = $inquiry;
                     }
-                } elseif (strlen($trimmed) > 15 && !in_array($trimmed, $inquiries)) {
-                    $inquiries[] = $trimmed;
+                } elseif (strlen($trimmed) > 15 && !str_contains($trimmed, 'http') && !in_array($trimmed, $inquiries)) {
+                    // Clean summary sentence into a short title
+                    $words = explode(' ', $trimmed);
+                    if (count($words) <= 8) {
+                        $inquiries[] = ucfirst(trim($trimmed, '.'));
+                    }
                 }
             }
         }
@@ -210,33 +237,55 @@ Return JSON: {\"faqs\": [\"Question 1?\", \"Question 2?\", ...]}";
     }
 
     /**
-     * Build high-quality, topic & inquiry grounded section headings.
+     * Build high-quality, domain-grounded section headings.
      */
     protected function buildFallbackSections(string $topic, string $thesis): array
     {
         $inquiries = $this->extractUserInquiries($thesis, $topic);
         $cleanTopic = ucwords(trim($topic));
-        $sections = [];
+        $domain = ContentDomainClassifier::classify($topic, $thesis);
 
-        if (!empty($inquiries) && count($inquiries) >= 2) {
-            foreach ($inquiries as $inq) {
-                $cleanInq = rtrim($inq, '?');
-                $sections[] = ucfirst($cleanInq) . (str_ends_with($inq, '?') ? '?' : '');
-            }
-            // Add an operational / deployment section if fewer than 5 sections
-            if (count($sections) < 5) {
-                $sections[] = "Practical Implementation, Workflows & Best Practices for {$cleanTopic}";
-            }
-        } else {
-            $sections = [
+        if (!empty($inquiries) && count($inquiries) >= 3) {
+            return array_values(array_unique($inquiries));
+        }
+
+        // Domain-specific tailored fallback section structures
+        return match ($domain) {
+            ContentDomainClassifier::DOMAIN_GAMING => [
+                "Introduction to {$cleanTopic} & Gameplay Overview",
+                "Top Alternatives & Best Similar Games to Play",
+                "Core Mechanics, Combat Style & Graphic Quality Comparison",
+                "Device Requirements, Frame Rate Optimization & Controls",
+                "Final Verdict & Best Recommendations for Players"
+            ],
+            ContentDomainClassifier::DOMAIN_SOFTWARE => [
+                "Overview of {$cleanTopic} & Core Architecture",
+                "Key Features, Framework Capabilities & Developer Workflow",
+                "Step-by-Step Implementation & Configuration Guide",
+                "Performance Optimization, Scaling & Error Handling",
+                "Production Best Practices & Deployment Blueprint"
+            ],
+            ContentDomainClassifier::DOMAIN_BUSINESS => [
+                "Market Overview & Strategic Value of {$cleanTopic}",
+                "Core Strategies, Methodologies & Implementation Playbook",
+                "Key Tools, Platforms & Competitive Analysis",
+                "ROI Optimization, Risk Management & Execution Framework",
+                "Long-Term Growth & Future Industry Trends"
+            ],
+            ContentDomainClassifier::DOMAIN_HEALTH => [
+                "Understanding {$cleanTopic}: Core Principles & Key Benefits",
+                "Essential Techniques, Step-by-Step Guide & Best Practices",
+                "Common Pitfalls, Safety Considerations & Practical Tips",
+                "Personalized Routines & Daily Implementation Strategies",
+                "Long-Term Maintenance & Expert Recommendations"
+            ],
+            default => [
                 "What Is {$cleanTopic} & How Does It Work?",
                 "Core Architecture, Capabilities & Engine Mechanics",
                 "Key Features, Integrations & Real-World Use Cases",
                 "Practical Deployment Workflows & Configuration Guide",
                 "Strategic Roadmap, Best Practices & Performance Optimization"
-            ];
-        }
-
-        return array_values(array_unique($sections));
+            ]
+        };
     }
 }

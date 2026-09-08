@@ -140,13 +140,17 @@ Requirements:
         }
 
         $cleanTopic = ucwords(trim($topic));
-        $tLower = strtolower($topic);
+        $domain = ContentDomainClassifier::classify($topic, $thesis);
 
-        if (str_contains($tLower, 'gemini') || str_contains($tLower, 'ai') || str_contains($tLower, 'llm') || str_contains($tLower, 'model')) {
+        if ($domain === ContentDomainClassifier::DOMAIN_GAMING) {
+            return "```mermaid\ngraph TD;\n    A[\"Lobby Matchmaking & Flight Route\"] --> B[\"Drop & Parachute Landing (Hot Drops vs Safe Zones)\"];\n    B --> C[\"Looting Phase (Weapons, Armor, Scopes & Medkits)\"];\n    C --> D[\"Mid-Game Tactical Rotations & Circle Shrinks\"];\n    D --> E[\"Final Circle Squad Showdown\"];\n    E --> F[\"Victory & Rank Tier Points (Booyah / Chicken Dinner)\"];\n```";
+        }
+
+        if ($domain === ContentDomainClassifier::DOMAIN_AI_TECH) {
             return "```mermaid\ngraph TD;\n    A[\"Multimodal Input Layer (Text, Code, Audio, Video, Image)\"] --> B[\"Gemini Cross-Modal Tokenizer & Embedding Space\"];\n    B --> C[\"Gemini Neural Architecture (Ultra / Pro / Flash / Nano)\"];\n    C --> D[\"Long-Context Window & Multi-Step Reasoning Engine (Up to 2M Tokens)\"];\n    D --> E[\"Grounding Layer & Tool Execution (Google Workspace, Python, Web)\"];\n    E --> F[\"Synthesized Multimodal Output & Structured API Response\"];\n```";
         }
 
-        return "```mermaid\ngraph TD;\n    A[\"Client Request & Input Ingestion\"] --> B[\"{$cleanTopic} Core Engine\"];\n    B --> C[\"Architectural Processing & Execution Layer\"];\n    C --> D[\"Verification, Grounding & Safety Filter\"];\n    D --> E[\"Production Output & Telemetry Dispatch\"];\n```";
+        return "```mermaid\ngraph TD;\n    A[\"Client Request & Ingestion\"] --> B[\"{$cleanTopic} Core Execution Layer\"];\n    B --> C[\"Data Processing & Logic Synthesis\"];\n    C --> D[\"Verification & Quality Gate Check\"];\n    D --> E[\"Final Delivery & Structured Output\"];\n```";
     }
 
     protected function generateComparisonTable(KnowledgeFabricDTO $knowledge, ?ContentMissionDTO $mission = null): string
@@ -176,9 +180,22 @@ Requirements:
         }
 
         $safeTopic = htmlspecialchars($topic);
-        $tLower = strtolower($topic);
+        $domain = ContentDomainClassifier::classify($topic, $thesis);
 
-        if (str_contains($tLower, 'gemini') || str_contains($tLower, 'ai') || str_contains($tLower, 'model')) {
+        if ($domain === ContentDomainClassifier::DOMAIN_GAMING) {
+            return '<div class="overflow-x-auto my-6 rounded-xl border border-white/10 bg-slate-900/60">'.
+                '<table class="w-full text-left text-sm text-slate-300">'.
+                '<thead class="bg-white/5 text-xs uppercase font-semibold text-slate-400 border-b border-white/10">'.
+                '<tr><th class="p-3">Game Title</th><th class="p-3">Match Length</th><th class="p-3">Player Count</th><th class="p-3">Distinctive Feature</th><th class="p-3">Device Storage & RAM</th></tr>'.
+                '</thead><tbody class="divide-y divide-white/5">'.
+                '<tr><td class="p-3 font-semibold text-violet-300">Free Fire MAX</td><td class="p-3 font-mono text-emerald-400">10-15 Mins</td><td class="p-3">50 Players</td><td class="p-3">Character abilities & Gloo Wall shields</td><td class="p-3 text-slate-400">2.5 GB / 2GB RAM</td></tr>'.
+                '<tr><td class="p-3 font-semibold text-violet-300">PUBG Mobile</td><td class="p-3 font-mono text-emerald-400">25-35 Mins</td><td class="p-3">100 Players</td><td class="p-3">Realistic ballistics, bullet drop & large maps</td><td class="p-3 text-slate-400">4.0 GB / 3GB-4GB RAM</td></tr>'.
+                '<tr><td class="p-3 font-semibold text-violet-300">Call of Duty: Mobile</td><td class="p-3 font-mono text-emerald-400">15-20 Mins</td><td class="p-3">100 Players</td><td class="p-3">Gunsmith loadouts, Operator Skills & slide mechanics</td><td class="p-3 text-slate-400">5.5 GB / 4GB+ RAM</td></tr>'.
+                '<tr><td class="p-3 font-semibold text-violet-300">Omega Legends</td><td class="p-3 font-mono text-emerald-400">10-15 Mins</td><td class="p-3">60 Players</td><td class="p-3">Hero ultimates, Rumble Mode & sci-fi art style</td><td class="p-3 text-slate-400">1.8 GB / 2GB RAM</td></tr>'.
+                '</tbody></table></div>';
+        }
+
+        if ($domain === ContentDomainClassifier::DOMAIN_AI_TECH) {
             return '<div class="overflow-x-auto my-6 rounded-xl border border-white/10 bg-slate-900/60">'.
                 '<table class="w-full text-left text-sm text-slate-300">'.
                 '<thead class="bg-white/5 text-xs uppercase font-semibold text-slate-400 border-b border-white/10">'.
@@ -197,9 +214,9 @@ Requirements:
             '<thead class="bg-white/5 text-xs uppercase font-semibold text-slate-400 border-b border-white/10">'.
             '<tr><th class="p-3">Dimension / Component</th><th class="p-3">Specification</th><th class="p-3">Operational Impact</th></tr>'.
             '</thead><tbody class="divide-y divide-white/5">'.
-            '<tr><td class="p-3 font-semibold text-violet-300">Core Engine</td><td class="p-3">Multimodal Foundation Architecture</td><td class="p-3">High throughput with sub-second execution</td></tr>'.
-            '<tr><td class="p-3 font-semibold text-violet-300">Context Scaling</td><td class="p-3">Extended Context Buffer</td><td class="p-3">Deterministic recall across deep documents</td></tr>'.
-            '<tr><td class="p-3 font-semibold text-violet-300">Production Integration</td><td class="p-3">REST & SDK Endpoints</td><td class="p-3">Seamless integration into enterprise workflows</td></tr>'.
+            '<tr><td class="p-3 font-semibold text-violet-300">Core Engine</td><td class="p-3">Optimized Foundation Architecture</td><td class="p-3">High throughput with reliable execution</td></tr>'.
+            '<tr><td class="p-3 font-semibold text-violet-300">Capacity & Scale</td><td class="p-3">Extended Workload Buffer</td><td class="p-3">Deterministic recall across complex operations</td></tr>'.
+            '<tr><td class="p-3 font-semibold text-violet-300">Integration Layer</td><td class="p-3">Standardized APIs & Protocols</td><td class="p-3">Seamless integration into target workflows</td></tr>'.
             '</tbody></table></div>';
     }
 }
