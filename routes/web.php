@@ -81,6 +81,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::get('/', DashboardPage::class)->name('dashboard');
     Route::get('/content-intelligence', ContentIntelligencePage::class)->name('content-intelligence.index');
+    Route::get('/content-intelligence/stream/{run}', [\App\Features\ContentIntelligence\Http\Controllers\ContentIntelligenceStreamController::class, 'streamStep'])->name('content-intelligence.stream');
     Route::get('/editor', OpenEditorController::class)->name('editor');
     Route::get('/documents', DocumentsPage::class)->name('documents.index');
     Route::get('/documents/{id}', DocumentEditor::class)->name('documents.editor');

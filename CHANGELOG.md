@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.8.3] - 2026-09-08
+
+### Added
+- **Content Intelligence — Real-Time SSE Token Streaming & Typewriter Terminal**:
+  - **ContentIntelligenceStreamController (`ContentIntelligenceStreamController.php`)**: Dedicated Server-Sent Events (SSE) streaming engine with non-blocking buffer flush, word quota verification, and real-time step streaming (`node_start`, `token`, `node_complete`, `done`).
+  - **Live Typewriter Streaming Terminal (`resources/views/content-intelligence/index.blade.php`)**: Interactive Alpine.js typewriter terminal embedded in the Inspector Drawer. Streams token chunks live to the screen with blinking cursor (`▊`) and real-time telemetry log feed.
+  - **Interactive Synaptic DAG Workflow Graph (10-Node Architecture)**: 7-tier dynamic directed acyclic graph mapping stages from Intake to Master TipTap Assembly with glowing state beacons and 1-click tab switching.
+  - **Comprehensive Feature Tests**: Added 3 new tests covering SSE streaming authorization, unauthenticated guest redirects, and cross-user run isolation (33/33 Content Intelligence tests passing).
+
+---
+
 ## [2.8.2] - 2026-09-08
 
 ### Fixed

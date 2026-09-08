@@ -1181,4 +1181,46 @@ class ContentIntelligenceTest extends TestCase
             ->assertHasNoErrors()
             ->assertSet('showCreateModal', false);
     }
+
+    public function test_authenticated_user_can_stream_workflow_step_with_sse(): void
+    {
+        $action = new CreateContentMission;
+        $created = $action->execute($this->regularUser, [
+            'topic' => 'SSE Streaming Engine in Distributed Systems',
+            'primary_objective' => 'Explore reactive web streams and SSE connections',
+            'article_archetype' => 'technical_teardown',
+        ]);
+
+        $run = $created['run'];
+
+        $response = $this->actingAs($this->regularUser)
+            ->get(route('content-intelligence.stream', $run->id));
+
+        $response->assertStatus(200);
+        $this->assertStringContainsString('text/event-stream', $response->headers->get('Content-Type'));
+    }
+
+    public function test_unauthenticated_guest_cannot_stream_workflow_step(): void
+    {
+        $response = $this->get('/dashboard/content-intelligence/stream/1');
+        $response->assertRedirect(route('login'));
+    }
+
+    public function test_user_cannot_stream_other_users_workflow_step(): void
+    {
+        $action = new CreateContentMission;
+        $created = $action->execute($this->admin, [
+            'topic' => 'Admin Secret AI Research',
+            'primary_objective' => 'Confidential analysis',
+        ]);
+
+        $run = $created['run'];
+
+        $response = $this->actingAs($this->regularUser)
+            ->get(route('content-intelligence.stream', $run->id));
+
+        $response->assertStatus(200);
+        $content = $response->streamedContent();
+        $this->assertStringContainsString('Workflow run not found', $content);
+    }
 }
