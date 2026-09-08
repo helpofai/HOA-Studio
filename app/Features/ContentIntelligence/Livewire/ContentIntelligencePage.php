@@ -107,6 +107,8 @@ class ContentIntelligencePage extends Component
 
     public bool $isStepping = false;
 
+    public bool $isAutoRunning = false;
+
     public string $statusMessage = '';
 
     public string $errorMessage = '';
@@ -265,6 +267,19 @@ class ContentIntelligencePage extends Component
         }
     }
 
+    public function startAutoRun(int $runId): void
+    {
+        $this->isAutoRunning = true;
+        $this->selectedRunId = $runId;
+        $this->stepWorkflow($runId);
+    }
+
+    public function stopAutoRun(): void
+    {
+        $this->isAutoRunning = false;
+        $this->statusMessage = 'Autonomous pipeline execution paused.';
+    }
+
     public function stepWorkflow(int $runId): void
     {
         $this->isStepping = true;
@@ -277,7 +292,8 @@ class ContentIntelligencePage extends Component
                 ->firstOrFail();
 
             if ($run->status === ContentWorkflowStatus::COMPLETED) {
-                $this->statusMessage = 'Workflow run is already completed.';
+                $this->isAutoRunning = false;
+                $this->statusMessage = 'Workflow run is already completed. Document is ready in TipTap editor.';
                 $this->isStepping = false;
 
                 return;
@@ -285,14 +301,27 @@ class ContentIntelligencePage extends Component
 
             $engine = new ContentWorkflowEngine;
             $result = $engine->step($run);
+            $freshRun = $run->fresh();
 
             if ($result['result']->isSuccess()) {
-                $nodeName = $result['result']->outputPayload['last_completed_node'] ?? $run->fresh()->current_node;
+                $nodeName = $result['result']->outputPayload['last_completed_node'] ?? $freshRun->current_node;
                 $this->statusMessage = "Stage '{$nodeName}' completed successfully with confidence {$result['result']->confidence}.";
+
+                if ($this->isAutoRunning) {
+                    if ($freshRun->status === ContentWorkflowStatus::COMPLETED) {
+                        $this->isAutoRunning = false;
+                        $this->statusMessage = 'Workflow completed all stages! Publish-ready document assembled in TipTap editor.';
+                    } else {
+                        // Dispatch client loop so browser receives each step's update and triggers next step cleanly
+                        $this->dispatch('trigger-next-ci-step', runId: $runId);
+                    }
+                }
             } else {
-                $this->errorMessage = $run->fresh()->error_message ?: 'Stage execution encountered an issue.';
+                $this->isAutoRunning = false;
+                $this->errorMessage = $freshRun->error_message ?: 'Stage execution encountered an issue.';
             }
         } catch (Exception $e) {
+            $this->isAutoRunning = false;
             $this->errorMessage = 'Step execution error: '.$e->getMessage();
         } finally {
             $this->isStepping = false;
@@ -301,41 +330,8 @@ class ContentIntelligencePage extends Component
 
     public function runFullWorkflow(int $runId): void
     {
-        $this->isStepping = true;
-        $this->errorMessage = '';
-        $this->statusMessage = '';
-
-        try {
-            $run = WorkflowRun::where('id', $runId)
-                ->where('user_id', Auth::id())
-                ->firstOrFail();
-
-            $engine = new ContentWorkflowEngine;
-            $maxIterations = 15;
-            $iterations = 0;
-
-            while ($run->status !== ContentWorkflowStatus::COMPLETED && $run->status !== ContentWorkflowStatus::FAILED && $iterations < $maxIterations) {
-                $iterations++;
-                $stepResult = $engine->step($run);
-                $run = $stepResult['run']->fresh();
-
-                if (! $stepResult['result']->isSuccess() && ! $stepResult['result']->isLoop()) {
-                    break;
-                }
-            }
-
-            if ($run->status === ContentWorkflowStatus::COMPLETED) {
-                $this->statusMessage = 'Workflow completed all stages! Publish-ready document assembled in TipTap editor.';
-            } elseif ($run->status === ContentWorkflowStatus::FAILED) {
-                $this->errorMessage = 'Workflow halted on error: '.($run->error_message ?: 'Unknown failure');
-            } else {
-                $this->statusMessage = "Executed {$iterations} workflow stages. Current node: {$run->current_node}.";
-            }
-        } catch (Exception $e) {
-            $this->errorMessage = 'Execution error: '.$e->getMessage();
-        } finally {
-            $this->isStepping = false;
-        }
+        // Route to the non-blocking step-by-step autonomous runner
+        $this->startAutoRun($runId);
     }
 
     public function selectRun(?int $runId): void

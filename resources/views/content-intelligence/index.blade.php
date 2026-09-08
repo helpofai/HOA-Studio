@@ -13,7 +13,7 @@
 |--------------------------------------------------------------------------
 --}}
 
-<div class="hoa-content-intelligence-workspace space-y-6 pb-16" x-data="{ activeTab: @entangle('inspectorTab') }">
+<div class="hoa-content-intelligence-workspace space-y-6 pb-16" x-data="{ activeTab: @entangle('inspectorTab') }" x-on:trigger-next-ci-step.window="setTimeout(() => { if ($wire.isAutoRunning) { $wire.stepWorkflow($event.detail.runId); } }, 350)">
     <!-- 1. Hero & Command HUD Banner -->
     <div class="relative overflow-hidden p-6 md:p-8 rounded-3xl bg-gradient-to-r from-slate-900/95 via-violet-950/40 to-slate-900/95 border border-violet-500/30 shadow-2xl backdrop-blur-2xl">
         <!-- Ambient Glowing Aura -->
@@ -137,15 +137,24 @@
                             <span wire:loading wire:target="stepWorkflow({{ $selectedRun->id }})" class="animate-spin">⟳</span>
                         </button>
 
-                        <button
-                            wire:click="runFullWorkflow({{ $selectedRun->id }})"
-                            wire:loading.attr="disabled"
-                            class="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 text-white flex items-center gap-1.5 shadow-lg shadow-violet-600/20 cursor-pointer disabled:opacity-50 transition-all hover:scale-[1.02]"
-                        >
-                            <span>⚡ Autonomous Run</span>
-                            <span wire:loading.remove wire:target="runFullWorkflow({{ $selectedRun->id }})">➔</span>
-                            <span wire:loading wire:target="runFullWorkflow({{ $selectedRun->id }})" class="animate-spin">⟳</span>
-                        </button>
+                        @if ($isAutoRunning)
+                            <button
+                                wire:click="stopAutoRun"
+                                class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white flex items-center gap-1.5 shadow-lg shadow-amber-600/30 cursor-pointer transition-all hover:scale-[1.02] animate-pulse"
+                            >
+                                <span>⏸ Pause Auto-Run</span>
+                            </button>
+                        @else
+                            <button
+                                wire:click="startAutoRun({{ $selectedRun->id }})"
+                                wire:loading.attr="disabled"
+                                class="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 text-white flex items-center gap-1.5 shadow-lg shadow-violet-600/20 cursor-pointer disabled:opacity-50 transition-all hover:scale-[1.02]"
+                            >
+                                <span>⚡ Auto-Run Step-by-Step</span>
+                                <span wire:loading.remove wire:target="startAutoRun({{ $selectedRun->id }})">➔</span>
+                                <span wire:loading wire:target="startAutoRun({{ $selectedRun->id }})" class="animate-spin">⟳</span>
+                            </button>
+                        @endif
                     @else
                         <a
                             href="{{ route('documents.editor', $selectedRun->document_id) }}"
@@ -363,22 +372,31 @@
 
                                     <div class="flex items-center gap-2">
                                         @if ($run->status->value !== 'completed')
-                                            <button
-                                                wire:click="stepWorkflow({{ $run->id }})"
-                                                wire:loading.attr="disabled"
-                                                class="px-3 py-1.5 rounded-xl text-xs font-medium bg-indigo-600/80 hover:bg-indigo-600 text-white flex items-center gap-1 cursor-pointer disabled:opacity-50"
-                                            >
-                                                <span>Step Node</span>
-                                            </button>
+                                             <button
+                                                 wire:click="stepWorkflow({{ $run->id }})"
+                                                 wire:loading.attr="disabled"
+                                                 class="px-3 py-1.5 rounded-xl text-xs font-medium bg-indigo-600/80 hover:bg-indigo-600 text-white flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                                             >
+                                                 <span>Step Node</span>
+                                             </button>
 
-                                            <button
-                                                wire:click="runFullWorkflow({{ $run->id }})"
-                                                wire:loading.attr="disabled"
-                                                class="px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 text-white flex items-center gap-1 cursor-pointer disabled:opacity-50 shadow-md shadow-violet-600/20"
-                                            >
-                                                <span>⚡ Auto-Run</span>
-                                            </button>
-                                        @endif
+                                             @if ($isAutoRunning && $selectedRunId === $run->id)
+                                                 <button
+                                                     wire:click="stopAutoRun"
+                                                     class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white flex items-center gap-1 cursor-pointer shadow-md shadow-amber-600/30 animate-pulse"
+                                                 >
+                                                     <span>⏸ Pause</span>
+                                                 </button>
+                                             @else
+                                                 <button
+                                                     wire:click="startAutoRun({{ $run->id }})"
+                                                     wire:loading.attr="disabled"
+                                                     class="px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 text-white flex items-center gap-1 cursor-pointer disabled:opacity-50 shadow-md shadow-violet-600/20"
+                                                 >
+                                                     <span>⚡ Auto-Run</span>
+                                                 </button>
+                                             @endif
+                                         @endif
 
                                         <button
                                             wire:click="deleteRun({{ $run->id }})"
@@ -1821,13 +1839,22 @@
                             >
                                 Step Next Node ⏭
                             </button>
-                            <button
-                                wire:click="runFullWorkflow({{ $selectedRun->id }})"
-                                wire:loading.attr="disabled"
-                                class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 text-white text-xs font-bold cursor-pointer disabled:opacity-50 transition-all shadow-lg shadow-violet-600/20"
-                            >
-                                Auto-Run All ⚡
-                            </button>
+                            @if ($isAutoRunning)
+                                <button
+                                    wire:click="stopAutoRun"
+                                    class="flex-1 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold cursor-pointer transition-all shadow-lg shadow-amber-600/30 animate-pulse"
+                                >
+                                    ⏸ Pause Auto-Run
+                                </button>
+                            @else
+                                <button
+                                    wire:click="startAutoRun({{ $selectedRun->id }})"
+                                    wire:loading.attr="disabled"
+                                    class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 text-white text-xs font-bold cursor-pointer disabled:opacity-50 transition-all shadow-lg shadow-violet-600/20"
+                                >
+                                    Auto-Run All ⚡
+                                </button>
+                            @endif
                         @else
                             <a
                                 href="{{ route('documents.editor', $selectedRun->document_id) }}"
