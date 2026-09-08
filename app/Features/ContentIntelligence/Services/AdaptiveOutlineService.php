@@ -10,6 +10,7 @@
 | Author      : Rajib Adhikary
 | Organization: HelpOfAi (HOA)
 | Website     : https://helpofai.com
+| Location    : Basta Purba Para, Aranghata, Nadia, West Bengal, India
 |
 |--------------------------------------------------------------------------
 */
@@ -20,6 +21,8 @@ use App\Features\ContentIntelligence\DTOs\AdaptiveOutlineDTO;
 use App\Features\ContentIntelligence\DTOs\ContentBlueprintDTO;
 use App\Features\ContentIntelligence\DTOs\ContentMissionDTO;
 use App\Features\ContentIntelligence\DTOs\KnowledgeFabricDTO;
+use App\Features\ContentIntelligence\DTOs\ResearchPlanDTO;
+use App\Features\ContentIntelligence\DTOs\SearchIntelligenceDTO;
 use App\Features\ContentIntelligence\DTOs\SectionNodeDTO;
 use App\Features\ContentIntelligence\Models\ContentBlueprint;
 use App\Features\ContentIntelligence\Models\ContentMission;
@@ -27,155 +30,190 @@ use App\Features\ContentIntelligence\Models\ContentOutline;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Stage 5: Adaptive Outline & Section Dependency Graph Service
+ *
+ * NOW USES REAL AI GENERATION via DynamicContentProvider + OmniRoute Gateway
+ * Synthesizes adaptive section nodes, target word count budgets, must-answer questions,
+ * and dependency edges dynamically.
+ */
 class AdaptiveOutlineService
 {
     /**
-     * Build an adaptive, dependency-aware hierarchical outline tree
-     * grounding sections with verified claims, entities, and questions.
-     *
-     * NOW USES REAL AI to generate specific section directives and must-answer questions.
+     * Alias for backward compatibility with feature tests.
      */
     public function build(
         ContentMission $mission,
-        ContentBlueprint $blueprintModel,
+        ?ContentBlueprint $blueprintModel,
         ContentBlueprintDTO $blueprint,
         KnowledgeFabricDTO $knowledgeFabric,
-        ContentMissionDTO $missionDTO
+        ?ContentMissionDTO $missionDTO = null
     ): AdaptiveOutlineDTO {
-        return DB::transaction(function () use ($mission, $blueprintModel, $blueprint, $knowledgeFabric, $missionDTO) {
-            $requiredSections = $blueprint->requiredSections;
-            $totalCount = count($requiredSections);
-            $targetWordCount = (int) round(($missionDTO->targetWordCountRange['min'] + $missionDTO->targetWordCountRange['max']) / 2);
-            $wordsPerSection = (int) round($targetWordCount / max(1, $totalCount));
-            $topic = $missionDTO->topic;
-            $expertise = is_array($missionDTO->targetAudience) ? ($missionDTO->targetAudience['expertise_level'] ?? 'Intermediate') : 'Intermediate';
+        $mDto = $missionDTO ?? $mission->toDTO();
+        $searchIntel = (new SearchIntelligenceService)->analyze($mDto);
+        $plan = (new ResearchDirectorService)->formulatePlan($mDto, $searchIntel);
 
-            Log::info("[AdaptiveOutline] STEP 5: AI generating outline directives for {$totalCount} sections");
+        return $this->synthesize($mission, $mDto, $searchIntel, $plan, $knowledgeFabric, $blueprint);
+    }
 
-            // Build full context of claims available
-            $claimsList = [];
-            foreach ($knowledgeFabric->claims as $claim) {
-                $claimsList[] = [
-                    'id' => $claim->claimId,
-                    'statement' => $claim->statement,
-                    'section' => $claim->sectionTarget
-                ];
+    /**
+     * Synthesize an Adaptive Outline from blueprint, search intel, and knowledge fabric.
+     */
+    public function synthesize(
+        ContentMission $mission,
+        ContentMissionDTO $missionDTO,
+        SearchIntelligenceDTO $searchIntel,
+        ?ResearchPlanDTO $plan,
+        KnowledgeFabricDTO $knowledgeFabric,
+        ContentBlueprintDTO $blueprint
+    ): AdaptiveOutlineDTO {
+        return DB::transaction(function () use ($mission, $missionDTO, $searchIntel, $knowledgeFabric, $blueprint) {
+            $topic = $mission->topic;
+            $thesis = $mission->primary_objective;
+            $persona = $missionDTO->targetAudience['persona'] ?? 'Enterprise Practitioner';
+            $expertise = $missionDTO->targetAudience['expertise_level'] ?? 'Intermediate';
+            $targetWordCount = (int) (($missionDTO->targetWordCountRange['min'] + $missionDTO->targetWordCountRange['max']) / 2);
+            if ($targetWordCount <= 0) {
+                $targetWordCount = 2500;
             }
 
-            // Map available claim IDs from the verified Claim Graph
-            $availableClaimIds = array_map(fn ($c) => $c->claimId, $knowledgeFabric->claims);
+            $blueprintModel = ContentBlueprint::where('mission_id', $mission->id)->latest()->first();
+            if (! $blueprintModel) {
+                $blueprintModel = ContentBlueprint::create([
+                    'mission_id' => $mission->id,
+                    'article_angle' => $blueprint->articleAngle,
+                    'unique_value_proposition' => $blueprint->uniqueValueProposition,
+                    'target_reader_transformation' => $blueprint->targetReaderTransformation,
+                    'required_sections' => $blueprint->requiredSections,
+                    'optional_sections' => $blueprint->optionalSections,
+                    'required_entities' => $blueprint->requiredEntities,
+                    'required_claims' => $blueprint->requiredClaims,
+                    'status' => 'approved',
+                ]);
+            }
+
+            Log::info("[AdaptiveOutline] STEP 5: AI synthesizing Adaptive Outline for: '{$topic}'");
 
             // ══════════════════════════════════════════════════════════════
-            // AI-Powered Outline Enhancement
+            // AI-Powered Outline & Must-Answer Questions Generation
             // ══════════════════════════════════════════════════════════════
 
-            // For complex documents, we ask AI to enhance each section with specific directions
-            // To save time and keep it reliable, we bundle them into one prompt
+            $sectionsList = implode("\n- ", $blueprint->requiredSections);
 
-            $sectionHeadingsList = json_encode($requiredSections);
-            $claimsListJson = json_encode($claimsList);
+            $outlinePrompt = "You are a senior content architect. Create detailed section metadata for an authoritative guide on: \"{$topic}\"
+Target Audience: {$persona} ({$expertise} level)
+Target Word Count: {$targetWordCount} words
 
-            $outlinePrompt = "Generate detailed directives for an article outline about \"{$topic}\".
-Expertise Level: {$expertise}
+Blueprint Required Sections:
+- {$sectionsList}
 
-Sections provided:
-{$sectionHeadingsList}
+For each section in the list above, provide:
+1. 'heading': exact or polished section heading
+2. 'target_word_count': estimated words for this section (sum should be approx {$targetWordCount})
+3. 'must_answer_questions': 2-3 hyper-specific technical questions this section must answer
+4. 'assigned_entities': list of relevant entities/tools
 
-Claims available to use:
-{$claimsListJson}
-
-For each section, define:
-1. role (e.g. 'Introduction', 'Deep-Dive Technical Analysis', 'Conclusion')
-2. must_answer_questions (2 specific questions this section must answer)
-3. assigned_claim_ids (array of claim IDs from the list provided that fit this section - maximum 2 per section)
-4. media_placeholder (if a chart, table, or diagram is needed, e.g. 'architecture_flow_diagram' or null)
-
-Return strictly valid JSON:
+Return JSON:
 {
   \"sections\": [
     {
-      \"heading\": \"Exact section heading\",
-      \"role\": \"Role description\",
-      \"must_answer_questions\": [\"Question 1?\", \"Question 2?\"],
-      \"assigned_claim_ids\": [\"clm_xxx\"],
-      \"media_placeholder\": \"placeholder_name_or_null\"
+      \"heading\": \"...\",
+      \"target_word_count\": 500,
+      \"must_answer_questions\": [\"...\", \"...\"],
+      \"assigned_entities\": [\"...\"]
     }
   ]
 }";
 
-            // We use the dynamic provider to get the structured JSON outline schema
             $aiOutline = DynamicContentProvider::askJSON($outlinePrompt, ['sections' => []]);
-            $aiSectionData = [];
-            if (!empty($aiOutline['sections'])) {
-                foreach ($aiOutline['sections'] as $sData) {
-                    if (isset($sData['heading'])) {
-                        $aiSectionData[$sData['heading']] = $sData;
-                    }
+            $aiSections = $aiOutline['sections'] ?? [];
+
+            $requiredList = $blueprint->requiredSections;
+            if (count($requiredList) < 5) {
+                $domain = ContentDomainClassifier::classify($topic, $thesis);
+                if ($domain === ContentDomainClassifier::DOMAIN_GAMING) {
+                    $requiredList = [
+                        "Introduction to {$topic} & Modern PC Gaming Landscape",
+                        "Sandbox & Creative Worlds: Minecraft & Roblox Deep-Dive",
+                        "Competitive Action & Hero Shooters: Valorant, Fortnite & Deadlock",
+                        "PC Hardware Optimization, Refresh Rates & Input Latency",
+                        "Final Verdict, Community Recommendations & FAQ",
+                    ];
+                } else {
+                    $requiredList = [
+                        "Foundational Architecture & Executive Overview of {$topic}",
+                        "Core Engine Mechanics, Internal Pipeline & Configuration",
+                        "Practical Production Implementation & Deployment Guide",
+                        "Performance Benchmarking, Latency Optimization & Security",
+                        "Strategic Roadmap, Best Practices & Final Recommendations",
+                    ];
                 }
             }
 
             $sections = [];
+            $totalReq = count($requiredList);
+            $baseWordCount = (int) ($targetWordCount / max(1, $totalReq));
+            $claims = $knowledgeFabric->claims;
+            $claimsPerSection = max(1, (int) ceil(count($claims) / max(1, $totalReq)));
             $dependencyMap = [];
 
-            foreach ($requiredSections as $index => $heading) {
-                $sectionNum = $index + 1;
-                $sectionId = sprintf('sec_%02d', $sectionNum);
+            foreach ($requiredList as $index => $heading) {
+                $sectionKey = 'sec_' . str_pad($index + 1, 2, '0', STR_PAD_LEFT);
+                $isFirst = $index === 0;
+                $isLast = $index === ($totalReq - 1);
 
-                // Try to get AI generated data for this section, fallback to smart defaults
-                $sData = $aiSectionData[$heading] ?? [];
-
-                // Assign subset of claims to each section
-                $assignedClaims = $sData['assigned_claim_ids'] ?? [];
-                // If AI didn't assign any, fallback to round-robin
-                if (empty($assignedClaims) && !empty($availableClaimIds)) {
-                    $assignedClaims[] = $availableClaimIds[$index % count($availableClaimIds)];
+                // Match with AI outline if available
+                $aiData = null;
+                foreach ($aiSections as $as) {
+                    if (str_contains(strtolower($as['heading'] ?? ''), strtolower(substr($heading, 0, 15)))) {
+                        $aiData = $as;
+                        break;
+                    }
                 }
 
-                $dependencies = ($index > 0) ? [sprintf('sec_%02d', $index)] : [];
-                $dependencyMap[$sectionId] = $dependencies;
+                $mustAnswer = ! empty($aiData['must_answer_questions'])
+                    ? $aiData['must_answer_questions']
+                    : $this->generateSectionMustAnswerQuestions($heading, $topic);
 
-                // Smart role resolution
-                $defaultRole = match (true) {
-                    $index === 0 => 'Introduction & High-Level Architecture',
-                    $index === $totalCount - 1 => 'Conclusion & Actionable Checklist',
-                    str_contains(strtolower($heading), 'benchmark') || str_contains(strtolower($heading), 'compare') => 'Empirical Benchmark Analysis',
-                    str_contains(strtolower($heading), 'troubleshoot') || str_contains(strtolower($heading), 'error') => 'Troubleshooting & Pitfall Resolution',
-                    str_contains(strtolower($heading), 'config') || str_contains(strtolower($heading), 'setup') => 'Practical Technical Implementation',
-                    default => 'Deep-Dive Technical Analysis',
-                };
+                // Determine target word count
+                $allocatedWords = ! empty($aiData['target_word_count'])
+                    ? (int) $aiData['target_word_count']
+                    : ($isFirst || $isLast ? (int) ($baseWordCount * 0.8) : $baseWordCount);
 
-                $role = $sData['role'] ?? $defaultRole;
+                // Assign subset of claims to this section
+                $assignedClaims = array_slice($claims, $index * $claimsPerSection, $claimsPerSection);
+                if (empty($assignedClaims) && ! empty($claims)) {
+                    $assignedClaims = [$claims[$index % count($claims)]];
+                }
+                $assignedClaimIds = array_map(fn ($c) => $c->claimId ?? ($c->id ?? 'claim_0'), $assignedClaims);
 
-                $defaultMedia = match (true) {
-                    str_contains(strtolower($heading), 'architecture') || str_contains(strtolower($heading), 'structure') => 'architecture_flow_diagram',
-                    str_contains(strtolower($heading), 'benchmark') || str_contains(strtolower($heading), 'compare') => 'throughput_comparison_table',
-                    default => null,
-                };
+                // Assign entities
+                $assignedEntities = ! empty($aiData['assigned_entities'])
+                    ? $aiData['assigned_entities']
+                    : array_slice($searchIntel->targetEntities, $index * 2, 3);
 
-                $mediaPlaceholder = $sData['media_placeholder'] ?? $defaultMedia;
-                if ($mediaPlaceholder === 'null' || $mediaPlaceholder === '') $mediaPlaceholder = null;
-
-                $mustAnswer = $sData['must_answer_questions'] ?? $this->generateSectionMustAnswerQuestions($heading, $topic);
+                // Determine dependencies (sequential chain)
+                $dependencies = $isFirst ? [] : ['sec_' . str_pad($index, 2, '0', STR_PAD_LEFT)];
+                $dependencyMap[$sectionKey] = $dependencies;
 
                 $sections[] = new SectionNodeDTO(
-                    sectionId: $sectionId,
+                    sectionId: $sectionKey,
                     heading: $heading,
                     level: 'H2',
-                    intentRole: $role,
-                    purpose: "Thoroughly address {$heading} with verified evidence and proper technical depth.",
-                    targetWordCount: $wordsPerSection,
+                    intentRole: $isFirst ? 'Introduction' : ($isLast ? 'Conclusion' : 'Technical Guide'),
+                    purpose: "Detailed analysis covering {$heading}",
+                    targetWordCount: $allocatedWords,
                     mustAnswerQuestions: $mustAnswer,
-                    assignedClaimIds: $assignedClaims,
-                    requiredKeywords: array_slice($missionDTO->secondaryObjectives, 0, 2),
-                    requiredEntities: array_slice($blueprint->requiredEntities, 0, 3),
-                    requiredCodeSnippets: str_contains(strtolower($heading), 'code') || str_contains(strtolower($heading), 'script') ? ['example_snippet.js'] : [],
+                    assignedClaimIds: $assignedClaimIds,
+                    requiredKeywords: array_slice($searchIntel->primaryQueries, 0, 3),
+                    requiredEntities: $assignedEntities,
+                    requiredCodeSnippets: [],
                     dependencySections: $dependencies,
-                    mediaPlaceholder: $mediaPlaceholder,
-                    writingPriority: $sectionNum
+                    writingPriority: $index + 1
                 );
             }
 
-            Log::info("[AdaptiveOutline] STEP 5 COMPLETE: Outline graph prepared");
+            Log::info('[AdaptiveOutline] Created ' . count($sections) . " section nodes for '{$topic}'");
 
             $serializedSections = array_map(fn (SectionNodeDTO $s) => $s->toArray(), $sections);
 
@@ -193,119 +231,42 @@ Return strictly valid JSON:
                 targetWordCount: $targetWordCount,
                 sections: $sections,
                 sectionDependencyMap: $dependencyMap,
-                outlineConfidence: 0.98
+                outlineConfidence: 0.95
             );
         });
     }
 
     /**
-     * Generate specific, inquiry-grounded must-answer questions for a section.
+     * Fallback section-specific questions generator.
      */
     protected function generateSectionMustAnswerQuestions(string $heading, string $topic): array
     {
         $hLower = strtolower($heading);
-        $cleanTopic = ucwords(trim($topic));
-        $domain = ContentDomainClassifier::classify($topic, $heading);
 
-        // ══════════════════════════════════════════════════════════════
-        // 1. GAMING DOMAIN QUESTIONS
-        // ══════════════════════════════════════════════════════════════
-        if ($domain === ContentDomainClassifier::DOMAIN_GAMING) {
-            if (str_contains($hLower, 'pubg')) {
-                return [
-                    "How does PUBG Mobile's 100-player tactical combat and realistic ballistics compare to Free Fire MAX?",
-                    "What are the map sizes, match durations, squad dynamics, and weapon mechanics?"
-                ];
-            }
-            if (str_contains($hLower, 'call of duty') || str_contains($hLower, 'cod')) {
-                return [
-                    "How does Call of Duty: Mobile combine fast-paced FPS multiplayer with battle royale gameplay?",
-                    "What operator skills, custom loadouts, and scorestreaks differentiate it from other battle royales?"
-                ];
-            }
-            if (str_contains($hLower, 'omega legends')) {
-                return [
-                    "What unique hero abilities, skill mechanics, and game modes does Omega Legends feature?",
-                    "How do its third-person camera, vibrant visuals, and joystick controls compare to Free Fire MAX?"
-                ];
-            }
-            if (str_contains($hLower, 'top alternative') || str_contains($hLower, 'best game') || str_contains($hLower, 'overview') || str_contains($hLower, 'similar')) {
-                return [
-                    "What are the best fast-paced mobile battle royale games similar to Free Fire MAX?",
-                    "Which titles provide the closest match in terms of gunplay speed, lobby sizes, and match duration?"
-                ];
-            }
-            if (str_contains($hLower, 'comparison') || str_contains($hLower, 'device') || str_contains($hLower, 'requirement') || str_contains($hLower, 'control')) {
-                return [
-                    "How do RAM requirements, storage footprint, and frame rate optimization compare across devices?",
-                    "Which games perform best on budget smartphones versus high-end gaming phones?"
-                ];
-            }
-            if (str_contains($hLower, 'verdict') || str_contains($hLower, 'recommend') || str_contains($hLower, 'choose')) {
-                return [
-                    "Which alternative should you download based on your preferred playstyle and device specs?",
-                    "What are the pros, cons, and final recommendations for battle royale fans?"
-                ];
-            }
-
+        if (str_contains($hLower, 'intro') || str_contains($hLower, 'overview') || str_contains($hLower, 'landscape')) {
             return [
-                "What are the standout features, gameplay modes, and combat mechanics of {$heading}?",
-                "What tips, settings, and strategies should players use to maximize their experience?"
+                "What is the current state and significance of {$topic}?",
+                "What are the primary factors driving engagement and adoption in {$topic}?",
             ];
         }
 
-        // ══════════════════════════════════════════════════════════════
-        // 2. AI & MACHINE LEARNING DOMAIN QUESTIONS
-        // ══════════════════════════════════════════════════════════════
-        if ($domain === ContentDomainClassifier::DOMAIN_AI_TECH) {
-            if (str_contains($hLower, 'how does it work') || str_contains($hLower, 'what is') || str_contains($hLower, 'architecture') || str_contains($hLower, 'mechanics')) {
-                return [
-                    "How does {$cleanTopic}'s multimodal neural architecture process inputs, tokens, and context?",
-                    "What are the foundational execution capabilities, parameter scaling tiers, and latency benchmarks?"
-                ];
-            }
-            if (str_contains($hLower, 'assistant') || str_contains($hLower, 'copilot') || str_contains($hLower, 'agent')) {
-                return [
-                    "What core capabilities, task automations, and conversational reasoning does the assistant provide?",
-                    "How does the assistant interface with workspace apps, external tools, and system APIs?"
-                ];
-            }
-            if (str_contains($hLower, 'plus') || str_contains($hLower, 'advanced') || str_contains($hLower, 'pricing') || str_contains($hLower, 'subscription') || str_contains($hLower, 'plan')) {
-                return [
-                    "What advanced capabilities, 2M+ token context access, and premium tools are unlocked in higher tiers?",
-                    "How do subscription plans, API quota allocations, and enterprise licensing compare?"
-                ];
-            }
-            if (str_contains($hLower, 'google assistant') || str_contains($hLower, 'migration') || str_contains($hLower, 'vs') || str_contains($hLower, 'difference')) {
-                return [
-                    "How does this generative model evolve beyond legacy rule-based voice assistants?",
-                    "What are the key integration points, device controls, and smart ecosystem capabilities?"
-                ];
-            }
-            if (str_contains($hLower, 'deployment') || str_contains($hLower, 'workflow') || str_contains($hLower, 'practice') || str_contains($hLower, 'implementation')) {
-                return [
-                    "What are the recommended SDK configurations, temperature settings, and API authentication steps?",
-                    "How can engineering teams optimize token economics, latency, and continuous telemetry monitoring?"
-                ];
-            }
-        }
-
-        // ══════════════════════════════════════════════════════════════
-        // 3. SOFTWARE ENGINEERING & CLOUD DOMAIN QUESTIONS
-        // ══════════════════════════════════════════════════════════════
-        if ($domain === ContentDomainClassifier::DOMAIN_SOFTWARE) {
+        if (str_contains($hLower, 'mechanic') || str_contains($hLower, 'architecture') || str_contains($hLower, 'engine') || str_contains($hLower, 'feature')) {
             return [
-                "What are the architectural foundations, design patterns, and core mechanisms of {$heading}?",
-                "What are the production implementation steps, configuration options, and performance best practices?"
+                "What are the core technical systems and mechanics governing {$heading}?",
+                "How does {$heading} compare against alternative approaches in the market?",
             ];
         }
 
-        // ══════════════════════════════════════════════════════════════
-        // 4. GENERAL DOMAIN QUESTIONS
-        // ══════════════════════════════════════════════════════════════
+        if (str_contains($hLower, 'spec') || str_contains($hLower, 'hardware') || str_contains($hLower, 'requirement') || str_contains($hLower, 'optimization')) {
+            return [
+                "What hardware specifications and configurations yield maximum performance?",
+                "How can practitioners optimize latency, frame rates, and resource utilization?",
+            ];
+        }
+
         return [
-            "What are the essential concepts, primary features, and practical applications of {$heading}?",
-            "What actionable guidance and best practices should readers implement?"
+            "What actionable takeaways and methodologies should be applied to {$heading}?",
+            "What best practices ensure long-term stability, security, and quality?",
         ];
     }
 }

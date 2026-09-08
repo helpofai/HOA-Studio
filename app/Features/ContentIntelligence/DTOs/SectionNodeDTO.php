@@ -86,4 +86,19 @@ final class SectionNodeDTO
             'writing_priority' => $this->writingPriority,
         ];
     }
+
+    public function __get(string $name): mixed
+    {
+        return match ($name) {
+            'key', 'id' => $this->sectionId,
+            'assignedClaims' => $this->assignedClaimIds,
+            'dependencies' => $this->dependencySections,
+            default => null,
+        };
+    }
+
+    public function __isset(string $name): bool
+    {
+        return in_array($name, ['key', 'id', 'assignedClaims', 'dependencies']);
+    }
 }

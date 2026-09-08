@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.8.2] - 2026-09-08
+
+### Fixed
+- **Content Intelligence & Synthesizer Domain Drift Fix**:
+  - Neutralized system prompts in `SectionDraftsmanService` by replacing domain-specific keywords (`"games journalist"`) with topic-anchored expert writer roles (`"principal technical writer, subject-matter expert, and systems architect"`).
+  - Fixed false-positive domain classification in `ContentSynthesizer::detectDomain()` by prioritizing AI, LLM, Machine Learning, and Software Engineering keywords before gaming checks.
+  - Isolated section-level drafting from full blog post routing in `ContentSynthesizer::generate()`, preventing template repetition across multiple section drafts.
+  - Added topic-grounded AI and tech fallback prose generation.
+- **Content Intelligence Hub Header UI & Layout Modernization**:
+  - Replaced bulky banner container in `resources/views/content-intelligence/index.blade.php` with clean standard page header with subtle border divider (`border-b border-white/5`).
+  - Standardized UI elements with `<x-glass.badge>` and `<x-glass.button>`.
+  - Constrained engine dropdown width and streamlined controls to eliminate horizontal and vertical layout bloat.
+
+---
+
+## [2.8.1] - 2026-09-08
+
+### Added
+- **Content Intelligence — Multi-Archetype Article Engine (6 Canonical Archetypes)**:
+  - **ArticleArchetype Enum (`ArticleArchetype.php`)**: Strongly typed domain enum defining 6 canonical article structural archetypes:
+    1. `AUTO_DETECT`: AI-inferred adaptive outline based on inquiry extraction and domain classification.
+    2. `COMPARATIVE_ROUNDUP`: Alternatives, competitor matrices, technical benchmarks, and verdict rankings.
+    3. `TECHNICAL_TEARDOWN`: In-depth systems architecture, internals, code implementations, scaling, and failure modes.
+    4. `STEP_BY_STEP_TUTORIAL`: Structured prerequisites, ordered code steps, edge-case troubleshooting, and production deployment.
+    5. `EXECUTIVE_STRATEGY`: High-level business impact, ROI models, enterprise risk, governance, and phased execution roadmaps.
+    6. `THOUGHT_LEADERSHIP`: Contrarian perspectives, paradigm shifts, first-principles logic, and forward-looking industry predictions.
+  - **Defensive Migration (`2026_09_08_000001_add_article_archetype_to_content_missions_table.php`)**: Adds indexed `article_archetype` column to `content_missions` table with safe idempotency guardrails.
+  - **Archetype-Aware Blueprint Synthesis (`ContentBlueprintService.php`)**: Strategic blueprint generator adapts AI prompts, UVPs, section hierarchies, and fallback templates to the chosen archetype.
+  - **Mission Studio Modal Archetype Selector (`resources/views/content-intelligence/index.blade.php`)**: Modern dark glassmorphic 6-card interactive archetype selection matrix with instant preset switching, word count bounds, and inspector badge visualization.
+  - **Comprehensive Test Suite Expansion (`tests/Feature/ContentIntelligenceTest.php`)**: Added 3 new tests covering archetype enum properties, database persistence/DTO hydration, and Livewire UI archetype configuration (321 total tests passing, 100% rate).
+
+### Changed
+- `ContentMissionDTO` and `CreateContentMission` updated with strongly typed `ArticleArchetype` support and backwards-compatible array hydration.
+- Content Intelligence run list cards and inspector cards display archetype labels and layout badges.
+
+---
+
 ## [2.8.0] - 2026-09-08
 
 ### Added

@@ -119,4 +119,21 @@ final class SearchIntelligenceDTO
             'intent_confidence' => $this->intentConfidence,
         ];
     }
+
+    public function __get(string $name): mixed
+    {
+        return match ($name) {
+            'primaryQueries' => $this->queryClusters['primary'] ?? [],
+            'secondaryQueries' => $this->queryClusters['secondary'] ?? [],
+            'longTailQueries' => $this->queryClusters['long_tail'] ?? [],
+            'paaQuestions' => $this->queryClusters['paa_questions'] ?? [],
+            'coreTopics' => $this->topicUniverse['core_topics'] ?? [],
+            default => null,
+        };
+    }
+
+    public function __isset(string $name): bool
+    {
+        return in_array($name, ['primaryQueries', 'secondaryQueries', 'longTailQueries', 'paaQuestions', 'coreTopics']);
+    }
 }

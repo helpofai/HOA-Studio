@@ -61,31 +61,27 @@ class ContentSynthesizer
         }
 
         // 2. Check for Article Section Generation (from 15-Stage Pipeline or Section Writer)
-        if (preg_match('/Section Focus:\s*(.+?)(?:\n|$)/i', $userPrompt, $focusMatch) || str_contains($systemPrompt, 'Write the body content for the section')) {
+        if (preg_match('/Section Heading:\s*(.+?)(?:\n|$)/i', $userPrompt, $headingMatch) || preg_match('/Section Focus:\s*(.+?)(?:\n|$)/i', $userPrompt, $focusMatch) || str_contains($systemPrompt, 'Write the body content for the section') || str_contains($userPrompt, 'Section Heading') || str_contains($userPrompt, 'article section')) {
             $sectionFocus = '';
-            if (preg_match('/Section Focus:\s*(.+?)(?:\n|$)/i', $userPrompt, $fm)) {
-                $sectionFocus = trim($fm[1]);
+            if (isset($headingMatch[1])) {
+                $sectionFocus = trim($headingMatch[1]);
+            } elseif (isset($focusMatch[1])) {
+                $sectionFocus = trim($focusMatch[1]);
             } elseif (preg_match('/focus:\s*(.+?)(?:\n|$)/i', $userPrompt, $fm2)) {
                 $sectionFocus = trim($fm2[1]);
             }
 
             // Extract Subject/Topic
             $subject = 'The Topic';
-            if (preg_match('/Topic:\s*(.+?)(?:\n|$)/i', $userPrompt, $tm)) {
-                $subject = trim(preg_replace('/\b(Domain|Relevant Entities|Context Memory):.*$/i', '', $tm[1]));
+            if (preg_match('/(?:Topic|Objective \/ User Inquiries):\s*(.+?)(?:\n|$)/i', $userPrompt, $tm)) {
+                $subject = trim(preg_replace('/\b(Domain|Relevant Entities|Context Memory|Section Heading):.*$/is', '', $tm[1]));
+            } elseif (preg_match('/about\s+"([^"]+)"/i', $userPrompt, $tm2)) {
+                $subject = trim($tm2[1]);
             }
 
             // Extract Domain
-            $domain = 'tech';
-            if (preg_match('/Domain:\s*(.+?)(?:\n|$)/i', $userPrompt, $dm)) {
-                $domain = trim(preg_replace('/\b(Relevant Entities|Context Memory):.*$/i', '', $dm[1]));
-            }
-
-            // Extract Entities
+            $domain = $this->detectDomain($subject, $userPrompt);
             $entities = '';
-            if (preg_match('/Relevant Entities:\s*(.+?)(?:\n|$)/i', $userPrompt, $em)) {
-                $entities = trim(preg_replace('/\bContext Memory:.*$/i', '', $em[1]));
-            }
 
             return $this->synthesizeSectionBody($subject, $sectionFocus, $domain, $entities);
         }
@@ -100,12 +96,18 @@ class ContentSynthesizer
         $topic = $this->extractTopic($userPrompt);
         $model = $options['model'] ?? 'Claude 3.7 Sonnet (OmniRoute)';
 
-        $isBlogPost = preg_match('/(blog|post|article|write|create|guide|deep dive|review|more than|more then|\d+\s*words|in depth|comprehensive)/i', $userPrompt);
+        // Content Intelligence pipeline section-level drafts are NOT full blog posts
+        $isSectionDraft = str_contains($userPrompt, 'Section Heading:') || str_contains($userPrompt, 'Section Focus:')
+            || str_contains($userPrompt, 'Target Word Count:') || str_contains($userPrompt, 'article section');
+
+        // Full blog post patterns — but skip if this is a pipeline section draft
+        $isBlogPost = ! $isSectionDraft && preg_match('/(blog|post|article|write|create|guide|deep dive|review|more than|more then|\d+\s*words|in depth|comprehensive)/i', $userPrompt);
 
         if ($isBlogPost) {
             return $this->buildFullBlogPost($topic, $userPrompt, $model);
         }
 
+        // For section drafts or general queries, build a topic-grounded response
         return $this->buildComprehensiveResponse($topic, $userPrompt, $model);
     }
 
@@ -229,18 +231,33 @@ class ContentSynthesizer
     {
         $text = strtolower($topic.' '.$prompt);
 
-        if (preg_match('/\b(game|games|gaming|android game|mobile game|playstation|xbox|nintendo|rpg|fps|esports|gameplay|steam|roblox|minecraft|pubg|cod mobile|genshin)\b/i', $text)) {
-            return 'gaming';
-        }
+        // Strip system/role descriptors to avoid false-positive domain shifts
+        // (e.g. "games journalist" in a system prompt should NOT classify a DeepSeek AI topic as gaming)
+        $topicText = strtolower($topic);
 
-        if (preg_match('/\b(code|coding|software|python|php|laravel|javascript|react|vue|api|ai|machine learning|deep learning|devops|docker|kubernetes|cloud|database|sql)\b/i', $text)) {
+        // 1. Check actual TOPIC first for AI, ML, LLM, and tech keywords
+        if (preg_match('/\b(ai|artificial intelligence|llm|gpt|gemini|claude|chatgpt|openai|machine learning|deep learning|neural|transformer|multimodal|diffusion|token|embeddings|rag|prompt engineering|langchain|deepseek|model|reasoning|inference)\b/i', $topicText)) {
             return 'tech';
         }
 
+        // 2. Check actual TOPIC for software/engineering keywords
+        if (preg_match('/\b(code|coding|software|python|php|laravel|javascript|react|vue|api|devops|docker|kubernetes|cloud|database|sql|server|deploy|architecture|framework)\b/i', $topicText)) {
+            return 'tech';
+        }
+
+        // 3. Only check gaming keywords in the combined text AFTER tech check
+        //    but skip system-prompt noise like "journalist", "writer", "architect"
+        $topicOnly = strtolower($topic);
+        if (preg_match('/\b(game|games|gaming|android game|mobile game|playstation|xbox|nintendo|rpg|fps|esports|gameplay|steam|roblox|minecraft|pubg|cod mobile|genshin)\b/i', $topicOnly)) {
+            return 'gaming';
+        }
+
+        // 4. Check for business/marketing
         if (preg_match('/\b(seo|marketing|business|finance|crypto|money|invest|saas|startup|sales|e-commerce|ecommerce|roi|advertising|brand)\b/i', $text)) {
             return 'business';
         }
 
+        // 5. Check for lifestyle
         if (preg_match('/\b(fitness|health|diet|workout|travel|hotel|food|recipe|lifestyle|wellness|fashion|beauty)\b/i', $text)) {
             return 'lifestyle';
         }

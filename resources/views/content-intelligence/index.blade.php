@@ -14,39 +14,40 @@
 --}}
 
 <div class="hoa-content-intelligence-workspace space-y-6 pb-16" x-data="{ activeTab: @entangle('inspectorTab') }" x-on:trigger-next-ci-step.window="setTimeout(() => { if ($wire.isAutoRunning) { $wire.stepWorkflow($event.detail.runId); } }, 350)">
-    <!-- 1. Hero & Command HUD Banner -->
-    <div class="relative overflow-hidden p-6 md:p-8 rounded-3xl bg-gradient-to-r from-slate-900/95 via-violet-950/40 to-slate-900/95 border border-violet-500/30 shadow-2xl backdrop-blur-2xl">
-        <!-- Ambient Glowing Aura -->
-        <div class="absolute -top-24 -right-24 w-96 h-96 bg-violet-600/15 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
+    <!-- 1. Header with Quick Action -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-white/5">
+        <div>
+            <div class="flex flex-wrap items-center gap-3">
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
+                    <span>🧠</span>
+                    <span>Content Intelligence</span>
+                </h1>
+                <x-glass.badge variant="violet">Dynamic Workflow Graph</x-glass.badge>
+                <x-glass.badge variant="emerald">10-Node Synapse Engine</x-glass.badge>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1.5 max-w-3xl leading-relaxed">
+                Deterministic multi-stage AI research architecture. Generates structured knowledge triples, fact-verified claim graphs, adaptive outlines, self-correcting critic evaluations, and publish-ready TipTap documents.
+            </p>
+        </div>
 
-        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div>
-                <div class="flex flex-wrap items-center gap-2.5 mb-2">
-                    <span class="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-600/30 to-indigo-600/30 border border-violet-400/40 flex items-center justify-center text-xl shadow-lg shadow-violet-500/10">🧠</span>
-                    <h1 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight">Content Intelligence Hub</h1>
-                    <span class="px-3 py-1 rounded-full text-xs font-semibold bg-violet-500/20 text-violet-300 border border-violet-400/30 flex items-center gap-1.5 shadow-sm">
-                        <span class="w-2 h-2 rounded-full bg-violet-400 animate-ping"></span>
-                        Dynamic Workflow Graph
-                    </span>
-                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                        10-Node Synapse Engine
-                    </span>
-                </div>
-                <p class="text-sm md:text-base text-slate-300 max-w-3xl leading-relaxed">
-                    Deterministic multi-stage AI research architecture. Generates structured knowledge triples, fact-verified claim graphs, adaptive outlines, self-correcting critic evaluations, and publish-ready TipTap documents.
-                </p>
+        <div class="flex items-center gap-2 shrink-0">
+            <div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-900/80 border border-white/10 text-xs shadow-inner">
+                <span class="text-slate-400 font-medium text-[11px]">⚡ Engine:</span>
+                <select wire:model.live="selectedAiModel" class="bg-transparent text-violet-300 font-medium text-xs focus:outline-none cursor-pointer max-w-[140px] sm:max-w-[180px] truncate pr-1">
+                    @if(isset($aiModels) && count($aiModels) > 0)
+                        @foreach($aiModels as $m)
+                            <option value="{{ $m->model_id }}" class="bg-slate-900 text-slate-200">{{ $m->name }}</option>
+                        @endforeach
+                    @else
+                        <option value="auto" class="bg-slate-900 text-slate-200">Auto-Route</option>
+                    @endif
+                </select>
             </div>
 
-            <div class="flex items-center gap-3 shrink-0">
-                <button
-                    wire:click="openCreateModal"
-                    class="px-5 py-3 rounded-2xl bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 hover:from-violet-500 hover:to-indigo-500 text-white text-sm font-bold shadow-xl shadow-violet-600/30 border border-violet-400/40 flex items-center gap-2.5 transition-all hover:scale-[1.02] active:scale-98 cursor-pointer"
-                >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
-                    <span>New Content Mission</span>
-                </button>
-            </div>
+            <x-glass.button variant="primary" size="sm" wire:click="openCreateModal" class="!py-1.5 !px-3.5 text-xs font-semibold">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                <span>New Mission</span>
+            </x-glass.button>
         </div>
     </div>
 
@@ -312,6 +313,12 @@
                                             <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">QUEUED</span>
                                         @endif
 
+                                        @if(isset($run->mission->article_archetype))
+                                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                                                {{ $run->mission->article_archetype->shortLabel() }}
+                                            </span>
+                                        @endif
+
                                         <h3 class="text-sm font-bold text-white truncate max-w-xs sm:max-w-md">
                                             {{ $run->mission->topic ?? 'Untitled Mission' }}
                                         </h3>
@@ -529,6 +536,10 @@
                             </div>
 
                             <div class="grid grid-cols-2 gap-3">
+                                <div class="p-3 rounded-xl bg-slate-950/70 border border-violet-500/20 col-span-2 flex items-center justify-between">
+                                    <div class="text-slate-400 text-[10px] font-semibold uppercase">Article Archetype & Layout Engine</div>
+                                    <div class="text-violet-300 font-bold text-xs">{{ $selectedRun->mission->article_archetype ? $selectedRun->mission->article_archetype->label() : 'Smart Auto-Detect (AI Inferred)' }}</div>
+                                </div>
                                 <div class="p-3 rounded-xl bg-slate-950/70 border border-white/5">
                                     <div class="text-slate-400 text-[10px] font-semibold uppercase">Target Persona</div>
                                     <div class="text-white font-semibold mt-1">{{ $selectedRun->mission->target_audience['persona'] ?? 'Practitioner' }}</div>
@@ -1892,20 +1903,20 @@
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         <button
                             type="button"
-                            wire:click="applyPreset('technical_guide')"
-                            class="p-2.5 rounded-xl border text-left transition-all cursor-pointer {{ $selectedPreset === 'technical_guide' ? 'bg-violet-600/30 border-violet-400 text-white' : 'bg-slate-950/70 border-white/10 text-slate-300 hover:border-white/20' }}"
+                            wire:click="applyPreset('technical_teardown')"
+                            class="p-2.5 rounded-xl border text-left transition-all cursor-pointer {{ $selectedPreset === 'technical_teardown' || $selectedPreset === 'technical_guide' ? 'bg-violet-600/30 border-violet-400 text-white' : 'bg-slate-950/70 border-white/10 text-slate-300 hover:border-white/20' }}"
                         >
-                            <div class="text-xs font-bold">🛠 Tech Guide</div>
-                            <div class="text-[10px] text-slate-400">Deep & verified</div>
+                            <div class="text-xs font-bold">🛠 Tech Teardown</div>
+                            <div class="text-[10px] text-slate-400">Deep architecture</div>
                         </button>
 
                         <button
                             type="button"
-                            wire:click="applyPreset('seo_pillar')"
-                            class="p-2.5 rounded-xl border text-left transition-all cursor-pointer {{ $selectedPreset === 'seo_pillar' ? 'bg-violet-600/30 border-violet-400 text-white' : 'bg-slate-950/70 border-white/10 text-slate-300 hover:border-white/20' }}"
+                            wire:click="applyPreset('comparative_roundup')"
+                            class="p-2.5 rounded-xl border text-left transition-all cursor-pointer {{ $selectedPreset === 'comparative_roundup' || $selectedPreset === 'seo_pillar' ? 'bg-violet-600/30 border-violet-400 text-white' : 'bg-slate-950/70 border-white/10 text-slate-300 hover:border-white/20' }}"
                         >
-                            <div class="text-xs font-bold">🎯 SEO Pillar</div>
-                            <div class="text-[10px] text-slate-400">Entity-dense 4k+</div>
+                            <div class="text-xs font-bold">⚖️ Top Alternatives</div>
+                            <div class="text-[10px] text-slate-400">Roundup & specs</div>
                         </button>
 
                         <button
@@ -1919,11 +1930,11 @@
 
                         <button
                             type="button"
-                            wire:click="applyPreset('executive_brief')"
-                            class="p-2.5 rounded-xl border text-left transition-all cursor-pointer {{ $selectedPreset === 'executive_brief' ? 'bg-violet-600/30 border-violet-400 text-white' : 'bg-slate-950/70 border-white/10 text-slate-300 hover:border-white/20' }}"
+                            wire:click="applyPreset('executive_strategy')"
+                            class="p-2.5 rounded-xl border text-left transition-all cursor-pointer {{ $selectedPreset === 'executive_strategy' || $selectedPreset === 'executive_brief' ? 'bg-violet-600/30 border-violet-400 text-white' : 'bg-slate-950/70 border-white/10 text-slate-300 hover:border-white/20' }}"
                         >
-                            <div class="text-xs font-bold">📈 Exec Brief</div>
-                            <div class="text-[10px] text-slate-400">High proof expert</div>
+                            <div class="text-xs font-bold">📈 Exec Strategy</div>
+                            <div class="text-[10px] text-slate-400">ROI & governance</div>
                         </button>
                     </div>
                 </div>
@@ -1931,6 +1942,126 @@
                 <form wire:submit="createMission" class="space-y-4">
                     <!-- Step 1: Topic & Scope -->
                     <div class="space-y-4">
+                        <!-- AI Provider & Intelligence Model Selection -->
+                        <div class="p-4 rounded-2xl bg-violet-950/20 border border-violet-500/30 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-violet-300 uppercase tracking-wider flex items-center gap-1.5">
+                                    <span>🤖</span> AI Intelligence Engine & Gateway Model
+                                </span>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 font-mono">Dynamic Multi-Gateway</span>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-400 mb-1">AI Provider Gateway</label>
+                                    <select
+                                        wire:model.live="selectedAiProviderId"
+                                        class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-white/15 text-white text-xs focus:border-violet-500 focus:outline-none"
+                                    >
+                                        <option value="">Auto-Route (All Active Gateways)</option>
+                                        @if(isset($aiProviders))
+                                            @foreach($aiProviders as $p)
+                                                <option value="{{ $p->id }}">{{ $p->name }} ({{ $p->slug }})</option>
+                                            @endforeach
+                                        @endif
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-400 mb-1">Target Model</label>
+                                    <select
+                                        wire:model="selectedAiModel"
+                                        class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-white/15 text-white text-xs focus:border-violet-500 focus:outline-none"
+                                    >
+                                        @if(isset($aiModels))
+                                            @foreach($aiModels as $m)
+                                                @if(!$selectedAiProviderId || $m->ai_provider_id == $selectedAiProviderId)
+                                                    <option value="{{ $m->model_id }}">{{ $m->name }} ({{ $m->model_id }})</option>
+                                                @endif
+                                            @endforeach
+                                        @endif
+                                        <option value="auto">Auto Model (OmniRoute Gateway)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Article Archetype Selection Matrix -->
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                                    Article Archetype & Structural Blueprint <span class="text-rose-400">*</span>
+                                </label>
+                                <span class="text-[10px] text-violet-400 font-medium">Adaptive 6-Layout Engine</span>
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                <button
+                                    type="button"
+                                    wire:click="$set('articleArchetype', 'auto_detect')"
+                                    class="p-2.5 rounded-xl border text-left transition-all cursor-pointer {{ $articleArchetype === 'auto_detect' ? 'bg-violet-600/30 border-violet-400 shadow-lg shadow-violet-600/20 text-white' : 'bg-slate-950/70 border-white/10 text-slate-300 hover:border-white/20' }}"
+                                >
+                                    <div class="flex items-center gap-1.5 text-xs font-bold">
+                                        <span>✨</span> Auto-Detect
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">AI infers optimal outline</div>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    wire:click="applyPreset('comparative_roundup')"
+                                    class="p-2.5 rounded-xl border text-left transition-all cursor-pointer {{ $articleArchetype === 'comparative_roundup' ? 'bg-violet-600/30 border-violet-400 shadow-lg shadow-violet-600/20 text-white' : 'bg-slate-950/70 border-white/10 text-slate-300 hover:border-white/20' }}"
+                                >
+                                    <div class="flex items-center gap-1.5 text-xs font-bold">
+                                        <span>⚖️</span> Comparative Roundup
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">Alternatives & spec matrix</div>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    wire:click="applyPreset('technical_teardown')"
+                                    class="p-2.5 rounded-xl border text-left transition-all cursor-pointer {{ $articleArchetype === 'technical_teardown' ? 'bg-violet-600/30 border-violet-400 shadow-lg shadow-violet-600/20 text-white' : 'bg-slate-950/70 border-white/10 text-slate-300 hover:border-white/20' }}"
+                                >
+                                    <div class="flex items-center gap-1.5 text-xs font-bold">
+                                        <span>🛠</span> Tech Teardown
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">Architecture & code internals</div>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    wire:click="applyPreset('step_by_step_tutorial')"
+                                    class="p-2.5 rounded-xl border text-left transition-all cursor-pointer {{ $articleArchetype === 'step_by_step_tutorial' ? 'bg-violet-600/30 border-violet-400 shadow-lg shadow-violet-600/20 text-white' : 'bg-slate-950/70 border-white/10 text-slate-300 hover:border-white/20' }}"
+                                >
+                                    <div class="flex items-center gap-1.5 text-xs font-bold">
+                                        <span>📖</span> Step Tutorial
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">Prereqs & code steps</div>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    wire:click="applyPreset('executive_strategy')"
+                                    class="p-2.5 rounded-xl border text-left transition-all cursor-pointer {{ $articleArchetype === 'executive_strategy' ? 'bg-violet-600/30 border-violet-400 shadow-lg shadow-violet-600/20 text-white' : 'bg-slate-950/70 border-white/10 text-slate-300 hover:border-white/20' }}"
+                                >
+                                    <div class="flex items-center gap-1.5 text-xs font-bold">
+                                        <span>📈</span> Exec Strategy
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">ROI models & governance</div>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    wire:click="applyPreset('thought_leadership')"
+                                    class="p-2.5 rounded-xl border text-left transition-all cursor-pointer {{ $articleArchetype === 'thought_leadership' ? 'bg-violet-600/30 border-violet-400 shadow-lg shadow-violet-600/20 text-white' : 'bg-slate-950/70 border-white/10 text-slate-300 hover:border-white/20' }}"
+                                >
+                                    <div class="flex items-center gap-1.5 text-xs font-bold">
+                                        <span>💡</span> Thought Leader
+                                    </div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">Contrarian perspective</div>
+                                </button>
+                            </div>
+                            @error('articleArchetype') <span class="text-rose-400 text-xs mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+
                         <div>
                             <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
                                 Topic / Primary Subject <span class="text-rose-400">*</span>

@@ -23,6 +23,7 @@ use App\Features\ContentIntelligence\DTOs\ClaimNodeDTO;
 use App\Features\ContentIntelligence\DTOs\ContentBlueprintDTO;
 use App\Features\ContentIntelligence\DTOs\ContentMissionDTO;
 use App\Features\ContentIntelligence\DTOs\CriticScoreDTO;
+use App\Features\ContentIntelligence\Enums\ArticleArchetype;
 use App\Features\ContentIntelligence\DTOs\FactCheckGateDTO;
 use App\Features\ContentIntelligence\DTOs\KnowledgeFabricDTO;
 use App\Features\ContentIntelligence\DTOs\MasterDocumentDTO;
@@ -989,9 +990,9 @@ class ContentIntelligenceTest extends TestCase
     {
         $response = $this->actingAs($this->regularUser)->get(route('content-intelligence.index'));
         $response->assertStatus(200);
-        $response->assertSee('Content Intelligence Hub');
+        $response->assertSee('Content Intelligence');
         $response->assertSee('Dynamic Workflow Graph');
-        $response->assertSee('New Content Mission');
+        $response->assertSee('New Mission');
     }
 
     public function test_content_intelligence_page_blocks_unauthenticated_guests(): void
@@ -1109,5 +1110,75 @@ class ContentIntelligenceTest extends TestCase
         $this->assertContains('PUBG Mobile: Gameplay, Features & Player Experience', $blueprint->requiredSections);
         $this->assertContains('Call of Duty: Mobile: Gameplay, Features & Player Experience', $blueprint->requiredSections);
         $this->assertContains('Omega Legends: Gameplay, Features & Player Experience', $blueprint->requiredSections);
+    }
+
+    public function test_article_archetype_enum_attributes_and_defaults(): void
+    {
+        $archetypes = ArticleArchetype::cases();
+        $this->assertCount(6, $archetypes);
+
+        foreach ($archetypes as $arch) {
+            $this->assertNotEmpty($arch->label());
+            $this->assertNotEmpty($arch->shortLabel());
+            $this->assertNotEmpty($arch->description());
+            $this->assertNotEmpty($arch->icon());
+            $range = $arch->defaultWordRange();
+            $this->assertArrayHasKey('min', $range);
+            $this->assertArrayHasKey('max', $range);
+            $this->assertGreaterThan($range['min'], $range['max']);
+
+            $templates = $arch->defaultSectionTemplates('Test Topic');
+            $this->assertIsArray($templates);
+            $this->assertGreaterThanOrEqual(4, count($templates));
+        }
+    }
+
+    public function test_content_mission_with_different_article_archetypes(): void
+    {
+        $action = new CreateContentMission;
+        $result = $action->execute($this->regularUser, [
+            'topic' => 'Microservices with gRPC',
+            'primary_objective' => 'Deep technical breakdown of gRPC streaming and proto architecture',
+            'article_archetype' => ArticleArchetype::TECHNICAL_TEARDOWN,
+        ]);
+
+        $mission = $result['mission'];
+        $this->assertEquals(ArticleArchetype::TECHNICAL_TEARDOWN, $mission->article_archetype);
+        $this->assertEquals(ArticleArchetype::TECHNICAL_TEARDOWN, $mission->toDTO()->archetype);
+
+        $blueprintService = new ContentBlueprintService;
+        $searchService = new SearchIntelligenceService;
+        $directorService = new ResearchDirectorService;
+        $knowledgeService = new KnowledgeFabricService;
+
+        $missionDTO = $mission->toDTO();
+        $searchIntel = $searchService->analyze($missionDTO);
+        $plan = $directorService->formulatePlan($missionDTO, $searchIntel);
+        $knowledgeFabric = $knowledgeService->synthesize($mission, $missionDTO, $plan);
+
+        $blueprint = $blueprintService->generate($mission, $missionDTO, $searchIntel, $knowledgeFabric);
+        $this->assertNotEmpty($blueprint->requiredSections);
+        $this->assertContains('System Architecture & Core Engine Mechanisms of Microservices With GRPC', $blueprint->requiredSections);
+    }
+
+    public function test_livewire_content_intelligence_page_presets_and_archetype_selection(): void
+    {
+        Livewire::actingAs($this->regularUser)
+            ->test(ContentIntelligencePage::class)
+            ->assertStatus(200)
+            ->call('openCreateModal')
+            ->assertSet('showCreateModal', true)
+            ->call('applyPreset', 'comparative_roundup')
+            ->assertSet('articleArchetype', 'comparative_roundup')
+            ->assertSet('minWords', 2200)
+            ->assertSet('maxWords', 4000)
+            ->call('applyPreset', 'technical_teardown')
+            ->assertSet('articleArchetype', 'technical_teardown')
+            ->assertSet('expertiseLevel', 'Advanced')
+            ->set('topic', 'Next.js vs Remix vs Astro')
+            ->set('primaryObjective', 'Full comparative benchmark and architectural review of modern frameworks')
+            ->call('createMission')
+            ->assertHasNoErrors()
+            ->assertSet('showCreateModal', false);
     }
 }

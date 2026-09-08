@@ -101,6 +101,8 @@ class ContentIntelligencePage extends Component
 
     public string $researchBudgetTier = 'standard';
 
+    public string $articleArchetype = 'auto_detect';
+
     public int $minWords = 1800;
 
     public int $maxWords = 3500;
@@ -120,6 +122,11 @@ class ContentIntelligencePage extends Component
     public int $modalStep = 1;
 
     public string $selectedPreset = '';
+
+    // AI Provider & Model Gateway Selection
+    public ?int $selectedAiProviderId = null;
+
+    public string $selectedAiModel = 'auto';
 
     // Cognitive Memory OS Filters & Actions
     public string $memoryFilterLayer = 'all';
@@ -145,6 +152,48 @@ class ContentIntelligencePage extends Component
 
     public string $testManualEdit = '';
 
+    public function mount(): void
+    {
+        try {
+            $defaultModel = \Illuminate\Support\Facades\DB::table('ai_models')
+                ->where('is_active', 1)
+                ->where('is_default', 1)
+                ->first();
+
+            if ($defaultModel) {
+                $this->selectedAiProviderId = $defaultModel->ai_provider_id;
+                $this->selectedAiModel = $defaultModel->model_id;
+            } else {
+                $firstModel = \Illuminate\Support\Facades\DB::table('ai_models')
+                    ->where('is_active', 1)
+                    ->first();
+                if ($firstModel) {
+                    $this->selectedAiProviderId = $firstModel->ai_provider_id;
+                    $this->selectedAiModel = $firstModel->model_id;
+                }
+            }
+        } catch (\Throwable $e) {
+            // DB fallback
+        }
+    }
+
+    public function updatedSelectedAiProviderId($providerId): void
+    {
+        if ($providerId) {
+            try {
+                $firstModel = \Illuminate\Support\Facades\DB::table('ai_models')
+                    ->where('ai_provider_id', $providerId)
+                    ->where('is_active', 1)
+                    ->first();
+
+                if ($firstModel) {
+                    $this->selectedAiModel = $firstModel->model_id;
+                }
+            } catch (\Throwable $e) {
+            }
+        }
+    }
+
     public function setInspectorTab(string $tab): void
     {
         $this->inspectorTab = $tab;
@@ -164,35 +213,49 @@ class ContentIntelligencePage extends Component
     {
         $this->selectedPreset = $preset;
         match ($preset) {
-            'technical_guide' => [
+            'technical_teardown', 'technical_guide' => [
+                $this->articleArchetype = 'technical_teardown',
                 $this->expertiseLevel = 'Advanced',
                 $this->riskLevel = 'high',
                 $this->researchBudgetTier = 'deep',
                 $this->minWords = 2500,
-                $this->maxWords = 5000,
+                $this->maxWords = 4500,
             ],
-            'seo_pillar' => [
+            'comparative_roundup', 'seo_pillar' => [
+                $this->articleArchetype = 'comparative_roundup',
                 $this->expertiseLevel = 'Intermediate',
                 $this->riskLevel = 'medium',
                 $this->researchBudgetTier = 'standard',
-                $this->minWords = 3000,
-                $this->maxWords = 6000,
+                $this->minWords = 2200,
+                $this->maxWords = 4000,
             ],
-            'thought_leadership' => [
-                $this->expertiseLevel = 'Expert',
+            'step_by_step_tutorial' => [
+                $this->articleArchetype = 'step_by_step_tutorial',
+                $this->expertiseLevel = 'Intermediate',
                 $this->riskLevel = 'medium',
                 $this->researchBudgetTier = 'standard',
                 $this->minWords = 1800,
                 $this->maxWords = 3500,
             ],
-            'executive_brief' => [
+            'thought_leadership' => [
+                $this->articleArchetype = 'thought_leadership',
+                $this->expertiseLevel = 'Expert',
+                $this->riskLevel = 'medium',
+                $this->researchBudgetTier = 'standard',
+                $this->minWords = 1400,
+                $this->maxWords = 2600,
+            ],
+            'executive_strategy', 'executive_brief' => [
+                $this->articleArchetype = 'executive_strategy',
                 $this->expertiseLevel = 'Expert',
                 $this->riskLevel = 'high',
                 $this->researchBudgetTier = 'expert',
-                $this->minWords = 1200,
-                $this->maxWords = 2500,
+                $this->minWords = 1600,
+                $this->maxWords = 3000,
             ],
-            default => null,
+            default => [
+                $this->articleArchetype = 'auto_detect',
+            ],
         };
     }
 
@@ -220,6 +283,7 @@ class ContentIntelligencePage extends Component
             'expertiseLevel' => 'required|string|in:Beginner,Intermediate,Advanced,Expert',
             'riskLevel' => 'required|string|in:low,medium,high',
             'researchBudgetTier' => 'required|string|in:quick,standard,deep,expert',
+            'articleArchetype' => 'required|string|in:auto_detect,comparative_roundup,technical_teardown,step_by_step_tutorial,executive_strategy,thought_leadership',
             'minWords' => 'required|integer|min:300|max:15000',
             'maxWords' => 'required|integer|min:500|max:25000|gte:minWords',
         ];
@@ -251,11 +315,17 @@ class ContentIntelligencePage extends Component
                     'persona' => trim($this->audiencePersona) ?: 'Enterprise Practitioner',
                     'expertise_level' => $this->expertiseLevel,
                 ],
+                'article_archetype' => $this->articleArchetype,
+                'archetype' => $this->articleArchetype,
                 'risk_level' => $this->riskLevel,
                 'research_budget_tier' => $this->researchBudgetTier,
                 'target_word_count_range' => [
                     'min' => $this->minWords,
                     'max' => $this->maxWords,
+                ],
+                'custom_constraints' => [
+                    'ai_provider_id' => $this->selectedAiProviderId,
+                    'ai_model' => $this->selectedAiModel,
                 ],
             ]);
 
@@ -804,10 +874,15 @@ class ContentIntelligencePage extends Component
         $topicClusters = SiteTopicCluster::where('user_id', $userId)->latest()->limit(10)->get();
         $portfolioReport = app(SiteTopicStrategyService::class)->generatePortfolioReport($userId);
 
+        $aiProviders = \Illuminate\Support\Facades\DB::table('ai_providers')->where('is_active', 1)->get();
+        $aiModels = \Illuminate\Support\Facades\DB::table('ai_models')->where('is_active', 1)->get();
+
         return view('content-intelligence.index', [
             'runs' => $runs,
             'selectedRun' => $selectedRun,
             'stats' => $stats,
+            'aiProviders' => $aiProviders,
+            'aiModels' => $aiModels,
             'memories' => $memories,
             'memoryCandidates' => $memoryCandidates,
             'episodicEvents' => $episodicEvents,

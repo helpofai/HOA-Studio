@@ -17,6 +17,7 @@
 
 namespace App\Features\ContentIntelligence\DTOs;
 
+use App\Features\ContentIntelligence\Enums\ArticleArchetype;
 use App\Features\ContentIntelligence\Enums\ResearchBudgetTier;
 use App\Features\ContentIntelligence\Enums\RiskLevel;
 use InvalidArgumentException;
@@ -42,6 +43,7 @@ final class ContentMissionDTO
         public readonly string $marketGeo = 'Global',
         public readonly string $language = 'en',
         public readonly string $contentType = 'comprehensive_guide',
+        public readonly ArticleArchetype $archetype = ArticleArchetype::AUTO_DETECT,
         public readonly string $businessGoal = 'authority_and_engagement',
         public readonly string $searchGoal = 'organic_search_rank_1',
         public readonly ?int $brandProfileId = null,
@@ -77,6 +79,11 @@ final class ContentMissionDTO
      */
     public static function fromArray(array $data): self
     {
+        $archetypeVal = $data['archetype'] ?? $data['article_archetype'] ?? 'auto_detect';
+        $archetype = $archetypeVal instanceof ArticleArchetype
+            ? $archetypeVal
+            : ArticleArchetype::tryFrom((string) $archetypeVal) ?? ArticleArchetype::AUTO_DETECT;
+
         return new self(
             topic: (string) ($data['topic'] ?? ''),
             primaryObjective: (string) ($data['primary_objective'] ?? $data['topic'] ?? ''),
@@ -89,6 +96,7 @@ final class ContentMissionDTO
             marketGeo: (string) ($data['market_geo'] ?? $data['market'] ?? 'Global'),
             language: (string) ($data['language'] ?? 'en'),
             contentType: (string) ($data['content_type'] ?? 'comprehensive_guide'),
+            archetype: $archetype,
             businessGoal: (string) ($data['business_goal'] ?? 'authority_and_engagement'),
             searchGoal: (string) ($data['search_goal'] ?? 'organic_search_rank_1'),
             brandProfileId: isset($data['brand_profile_id']) ? (int) $data['brand_profile_id'] : null,
@@ -123,6 +131,8 @@ final class ContentMissionDTO
             'market_geo' => $this->marketGeo,
             'language' => $this->language,
             'content_type' => $this->contentType,
+            'article_archetype' => $this->archetype->value,
+            'archetype' => $this->archetype->value,
             'business_goal' => $this->businessGoal,
             'search_goal' => $this->searchGoal,
             'brand_profile_id' => $this->brandProfileId,
