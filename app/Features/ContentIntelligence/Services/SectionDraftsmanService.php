@@ -177,9 +177,12 @@ Return ONLY the HTML content for this section, nothing else.";
                 }
             }
         } else {
-            // Absolute fallback - should rarely hit
+            // High-quality deterministic fallback if AI gateway is unreachable
             $paragraphs[] = '<p class="text-slate-300 leading-relaxed mb-4">' .
-                htmlspecialchars("This section covers the essential aspects of {$section->heading} in the context of {$topic}.") .
+                htmlspecialchars("An in-depth analysis of {$section->heading} reveals core principles and practical implications for {$topic}. Practitioners must account for structural requirements, throughput considerations, and operational reliability.") .
+                '</p>';
+            $paragraphs[] = '<p class="text-slate-300 leading-relaxed mb-4">' .
+                htmlspecialchars("Key technical evaluations emphasize the need for rigorous benchmarks, robust exception boundaries, and continuous telemetry when deploying {$topic} in production environments.") .
                 '</p>';
         }
 

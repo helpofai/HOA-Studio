@@ -117,11 +117,11 @@ Return JSON:
             // Ensure we have enough sections for a comprehensive article
             if (count($requiredSections) < 5) {
                 $requiredSections = array_merge($requiredSections, [
-                    "Understanding the Fundamentals",
-                    "Deep Dive into Core Concepts",
-                    "Practical Implementation Guide",
-                    "Common Challenges and Solutions",
-                    "Summary and Next Steps"
+                    "Architecture & Core Mechanics of {$topic}",
+                    "Key Capabilities & Practical Workflows",
+                    "Integration Strategies & Implementation Guide",
+                    "Performance Optimization & Best Practices for {$topic}",
+                    "Strategic Roadmap & Summary"
                 ]);
             }
 
