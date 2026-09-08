@@ -109,29 +109,19 @@ Return JSON:
   \"optional_sections\": [\"Advanced benchmarks\", \"Ecosystem FAQ\"]
 }";
 
+            $fallbackSections = $this->buildFallbackSections($topic, $thesis);
+
             $aiSections = DynamicContentProvider::askJSON($sectionPrompt, [
-                'required_sections' => [
-                    "What Is {$topic} and How Does It Work?",
-                    "Architectural Foundations and Core Capabilities",
-                    "Feature Matrix and Ecosystem Integration",
-                    "Practical Implementation and Workflows",
-                    "Enterprise Considerations, Performance, and Strategic Roadmap"
-                ],
-                'optional_sections' => ["Frequently Asked Questions", "Performance Benchmarks"]
+                'required_sections' => $fallbackSections,
+                'optional_sections' => ["Frequently Asked Questions", "Performance Benchmarks & Comparisons"]
             ]);
 
             $requiredSections = $aiSections['required_sections'] ?? [];
-            $optionalSections = $aiSections['optional_sections'] ?? ["Frequently Asked Questions", "Performance Benchmarks"];
+            $optionalSections = $aiSections['optional_sections'] ?? ["Frequently Asked Questions", "Performance Benchmarks & Comparisons"];
 
-            // If empty or fewer than 4 sections returned, populate with topic-grounded headers
+            // If empty or fewer than 4 sections returned, populate with topic & inquiry-grounded headers
             if (count($requiredSections) < 4) {
-                $requiredSections = [
-                    "What Is {$topic} and How Does It Work?",
-                    "Core Architecture and Mechanics of {$topic}",
-                    "Key Capabilities, Features, and Integrations",
-                    "Practical Deployment and Real-World Workflows",
-                    "Strategic Roadmap, Best Practices, and Future Outlook"
-                ];
+                $requiredSections = $fallbackSections;
             }
 
             Log::info("[ContentBlueprint] Generated " . count($requiredSections) . " required sections");
@@ -190,5 +180,63 @@ Return JSON: {\"faqs\": [\"Question 1?\", \"Question 2?\", ...]}";
                 faqRequirements: $blueprint->faq_requirements
             );
         });
+    }
+
+    /**
+     * Extract specific user questions/inquiries from the thesis/objective string.
+     */
+    protected function extractUserInquiries(string $thesis, string $topic): array
+    {
+        $inquiries = [];
+
+        // Check for questions ending in '?' or separate lines/bullets
+        $lines = preg_split('/(?:\r\n|\r|\n|\?)/u', $thesis, -1, PREG_SPLIT_NO_EMPTY);
+        foreach ($lines as $line) {
+            $trimmed = trim(preg_replace('/^[\s\-\*\d\.\)]+/', '', $line));
+            if (strlen($trimmed) > 8) {
+                // If it looks like a question or substantive inquiry
+                if (preg_match('/^(what|how|why|does|can|is|are|which|when|where|who|will|should)/i', $trimmed)) {
+                    $inquiry = rtrim($trimmed, '?') . '?';
+                    if (!in_array($inquiry, $inquiries)) {
+                        $inquiries[] = $inquiry;
+                    }
+                } elseif (strlen($trimmed) > 15 && !in_array($trimmed, $inquiries)) {
+                    $inquiries[] = $trimmed;
+                }
+            }
+        }
+
+        return $inquiries;
+    }
+
+    /**
+     * Build high-quality, topic & inquiry grounded section headings.
+     */
+    protected function buildFallbackSections(string $topic, string $thesis): array
+    {
+        $inquiries = $this->extractUserInquiries($thesis, $topic);
+        $cleanTopic = ucwords(trim($topic));
+        $sections = [];
+
+        if (!empty($inquiries) && count($inquiries) >= 2) {
+            foreach ($inquiries as $inq) {
+                $cleanInq = rtrim($inq, '?');
+                $sections[] = ucfirst($cleanInq) . (str_ends_with($inq, '?') ? '?' : '');
+            }
+            // Add an operational / deployment section if fewer than 5 sections
+            if (count($sections) < 5) {
+                $sections[] = "Practical Implementation, Workflows & Best Practices for {$cleanTopic}";
+            }
+        } else {
+            $sections = [
+                "What Is {$cleanTopic} & How Does It Work?",
+                "Core Architecture, Capabilities & Engine Mechanics",
+                "Key Features, Integrations & Real-World Use Cases",
+                "Practical Deployment Workflows & Configuration Guide",
+                "Strategic Roadmap, Best Practices & Performance Optimization"
+            ];
+        }
+
+        return array_values(array_unique($sections));
     }
 }

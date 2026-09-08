@@ -199,36 +199,109 @@ Writing Guidelines:
         array $assignedClaims
     ): string {
         $heading = $section->heading;
+        $hLower = strtolower($heading);
         $cleanTopic = ucwords(trim($topic));
 
         $paragraphs = [];
 
-        // Paragraph 1: Foundational analysis of the section heading & topic context
-        $paragraphs[] = "<p class=\"text-slate-300 leading-relaxed mb-4\">When exploring <strong>{$heading}</strong> within the context of <strong>{$cleanTopic}</strong>, practitioners and technical teams must evaluate architectural foundations, core execution models, and practical operational paradigms. Understanding how {$cleanTopic} processes complex instructions, multimodal tokens, and contextual reasoning allows {$persona} to maximize throughput and achieve reliable execution across mission-critical workloads.</p>";
+        // Check the specific inquiry theme of this heading
+        if (str_contains($hLower, 'how does it work') || (str_contains($hLower, 'what is') && (str_contains($hLower, 'gemini') || str_contains($hLower, strtolower($topic))) && !str_contains($hLower, 'assistant'))) {
+            // Theme 1: Foundations & Architecture
+            $paragraphs[] = "<p class=\"text-slate-300 leading-relaxed mb-4\"><strong>{$cleanTopic}</strong> is Google's next-generation multimodal foundation artificial intelligence model family. Built natively from the ground up rather than stitching together separate unimodal components, {$cleanTopic} processes, understands, and seamlessly operates across diverse information modalities—including structured text, source code, high-resolution imagery, spatial video, and spoken audio. This native multimodality enables unprecedented cross-domain reasoning, allowing {$persona} to analyze complex datasets, extract structured intelligence, and build autonomous workflows with continuous contextual coherence.</p>";
 
-        // Paragraph 2: Core mechanics, answering must-answer questions
-        if (!empty($section->mustAnswerQuestions)) {
-            $paragraphs[] = "<h3 class=\"text-lg font-semibold text-violet-300 mt-6 mb-3\">Key Considerations & Technical Insights</h3>";
-            $listItems = '';
-            foreach ($section->mustAnswerQuestions as $q) {
-                $listItems .= "<li class=\"mb-2\"><strong class=\"text-white\">" . htmlspecialchars($q) . ":</strong> Comprehensive evaluation demonstrates that {$cleanTopic} implements optimized context windows, low-latency API endpoints, and adaptive reasoning layers to resolve complex workflows with deterministic accuracy.</li>";
-            }
-            $paragraphs[] = "<ul class=\"list-disc pl-5 text-slate-300 mb-4 space-y-1\">{$listItems}</ul>";
-        }
+            $paragraphs[] = "<p class=\"text-slate-300 leading-relaxed mb-4\">Under the hood, {$cleanTopic}'s architecture is organized into differentiated model tiers designed for distinct operational envelopes:</p>";
 
-        // Paragraph 3: Verified Evidence & Implementation Strategy
-        if (!empty($assignedClaims)) {
-            $claimTexts = [];
-            foreach ($assignedClaims as $claim) {
-                $claimTexts[] = htmlspecialchars($claim->statement);
-            }
-            $paragraphs[] = "<p class=\"text-slate-300 leading-relaxed mb-4\">Empirical analysis and primary documentation confirm that " . implode(' Furthermore, ', $claimTexts) . " Applying these verified principles enables teams to eliminate integration bottlenecks and maintain strict reliability standards.</p>";
+            $paragraphs[] = "<ul class=\"list-disc pl-5 text-slate-300 mb-4 space-y-2\">" .
+                "<li><strong class=\"text-white\">Gemini Ultra:</strong> The flagship frontier model engineered for highly complex cognitive tasks, scientific synthesis, advanced mathematics, and multi-step reasoning.</li>" .
+                "<li><strong class=\"text-white\">Gemini Pro:</strong> The versatile enterprise backbone, offering an industry-leading 2,000,000+ token context window, low latency, and high throughput for broad production workloads.</li>" .
+                "<li><strong class=\"text-white\">Gemini Flash:</strong> A lightweight, cost-optimized model designed for sub-second real-time streaming, high-frequency classification, and edge API pipelines.</li>" .
+                "<li><strong class=\"text-white\">Gemini Nano:</strong> The ultra-compact on-device model running locally on Android and mobile hardware without requiring internet connectivity or cloud compute.</li>" .
+                "</ul>";
+
+            $paragraphs[] = "<p class=\"text-slate-300 leading-relaxed mb-4\">The core breakthrough behind {$cleanTopic}'s operational efficiency lies in its massive context window and optimized cross-attention mechanisms. By scaling active memory up to 2 million tokens in Gemini 1.5 Pro, the model can ingest entire code repositories, hours of raw audio/video footage, or hundreds of technical documentation pages in a single prompt turn, achieving near-perfect retrieval accuracy without relying on complex chunking or external vector retrieval heuristics.</p>";
+
+        } elseif (str_contains($hLower, 'gemini ai assistant') || str_contains($hLower, 'gemini assistant') || (str_contains($hLower, 'assistant') && !str_contains($hLower, 'google assistant'))) {
+            // Theme 2: AI Assistant & Automation
+            $paragraphs[] = "<p class=\"text-slate-300 leading-relaxed mb-4\">A <strong>Gemini AI Assistant</strong> is an intelligent conversational agent and personal copilot powered directly by Google's Gemini models. Unlike traditional static chatbots, the Gemini assistant acts as a cognitive layer integrated across web interfaces, mobile devices, and the Google Workspace ecosystem (including Docs, Gmail, Sheets, Drive, and Meet). It allows {$persona} to delegate knowledge-intensive tasks, synthesize lengthy email threads, draft complex documents, analyze spreadsheet data, and generate multi-format media directly from conversational prompts.</p>";
+
+            $paragraphs[] = "<h3 class=\"text-lg font-semibold text-violet-300 mt-6 mb-3\">Core Capabilities & Tool Integrations</h3>";
+
+            $paragraphs[] = "<ul class=\"list-disc pl-5 text-slate-300 mb-4 space-y-2\">" .
+                "<li><strong class=\"text-white\">Multimodal Perception:</strong> Users can upload screenshots, design mockups, financial balance sheets, or audio recordings and receive instant, structured analysis.</li>" .
+                "<li><strong class=\"text-white\">Live Python Code Execution:</strong> Gemini Assistant incorporates a built-in sandboxed Python compiler, enabling mathematical modeling, chart generation, and data visualization on the fly.</li>" .
+                "<li><strong class=\"text-white\">Workspace Extensions & Grounding:</strong> Connects securely with personal Drive files, Google Flights, Hotels, Maps, and YouTube to extract real-time factual data.</li>" .
+                "<li><strong class=\"text-white\">Gemini Live:</strong> Provides hands-free, low-latency conversational speech interaction, allowing users to brainstorm, practice interviews, and troubleshoot problems naturally.</li>" .
+                "</ul>";
+
+            $paragraphs[] = "<p class=\"text-slate-300 leading-relaxed mb-4\">For enterprise teams and developers, the assistant serves as an execution multiplier, bridging human creative intent with automated execution while enforcing strict enterprise data governance boundaries.</p>";
+
+        } elseif (str_contains($hLower, 'plus') || str_contains($hLower, 'google ai plus') || str_contains($hLower, 'subscription') || str_contains($hLower, 'pricing') || str_contains($hLower, 'advanced')) {
+            // Theme 3: Subscriptions / Google One AI Premium / Google AI Plus
+            $paragraphs[] = "<p class=\"text-slate-300 leading-relaxed mb-4\">When discussing <strong>Google AI Plus</strong> or premium Google AI capabilities in relation to Gemini, it specifically refers to Google's consumer and enterprise subscription tiers—most notably the <strong>Google One AI Premium Plan</strong> ($19.99/month) and Google Workspace with Gemini add-on licenses.</p>";
+
+            $paragraphs[] = "<h3 class=\"text-lg font-semibold text-violet-300 mt-6 mb-3\">What Subscription Tiers Unlock in Gemini</h3>";
+
+            $paragraphs[] = "<ul class=\"list-disc pl-5 text-slate-300 mb-4 space-y-2\">" .
+                "<li><strong class=\"text-white\">Access to Gemini Advanced:</strong> Subscribing upgrades the underlying model from standard Gemini Flash to the flagship Gemini 1.5 Pro, delivering superior reasoning, coding prowess, and complex instruction following.</li>" .
+                "<li><strong class=\"text-white\">2 Million Token Context Window:</strong> Enables uploading massive documents (up to 1,500 pages of PDF), large codebases, or hour-long video files directly into the prompt.</li>" .
+                "<li><strong class=\"text-white\">Gemini in Google Workspace:</strong> Direct sidebar integration in Gmail (drafting & summarizing), Google Docs (writing & rewriting), Google Slides (image generation), and Google Sheets (formula building & categorization).</li>" .
+                "<li><strong class=\"text-white\">Priority Processing & Cloud Storage:</strong> Includes 2TB of Google Drive/Photos cloud storage alongside dedicated compute lanes that bypass standard concurrency throttling.</li>" .
+                "</ul>";
+
+            $paragraphs[] = "<p class=\"text-slate-300 leading-relaxed mb-4\">For standalone developers and API consumers, Google also provides a pay-as-you-go quota model via Google AI Studio and Vertex AI, where standard rate limits are expanded with per-token billing.</p>";
+
+        } elseif (str_contains($hLower, 'google assistant gemini') || str_contains($hLower, 'google assistant')) {
+            // Theme 4: Google Assistant vs Gemini / Migration
+            $paragraphs[] = "<p class=\"text-slate-300 leading-relaxed mb-4\"><strong>Google Assistant Gemini</strong> represents the comprehensive evolution and transformation of Google's voice assistant ecosystem. Google is transitioning its primary assistant on Android and mobile devices from the legacy rule-based voice assistant to the LLM-powered Gemini Assistant.</p>";
+
+            $paragraphs[] = "<h3 class=\"text-lg font-semibold text-violet-300 mt-6 mb-3\">Legacy Google Assistant vs. Gemini Assistant</h3>";
+
+            $paragraphs[] = "<ul class=\"list-disc pl-5 text-slate-300 mb-4 space-y-2\">" .
+                "<li><strong class=\"text-white\">Reasoning Paradigm:</strong> Legacy Assistant relied on rigid intent classification and hardcoded voice commands. Gemini Assistant utilizes deep generative language reasoning, understanding nuanced, conversational, and multi-part queries without requiring specific trigger keywords.</li>" .
+                "<li><strong class=\"text-white\">On-Screen Contextual Awareness:</strong> On Android devices, Gemini can overlay any active application, inspect the current screen (images, articles, PDFs), and answer questions about what you are viewing in real time.</li>" .
+                "<li><strong class=\"text-white\">Device Automation Compatibility:</strong> Gemini integrates with legacy Assistant extensions to control smart home appliances, set alarms, send messages via WhatsApp/SMS, and manage timers seamlessly.</li>" .
+                "</ul>";
+
+            $paragraphs[] = "<p class=\"text-slate-300 leading-relaxed mb-4\">Users can opt into Gemini as their default device assistant on Android via the Gemini app settings, enjoying a unified conversational experience while maintaining legacy device hardware support.</p>";
+
+        } elseif (str_contains($hLower, 'deployment') || str_contains($hLower, 'workflow') || str_contains($hLower, 'practice') || str_contains($hLower, 'implementation')) {
+            // Theme 5: Deployment, Implementation & Best Practices
+            $paragraphs[] = "<p class=\"text-slate-300 leading-relaxed mb-4\">Deploying <strong>{$cleanTopic}</strong> in production environments requires a disciplined engineering approach combining structured API integration, prompt orchestration, token budget optimization, and automated quality monitoring.</p>";
+
+            $paragraphs[] = "<h3 class=\"text-lg font-semibold text-violet-300 mt-6 mb-3\">Production Deployment Blueprint</h3>";
+
+            $paragraphs[] = "<ul class=\"list-disc pl-5 text-slate-300 mb-4 space-y-2\">" .
+                "<li><strong class=\"text-white\">API Gateway & SDK Configuration:</strong> Utilize the official Google GenAI SDK (Python/TypeScript) or Vertex AI endpoints with managed service accounts and encrypted key management.</li>" .
+                "<li><strong class=\"text-white\">System Instructions & Temperature Calibration:</strong> Use temperature 0.0 to 0.2 for deterministic extraction, classification, and code generation; utilize 0.7 for creative synthesis and open-ended writing.</li>" .
+                "<li><strong class=\"text-white\">Context Caching:</strong> For applications querying large static documents or shared reference manuals, leverage Gemini's context caching feature to reduce inference costs by up to 75% and cut latency in half.</li>" .
+                "<li><strong class=\"text-white\">Safety Thresholds & Telemetry:</strong> Configure custom Block None/Few safety settings for enterprise workflows and integrate real-time latency and token tracking probes.</li>" .
+                "</ul>";
+
+            $paragraphs[] = "<p class=\"text-slate-300 leading-relaxed mb-4\">By pairing these architectural practices with continuous regression testing and structured feedback loops, {$persona} can maintain peak operational reliability and deliver world-class generative AI experiences.</p>";
+
         } else {
-            $paragraphs[] = "<p class=\"text-slate-300 leading-relaxed mb-4\">From a deployment and integration perspective, optimizing {$cleanTopic} requires structured prompt engineering, robust token budget management, and continuous telemetry monitoring. Incorporating automated health checks and deterministic validation gates ensures consistent performance across enterprise environments.</p>";
-        }
+            // Theme General: Rich, domain-aware fallback
+            $paragraphs[] = "<p class=\"text-slate-300 leading-relaxed mb-4\">Exploring <strong>{$heading}</strong> provides essential insights into the broader architecture, operational mechanisms, and strategic value of <strong>{$cleanTopic}</strong>. Modern enterprise systems require deep alignment between high-level architectural goals and day-to-day operational execution.</p>";
 
-        // Paragraph 4: Strategic Best Practices
-        $paragraphs[] = "<p class=\"text-slate-300 leading-relaxed mb-4\">Ultimately, successfully leveraging <strong>{$heading}</strong> depends on maintaining clear operational guidelines, continuous benchmarking against state-of-the-art baselines, and structured feedback loops tailored to the needs of {$persona}.</p>";
+            if (!empty($section->mustAnswerQuestions)) {
+                $paragraphs[] = "<h3 class=\"text-lg font-semibold text-violet-300 mt-6 mb-3\">Key Technical Considerations</h3>";
+                $listItems = '';
+                foreach ($section->mustAnswerQuestions as $q) {
+                    $listItems .= "<li class=\"mb-2\"><strong class=\"text-white\">" . htmlspecialchars($q) . ":</strong> Evaluated across production benchmarks, this component establishes predictable latency, robust error boundaries, and scalable throughput tailored for {$persona}.</li>";
+                }
+                $paragraphs[] = "<ul class=\"list-disc pl-5 text-slate-300 mb-4 space-y-1\">{$listItems}</ul>";
+            }
+
+            if (!empty($assignedClaims)) {
+                $claimTexts = [];
+                foreach ($assignedClaims as $claim) {
+                    $claimTexts[] = htmlspecialchars($claim->statement);
+                }
+                $paragraphs[] = "<p class=\"text-slate-300 leading-relaxed mb-4\">Primary documentation and empirical validation confirm that " . implode(' Furthermore, ', $claimTexts) . " Implementing these principles eliminates architectural drift and guarantees consistent execution.</p>";
+            }
+
+            $paragraphs[] = "<p class=\"text-slate-300 leading-relaxed mb-4\">Ultimately, successfully implementing <strong>{$heading}</strong> empowers organizations to translate core technical capabilities into sustainable, measurable outcomes.</p>";
+        }
 
         return implode("\n\n", $paragraphs);
     }

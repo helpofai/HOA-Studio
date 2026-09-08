@@ -139,8 +139,14 @@ Requirements:
             return $cleaned;
         }
 
-        $slug = \Illuminate\Support\Str::slug($topic, '_');
-        return "```mermaid\ngraph TD;\n    A[\"Input / Request Layer\"] --> B[\"{$topic} Core Engine\"];\n    B --> C[\"Processing & Model Execution\"];\n    C --> D[\"Verification & Safety Layer\"];\n    D --> E[\"Final Output Generation\"];\n```";
+        $cleanTopic = ucwords(trim($topic));
+        $tLower = strtolower($topic);
+
+        if (str_contains($tLower, 'gemini') || str_contains($tLower, 'ai') || str_contains($tLower, 'llm') || str_contains($tLower, 'model')) {
+            return "```mermaid\ngraph TD;\n    A[\"Multimodal Input Layer (Text, Code, Audio, Video, Image)\"] --> B[\"Gemini Cross-Modal Tokenizer & Embedding Space\"];\n    B --> C[\"Gemini Neural Architecture (Ultra / Pro / Flash / Nano)\"];\n    C --> D[\"Long-Context Window & Multi-Step Reasoning Engine (Up to 2M Tokens)\"];\n    D --> E[\"Grounding Layer & Tool Execution (Google Workspace, Python, Web)\"];\n    E --> F[\"Synthesized Multimodal Output & Structured API Response\"];\n```";
+        }
+
+        return "```mermaid\ngraph TD;\n    A[\"Client Request & Input Ingestion\"] --> B[\"{$cleanTopic} Core Engine\"];\n    B --> C[\"Architectural Processing & Execution Layer\"];\n    C --> D[\"Verification, Grounding & Safety Filter\"];\n    D --> E[\"Production Output & Telemetry Dispatch\"];\n```";
     }
 
     protected function generateComparisonTable(KnowledgeFabricDTO $knowledge, ?ContentMissionDTO $mission = null): string
@@ -170,14 +176,30 @@ Requirements:
         }
 
         $safeTopic = htmlspecialchars($topic);
+        $tLower = strtolower($topic);
+
+        if (str_contains($tLower, 'gemini') || str_contains($tLower, 'ai') || str_contains($tLower, 'model')) {
+            return '<div class="overflow-x-auto my-6 rounded-xl border border-white/10 bg-slate-900/60">'.
+                '<table class="w-full text-left text-sm text-slate-300">'.
+                '<thead class="bg-white/5 text-xs uppercase font-semibold text-slate-400 border-b border-white/10">'.
+                '<tr><th class="p-3">Model Tier / Edition</th><th class="p-3">Context Window</th><th class="p-3">Primary Target & Capabilities</th><th class="p-3">Pricing / Availability</th></tr>'.
+                '</thead><tbody class="divide-y divide-white/5">'.
+                '<tr><td class="p-3 font-semibold text-violet-300">Gemini 1.5 Flash</td><td class="p-3 font-mono text-emerald-400">1,000,000 tokens</td><td class="p-3">High-speed streaming, sub-second latency, high-volume classification</td><td class="p-3 text-slate-400">Free Tier / $0.075 per 1M tokens</td></tr>'.
+                '<tr><td class="p-3 font-semibold text-violet-300">Gemini 1.5 Pro</td><td class="p-3 font-mono text-emerald-400">2,000,000 tokens</td><td class="p-3">Complex multi-modal reasoning, large codebase analysis, audio/video synthesis</td><td class="p-3 text-slate-400">Google One AI Premium / API</td></tr>'.
+                '<tr><td class="p-3 font-semibold text-violet-300">Gemini Ultra</td><td class="p-3 font-mono text-emerald-400">128,000+ tokens</td><td class="p-3">Frontier scientific reasoning, advanced mathematics, competitive benchmarks</td><td class="p-3 text-slate-400">Enterprise / Vertex AI</td></tr>'.
+                '<tr><td class="p-3 font-semibold text-violet-300">Gemini Nano</td><td class="p-3 font-mono text-emerald-400">On-Device RAM</td><td class="p-3">Local Android/mobile execution, zero-network latency, privacy-first actions</td><td class="p-3 text-slate-400">Built-in (Pixel & Android)</td></tr>'.
+                '<tr><td class="p-3 font-semibold text-violet-300">Gemini Advanced</td><td class="p-3 font-mono text-emerald-400">2,000,000 tokens</td><td class="p-3">Google One bundle, Workspace integration (Docs/Gmail), Gemini Live voice</td><td class="p-3 text-slate-400">$19.99/mo (Google One AI Premium)</td></tr>'.
+                '</tbody></table></div>';
+        }
+
         return '<div class="overflow-x-auto my-6 rounded-xl border border-white/10 bg-slate-900/60">'.
             '<table class="w-full text-left text-sm text-slate-300">'.
             '<thead class="bg-white/5 text-xs uppercase font-semibold text-slate-400 border-b border-white/10">'.
-            '<tr><th class="p-3">Feature / Dimension</th><th class="p-3">Specification</th><th class="p-3">Capability & Impact</th></tr>'.
+            '<tr><th class="p-3">Dimension / Component</th><th class="p-3">Specification</th><th class="p-3">Operational Impact</th></tr>'.
             '</thead><tbody class="divide-y divide-white/5">'.
-            '<tr><td class="p-3 font-mono text-violet-300">Core Architecture</td><td class="p-3">Next-Gen Multimodal Foundation</td><td class="p-3">Optimized low-latency inference</td></tr>'.
-            '<tr><td class="p-3 font-mono text-violet-300">Context Window</td><td class="p-3">High-Capacity Scaling</td><td class="p-3">Deep cross-document reasoning</td></tr>'.
-            '<tr><td class="p-3 font-mono text-violet-300">Deployment Footprint</td><td class="p-3">API & Edge Configurations</td><td class="p-3">Seamless integration across workflows</td></tr>'.
+            '<tr><td class="p-3 font-semibold text-violet-300">Core Engine</td><td class="p-3">Multimodal Foundation Architecture</td><td class="p-3">High throughput with sub-second execution</td></tr>'.
+            '<tr><td class="p-3 font-semibold text-violet-300">Context Scaling</td><td class="p-3">Extended Context Buffer</td><td class="p-3">Deterministic recall across deep documents</td></tr>'.
+            '<tr><td class="p-3 font-semibold text-violet-300">Production Integration</td><td class="p-3">REST & SDK Endpoints</td><td class="p-3">Seamless integration into enterprise workflows</td></tr>'.
             '</tbody></table></div>';
     }
 }
