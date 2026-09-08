@@ -469,7 +469,8 @@ flowchart TD
     - Optimization & Assembly: [`SeoMetadataDTO.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/ContentIntelligence/DTOs/SeoMetadataDTO.php), [`MediaAssetDTO.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/ContentIntelligence/DTOs/MediaAssetDTO.php), [`MasterDocumentDTO.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/ContentIntelligence/DTOs/MasterDocumentDTO.php)
   - UI Workspace & Livewire Hub:
     - Component: [`ContentIntelligencePage.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/ContentIntelligence/Livewire/ContentIntelligencePage.php)
-    - View: [`index.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/content-intelligence/index.blade.php)
+    - Stream Controller: [`ContentIntelligenceStreamController.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/ContentIntelligence/Http/Controllers/ContentIntelligenceStreamController.php)
+    - View: [`index.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/content-intelligence/index.blade.php) (Includes 10-Node Visual DAG Graph & Live SSE Typewriter Terminal)
   - Intelligence Services:
     - Search & Research: [`SearchIntelligenceService.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/ContentIntelligence/Services/SearchIntelligenceService.php), [`ResearchDirectorService.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/ContentIntelligence/Services/ResearchDirectorService.php)
     - Knowledge & Truth: [`KnowledgeFabricService.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/ContentIntelligence/Services/KnowledgeFabricService.php), [`ContradictionResolverService.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/ContentIntelligence/Services/ContradictionResolverService.php)

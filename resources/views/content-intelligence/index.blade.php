@@ -496,33 +496,286 @@
                         >🧭 Lineage & Strategy</button>
                     </div>
 
-                    <!-- TAB 1: PROGRESSION & NODE AUDIT LOG -->
+                    <!-- TAB 1: PROGRESSION & INTERACTIVE VISUAL DAG WORKFLOW GRAPH -->
                     @if ($inspectorTab === 'progression')
-                        <div class="space-y-3">
-                            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Node Execution Audit Log</div>
-                            <div class="space-y-2 max-h-96 overflow-y-auto pr-1">
-                                @forelse ($selectedRun->nodes->sortBy('id') as $nodeRec)
-                                    <div class="p-3 rounded-xl bg-slate-950/70 border border-white/5 flex items-center justify-between text-xs">
-                                        <div class="flex items-center gap-2.5">
-                                            <span class="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-[10px]">✓</span>
-                                            <div>
-                                                <div class="font-semibold text-white font-mono">{{ $nodeRec->node_name }}</div>
-                                                <div class="text-[10px] text-slate-400">{{ $nodeRec->created_at->format('H:i:s') }} • Confidence: {{ round($nodeRec->confidence * 100) }}%</div>
-                                            </div>
+                        @php
+                            $completedNodeNames = $selectedRun->nodes->pluck('node_name')->toArray();
+                            $nodeMap = $selectedRun->nodes->keyBy('node_name');
+                            $currentNode = $selectedRun->current_node;
+                            $isCompletedRun = $selectedRun->status->value === 'completed';
+
+                            $dagStages = [
+                                [
+                                    'id' => 'mission_intake',
+                                    'label' => 'Mission Intake',
+                                    'subtitle' => 'Intake & Governance',
+                                    'icon' => '🎯',
+                                    'tab' => 'dossier',
+                                    'tier' => 1,
+                                ],
+                                [
+                                    'id' => 'search_intel',
+                                    'label' => 'Search Intel',
+                                    'subtitle' => 'Topic Universe & SERP',
+                                    'icon' => '🔍',
+                                    'tab' => 'dossier',
+                                    'tier' => 2,
+                                ],
+                                [
+                                    'id' => 'research_director',
+                                    'label' => 'Research Director',
+                                    'subtitle' => 'Sources & Truth Model',
+                                    'icon' => '🧭',
+                                    'tab' => 'world_truth',
+                                    'tier' => 2,
+                                ],
+                                [
+                                    'id' => 'knowledge_fabric',
+                                    'label' => 'Knowledge Fabric',
+                                    'subtitle' => 'SPO Triples & Claims',
+                                    'icon' => '🧬',
+                                    'tab' => 'claims',
+                                    'tier' => 3,
+                                ],
+                                [
+                                    'id' => 'content_blueprint',
+                                    'label' => 'Archetype Blueprint',
+                                    'subtitle' => 'Editorial Structure',
+                                    'icon' => '📐',
+                                    'tab' => 'blueprint',
+                                    'tier' => 4,
+                                ],
+                                [
+                                    'id' => 'adaptive_outline',
+                                    'label' => 'Adaptive Outline',
+                                    'subtitle' => 'H2/H3 Section Tree',
+                                    'icon' => '📑',
+                                    'tab' => 'blueprint',
+                                    'tier' => 4,
+                                ],
+                                [
+                                    'id' => 'section_draftsman',
+                                    'label' => 'Section Draftsman',
+                                    'subtitle' => 'Prose & Critic Loops',
+                                    'icon' => '✍️',
+                                    'tab' => 'drafts',
+                                    'tier' => 5,
+                                ],
+                                [
+                                    'id' => 'seo_optimization',
+                                    'label' => 'SEO Intelligence',
+                                    'subtitle' => 'Entities & JSON-LD',
+                                    'icon' => '🎯',
+                                    'tab' => 'seo',
+                                    'tier' => 6,
+                                ],
+                                [
+                                    'id' => 'media_enhancement',
+                                    'label' => 'Visual Synthesizer',
+                                    'subtitle' => 'Mermaid & Tables',
+                                    'icon' => '📊',
+                                    'tab' => 'drafts',
+                                    'tier' => 6,
+                                ],
+                                [
+                                    'id' => 'master_assembly',
+                                    'label' => 'Master Assembly',
+                                    'subtitle' => 'TipTap Canvas Node',
+                                    'icon' => '🚀',
+                                    'tab' => 'drafts',
+                                    'tier' => 7,
+                                ],
+                            ];
+                        @endphp
+
+                        <div
+                            class="space-y-4"
+                            x-data="{
+                                isStreaming: false,
+                                streamedText: '',
+                                activeNodeName: '{{ $currentNode }}',
+                                streamStatus: 'idle',
+                                terminalLogs: [],
+                                startLiveStream(runId) {
+                                    if (this.isStreaming) return;
+                                    this.isStreaming = true;
+                                    this.streamStatus = 'streaming';
+                                    this.streamedText = '';
+                                    this.terminalLogs.push({ time: new Date().toLocaleTimeString(), msg: '🚀 Initializing live SSE token stream for Run #' + runId });
+                                    
+                                    const eventSource = new EventSource('{{ url('/dashboard/content-intelligence/stream') }}/' + runId);
+                                    
+                                    eventSource.onmessage = (e) => {
+                                        try {
+                                            const data = JSON.parse(e.data);
+                                            if (data.type === 'node_start') {
+                                                this.activeNodeName = data.node;
+                                                this.terminalLogs.push({ time: new Date().toLocaleTimeString(), msg: '⚡ Starting Synapse: ' + data.node });
+                                            } else if (data.type === 'token') {
+                                                this.streamedText += data.chunk;
+                                            } else if (data.type === 'node_complete') {
+                                                this.terminalLogs.push({ time: new Date().toLocaleTimeString(), msg: '✓ Completed ' + data.node + ' (' + data.latency_ms + 'ms, ' + Math.round(data.confidence * 100) + '% conf)' });
+                                                if (data.is_workflow_completed) {
+                                                    this.terminalLogs.push({ time: new Date().toLocaleTimeString(), msg: '🎉 Full Workflow Assembled & Ready in TipTap!' });
+                                                }
+                                            } else if (data.done) {
+                                                eventSource.close();
+                                                this.isStreaming = false;
+                                                this.streamStatus = 'completed';
+                                                $wire.$refresh();
+                                            }
+                                        } catch(err) {
+                                            console.error('Stream parse error:', err);
+                                        }
+                                    };
+                                    
+                                    eventSource.onerror = (err) => {
+                                        eventSource.close();
+                                        this.isStreaming = false;
+                                        this.streamStatus = 'completed';
+                                        this.terminalLogs.push({ time: new Date().toLocaleTimeString(), msg: '✓ Stream cycle finished.' });
+                                        $wire.$refresh();
+                                    };
+                                }
+                            }"
+                        >
+                            <!-- Live Streaming Action Bar & SSE Terminal -->
+                            @if (! $isCompletedRun)
+                                <div class="p-3.5 rounded-2xl bg-slate-950/90 border border-violet-500/30 space-y-3 shadow-xl">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-violet-400" :class="isStreaming ? 'animate-ping' : ''"></span>
+                                            <span class="text-xs font-bold text-white uppercase tracking-wider">Live SSE Token Streamer</span>
                                         </div>
 
-                                        <div class="text-right">
-                                            <span class="font-mono text-emerald-400 font-bold">{{ $nodeRec->latency_ms }}ms</span>
-                                            @if ($nodeRec->retry_count > 0)
-                                                <div class="text-[10px] text-amber-400 font-mono">Retries: {{ $nodeRec->retry_count }}</div>
-                                            @endif
+                                        <button
+                                            @click="startLiveStream({{ $selectedRun->id }})"
+                                            :disabled="isStreaming"
+                                            class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-purple-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-violet-600/30 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 select-none"
+                                        >
+                                            <span x-show="!isStreaming">⚡ Live Stream Step (SSE)</span>
+                                            <span x-show="isStreaming" class="flex items-center gap-1.5">
+                                                <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                                                Streaming Tokens...
+                                            </span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Typewriter Output Box -->
+                                    <div x-show="streamedText.length > 0 || isStreaming" class="p-3 rounded-xl bg-slate-900/90 border border-white/10 text-xs font-mono text-slate-200 leading-relaxed max-h-40 overflow-y-auto space-y-1">
+                                        <div class="text-[10px] text-violet-400 font-semibold uppercase">Token Stream Buffer:</div>
+                                        <div class="whitespace-pre-wrap">
+                                            <span x-text="streamedText"></span>
+                                            <span class="inline-block w-2 h-3.5 bg-violet-400 animate-pulse ml-0.5 align-middle"></span>
                                         </div>
                                     </div>
-                                @empty
-                                    <div class="p-6 text-center text-xs text-slate-500 border border-dashed border-white/10 rounded-xl">
-                                        No node records logged yet. Click 'Step Stage' or 'Autonomous Run'.
+
+                                    <!-- Mini Terminal Log -->
+                                    <div x-show="terminalLogs.length > 0" class="space-y-1 max-h-24 overflow-y-auto text-[11px] font-mono">
+                                        <template x-for="(log, i) in terminalLogs" :key="i">
+                                            <div class="text-slate-400 flex items-center gap-1.5">
+                                                <span class="text-slate-600" x-text="log.time"></span>
+                                                <span class="text-slate-300" x-text="log.msg"></span>
+                                            </div>
+                                        </template>
                                     </div>
-                                @endforelse
+                                </div>
+                            @endif
+
+                            <!-- Visual DAG Synapse Map Header -->
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                                        <span>🗺️</span>
+                                        <span>Synaptic Workflow DAG Graph</span>
+                                    </span>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-500/15 text-violet-300 border border-violet-500/30">
+                                        {{ count($completedNodeNames) }}/10 Synapses Active
+                                    </span>
+                                </div>
+                                <span class="text-[11px] text-slate-400">Click any node to inspect data</span>
+                            </div>
+
+                            <!-- Interactive DAG Synapse Matrix -->
+                            <div class="p-3.5 rounded-2xl bg-slate-950/80 border border-white/10 space-y-2 shadow-inner">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    @foreach ($dagStages as $index => $node)
+                                        @php
+                                            $isNodeDone = in_array($node['id'], $completedNodeNames);
+                                            $isNodeActive = ! $isCompletedRun && ($currentNode === $node['id']);
+                                            $record = $nodeMap->get($node['id']);
+                                        @endphp
+
+                                        <div
+                                            wire:click="setInspectorTab('{{ $node['tab'] }}')"
+                                            class="group relative p-2.5 rounded-xl border transition-all duration-200 cursor-pointer select-none flex items-center justify-between {{ $isNodeDone ? 'bg-emerald-950/20 border-emerald-500/30 hover:border-emerald-500/50 hover:bg-emerald-950/30' : ($isNodeActive ? 'bg-violet-950/40 border-violet-400 shadow-[0_0_15px_rgba(139,92,246,0.3)] animate-pulse' : 'bg-slate-900/40 border-white/5 opacity-70 hover:opacity-100 hover:border-white/15') }}"
+                                        >
+                                            <div class="flex items-center gap-2.5 min-w-0">
+                                                <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs shrink-0 {{ $isNodeDone ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : ($isNodeActive ? 'bg-violet-500/30 text-violet-200 border border-violet-400' : 'bg-white/5 text-slate-400 border border-white/10') }}">
+                                                    @if ($isNodeDone)
+                                                        <span>✓</span>
+                                                    @elseif ($isNodeActive)
+                                                        <span class="animate-spin text-[10px]">⚡</span>
+                                                    @else
+                                                        <span>{{ $node['icon'] }}</span>
+                                                    @endif
+                                                </div>
+
+                                                <div class="min-w-0">
+                                                    <div class="flex items-center gap-1.5">
+                                                        <span class="text-xs font-bold truncate {{ $isNodeDone ? 'text-white' : ($isNodeActive ? 'text-violet-200' : 'text-slate-400') }}">
+                                                            {{ $node['label'] }}
+                                                        </span>
+                                                        <span class="text-[9px] font-mono px-1 rounded {{ $isNodeDone ? 'bg-emerald-500/10 text-emerald-400' : ($isNodeActive ? 'bg-violet-500/20 text-violet-300' : 'bg-white/5 text-slate-500') }}">
+                                                            T{{ $node['tier'] }}
+                                                        </span>
+                                                    </div>
+                                                    <div class="text-[10px] text-slate-400 truncate">{{ $node['subtitle'] }}</div>
+                                                </div>
+                                            </div>
+
+                                            <div class="text-right shrink-0 pl-2">
+                                                @if ($isNodeDone && $record)
+                                                    <div class="text-[11px] font-mono font-bold text-emerald-400">{{ $record->latency_ms }}ms</div>
+                                                    <div class="text-[9px] text-slate-400">{{ round($record->confidence * 100) }}% conf</div>
+                                                @elseif ($isNodeActive)
+                                                    <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-violet-500/30 text-violet-200 border border-violet-400/40">
+                                                        EXECUTING
+                                                    </span>
+                                                @else
+                                                    <span class="text-[10px] text-slate-400">Queued</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <!-- Execution Telemetry Audit Log Table -->
+                            <div class="space-y-2 pt-1">
+                                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Synapse Execution Telemetry</div>
+                                <div class="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                                    @forelse ($selectedRun->nodes->sortBy('id') as $nodeRec)
+                                        <div class="p-2.5 rounded-xl bg-slate-950/70 border border-white/5 flex items-center justify-between text-xs">
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-5 h-5 rounded-md bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-[9px]">✓</span>
+                                                <div>
+                                                    <span class="font-semibold text-white font-mono">{{ $nodeRec->node_name }}</span>
+                                                    <span class="text-[10px] text-slate-400 ml-1.5">{{ $nodeRec->created_at->format('H:i:s') }}</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="flex items-center gap-2 font-mono text-[11px]">
+                                                <span class="text-slate-400">{{ round($nodeRec->confidence * 100) }}% conf</span>
+                                                <span class="text-emerald-400 font-bold">{{ $nodeRec->latency_ms }}ms</span>
+                                            </div>
+                                        </div>
+                                    @empty
+                                        <div class="p-4 text-center text-xs text-slate-500 border border-dashed border-white/10 rounded-xl">
+                                            No node records logged yet. Click 'Step Node' or 'Auto-Run'.
+                                        </div>
+                                    @endforelse
+                                </div>
                             </div>
                         </div>
                     @endif
