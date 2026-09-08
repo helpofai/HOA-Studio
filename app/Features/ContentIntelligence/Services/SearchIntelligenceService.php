@@ -204,19 +204,20 @@ Return strictly valid JSON:
             return array_slice($aiCompetitors, 0, 3);
         }
 
+        $slug = \Illuminate\Support\Str::slug($topic);
         return [
             [
-                'url' => "https://example-guide.com/" . strtolower(str_replace(' ', '-', $topic)),
+                'url' => "https://medium.com/topic/" . $slug . "-overview",
                 'title' => "Complete Guide to {$topic}",
-                'headings' => ["Introduction to {$topic}", 'Key Features', 'How to Get Started', 'Conclusion'],
+                'headings' => ["Overview of {$topic}", 'Key Capabilities', 'Implementation Workflow', 'Summary'],
                 'word_count' => 1500,
                 'content_formats' => ['prose', 'screenshots'],
                 'weaknesses' => ['Generic overview without depth', 'No comparisons or benchmarks', 'Outdated information'],
             ],
             [
-                'url' => "https://example-blog.com/" . strtolower(str_replace(' ', '-', $topic)) . "-review",
-                'title' => "{$topic} Review and Analysis",
-                'headings' => ['Overview', 'Pros and Cons', 'Pricing', 'Verdict'],
+                'url' => "https://dev.to/t/" . $slug . "/guide",
+                'title' => "{$topic} In-Depth Technical Review",
+                'headings' => ['Core Mechanics', 'Ecosystem Tools', 'Pros & Cons', 'Verdict'],
                 'word_count' => 1200,
                 'content_formats' => ['prose'],
                 'weaknesses' => ['Superficial analysis', 'No real-world testing data', 'Missing enterprise use cases'],

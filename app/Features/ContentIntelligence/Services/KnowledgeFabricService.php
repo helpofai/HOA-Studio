@@ -183,7 +183,7 @@ Return JSON: {\"triples\": [{\"subject\": \"...\", \"predicate\": \"...\", \"obj
                     [
                         'subject' => $topic,
                         'predicate' => 'requires',
-                        'object' => 'production configuration and robust supervision',
+                        'object' => "production architecture and configuration for {$persona}",
                         'confidence' => 0.96,
                     ],
                     [
@@ -195,7 +195,7 @@ Return JSON: {\"triples\": [{\"subject\": \"...\", \"predicate\": \"...\", \"obj
                     [
                         'subject' => $topic,
                         'predicate' => 'optimizes',
-                        'object' => 'latency and resource efficiency',
+                        'object' => 'operational efficiency and resource utilization',
                         'confidence' => 0.95,
                     ]
                 ];

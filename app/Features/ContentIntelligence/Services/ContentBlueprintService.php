@@ -87,42 +87,51 @@ Return JSON with:
             // AI-Powered Section Structure Generation
             // ══════════════════════════════════════════════════════════════
 
-            $sectionPrompt = "Create an optimal article outline for: \"{$topic}\"
-Target Audience: {$persona}
-Expertise Level: {$expertise}
-Word Count: {$minWords}-{$maxWords} words
+            $sectionPrompt = "Create a structured, publication-grade article outline for an authoritative guide on: \"{$topic}\"
+Target Audience: {$persona} ({$expertise} level)
+Word Count Target: {$minWords}-{$maxWords} words
 
-The article should address these key questions from the thesis:
+Core Objective & Inquiries to cover:
 {$thesis}
 
-Generate 5-7 required sections and 2-3 optional sections. Each section should:
-- Have a clear, specific heading
-- Be essential to covering this topic thoroughly
-- Match the {$expertise} level of the audience
+Generate 5-7 required sections that directly address and answer the user's core inquiries and cover the full technical landscape of \"{$topic}\".
+Each section heading must be specific, compelling, and relevant (NOT generic like 'Introduction' or 'Key Concepts').
 
 Return JSON:
 {
-  \"required_sections\": [\"Section 1 heading\", \"Section 2 heading\", ...],
-  \"optional_sections\": [\"Optional section 1\", ...]
+  \"required_sections\": [
+    \"Heading 1: Direct answer to primary question/overview\",
+    \"Heading 2: Deep technical mechanism or comparison\",
+    \"Heading 3: Architecture & capability breakdown\",
+    \"Heading 4: Practical implementation & workflows\",
+    \"Heading 5: Enterprise considerations & roadmap\"
+  ],
+  \"optional_sections\": [\"Advanced benchmarks\", \"Ecosystem FAQ\"]
 }";
 
             $aiSections = DynamicContentProvider::askJSON($sectionPrompt, [
-                'required_sections' => ["Introduction to {$topic}", "Key Concepts", "Practical Applications", "Best Practices", "Conclusion"],
-                'optional_sections' => ["Advanced Topics", "Case Studies"]
+                'required_sections' => [
+                    "What Is {$topic} and How Does It Work?",
+                    "Architectural Foundations and Core Capabilities",
+                    "Feature Matrix and Ecosystem Integration",
+                    "Practical Implementation and Workflows",
+                    "Enterprise Considerations, Performance, and Strategic Roadmap"
+                ],
+                'optional_sections' => ["Frequently Asked Questions", "Performance Benchmarks"]
             ]);
 
-            $requiredSections = $aiSections['required_sections'] ?? ["Introduction to {$topic}"];
-            $optionalSections = $aiSections['optional_sections'] ?? [];
+            $requiredSections = $aiSections['required_sections'] ?? [];
+            $optionalSections = $aiSections['optional_sections'] ?? ["Frequently Asked Questions", "Performance Benchmarks"];
 
-            // Ensure we have enough sections for a comprehensive article
-            if (count($requiredSections) < 5) {
-                $requiredSections = array_merge($requiredSections, [
-                    "Architecture & Core Mechanics of {$topic}",
-                    "Key Capabilities & Practical Workflows",
-                    "Integration Strategies & Implementation Guide",
-                    "Performance Optimization & Best Practices for {$topic}",
-                    "Strategic Roadmap & Summary"
-                ]);
+            // If empty or fewer than 4 sections returned, populate with topic-grounded headers
+            if (count($requiredSections) < 4) {
+                $requiredSections = [
+                    "What Is {$topic} and How Does It Work?",
+                    "Core Architecture and Mechanics of {$topic}",
+                    "Key Capabilities, Features, and Integrations",
+                    "Practical Deployment and Real-World Workflows",
+                    "Strategic Roadmap, Best Practices, and Future Outlook"
+                ];
             }
 
             Log::info("[ContentBlueprint] Generated " . count($requiredSections) . " required sections");

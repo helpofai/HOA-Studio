@@ -156,8 +156,8 @@ Return strictly valid JSON:
                 if ($mediaPlaceholder === 'null' || $mediaPlaceholder === '') $mediaPlaceholder = null;
 
                 $mustAnswer = $sData['must_answer_questions'] ?? [
-                    "What are the core mechanics of {$heading}?",
-                    "How does this apply to enterprise environments?"
+                    "What are the core concepts and mechanics of {$heading} in the context of {$topic}?",
+                    "What are the key technical workflows, implementation steps, or comparative advantages?"
                 ];
 
                 $sections[] = new SectionNodeDTO(

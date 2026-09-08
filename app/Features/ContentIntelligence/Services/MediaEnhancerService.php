@@ -62,8 +62,8 @@ class MediaEnhancerService
 
         // 2. Data / Parameter Comparison Table
         $tableSection = count($drafts) > 2 ? $drafts[2] : $drafts[0];
-        $tableTitle = "Operational Parameter Matrix: {$mission->topic}";
-        $tableHtml = $this->generateComparisonTable($knowledge);
+        $tableTitle = "Comparison Matrix: {$mission->topic}";
+        $tableHtml = $this->generateComparisonTable($knowledge, $mission);
 
         $tableAsset = new MediaAssetDTO(
             assetId: 'asset_tbl_'.uniqid(),
@@ -75,22 +75,21 @@ class MediaEnhancerService
         );
         $assets[] = $tableAsset;
 
-        // 3. Evidence Callout for Verified Claims
+        // 3. Editorial Key Takeaway Callout
         if (! empty($knowledge->claims)) {
             $verifiedClaim = $knowledge->claims[0];
             $calloutHtml = '<div class="p-4 my-4 rounded-xl bg-violet-950/40 border border-violet-500/30 text-violet-200">'.
                 '<div class="flex items-center space-x-2 text-xs font-semibold uppercase tracking-wider text-violet-400 mb-1">'.
                 '<svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'.
-                '<span>Verified Primary Source Evidence</span>'.
+                '<span>Key Insight</span>'.
                 '</div>'.
                 "<p class=\"text-sm italic text-slate-300\">\"{$verifiedClaim->statement}\"</p>".
-                '<div class="mt-2 text-xs text-violet-300/80">Source Authority: 98% &bull; Canonical Reference: '.htmlspecialchars($verifiedClaim->sourceUrl ?? 'Official Documentation').'</div>'.
                 '</div>';
 
             $calloutAsset = new MediaAssetDTO(
                 assetId: 'asset_callout_'.uniqid(),
                 assetType: 'callout',
-                title: 'Primary Source Evidence Callout',
+                title: 'Key Insight',
                 content: $calloutHtml,
                 targetSectionId: $coreSection->sectionId,
                 placement: 'before_body'
@@ -115,29 +114,70 @@ class MediaEnhancerService
 
     protected function generateMermaidDiagram(ContentMissionDTO $mission, KnowledgeFabricDTO $knowledge): string
     {
-        $lines = [
-            '```mermaid',
-            'graph TD;',
-            '    Client["Client / Ingestion Layer"] --> Engine["Orchestration Engine"];',
-            '    Engine --> Validation["Validation & Rule Evaluation"];',
-            '    Validation --> Execution["High-Performance Execution Pool"];',
-            '    Execution --> Telemetry["Telemetry & Audit Storage"];',
-            '```',
-        ];
+        $topic = $mission->topic;
+        $thesis = $mission->primaryObjective ?? $topic;
 
-        return implode("\n", $lines);
+        $prompt = "Generate a valid Mermaid flowchart or sequence diagram specifically explaining the architectural flow, component relationships, or conceptual mechanics of \"{$topic}\".
+Context / Thesis: {$thesis}
+
+Requirements:
+1. Valid Mermaid code starting with graph TD or graph LR
+2. Use descriptive nodes specifically related to \"{$topic}\"
+3. Keep it between 4 to 8 interconnected nodes with clear labels
+4. Return ONLY the raw Mermaid diagram text (starting with ```mermaid and ending with ```), nothing else.";
+
+        $aiCode = DynamicContentProvider::askText($prompt, "You are an expert technical illustrator and systems architect.", 'gpt-4o-mini', 0.5);
+
+        if (!empty($aiCode) && str_contains($aiCode, 'graph')) {
+            $cleaned = trim($aiCode);
+            if (!str_starts_with($cleaned, '```mermaid')) {
+                $cleaned = "```mermaid\n" . preg_replace('/^```(?:mermaid)?\s*/', '', $cleaned);
+            }
+            if (!str_ends_with($cleaned, '```')) {
+                $cleaned .= "\n```";
+            }
+            return $cleaned;
+        }
+
+        $slug = \Illuminate\Support\Str::slug($topic, '_');
+        return "```mermaid\ngraph TD;\n    A[\"Input / Request Layer\"] --> B[\"{$topic} Core Engine\"];\n    B --> C[\"Processing & Model Execution\"];\n    C --> D[\"Verification & Safety Layer\"];\n    D --> E[\"Final Output Generation\"];\n```";
     }
 
-    protected function generateComparisonTable(KnowledgeFabricDTO $knowledge): string
+    protected function generateComparisonTable(KnowledgeFabricDTO $knowledge, ?ContentMissionDTO $mission = null): string
     {
-        return '<div class="overflow-x-auto my-4 rounded-xl border border-white/10 bg-slate-900/60">'.
+        $topic = $mission ? $mission->topic : 'Topic';
+        $thesis = $mission ? ($mission->primaryObjective ?? $topic) : $topic;
+
+        $prompt = "Generate an HTML comparison or specification table for an article about \"{$topic}\".
+Context / Thesis: {$thesis}
+
+Requirements:
+1. Create a 3 to 4 column table comparing key features, specifications, tiers, or models relevant to \"{$topic}\".
+2. Include 3 to 5 data rows with specific, realistic data points.
+3. Return ONLY the HTML <div> wrapper with <table> inside. Use Tailwind classes matching dark mode:
+   - Wrapper: <div class=\"overflow-x-auto my-6 rounded-xl border border-white/10 bg-slate-900/60\">
+   - Table: <table class=\"w-full text-left text-sm text-slate-300\">
+   - Thead: <thead class=\"bg-white/5 text-xs uppercase font-semibold text-slate-400 border-b border-white/10\">
+   - Th: <th class=\"p-3\">
+   - Tbody: <tbody class=\"divide-y divide-white/5\">
+   - Td: <td class=\"p-3 font-mono text-violet-300\"> or <td class=\"p-3\">
+4. No markdown formatting around the HTML, return raw HTML only.";
+
+        $aiTable = DynamicContentProvider::askText($prompt, "You are a senior technical writer producing enterprise data comparison tables.", 'gpt-4o-mini', 0.5);
+
+        if (!empty($aiTable) && str_contains($aiTable, '<table')) {
+            return trim($aiTable);
+        }
+
+        $safeTopic = htmlspecialchars($topic);
+        return '<div class="overflow-x-auto my-6 rounded-xl border border-white/10 bg-slate-900/60">'.
             '<table class="w-full text-left text-sm text-slate-300">'.
             '<thead class="bg-white/5 text-xs uppercase font-semibold text-slate-400 border-b border-white/10">'.
-            '<tr><th class="p-3">Parameter / Directive</th><th class="p-3">Recommended Setting</th><th class="p-3">Impact & Resilience</th></tr>'.
+            '<tr><th class="p-3">Feature / Dimension</th><th class="p-3">Specification</th><th class="p-3">Capability & Impact</th></tr>'.
             '</thead><tbody class="divide-y divide-white/5">'.
-            '<tr><td class="p-3 font-mono text-violet-300">Process Timeout</td><td class="p-3">60s (Bounded)</td><td class="p-3">Prevents worker thread starvation</td></tr>'.
-            '<tr><td class="p-3 font-mono text-violet-300">Max Memory Ceiling</td><td class="p-3">128MB - 512MB</td><td class="p-3">Clean restart upon cycle exhaustion</td></tr>'.
-            '<tr><td class="p-3 font-mono text-violet-300">Graceful Trap Signals</td><td class="p-3">SIGTERM / SIGINT</td><td class="p-3">Guarantees inflight workload drain</td></tr>'.
+            '<tr><td class="p-3 font-mono text-violet-300">Core Architecture</td><td class="p-3">Next-Gen Multimodal Foundation</td><td class="p-3">Optimized low-latency inference</td></tr>'.
+            '<tr><td class="p-3 font-mono text-violet-300">Context Window</td><td class="p-3">High-Capacity Scaling</td><td class="p-3">Deep cross-document reasoning</td></tr>'.
+            '<tr><td class="p-3 font-mono text-violet-300">Deployment Footprint</td><td class="p-3">API & Edge Configurations</td><td class="p-3">Seamless integration across workflows</td></tr>'.
             '</tbody></table></div>';
     }
 }
