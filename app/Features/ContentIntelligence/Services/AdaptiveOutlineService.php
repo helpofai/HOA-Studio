@@ -155,10 +155,7 @@ Return strictly valid JSON:
                 $mediaPlaceholder = $sData['media_placeholder'] ?? $defaultMedia;
                 if ($mediaPlaceholder === 'null' || $mediaPlaceholder === '') $mediaPlaceholder = null;
 
-                $mustAnswer = $sData['must_answer_questions'] ?? [
-                    "What are the core concepts and mechanics of {$heading} in the context of {$topic}?",
-                    "What are the key technical workflows, implementation steps, or comparative advantages?"
-                ];
+                $mustAnswer = $sData['must_answer_questions'] ?? $this->generateSectionMustAnswerQuestions($heading, $topic);
 
                 $sections[] = new SectionNodeDTO(
                     sectionId: $sectionId,
@@ -199,5 +196,54 @@ Return strictly valid JSON:
                 outlineConfidence: 0.98
             );
         });
+    }
+
+    /**
+     * Generate specific, inquiry-grounded must-answer questions for a section.
+     */
+    protected function generateSectionMustAnswerQuestions(string $heading, string $topic): array
+    {
+        $hLower = strtolower($heading);
+        $cleanTopic = ucwords(trim($topic));
+
+        if (str_contains($hLower, 'how does it work') || str_contains($hLower, 'what is') || str_contains($hLower, 'architecture') || str_contains($hLower, 'mechanics')) {
+            return [
+                "How does {$cleanTopic}'s multimodal neural architecture process inputs, tokens, and context?",
+                "What are the foundational execution capabilities, parameter scaling tiers, and latency benchmarks?"
+            ];
+        }
+
+        if (str_contains($hLower, 'assistant') || str_contains($hLower, 'copilot') || str_contains($hLower, 'agent')) {
+            return [
+                "What core capabilities, task automations, and conversational reasoning does the assistant provide?",
+                "How does the assistant interface with workspace apps, external tools, and system APIs?"
+            ];
+        }
+
+        if (str_contains($hLower, 'plus') || str_contains($hLower, 'advanced') || str_contains($hLower, 'pricing') || str_contains($hLower, 'subscription') || str_contains($hLower, 'plan')) {
+            return [
+                "What advanced capabilities, 2M+ token context access, and premium tools are unlocked in higher tiers?",
+                "How do subscription plans, API quota allocations, and enterprise licensing compare?"
+            ];
+        }
+
+        if (str_contains($hLower, 'google assistant') || str_contains($hLower, 'migration') || str_contains($hLower, 'vs') || str_contains($hLower, 'difference')) {
+            return [
+                "How does this generative model evolve beyond legacy rule-based voice assistants?",
+                "What are the key integration points, device controls, and smart ecosystem capabilities?"
+            ];
+        }
+
+        if (str_contains($hLower, 'deployment') || str_contains($hLower, 'workflow') || str_contains($hLower, 'practice') || str_contains($hLower, 'implementation')) {
+            return [
+                "What are the recommended SDK configurations, temperature settings, and API authentication steps?",
+                "How can engineering teams optimize token economics, latency, and continuous telemetry monitoring?"
+            ];
+        }
+
+        return [
+            "What are the key technical concepts, capabilities, and implications of {$heading}?",
+            "What actionable workflows and best practices should practitioners implement?"
+        ];
     }
 }
