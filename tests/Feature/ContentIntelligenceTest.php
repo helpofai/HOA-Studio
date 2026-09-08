@@ -1072,4 +1072,42 @@ class ContentIntelligenceTest extends TestCase
         $response->assertDontSee('<?php');
         $response->assertSee('Next');
     }
+
+    public function test_gaming_domain_and_item_list_extraction_generates_clean_sections_and_prose(): void
+    {
+        $topic = 'free fire max similer game';
+        $thesis = 'If you enjoy Free Fire MAX, you can try PUBG Mobile, Call of Duty: Mobile, Omega Legends. Top Alternatives PUBG Mobile: A 100-player battle royale game APKPure.com. Call of Duty: Mobile: Combines first-person shooter mechanics APKPure.com. Omega Legends: Features multiple battle royale modes moregameslike.com.';
+
+        $domain = \App\Features\ContentIntelligence\Services\ContentDomainClassifier::classify($topic, $thesis);
+        $this->assertEquals(\App\Features\ContentIntelligence\Services\ContentDomainClassifier::DOMAIN_GAMING, $domain);
+
+        $action = new CreateContentMission;
+        $missionData = $action->execute($this->regularUser, [
+            'topic' => $topic,
+            'primary_objective' => $thesis,
+        ]);
+
+        $blueprintService = new \App\Features\ContentIntelligence\Services\ContentBlueprintService;
+        $searchService = new \App\Features\ContentIntelligence\Services\SearchIntelligenceService;
+        $directorService = new \App\Features\ContentIntelligence\Services\ResearchDirectorService;
+        $knowledgeService = new \App\Features\ContentIntelligence\Services\KnowledgeFabricService;
+
+        $missionDTO = $missionData['mission']->toDTO();
+        $searchIntel = $searchService->analyze($missionDTO);
+        $plan = $directorService->formulatePlan($missionDTO, $searchIntel);
+        $knowledgeFabric = $knowledgeService->synthesize($missionData['mission'], $missionDTO, $plan);
+
+        $blueprint = $blueprintService->generate($missionData['mission'], $missionDTO, $searchIntel, $knowledgeFabric);
+
+        // Assert section headings do not contain raw domain names or messy citation fragments
+        foreach ($blueprint->requiredSections as $sec) {
+            $this->assertStringNotContainsString('APKPure.com', $sec);
+            $this->assertStringNotContainsString('moregameslike.com', $sec);
+            $this->assertLessThan(90, strlen($sec));
+        }
+
+        $this->assertContains('PUBG Mobile: Gameplay, Features & Player Experience', $blueprint->requiredSections);
+        $this->assertContains('Call of Duty: Mobile: Gameplay, Features & Player Experience', $blueprint->requiredSections);
+        $this->assertContains('Omega Legends: Gameplay, Features & Player Experience', $blueprint->requiredSections);
+    }
 }

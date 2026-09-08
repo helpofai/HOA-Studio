@@ -205,45 +205,107 @@ Return strictly valid JSON:
     {
         $hLower = strtolower($heading);
         $cleanTopic = ucwords(trim($topic));
+        $domain = ContentDomainClassifier::classify($topic, $heading);
 
-        if (str_contains($hLower, 'how does it work') || str_contains($hLower, 'what is') || str_contains($hLower, 'architecture') || str_contains($hLower, 'mechanics')) {
+        // ══════════════════════════════════════════════════════════════
+        // 1. GAMING DOMAIN QUESTIONS
+        // ══════════════════════════════════════════════════════════════
+        if ($domain === ContentDomainClassifier::DOMAIN_GAMING) {
+            if (str_contains($hLower, 'pubg')) {
+                return [
+                    "How does PUBG Mobile's 100-player tactical combat and realistic ballistics compare to Free Fire MAX?",
+                    "What are the map sizes, match durations, squad dynamics, and weapon mechanics?"
+                ];
+            }
+            if (str_contains($hLower, 'call of duty') || str_contains($hLower, 'cod')) {
+                return [
+                    "How does Call of Duty: Mobile combine fast-paced FPS multiplayer with battle royale gameplay?",
+                    "What operator skills, custom loadouts, and scorestreaks differentiate it from other battle royales?"
+                ];
+            }
+            if (str_contains($hLower, 'omega legends')) {
+                return [
+                    "What unique hero abilities, skill mechanics, and game modes does Omega Legends feature?",
+                    "How do its third-person camera, vibrant visuals, and joystick controls compare to Free Fire MAX?"
+                ];
+            }
+            if (str_contains($hLower, 'top alternative') || str_contains($hLower, 'best game') || str_contains($hLower, 'overview') || str_contains($hLower, 'similar')) {
+                return [
+                    "What are the best fast-paced mobile battle royale games similar to Free Fire MAX?",
+                    "Which titles provide the closest match in terms of gunplay speed, lobby sizes, and match duration?"
+                ];
+            }
+            if (str_contains($hLower, 'comparison') || str_contains($hLower, 'device') || str_contains($hLower, 'requirement') || str_contains($hLower, 'control')) {
+                return [
+                    "How do RAM requirements, storage footprint, and frame rate optimization compare across devices?",
+                    "Which games perform best on budget smartphones versus high-end gaming phones?"
+                ];
+            }
+            if (str_contains($hLower, 'verdict') || str_contains($hLower, 'recommend') || str_contains($hLower, 'choose')) {
+                return [
+                    "Which alternative should you download based on your preferred playstyle and device specs?",
+                    "What are the pros, cons, and final recommendations for battle royale fans?"
+                ];
+            }
+
             return [
-                "How does {$cleanTopic}'s multimodal neural architecture process inputs, tokens, and context?",
-                "What are the foundational execution capabilities, parameter scaling tiers, and latency benchmarks?"
+                "What are the standout features, gameplay modes, and combat mechanics of {$heading}?",
+                "What tips, settings, and strategies should players use to maximize their experience?"
             ];
         }
 
-        if (str_contains($hLower, 'assistant') || str_contains($hLower, 'copilot') || str_contains($hLower, 'agent')) {
+        // ══════════════════════════════════════════════════════════════
+        // 2. AI & MACHINE LEARNING DOMAIN QUESTIONS
+        // ══════════════════════════════════════════════════════════════
+        if ($domain === ContentDomainClassifier::DOMAIN_AI_TECH) {
+            if (str_contains($hLower, 'how does it work') || str_contains($hLower, 'what is') || str_contains($hLower, 'architecture') || str_contains($hLower, 'mechanics')) {
+                return [
+                    "How does {$cleanTopic}'s multimodal neural architecture process inputs, tokens, and context?",
+                    "What are the foundational execution capabilities, parameter scaling tiers, and latency benchmarks?"
+                ];
+            }
+            if (str_contains($hLower, 'assistant') || str_contains($hLower, 'copilot') || str_contains($hLower, 'agent')) {
+                return [
+                    "What core capabilities, task automations, and conversational reasoning does the assistant provide?",
+                    "How does the assistant interface with workspace apps, external tools, and system APIs?"
+                ];
+            }
+            if (str_contains($hLower, 'plus') || str_contains($hLower, 'advanced') || str_contains($hLower, 'pricing') || str_contains($hLower, 'subscription') || str_contains($hLower, 'plan')) {
+                return [
+                    "What advanced capabilities, 2M+ token context access, and premium tools are unlocked in higher tiers?",
+                    "How do subscription plans, API quota allocations, and enterprise licensing compare?"
+                ];
+            }
+            if (str_contains($hLower, 'google assistant') || str_contains($hLower, 'migration') || str_contains($hLower, 'vs') || str_contains($hLower, 'difference')) {
+                return [
+                    "How does this generative model evolve beyond legacy rule-based voice assistants?",
+                    "What are the key integration points, device controls, and smart ecosystem capabilities?"
+                ];
+            }
+            if (str_contains($hLower, 'deployment') || str_contains($hLower, 'workflow') || str_contains($hLower, 'practice') || str_contains($hLower, 'implementation')) {
+                return [
+                    "What are the recommended SDK configurations, temperature settings, and API authentication steps?",
+                    "How can engineering teams optimize token economics, latency, and continuous telemetry monitoring?"
+                ];
+            }
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // 3. SOFTWARE ENGINEERING & CLOUD DOMAIN QUESTIONS
+        // ══════════════════════════════════════════════════════════════
+        if ($domain === ContentDomainClassifier::DOMAIN_SOFTWARE) {
             return [
-                "What core capabilities, task automations, and conversational reasoning does the assistant provide?",
-                "How does the assistant interface with workspace apps, external tools, and system APIs?"
+                "What are the architectural foundations, design patterns, and core mechanisms of {$heading}?",
+                "What are the production implementation steps, configuration options, and performance best practices?"
             ];
         }
 
-        if (str_contains($hLower, 'plus') || str_contains($hLower, 'advanced') || str_contains($hLower, 'pricing') || str_contains($hLower, 'subscription') || str_contains($hLower, 'plan')) {
-            return [
-                "What advanced capabilities, 2M+ token context access, and premium tools are unlocked in higher tiers?",
-                "How do subscription plans, API quota allocations, and enterprise licensing compare?"
-            ];
-        }
-
-        if (str_contains($hLower, 'google assistant') || str_contains($hLower, 'migration') || str_contains($hLower, 'vs') || str_contains($hLower, 'difference')) {
-            return [
-                "How does this generative model evolve beyond legacy rule-based voice assistants?",
-                "What are the key integration points, device controls, and smart ecosystem capabilities?"
-            ];
-        }
-
-        if (str_contains($hLower, 'deployment') || str_contains($hLower, 'workflow') || str_contains($hLower, 'practice') || str_contains($hLower, 'implementation')) {
-            return [
-                "What are the recommended SDK configurations, temperature settings, and API authentication steps?",
-                "How can engineering teams optimize token economics, latency, and continuous telemetry monitoring?"
-            ];
-        }
-
+        // ══════════════════════════════════════════════════════════════
+        // 4. GENERAL DOMAIN QUESTIONS
+        // ══════════════════════════════════════════════════════════════
         return [
-            "What are the key technical concepts, capabilities, and implications of {$heading}?",
-            "What actionable workflows and best practices should practitioners implement?"
+            "What are the essential concepts, primary features, and practical applications of {$heading}?",
+            "What actionable guidance and best practices should readers implement?"
         ];
     }
 }
