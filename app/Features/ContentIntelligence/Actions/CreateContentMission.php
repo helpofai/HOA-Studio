@@ -18,6 +18,7 @@
 namespace App\Features\ContentIntelligence\Actions;
 
 use App\Features\ContentIntelligence\DTOs\ContentMissionDTO;
+use App\Features\ContentIntelligence\Enums\ArticleArchetype;
 use App\Features\ContentIntelligence\Enums\ContentWorkflowStatus;
 use App\Features\ContentIntelligence\Models\ContentMission;
 use App\Features\ContentIntelligence\Models\WorkflowRun;
@@ -49,6 +50,7 @@ class CreateContentMission
                 'market_geo' => $dto->marketGeo,
                 'language' => $dto->language,
                 'content_type' => $dto->contentType,
+                'article_archetype' => $dto->archetype,
                 'business_goal' => $dto->businessGoal,
                 'search_goal' => $dto->searchGoal,
                 'brand_profile_id' => $dto->brandProfileId,

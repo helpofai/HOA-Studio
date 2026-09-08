@@ -27,6 +27,39 @@ use Illuminate\Support\Facades\Log;
 class CriticAgentService
 {
     /**
+     * Helper for evaluating raw draft strings.
+     */
+    public function evaluateDraft(
+        string $heading,
+        string $content,
+        string $topic,
+        array $assignedClaims,
+        KnowledgeFabricDTO $knowledge
+    ): CriticScoreDTO {
+        $draft = new SectionDraftDTO(
+            sectionId: 'sec_eval',
+            heading: $heading,
+            contentHtml: $content,
+            contentMarkdown: strip_tags($content),
+            wordCount: str_word_count(strip_tags($content)),
+            citedClaimIds: $assignedClaims
+        );
+
+        $section = new SectionNodeDTO(
+            sectionId: 'sec_eval',
+            heading: $heading,
+            assignedClaimIds: $assignedClaims
+        );
+
+        $missionDTO = new ContentMissionDTO(
+            topic: $topic,
+            primaryObjective: $topic
+        );
+
+        return $this->evaluate($draft, $section, $missionDTO, $knowledge);
+    }
+
+    /**
      * Rigorously critique and evaluate a drafted section against 6 quality dimensions.
      *
      * NOW USES REAL AI to provide human-like critique with specific revision directives.

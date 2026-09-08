@@ -111,4 +111,18 @@ final class CriticScoreDTO
             'revision_directives' => $this->revisionDirectives,
         ];
     }
+
+    public function __get(string $name): mixed
+    {
+        if ($name === 'isApproved') {
+            return $this->passed;
+        }
+
+        return null;
+    }
+
+    public function __isset(string $name): bool
+    {
+        return $name === 'isApproved';
+    }
 }

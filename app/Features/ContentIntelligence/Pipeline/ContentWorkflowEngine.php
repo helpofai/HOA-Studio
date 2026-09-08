@@ -34,6 +34,7 @@ use App\Features\ContentIntelligence\Pipeline\Nodes\ResearchDirectorNode;
 use App\Features\ContentIntelligence\Pipeline\Nodes\SearchIntelNode;
 use App\Features\ContentIntelligence\Pipeline\Nodes\SectionWriterNode;
 use App\Features\ContentIntelligence\Pipeline\Nodes\SeoOptimizerNode;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Throwable;

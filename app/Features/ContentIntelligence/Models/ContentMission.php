@@ -19,6 +19,7 @@ namespace App\Features\ContentIntelligence\Models;
 
 use App\Features\BrandVoice\Models\BrandProfile;
 use App\Features\ContentIntelligence\DTOs\ContentMissionDTO;
+use App\Features\ContentIntelligence\Enums\ArticleArchetype;
 use App\Features\ContentIntelligence\Enums\ResearchBudgetTier;
 use App\Features\ContentIntelligence\Enums\RiskLevel;
 use App\Features\Projects\Models\Project;
@@ -46,6 +47,7 @@ class ContentMission extends Model
         'market_geo',
         'language',
         'content_type',
+        'article_archetype',
         'business_goal',
         'search_goal',
         'brand_profile_id',
@@ -68,6 +70,7 @@ class ContentMission extends Model
         'custom_constraints' => 'array',
         'target_word_count_min' => 'integer',
         'target_word_count_max' => 'integer',
+        'article_archetype' => ArticleArchetype::class,
         'risk_level' => RiskLevel::class,
         'research_budget_tier' => ResearchBudgetTier::class,
     ];
@@ -112,6 +115,11 @@ class ContentMission extends Model
         return $this->hasOne(ContentOutline::class, 'mission_id');
     }
 
+    public function sectionDrafts(): HasMany
+    {
+        return $this->hasMany(SectionDraft::class, 'mission_id');
+    }
+
     public function seoMetadata(): HasOne
     {
         return $this->hasOne(ContentSeoMetadata::class, 'mission_id');
@@ -130,6 +138,9 @@ class ContentMission extends Model
             marketGeo: $this->market_geo,
             language: $this->language,
             contentType: $this->content_type,
+            archetype: $this->article_archetype instanceof ArticleArchetype
+                ? $this->article_archetype
+                : ArticleArchetype::tryFrom((string) $this->article_archetype) ?? ArticleArchetype::AUTO_DETECT,
             businessGoal: $this->business_goal,
             searchGoal: $this->search_goal,
             brandProfileId: $this->brand_profile_id,

@@ -10,6 +10,7 @@
 | Author      : Rajib Adhikary
 | Organization: HelpOfAi (HOA)
 | Website     : https://helpofai.com
+| Location    : Basta Purba Para, Aranghata, Nadia, West Bengal, India
 |
 |--------------------------------------------------------------------------
 */
@@ -19,44 +20,65 @@ namespace App\Features\ContentIntelligence\Services;
 use App\Features\ContentIntelligence\DTOs\ContentBlueprintDTO;
 use App\Features\ContentIntelligence\DTOs\ContentMissionDTO;
 use App\Features\ContentIntelligence\DTOs\KnowledgeFabricDTO;
+use App\Features\ContentIntelligence\DTOs\ResearchPlanDTO;
 use App\Features\ContentIntelligence\DTOs\SearchIntelligenceDTO;
+use App\Features\ContentIntelligence\Enums\ArticleArchetype;
 use App\Features\ContentIntelligence\Models\ContentBlueprint;
 use App\Features\ContentIntelligence\Models\ContentMission;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Stage 4: Strategic Content Blueprint Service
+ *
+ * Synthesizes article angle, unique value proposition, target transformation,
+ * required/optional sections, and required entities directly from research and Article Archetypes.
+ */
 class ContentBlueprintService
 {
     /**
-     * Synthesize mission, search intelligence, and knowledge fabric into a single
-     * authoritative, machine-readable Strategic Content Blueprint.
-     *
-     * NOW USES REAL AI to generate dynamic article structure based on topic
+     * Alias for backward compatibility with older tests.
      */
     public function generate(
         ContentMission $mission,
         ContentMissionDTO $missionDTO,
         SearchIntelligenceDTO $searchIntel,
+        KnowledgeFabricDTO $knowledgeFabric,
+        ?ResearchPlanDTO $plan = null
+    ): ContentBlueprintDTO {
+        $director = new ResearchDirectorService;
+        $planObj = $plan ?? $director->formulatePlan($missionDTO, $searchIntel);
+        return $this->synthesize($mission, $missionDTO, $searchIntel, $planObj, $knowledgeFabric);
+    }
+
+    /**
+     * Synthesize a Strategic Content Blueprint from mission, search intelligence, and knowledge fabric.
+     */
+    public function synthesize(
+        ContentMission $mission,
+        ContentMissionDTO $missionDTO,
+        SearchIntelligenceDTO $searchIntel,
+        ?ResearchPlanDTO $plan,
         KnowledgeFabricDTO $knowledgeFabric
     ): ContentBlueprintDTO {
         return DB::transaction(function () use ($mission, $missionDTO, $searchIntel, $knowledgeFabric) {
-            $topic = $missionDTO->topic;
-            $persona = is_array($missionDTO->targetAudience) ? ($missionDTO->targetAudience['persona'] ?? 'General Technical Audience') : (string) $missionDTO->targetAudience;
-            $expertise = is_array($missionDTO->targetAudience) ? ($missionDTO->targetAudience['expertise_level'] ?? 'Intermediate') : 'Intermediate';
-            $riskLevel = $missionDTO->riskLevel instanceof \App\Features\ContentIntelligence\Enums\RiskLevel ? $missionDTO->riskLevel->value : (string) ($missionDTO->riskLevel ?? 'medium');
-            $thesis = $missionDTO->primaryObjective ?? $topic;
-            $minWords = $missionDTO->targetWordCountRange['min'] ?? 1800;
-            $maxWords = $missionDTO->targetWordCountRange['max'] ?? 3500;
+            $topic = $mission->topic;
+            $thesis = $mission->primary_objective;
+            $persona = $missionDTO->targetAudience['persona'] ?? 'Enterprise Practitioner';
+            $expertise = $missionDTO->targetAudience['expertise_level'] ?? 'Intermediate';
+            $minWords = $missionDTO->targetWordCountRange['min'] ?? 1500;
+            $maxWords = $missionDTO->targetWordCountRange['max'] ?? 3000;
+            $archetype = $missionDTO->archetype;
 
-            Log::info("[ContentBlueprint] STEP 4: AI generating article blueprint for: {$topic}");
+            Log::info("[ContentBlueprint] STEP 4: AI synthesizing Content Blueprint for: '{$topic}' (Archetype: {$archetype->value})");
 
             // ══════════════════════════════════════════════════════════════
-            // AI-Powered Article Angle and Value Proposition
+            // AI-Powered Strategic Angle & UVP Generation
             // ══════════════════════════════════════════════════════════════
 
-            $anglePrompt = "You are a content strategist. Create a compelling article angle and unique value proposition for an article about: \"{$topic}\"
-Target Audience: {$persona}
-Expertise Level: {$expertise}
+            $anglePrompt = "Synthesize an authoritative strategic blueprint for an in-depth publication on: \"{$topic}\"
+Article Archetype: {$archetype->label()} ({$archetype->description()})
+Target Audience: {$persona} ({$expertise} level)
 Primary Thesis: {$thesis}
 Word Count Target: {$minWords}-{$maxWords} words
 
@@ -73,74 +95,74 @@ Return JSON with:
             $aiBlueprint = DynamicContentProvider::askJSON($anglePrompt, [
                 'article_angle' => "Comprehensive guide to {$topic}",
                 'unique_value_proposition' => "This article provides expert insights on {$topic}.",
-                'target_transformation' => ['current_pain_points' => [], 'desired_mastery' => "Master {$topic}"]
+                'target_transformation' => ['current_pain_points' => [], 'desired_mastery' => "Master {$topic}"],
             ]);
 
             $articleAngle = $aiBlueprint['article_angle'] ?? "Comprehensive guide to {$topic}";
             $uvp = $aiBlueprint['unique_value_proposition'] ?? "Expert insights on {$topic} for {$persona}";
             $targetTransformation = $aiBlueprint['target_transformation'] ?? [
                 'current_pain_points' => $missionDTO->targetAudience['pain_points'] ?? ['Limited understanding of the topic'],
-                'desired_mastery' => "Complete understanding and practical mastery of {$topic}"
+                'desired_mastery' => "Complete understanding and practical mastery of {$topic}",
             ];
 
             // ══════════════════════════════════════════════════════════════
-            // AI-Powered Section Structure Generation
+            // AI-Powered Archetype-Aware Section Structure Generation
             // ══════════════════════════════════════════════════════════════
 
-            $sectionPrompt = "Create a structured, publication-grade article outline for an authoritative guide on: \"{$topic}\"
+            $fallbackSections = $this->buildFallbackSections($topic, $thesis, $archetype);
+
+            $sectionPrompt = "Create a structured, publication-grade article outline for an authoritative {$archetype->label()} on: \"{$topic}\"
+Article Archetype: {$archetype->value} ({$archetype->description()})
 Target Audience: {$persona} ({$expertise} level)
 Word Count Target: {$minWords}-{$maxWords} words
 
 Core Objective & Inquiries to cover:
 {$thesis}
 
-Generate 5-7 required sections that directly address and answer the user's core inquiries and cover the full technical landscape of \"{$topic}\".
-Each section heading must be specific, compelling, and relevant (NOT generic like 'Introduction' or 'Key Concepts').
+Generate 5-8 required sections that strictly follow the structural expectations of a {$archetype->label()}.
+Each section heading must be specific, compelling, and relevant.
 
 Return JSON:
 {
   \"required_sections\": [
-    \"Heading 1: Direct answer to primary question/overview\",
-    \"Heading 2: Deep technical mechanism or comparison\",
-    \"Heading 3: Architecture & capability breakdown\",
-    \"Heading 4: Practical implementation & workflows\",
-    \"Heading 5: Enterprise considerations & roadmap\"
+    \"Heading 1\",
+    \"Heading 2\",
+    \"Heading 3\",
+    \"Heading 4\",
+    \"Heading 5\"
   ],
-  \"optional_sections\": [\"Advanced benchmarks\", \"Ecosystem FAQ\"]
+  \"optional_sections\": [\"Advanced benchmarks & FAQ\"]
 }";
-
-            $fallbackSections = $this->buildFallbackSections($topic, $thesis);
 
             $aiSections = DynamicContentProvider::askJSON($sectionPrompt, [
                 'required_sections' => $fallbackSections,
-                'optional_sections' => ["Frequently Asked Questions", "Performance Benchmarks & Comparisons"]
+                'optional_sections' => ['Frequently Asked Questions', 'Performance Benchmarks & Comparisons'],
             ]);
 
             $requiredSections = $aiSections['required_sections'] ?? [];
-            $optionalSections = $aiSections['optional_sections'] ?? ["Frequently Asked Questions", "Performance Benchmarks & Comparisons"];
+            $optionalSections = $aiSections['optional_sections'] ?? ['Frequently Asked Questions', 'Performance Benchmarks & Comparisons'];
 
-            // If empty or fewer than 4 sections returned, populate with topic & inquiry-grounded headers
+            // If empty or fewer than 4 sections returned, populate with archetype & inquiry-grounded headers
             if (count($requiredSections) < 4) {
                 $requiredSections = $fallbackSections;
             }
 
-            Log::info("[ContentBlueprint] Generated " . count($requiredSections) . " required sections");
+            Log::info('[ContentBlueprint] Generated ' . count($requiredSections) . ' required sections for archetype ' . $archetype->value);
 
             // External sources extracted from verified Knowledge Fabric
             $externalSources = array_map(fn ($src) => $src->url, $knowledgeFabric->sources);
 
             // Internal links - make them topic-relevant
             $internalLinks = [
-                "/dashboard/content-intelligence?topic=" . urlencode($topic),
-                "/blog?tag=" . strtolower(str_replace(' ', '-', $topic)),
+                '/dashboard/content-intelligence?topic=' . urlencode($topic),
+                '/blog?tag=' . strtolower(str_replace(' ', '-', $topic)),
             ];
 
             // FAQ Requirements from search intelligence
             $faqRequirements = [];
-            if (!empty($searchIntel->queryClusters['paa_questions'])) {
+            if (! empty($searchIntel->queryClusters['paa_questions'])) {
                 $faqRequirements = array_slice($searchIntel->queryClusters['paa_questions'], 0, 4);
             } else {
-                // Generate FAQs via AI if PAA not available
                 $faqPrompt = "Generate 3-5 frequently asked questions about: \"{$topic}\" for {$persona} at {$expertise} level.
 Return JSON: {\"faqs\": [\"Question 1?\", \"Question 2?\", ...]}";
                 $aiFaqs = DynamicContentProvider::askJSON($faqPrompt, ['faqs' => []]);
@@ -166,7 +188,7 @@ Return JSON: {\"faqs\": [\"Question 1?\", \"Question 2?\", ...]}";
                 'status' => 'approved',
             ]);
 
-            Log::info("[ContentBlueprint] STEP 4 COMPLETE: Blueprint approved");
+            Log::info('[ContentBlueprint] STEP 4 COMPLETE: Blueprint approved');
 
             return new ContentBlueprintDTO(
                 articleAngle: $blueprint->article_angle,
@@ -190,41 +212,53 @@ Return JSON: {\"faqs\": [\"Question 1?\", \"Question 2?\", ...]}";
         $cleanThesis = ContentDomainClassifier::cleanRawText($thesis);
         $inquiries = [];
 
-        // 1. Check for named items formatted as "Item Name: Description" (e.g. "PUBG Mobile: A 100-player...", "Call of Duty: Mobile: Combines...")
+        // 1. Extract explicit entities mentioned in the thesis
+        $extractedItems = ContentDomainClassifier::extractEntitiesFromThesis($cleanThesis, $topic);
+        if (count($extractedItems) >= 2) {
+            $inquiries[] = 'Introduction to ' . ucwords(trim($topic)) . ' & Landscape Overview';
+            foreach ($extractedItems as $item) {
+                $inquiries[] = "{$item}: Gameplay, Features & Player Experience";
+            }
+            $inquiries[] = 'Performance, System Requirements & Cross-Platform Comparison';
+            $inquiries[] = 'Final Verdict & Best Recommendations for Players';
+
+            return $inquiries;
+        }
+
+        // 2. Check for named items formatted as "Item Name: Description"
         if (preg_match_all('/(?:Top Alternatives\s*)?([A-Za-z0-9][A-Za-z0-9\s\(\)\:\/\-]{2,30}):\s*([A-Z][^:]+?)(?=(?:[A-Za-z0-9\s\(\)\:\/\-]{2,30}:)|$)/u', $cleanThesis, $matches, PREG_SET_ORDER)) {
-            $extractedItems = [];
+            $extracted = [];
             foreach ($matches as $match) {
                 $itemName = trim($match[1]);
-                // Filter out non-entity labels
-                if (!preg_match('/^(top alternatives|alternatives|features|modes|options|note|summary)$/i', $itemName) && strlen($itemName) >= 3 && strlen($itemName) <= 35) {
-                    $extractedItems[] = $itemName;
+                if (! preg_match('/^(top alternatives|alternatives|features|modes|options|note|summary)$/i', $itemName) && strlen($itemName) >= 3 && strlen($itemName) <= 35) {
+                    $extracted[] = $itemName;
                 }
             }
 
-            if (count($extractedItems) >= 2) {
-                $inquiries[] = "Top Alternatives & Best Games Similar to " . ucwords(trim($topic));
-                foreach ($extractedItems as $item) {
+            if (count($extracted) >= 2) {
+                $inquiries[] = 'Top Alternatives & Standout Options in ' . ucwords(trim($topic));
+                foreach ($extracted as $item) {
                     $inquiries[] = "{$item}: Gameplay, Features & Player Experience";
                 }
-                $inquiries[] = "Gameplay, Controls & Device Performance Comparison";
-                $inquiries[] = "Final Verdict: Which Game Should You Choose?";
+                $inquiries[] = 'Technical Specs, Performance & Hardware Optimization';
+                $inquiries[] = 'Final Verdict & Strategic Recommendations';
+
                 return $inquiries;
             }
         }
 
-        // 2. Check for questions ending in '?' or interrogative statements
+        // 3. Check for questions ending in '?' or interrogative statements
         $lines = preg_split('/(?:\r\n|\r|\n|\?)/u', $cleanThesis, -1, PREG_SPLIT_NO_EMPTY);
         foreach ($lines as $line) {
             $trimmed = trim(preg_replace('/^[\s\-\*\d\.\)]+/', '', $line));
             if (strlen($trimmed) > 8 && strlen($trimmed) <= 85) {
-                // If it looks like a question or substantive inquiry
                 if (preg_match('/^(what|how|why|does|can|is|are|which|when|where|who|will|should)/i', $trimmed)) {
                     $inquiry = rtrim($trimmed, '?') . '?';
-                    if (!in_array($inquiry, $inquiries)) {
-                        $inquiries[] = $inquiry;
+                    $words = explode(' ', $inquiry);
+                    if (count($words) <= 12) {
+                        $inquiries[] = ucfirst($inquiry);
                     }
-                } elseif (strlen($trimmed) > 15 && !str_contains($trimmed, 'http') && !in_array($trimmed, $inquiries)) {
-                    // Clean summary sentence into a short title
+                } elseif (preg_match('/^(step|phase|part|stage|method|approach|technique|mechanism|architecture|strategy|benchmarks?)\b/i', $trimmed)) {
                     $words = explode(' ', $trimmed);
                     if (count($words) <= 8) {
                         $inquiries[] = ucfirst(trim($trimmed, '.'));
@@ -237,55 +271,62 @@ Return JSON: {\"faqs\": [\"Question 1?\", \"Question 2?\", ...]}";
     }
 
     /**
-     * Build high-quality, domain-grounded section headings.
+     * Build high-quality, archetype-grounded section headings.
      */
-    protected function buildFallbackSections(string $topic, string $thesis): array
+    protected function buildFallbackSections(string $topic, string $thesis, ArticleArchetype $archetype = ArticleArchetype::AUTO_DETECT): array
     {
         $inquiries = $this->extractUserInquiries($thesis, $topic);
         $cleanTopic = ucwords(trim($topic));
-        $domain = ContentDomainClassifier::classify($topic, $thesis);
 
-        if (!empty($inquiries) && count($inquiries) >= 3) {
+        // If explicit named entities / items were found in thesis, honor them
+        if (! empty($inquiries) && count($inquiries) >= 3) {
             return array_values(array_unique($inquiries));
         }
 
-        // Domain-specific tailored fallback section structures
+        // If specific archetype requested (other than auto-detect), use archetype canonical templates
+        if ($archetype !== ArticleArchetype::AUTO_DETECT) {
+            return $archetype->defaultSectionTemplates($topic);
+        }
+
+        // Fall back to domain classification
+        $domain = ContentDomainClassifier::classify($topic, $thesis);
+
         return match ($domain) {
             ContentDomainClassifier::DOMAIN_GAMING => [
                 "Introduction to {$cleanTopic} & Gameplay Overview",
-                "Top Alternatives & Best Similar Games to Play",
-                "Core Mechanics, Combat Style & Graphic Quality Comparison",
-                "Device Requirements, Frame Rate Optimization & Controls",
-                "Final Verdict & Best Recommendations for Players"
+                "Top Titles, Alternatives & Gameplay Dynamics",
+                "Core Mechanics, Controls & Graphic Quality Comparison",
+                "Hardware Requirements, Frame Rate Optimization & Settings",
+                "Final Verdict & Best Recommendations for Players",
             ],
             ContentDomainClassifier::DOMAIN_SOFTWARE => [
                 "Overview of {$cleanTopic} & Core Architecture",
                 "Key Features, Framework Capabilities & Developer Workflow",
                 "Step-by-Step Implementation & Configuration Guide",
                 "Performance Optimization, Scaling & Error Handling",
-                "Production Best Practices & Deployment Blueprint"
+                "Production Best Practices & Deployment Blueprint",
             ],
             ContentDomainClassifier::DOMAIN_BUSINESS => [
                 "Market Overview & Strategic Value of {$cleanTopic}",
                 "Core Strategies, Methodologies & Implementation Playbook",
                 "Key Tools, Platforms & Competitive Analysis",
                 "ROI Optimization, Risk Management & Execution Framework",
-                "Long-Term Growth & Future Industry Trends"
+                "Long-Term Growth & Future Industry Trends",
             ],
             ContentDomainClassifier::DOMAIN_HEALTH => [
                 "Understanding {$cleanTopic}: Core Principles & Key Benefits",
                 "Essential Techniques, Step-by-Step Guide & Best Practices",
                 "Common Pitfalls, Safety Considerations & Practical Tips",
                 "Personalized Routines & Daily Implementation Strategies",
-                "Long-Term Maintenance & Expert Recommendations"
+                "Long-Term Maintenance & Expert Recommendations",
             ],
             default => [
                 "What Is {$cleanTopic} & How Does It Work?",
                 "Core Architecture, Capabilities & Engine Mechanics",
                 "Key Features, Integrations & Real-World Use Cases",
                 "Practical Deployment Workflows & Configuration Guide",
-                "Strategic Roadmap, Best Practices & Performance Optimization"
-            ]
+                "Strategic Roadmap, Best Practices & Performance Optimization",
+            ],
         };
     }
 }
