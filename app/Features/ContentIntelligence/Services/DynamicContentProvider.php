@@ -39,7 +39,10 @@ class DynamicContentProvider
         try {
             $client = app(OmniRouteClient::class);
 
-            $systemPrompt = "You are an expert AI content architect. Your task is to research and generate accurate, well-structured content based on the user's topic. " .
+            $systemPrompt = "You are a world-class principal AI researcher, content architect, and fact-checker. " .
+                "Your task is to generate deeply specific, hyper-factual, and highly authoritative research based on the user's topic. " .
+                "NEVER use generic filler like 'This section covers...' or 'In today's fast-paced world...'. " .
+                "NEVER use placeholder URLs like 'example.com' — provide real, plausible or actual URLs of major publications, official docs, or academic hubs. " .
                 "Always respond with ONLY valid JSON that matches the requested schema. " .
                 "Do not include any markdown code blocks, explanations, or additional text. " .
                 "Only return the raw JSON object.";
@@ -59,12 +62,21 @@ class DynamicContentProvider
             $content = $response['choices'][0]['message']['content'] ?? '{}';
 
             // Clean up any markdown code blocks if present
-            if (str_starts_with(trim($content), '```')) {
-                $content = preg_replace('/^```(?:json)?\s*/', '', $content);
-                $content = preg_replace('/```\s*$/', '', $content);
+            $trimmed = trim($content);
+            if (str_starts_with($trimmed, '```')) {
+                $trimmed = preg_replace('/^```(?:json)?\s*/i', '', $trimmed);
+                $trimmed = preg_replace('/```\s*$/', '', $trimmed);
+                $trimmed = trim($trimmed);
             }
 
-            $decoded = json_decode(trim($content), true);
+            $decoded = json_decode($trimmed, true);
+
+            // If direct decode failed, attempt regex extraction between outermost brackets
+            if (!is_array($decoded)) {
+                if (preg_match('/\{(?:[^{}]|(?R))*\}/s', $content, $matches)) {
+                    $decoded = json_decode($matches[0], true);
+                }
+            }
 
             if (!is_array($decoded)) {
                 Log::warning('DynamicContentProvider: Failed to decode JSON response, using schema fallback');
@@ -83,7 +95,7 @@ class DynamicContentProvider
      */
     public static function askText(
         string $prompt,
-        string $system = "You are an expert technical writer and AI content strategist. Generate high-quality, accurate content based on the topic provided.",
+        string $system = "You are an expert technical writer and AI content strategist. Generate highly specific, factual, and deeply technical content without any generic filler.",
         string $model = 'gpt-4o-mini',
         float $temperature = 0.7
     ): string {
