@@ -91,6 +91,7 @@ class SectionDraftsmanService
         array $directives
     ): string {
         $topic = $mission->topic;
+        $thesis = $mission->primaryObjective ?? $topic;
         $persona = is_array($mission->targetAudience) ? ($mission->targetAudience['persona'] ?? 'Technical professionals') : (string) $mission->targetAudience;
         $expertise = is_array($mission->targetAudience) ? ($mission->targetAudience['expertise_level'] ?? 'Intermediate') : 'Intermediate';
         $minWords = $mission->targetWordCountRange['min'] ?? 1800;
@@ -98,21 +99,21 @@ class SectionDraftsmanService
 
         // Calculate target words per section
         $targetWordCount = (int) round(($minWords + $maxWords) / 2);
-        $wordsPerSection = max(200, (int) round($targetWordCount / max(1, 7)));
+        $wordsPerSection = max(250, (int) round($targetWordCount / max(1, 7)));
 
         // Build claim context for the AI
         $claimContext = '';
         if (!empty($assignedClaims)) {
-            $claimContext = "Include and cite these verified facts in your content:\n";
+            $claimContext = "Integrate these verified facts into your prose:\n";
             foreach ($assignedClaims as $claim) {
-                $claimContext .= "- \"{$claim->statement}\" (Evidence: {$claim->evidenceExtract})\n";
+                $claimContext .= "- Fact: \"{$claim->statement}\" (Evidence: {$claim->evidenceExtract})\n";
             }
         }
 
         // Build revision directives context
         $revisionContext = '';
         if (!empty($directives)) {
-            $revisionContext = "Address these revision directives from the critic:\n";
+            $revisionContext = "Address these specific editorial directives:\n";
             foreach ($directives as $directive) {
                 $revisionContext .= "- {$directive}\n";
             }
@@ -122,35 +123,37 @@ class SectionDraftsmanService
         // REAL AI SECTION WRITING via DynamicContentProvider
         // ══════════════════════════════════════════════════════════════
 
-        $prompt = "Write a high-quality article section for a {$expertise}-level article about: \"{$topic}\"
+        $questionsContext = !empty($section->mustAnswerQuestions) ? implode("\n- ", $section->mustAnswerQuestions) : 'Answer the core aspects of this heading.';
+
+        $prompt = "Write an authoritative, highly detailed article section for an in-depth guide on \"{$topic}\".
+
+Overall Article Objective / User Inquiries:
+{$thesis}
 
 Section Heading: {$section->heading}
-Target Audience: {$persona}
-Target Word Count for this section: {$wordsPerSection} words
+Target Audience: {$persona} ({$expertise} level)
+Target Word Count: {$wordsPerSection}+ words
+
+Questions this section must answer:
+- {$questionsContext}
 
 {$claimContext}
 
 {$revisionContext}
 
-Instructions:
-1. Write informative, accurate, and engaging content that directly addresses the section heading
-2. The content MUST be about \"{$topic}\" - not generic boilerplate
-3. Include specific facts, data points, and examples where relevant
-4. Use clear, professional language appropriate for {$persona}
-5. Structure the content with 2-4 well-developed paragraphs
-6. Reference any claims provided above inline with their claim IDs
-7. Answer any must-answer questions: " . implode(', ', $section->mustAnswerQuestions ?? []) . "
-8. Output valid HTML only - use <p>, <h3>, <h4>, <ul>, <li>, <strong>, <em>, <blockquote>, <code>, <pre> tags as appropriate
-9. Do NOT include any heading tags for the section title - the heading is rendered separately
-10. Do NOT include any text that says 'In enterprise environments' or other generic filler
+Writing Guidelines:
+1. Write substantive, deeply technical, and actionable prose specifically about \"{$topic}\".
+2. Address the user's core inquiries and the specific section heading directly.
+3. Use concrete details, real-world examples, architectural insights, and clear explanations.
+4. Structure with multiple rich paragraphs, and use formatted HTML subheadings (<h3>, <h4>), bullet lists (<ul><li>), or code snippets (<pre><code>) where appropriate.
+5. Do NOT include generic filler like 'In today's fast-paced world' or 'In enterprise environments, mastering...'.
+6. Do NOT include raw internal ID strings (e.g. do not print 'clm_12345').
+7. Do NOT include the main section <h2> title - it is rendered by the layout.
+8. Output pure, clean HTML ready for publication.";
 
-Return ONLY the HTML content for this section, nothing else.";
-
-        $system = "You are an expert technical writer and content strategist. " .
-            "You write accurate, engaging, well-researched content. " .
-            "You never use generic filler phrases. " .
-            "Every sentence must provide specific value about the exact topic being discussed. " .
-            "You write at a {$expertise} level for {$persona}.";
+        $system = "You are a world-class principal technology writer and technical architect. " .
+            "You write deeply engaging, highly accurate, and comprehensive prose. " .
+            "You never repeat superficial boilerplate. Every sentence delivers high information density.";
 
         $aiContent = DynamicContentProvider::askText($prompt, $system, 'gpt-4o-mini', 0.7);
 
@@ -158,7 +161,7 @@ Return ONLY the HTML content for this section, nothing else.";
         $aiContent = $this->cleanAiOutput($aiContent);
 
         // ══════════════════════════════════════════════════════════════
-        // Build the final HTML with claim annotations
+        // Build the final clean HTML
         // ══════════════════════════════════════════════════════════════
 
         $paragraphs = [];
@@ -169,7 +172,6 @@ Return ONLY the HTML content for this section, nothing else.";
         if (!empty($rawParagraphs)) {
             foreach ($rawParagraphs as $rawP) {
                 $trimmed = trim($rawP);
-                // If it already contains HTML tags, use as-is
                 if (str_starts_with($trimmed, '<')) {
                     $paragraphs[] = $trimmed;
                 } else {
@@ -184,30 +186,6 @@ Return ONLY the HTML content for this section, nothing else.";
             $paragraphs[] = '<p class="text-slate-300 leading-relaxed mb-4">' .
                 htmlspecialchars("Key technical evaluations emphasize the need for rigorous benchmarks, robust exception boundaries, and continuous telemetry when deploying {$topic} in production environments.") .
                 '</p>';
-        }
-
-        // Add verified claim citations at the bottom of the section
-        if (!empty($assignedClaims)) {
-            $claimHtml = '<div class="mt-6 p-4 rounded-xl bg-slate-900/80 border border-violet-500/20">';
-            $claimHtml .= '<h4 class="text-sm font-semibold text-violet-400 mb-3">📚 Verified Claims & Sources</h4>';
-            $claimHtml .= '<ul class="space-y-2">';
-            foreach ($assignedClaims as $claim) {
-                $reliability = round($claim->confidenceScore * 100);
-                $claimHtml .= '<li class="text-sm text-slate-400">';
-                $claimHtml .= '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-violet-900/60 text-violet-300 border border-violet-500/30 mr-2">Verified Claim [' . htmlspecialchars($claim->claimId) . ']</span> ';
-                $claimHtml .= htmlspecialchars($claim->statement);
-                $claimHtml .= ' <span class="text-emerald-400 text-xs">(' . $reliability . '% confidence)</span>';
-                $claimHtml .= '</li>';
-            }
-            $claimHtml .= '</ul></div>';
-            $paragraphs[] = $claimHtml;
-        }
-
-        // Add revision improvement note if this is a revised draft
-        if (!empty($directives)) {
-            $paragraphs[] = '<div class="p-3 rounded-lg bg-emerald-950/40 border border-emerald-500/30 my-3 text-xs text-emerald-300">' .
-                '<strong>🔄 Revision Applied:</strong> Content updated to address ' . count($directives) . ' critic directive(s): ' . htmlspecialchars(implode('; ', array_slice($directives, 0, 3))) .
-                '</div>';
         }
 
         return implode("\n\n", $paragraphs);
