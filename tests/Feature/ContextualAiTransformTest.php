@@ -380,4 +380,41 @@ class ContextualAiTransformTest extends TestCase
         $healthTitle = $coordinator->generateArticleTitle('Keto Diet', 'Keto Diet', $healthMeta['domain'], $healthMeta['intent']);
         $this->assertStringContainsString('Keto Diet: The Definitive Evidence-Based Guide', $healthTitle);
     }
+
+    public function test_surgical_micro_section_transformations_in_tiptap_canvas(): void
+    {
+        Http::fake([
+            '*/chat/completions' => Http::response([
+                'id' => 'chatcmpl-micro-123',
+                'choices' => [
+                    [
+                        'message' => [
+                            'role' => 'assistant',
+                            'content' => 'In distributed key-value storage, throughput increased by **312%** while P99 latency dropped to **1.4ms** under 50k QPS load.',
+                        ],
+                    ],
+                ],
+                'usage' => [
+                    'prompt_tokens' => 40,
+                    'completion_tokens' => 25,
+                    'total_tokens' => 65,
+                ],
+                'model' => 'cc/claude-3-7-sonnet',
+            ], 200, [
+                'X-OmniRoute-Model' => 'cc/claude-3-7-sonnet',
+            ]),
+        ]);
+
+        $response = $this->actingAs($this->user)->postJson(route('ai.transform'), [
+            'text' => 'Distributed key-value databases are faster.',
+            'type' => 'inject_data_points',
+        ]);
+
+        $response->assertOk();
+        $response->assertJson([
+            'success' => true,
+            'type' => 'inject_data_points',
+        ]);
+        $this->assertStringContainsString('312%', $response->json('result'));
+    }
 }
