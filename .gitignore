@@ -1,6 +1,7 @@
 *.log
 .DS_Store
 .env
+__pycache__/
 .phpactor.json
 .phpunit.result.cache
 /.codex
