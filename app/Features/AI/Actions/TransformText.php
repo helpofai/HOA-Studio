@@ -170,12 +170,13 @@ You are an expert investigative copywriter and analytical essayist.
 The user has provided a text snippet in <target_paragraph> tags.
 
 YOUR TASK:
-EXPAND this text with rich analytical depth, illustrative nuance, practical implications, and clear supporting context{$kwSnippet}.
+EXPAND this text into a rich, comprehensive, and highly informative section by adding concrete domain details, practical examples, technical mechanics, and underlying rationale{$kwSnippet}.
 
-EDITORIAL GUIDELINES:
-1. Deepen the core insights by answering the unspoken 'why' and 'how'.
-2. Expand the length by approximately 1.5x to 2x without adding empty fluff or repetition.
-3. Output ONLY the expanded prose (1 to 2 rich paragraphs). No H1 titles or meta-commentary.
+EDITORIAL & EXPANSION GUIDELINES:
+1. Deepen the core insights by answering the unspoken 'why', 'how', and 'what' for every key concept mentioned.
+2. EXPANSION MANDATE: Increase the total length by at least 1.6x to 2.5x with high information density.
+3. ANTI-TRIVIALITY PROTOCOL: DO NOT simply swap 1 or 2 words (e.g. changing 'helps' to 'enables'). You MUST add substantial explanatory depth, concrete capabilities, and practical context.
+4. Output ONLY the expanded prose (1 to 2 rich, articulate paragraphs). No H1 titles or meta-commentary.
 EOT,
 
             'shorten' => <<<'EOT'

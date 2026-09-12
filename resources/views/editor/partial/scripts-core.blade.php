@@ -181,8 +181,13 @@ showRestoredDraftBanner: false,
 restoredDraftTime: '',
 restoredWordCount: 0,
 hasUnsavedChanges: false,
+docOutline: [],
+selectedSnapshot: null,
+snapshotDiffHtml: '',
+showSnapshotDiff: false,
+serpPlatform: 'desktop',
+serverBackupContent: null,
 _isInitialized: false,
-
 init() {
     if (this._isInitialized) return;
     this._isInitialized = true;

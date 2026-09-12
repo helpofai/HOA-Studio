@@ -66,19 +66,29 @@ class SeoAnalyzer
      */
     public function analyze(string $htmlContent, string $title = '', ?string $targetKeyword = null, array $secondaryKeywords = [], string $metaDescription = ''): array
     {
-        // Spaced HTML for accurate word and sentence segmentation
-        $spacedHtml = preg_replace('/<\/(h[1-6]|p|div|li|blockquote|section|article|td|th|tr)>/i', '$0. ', $htmlContent);
-        $plainText = trim(preg_replace('/\s+/u', ' ', strip_tags($spacedHtml)));
+        // Spaced HTML for accurate word and sentence segmentation (decoding HTML entities & normalizing spaces)
+        $spacedHtml = preg_replace('/<(\/)?(h[1-6]|p|div|li|blockquote|section|article|td|th|tr|br|hr)[^>]*>/i', "\n", $htmlContent);
+        $plainText = html_entity_decode(strip_tags($spacedHtml), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $plainText = trim(preg_replace('/[ \t]+/u', ' ', $plainText));
+
+        // Line segmentation
+        $rawLines = array_values(array_filter(explode("\n", str_replace("\r", '', $plainText)), fn ($l) => ! empty(trim($l))));
+        $totalLines = count($rawLines);
+
+        // Words segmentation
         $words = ! empty($plainText) ? preg_split('/\s+/u', $plainText, -1, PREG_SPLIT_NO_EMPTY) : [];
         $totalWords = count($words);
 
-        // Sentences
+        // Sentences segmentation
         $sentences = ! empty($plainText) ? preg_split('/(?<=[.?!])\s+/u', $plainText, -1, PREG_SPLIT_NO_EMPTY) : [];
         $totalSentences = max(1, count($sentences));
 
-        // Paragraphs extraction
-        preg_match_all('/<p[^>]*>(.*?)<\/p>/si', $htmlContent, $pMatches);
-        $rawParagraphs = array_map('strip_tags', $pMatches[1] ?? []);
+        // Paragraphs extraction across all block elements (with fallback to lines)
+        preg_match_all('/<(p|li|blockquote|section|article|td)[^>]*>(.*?)<\/\1>/si', $htmlContent, $pMatches);
+        $rawParagraphs = array_values(array_filter(array_map(fn ($h) => trim(html_entity_decode(strip_tags($h), ENT_QUOTES | ENT_HTML5, 'UTF-8')), $pMatches[2] ?? []), fn ($t) => ! empty($t)));
+        if (empty($rawParagraphs)) {
+            $rawParagraphs = $rawLines;
+        }
         $totalParagraphs = max(1, count($rawParagraphs));
 
         // Syllables estimation for Flesch Readability
@@ -119,23 +129,29 @@ class SeoAnalyzer
         $ariScore = $this->calculateARI($totalWords, $totalSentences, $totalSyllables);
         $colemanLiau = $this->calculateColemanLiau($totalWords, $totalSentences, $htmlContent);
 
-        // Extract Headings
+        // Extract Headings with decoded entities
         preg_match_all('/<h1[^>]*>(.*?)<\/h1>/si', $htmlContent, $h1Matches);
         preg_match_all('/<h2[^>]*>(.*?)<\/h2>/si', $htmlContent, $h2Matches);
         preg_match_all('/<h3[^>]*>(.*?)<\/h3>/si', $htmlContent, $h3Matches);
-        preg_match_all('/<h[4-6][^>]*>.*?<\/h[4-6]>/si', $htmlContent, $h456Matches);
+        preg_match_all('/<h[4-6][^>]*>(.*?)<\/h[4-6]>/si', $htmlContent, $h456Matches);
 
-        $h1List = array_map('strip_tags', $h1Matches[1] ?? []);
-        $h2List = array_map('strip_tags', $h2Matches[1] ?? []);
-        $h3List = array_map('strip_tags', $h3Matches[1] ?? []);
-        $h456List = array_map('strip_tags', $h456Matches[1] ?? []);
+        $h1List = array_map(fn ($h) => trim(html_entity_decode(strip_tags($h), ENT_QUOTES | ENT_HTML5, 'UTF-8')), $h1Matches[1] ?? []);
+        $h2List = array_map(fn ($h) => trim(html_entity_decode(strip_tags($h), ENT_QUOTES | ENT_HTML5, 'UTF-8')), $h2Matches[1] ?? []);
+        $h3List = array_map(fn ($h) => trim(html_entity_decode(strip_tags($h), ENT_QUOTES | ENT_HTML5, 'UTF-8')), $h3Matches[1] ?? []);
+        $h456List = array_map(fn ($h) => trim(html_entity_decode(strip_tags($h), ENT_QUOTES | ENT_HTML5, 'UTF-8')), $h456Matches[1] ?? []);
+
+        // Effective title fallback (if $title is empty or generic 'Untitled', use first H1 tag)
+        $effectiveTitle = trim(html_entity_decode($title, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        if ((empty($effectiveTitle) || strtolower($effectiveTitle) === 'untitled' || strtolower($effectiveTitle) === 'untitled document') && ! empty($h1List[0])) {
+            $effectiveTitle = $h1List[0];
+        }
 
         // Extract Links & Images
         preg_match_all('/<a\s+[^>]*href=["\']([^"\']*)["\']/si', $htmlContent, $linkMatches);
         preg_match_all('/<img\s+[^>]*alt=["\']([^"\']*)["\']/si', $htmlContent, $imgMatches);
 
         $links = $linkMatches[1] ?? [];
-        $imgAlts = $imgMatches[1] ?? [];
+        $imgAlts = array_map(fn ($a) => html_entity_decode($a, ENT_QUOTES | ENT_HTML5, 'UTF-8'), $imgMatches[1] ?? []);
         $totalLinks = count($links);
         $totalImages = count($imgAlts);
 
@@ -169,10 +185,10 @@ class SeoAnalyzer
             }
         }
 
-        // Target Keyword Data
-        $kw = $targetKeyword ? trim(mb_strtolower($targetKeyword)) : null;
+        // Target Keyword Data with exact regex matching & decoded entity support
+        $kw = $targetKeyword ? trim(mb_strtolower(html_entity_decode($targetKeyword, ENT_QUOTES | ENT_HTML5, 'UTF-8'))) : null;
         $kwWordsCount = $kw ? count(preg_split('/\s+/u', $kw, -1, PREG_SPLIT_NO_EMPTY)) : 1;
-        $slug = Str::slug($title ?: 'untitled');
+        $slug = Str::slug($effectiveTitle ?: 'untitled');
 
         $kwData = [
             'target_keyword' => $targetKeyword,
@@ -193,38 +209,42 @@ class SeoAnalyzer
 
         if ($kw && $totalWords > 0) {
             $lowerText = mb_strtolower($plainText);
-            $lowerTitle = mb_strtolower($title);
-            $lowerMeta = mb_strtolower($metaDescription);
+            $lowerTitle = mb_strtolower($effectiveTitle);
+            $lowerMeta = mb_strtolower(html_entity_decode($metaDescription, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
             $lowerSlug = mb_strtolower(str_replace('-', ' ', $slug));
             $lowerH1 = mb_strtolower(implode(' ', $h1List));
             $lowerSubheadings = mb_strtolower(implode(' ', array_merge($h2List, $h3List)));
             $lowerImgAlts = mb_strtolower(implode(' ', $imgAlts));
 
-            // First 10% of content
-            $tenPercentWordsCount = max(10, (int) round($totalWords * 0.1));
-            $first10PctWords = mb_strtolower(implode(' ', array_slice($words, 0, $tenPercentWordsCount)));
+            // Exact word-boundary regex matching for keyword occurrences
+            $kwRegex = '/\b'.preg_quote($kw, '/').'\b/ui';
+            preg_match_all($kwRegex, $plainText, $kwMatches);
+            $kwOccurrences = count($kwMatches[0] ?? []);
 
-            $kwOccurrences = mb_substr_count($lowerText, $kw);
+            if ($kwOccurrences === 0 && mb_strpos($lowerText, $kw) !== false) {
+                $kwOccurrences = mb_substr_count($lowerText, $kw);
+            }
+
             $kwData['count'] = $kwOccurrences;
-
-            // Rank Math Keyword Density Formula: (Keyword Count * Words in Keyword / Total Words) * 100
             $kwData['density'] = round((($kwOccurrences * $kwWordsCount) / max(1, $totalWords)) * 100, 2);
-
-            // Keyword stuffing detection (> 3% density is risky)
             $kwData['keyword_stuffing_risk'] = $kwData['density'] > 3.0;
 
-            // Semantic variations detection (simple stem matching)
             $kwData['semantic_variations_found'] = $this->countSemanticVariations($lowerText, $kw);
 
-            $kwData['in_title'] = mb_strpos($lowerTitle, $kw) !== false;
-            $kwData['in_first_10_pct'] = mb_strpos($first10PctWords, $kw) !== false;
-            $kwData['in_first_100_words'] = $kwData['in_first_10_pct'] || (mb_strpos(mb_strtolower(implode(' ', array_slice($words, 0, 100))), $kw) !== false);
-            $kwData['in_meta'] = ! empty($metaDescription) && mb_strpos($lowerMeta, $kw) !== false;
-            $kwData['in_url'] = mb_strpos($lowerSlug, str_replace(' ', ' ', $kw)) !== false || mb_strpos(Str::slug($title), Str::slug($kw)) !== false;
-            $kwData['in_h1'] = mb_strpos($lowerH1, $kw) !== false;
-            $kwData['in_h2'] = mb_strpos(mb_strtolower(implode(' ', $h2List)), $kw) !== false;
-            $kwData['in_subheadings'] = mb_strpos($lowerSubheadings, $kw) !== false;
-            $kwData['in_img_alt'] = mb_strpos($lowerImgAlts, $kw) !== false;
+            // First 10% of content and opening 100 words
+            $tenPercentWordsCount = max(10, (int) round($totalWords * 0.1));
+            $first10PctText = mb_strtolower(implode(' ', array_slice($words, 0, $tenPercentWordsCount)));
+            $first100WordsText = mb_strtolower(implode(' ', array_slice($words, 0, 100)));
+
+            $kwData['in_title'] = ! empty($lowerTitle) && (preg_match('/'.preg_quote($kw, '/').'/ui', $lowerTitle) === 1);
+            $kwData['in_first_10_pct'] = preg_match('/'.preg_quote($kw, '/').'/ui', $first10PctText) === 1;
+            $kwData['in_first_100_words'] = preg_match('/'.preg_quote($kw, '/').'/ui', $first100WordsText) === 1;
+            $kwData['in_meta'] = ! empty($lowerMeta) && preg_match('/'.preg_quote($kw, '/').'/ui', $lowerMeta) === 1;
+            $kwData['in_url'] = mb_strpos($lowerSlug, str_replace(' ', ' ', $kw)) !== false || mb_strpos(Str::slug($effectiveTitle), Str::slug($kw)) !== false;
+            $kwData['in_h1'] = ! empty($lowerH1) && preg_match('/'.preg_quote($kw, '/').'/ui', $lowerH1) === 1;
+            $kwData['in_h2'] = ! empty(implode(' ', $h2List)) && preg_match('/'.preg_quote($kw, '/').'/ui', mb_strtolower(implode(' ', $h2List))) === 1;
+            $kwData['in_subheadings'] = ! empty($lowerSubheadings) && preg_match('/'.preg_quote($kw, '/').'/ui', $lowerSubheadings) === 1;
+            $kwData['in_img_alt'] = ! empty($lowerImgAlts) && preg_match('/'.preg_quote($kw, '/').'/ui', $lowerImgAlts) === 1;
         }
 
         // Title Readability Extra Analysis
@@ -871,6 +891,8 @@ class SeoAnalyzer
                 'words' => $totalWords,
                 'sentences' => $totalSentences,
                 'paragraphs' => $totalParagraphs,
+                'lines' => $totalLines,
+                'sections' => count($h2List) + count($h3List),
                 'reading_time_minutes' => max(1, (int) ceil($totalWords / 200)),
                 'headings' => [
                     'h1' => count($h1List),
@@ -1033,18 +1055,32 @@ class SeoAnalyzer
 
         $kwClean = $targetKeyword ? htmlspecialchars(trim($targetKeyword), ENT_QUOTES, 'UTF-8') : '';
 
-        // 1. Highlight Focus Keyword Matches (Green)
-        if ($targetKeyword) {
-            $kw = preg_quote(trim($targetKeyword), '/');
-            $marked = preg_replace("/\b({$kw})\b(?![^<]*>)/i", '<mark style="background-color: rgba(16, 185, 129, 0.35); border-bottom: 2px solid #10b981; color: inherit; padding: 1px 5px; border-radius: 4px; font-weight: 600;" title="Focus Keyword: '.$kwClean.'">$1</mark>', $marked);
+        // Safely split HTML into format tags vs pure text nodes to prevent destroying HTML structure
+        $parts = preg_split('/(<[^>]+>)/su', $marked, -1, PREG_SPLIT_DELIM_CAPTURE);
+        $authorityWords = ['expert', 'professional', 'study', 'research', 'certified', 'proven', 'guaranteed', 'according to', 'statistics', 'evidence', 'case study', 'data', 'clinical', 'peer-reviewed'];
+
+        for ($i = 0; $i < count($parts); $i++) {
+            if (isset($parts[$i][0]) && $parts[$i][0] === '<' && substr($parts[$i], -1) === '>') {
+                continue;
+            }
+            if (trim($parts[$i]) === '') {
+                continue;
+            }
+
+            // 1. Highlight Focus Keyword Matches (Green)
+            if ($targetKeyword) {
+                $kw = preg_quote(trim($targetKeyword), '/');
+                $parts[$i] = preg_replace("/({$kw})/i", '<mark style="background-color: rgba(16, 185, 129, 0.35); border-bottom: 2px solid #10b981; color: inherit; padding: 1px 5px; border-radius: 4px; font-weight: 600;" title="Focus Keyword: '.$kwClean.'">$1</mark>', $parts[$i]);
+            }
+
+            // 2. Highlight E-E-A-T & Authority Signals (Blue)
+            foreach ($authorityWords as $word) {
+                $w = preg_quote($word, '/');
+                $parts[$i] = preg_replace("/\b({$w})\b/i", '<mark style="background-color: rgba(59, 130, 246, 0.3); border-bottom: 2px solid #3b82f6; color: inherit; padding: 1px 5px; border-radius: 4px;" title="Authority / E-E-A-T Signal: $1">$1</mark>', $parts[$i]);
+            }
         }
 
-        // 2. Highlight E-E-A-T & Authority Signals (Blue)
-        $authorityWords = ['expert', 'professional', 'study', 'research', 'certified', 'proven', 'guaranteed', 'according to', 'statistics', 'evidence', 'case study', 'data', 'clinical', 'peer-reviewed'];
-        foreach ($authorityWords as $word) {
-            $w = preg_quote($word, '/');
-            $marked = preg_replace("/\b({$w})\b(?![^<]*>)/i", '<mark style="background-color: rgba(59, 130, 246, 0.3); border-bottom: 2px solid #3b82f6; color: inherit; padding: 1px 5px; border-radius: 4px;" title="Authority / E-E-A-T Signal: $1">$1</mark>', $marked);
-        }
+        $marked = implode('', $parts);
 
         // 3. Highlight Sentence Length check (Red dashed for sentences > 25 words)
         $sentences = preg_split('/(?<=[.?!])\s+/u', strip_tags($htmlContent), -1, PREG_SPLIT_NO_EMPTY);

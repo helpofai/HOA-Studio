@@ -46,7 +46,6 @@ use App\Features\Blog\Livewire\BlogIndexPage;
 use App\Features\Blog\Livewire\BlogManagerPage;
 use App\Features\Blog\Livewire\BlogPostPage;
 use App\Features\BrandVoice\Livewire\BrandVoicePage;
-use App\Features\ContentIntelligence\Livewire\ContentIntelligencePage;
 use App\Features\Dashboard\Livewire\DashboardPage;
 use App\Features\Documents\Http\Controllers\ExportDocumentController;
 use App\Features\Documents\Http\Controllers\OpenEditorController;
@@ -80,8 +79,6 @@ Route::middleware('guest')->group(function () {
 // Authenticated User Workspace Routes (/dashboard/*)
 Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::get('/', DashboardPage::class)->name('dashboard');
-    Route::get('/content-intelligence', ContentIntelligencePage::class)->name('content-intelligence.index');
-    Route::get('/content-intelligence/stream/{run}', [\App\Features\ContentIntelligence\Http\Controllers\ContentIntelligenceStreamController::class, 'streamStep'])->name('content-intelligence.stream');
     Route::get('/editor', OpenEditorController::class)->name('editor');
     Route::get('/documents', DocumentsPage::class)->name('documents.index');
     Route::get('/documents/{id}', DocumentEditor::class)->name('documents.editor');

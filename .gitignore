@@ -28,6 +28,7 @@ blog-post -creation-plan.md
 ai-content-writer-laravel13-plan.md
 ADVANCED MULTI-EDITOR.md
 multi-stage-Content-Intelligence.md
+chat_export*.md
 brain.md
 **/.helpofai/*
 !**/.helpofai/constitution.json

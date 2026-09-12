@@ -113,16 +113,19 @@ RULES:
 EOT,
 
             'expand' => <<<EOT
-ACTION TOOL: EXPAND WITH DEPTH (ANALYTICAL SUBSTANCE & RIGOR)
+ACTION TOOL: EXPAND WITH DEPTH & ANALYTICAL SUBSTANCE
 OBJECTIVE:
-Deepen and expand the marked text with rich analytical substance, practical implications, illustrative depth, and concrete rationale{$kwSnippet}.
-DEEP DOCUMENT INTEGRATION:
-- Unpack the underlying 'why' and 'how' behind the statements in light of the document's central thesis ('{$docTitle}').
-- Provide practical real-world nuance or tactical considerations that directly connect to the surrounding paragraphs without generic fluff.
-RULES:
-1. Expand the content to approximately 1.5x - 2.2x depth with high information density.
-2. Ensure seamless continuity with the following text — do not introduce repetitive points already covered.
-3. OUTPUT ONLY the expanded content (1 to 2 rich paragraphs).
+Thoroughly expand, unpack, and elaborate on the marked text by injecting concrete domain details, practical examples, operational mechanics, and underlying rationale{$kwSnippet}.
+
+DEEP DOCUMENT INTEGRATION & EXPANSION REQUIREMENTS:
+- Unpack each core concept mentioned in the paragraph into detailed sub-explanations (answering the unspoken 'why', 'how', and 'what').
+- Add concrete real-world context, technical pillars, operational capabilities, or practical applications without adding empty fluff or generic filler.
+- Connect the expanded insights seamlessly to the overarching document theme ('{$docTitle}').
+
+STRICT EXECUTION RULES:
+1. EXPANSION MANDATE: You MUST significantly increase the detail and length of the content (target: 1.6x to 2.5x the original word count, producing 1-2 rich, highly informative paragraphs).
+2. ANTI-TRIVIALITY PROTOCOL: You are strictly forbidden from returning the original text with simple word swaps (e.g. changing 'helps' to 'enables' or swapping synonyms). You MUST add substantial new explanation, details, and examples.
+3. OUTPUT FORMAT: Output ONLY the expanded, polished prose. Do NOT include markdown H1 titles, meta-commentary, or conversational chatter.
 EOT,
 
             'shorten', 'condense' => <<<EOT
@@ -723,16 +726,19 @@ EOT;
 
     protected function localExpand(string $text, string $docTitle, string $targetKeyword): string
     {
-        $expanded = $text;
+        $expanded = trim($text);
 
-        $analyticalExpansion = "\n\nSpecifically, this dynamic establishes a resilient foundation by addressing the nuanced operational trade-offs inherent in modern execution.";
+        $paragraph2 = "In practice, this operational structure establishes a resilient foundation by addressing core functional mechanics, technical constraints, and strategic goals.";
+
         if ($targetKeyword !== '') {
-            $analyticalExpansion .= " Aligning directly with {$targetKeyword} empowers practitioners to eliminate systemic bottlenecks while maintaining uncompromising qualitative consistency.";
+            $paragraph2 .= " Aligning directly with {$targetKeyword} empowers teams to eliminate workflow bottlenecks while maintaining rigorous quality control standards across all deliverables.";
         } elseif ($docTitle !== '') {
-            $analyticalExpansion .= " Within the strategic framework of {$docTitle}, this ensures that every stage delivers measurable tactical impact.";
+            $paragraph2 .= " Within the broader framework of {$docTitle}, this ensures that every stage delivers measurable value, clear accountability, and scalable outcomes.";
+        } else {
+            $paragraph2 .= " Furthermore, systematically executing these steps ensures consistent performance, reduces implementation risks, and optimizes resource allocation across key operations.";
         }
 
-        return trim($expanded.$analyticalExpansion);
+        return $expanded."\n\n".$paragraph2;
     }
 
     protected function localShorten(string $text): string

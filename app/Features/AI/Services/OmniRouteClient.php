@@ -138,8 +138,8 @@ class OmniRouteClient
             Log::info('[OmniRouteClient] Primary model error: '.$e->getMessage());
         }
 
-        // Secondary Fallback Model Pool Attempt
-        $fallbackModels = ['deepseek/deepseek-chat', 'auto', 'cc/claude-3-7-sonnet'];
+        // Secondary Fallback Model Pool Attempt — use only models OmniRoute can resolve
+        $fallbackModels = ['auto/best-chat', 'auto/best-reasoning', 'auto/best-fast'];
         foreach ($fallbackModels as $fallbackModel) {
             if ($fallbackModel === $model) {
                 continue;
@@ -172,24 +172,29 @@ class OmniRouteClient
                     ];
                 }
             } catch (Exception $e) {
-                // Try next or synthesizer
+                Log::info('[OmniRouteClient] Fallback model error: ' . $e->getMessage());
+                continue; // Try next fallback model
             }
-            break; // Attempt one primary fallback candidate
         }
 
-        // Fallback to Autonomous Neural Synthesizer
+        // Fallback to Autonomous Neural Synthesizer — MARK as synthesized so downstream
+        // can distinguish from real AI output. The synthesizer produces hardcoded templates,
+        // not genuine AI-generated content.
         $synthesized = $this->synthesizer->generate($messages, $options);
+
+        Log::warning('[OmniRouteClient] All AI models unavailable. ContentSynthesizer fallback activated. Output is GENERIC TEMPLATE — not real AI content.');
 
         return [
             'content' => $synthesized,
-            'model' => 'Claude 3.7 Sonnet (OmniRoute Auto)',
-            'input_tokens' => 120,
+            'model' => 'ContentSynthesizer (Offline Fallback)',
+            'input_tokens' => 0,
             'output_tokens' => (int) ceil(mb_strlen($synthesized) / 4),
             'total_tokens' => (int) ceil(mb_strlen($synthesized) / 4),
             'cost_usd' => 0.0000,
-            'latency_ms' => 85,
+            'latency_ms' => 0,
             'cache_hit' => false,
             'decision_trace' => 'neural-synthesizer',
+            'is_synthesized' => true,
             'raw' => [],
         ];
     }
@@ -289,9 +294,12 @@ class OmniRouteClient
             // Handled by synthesizer fallback
         }
 
-        // If gateway was offline, timed out, or returned 0 tokens, stream via high-performance neural synthesizer
+        // If gateway was offline, timed out, or returned 0 tokens, stream via synthesized fallback
         if ($tokensYielded === 0) {
+            Log::warning('[OmniRouteClient] Streaming fallback: all AI models unavailable. Synthesizer producing generic template content.');
             foreach ($this->synthesizer->stream($messages, $options) as $chunk) {
+                $chunk['is_synthesized'] = true;
+                $chunk['model'] = 'ContentSynthesizer (Offline Fallback)';
                 yield $chunk;
             }
         }

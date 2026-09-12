@@ -25,6 +25,7 @@
 
 namespace App\Features\AI\Services;
 
+use App\Features\AI\Data\ContentState;
 use App\Features\Documents\Data\CanonicalDocumentSchema;
 use App\Features\SEO\Services\SeoAnalyzer;
 
@@ -32,16 +33,19 @@ use App\Features\SEO\Services\SeoAnalyzer;
  * Content Intelligence Service
  *
  * Provides intelligent analysis and transformations for documents
- * based on the Universal Canonical AST.
+ * based on the Universal Canonical AST and Multi-Dimensional Quality Audits.
  */
 class ContentIntelligenceService
 {
     public function __construct(
-        protected SeoAnalyzer $seoAnalyzer
-    ) {}
+        protected SeoAnalyzer $seoAnalyzer,
+        protected ?MultiDimensionalAuditService $auditService = null
+    ) {
+        $this->auditService = $auditService ?? app(MultiDimensionalAuditService::class);
+    }
 
     /**
-     * Analyze a document AST for SEO and readability.
+     * Analyze a document AST for SEO, readability, and multi-dimensional quality.
      */
     public function analyze(array $canonicalAst, array $options = []): array
     {
@@ -51,6 +55,17 @@ class ContentIntelligenceService
         // Structure analysis
         $structure = $this->analyzeStructure($canonicalAst['content'] ?? []);
 
+        $htmlContent = $options['html'] ?? "<p>{$plainText}</p>";
+        $targetKeyword = $options['focus_keyword'] ?? null;
+        $state = $options['content_state'] ?? null;
+
+        $auditResult = $this->auditService->audit(
+            htmlContent: $htmlContent,
+            title: $options['title'] ?? '',
+            targetKeyword: $targetKeyword,
+            state: $state
+        );
+
         return [
             'telemetry' => [
                 'word_count' => $wordCount,
@@ -58,7 +73,8 @@ class ContentIntelligenceService
                 'reading_time' => CanonicalDocumentSchema::estimateReadingTime($canonicalAst),
             ],
             'structure' => $structure,
-            'seo' => $this->seoAnalyzer->analyze($plainText, $options['focus_keyword'] ?? null, $structure),
+            'seo' => $this->seoAnalyzer->analyze($plainText, $targetKeyword, $structure),
+            'multi_dimensional_audit' => $auditResult,
         ];
     }
 

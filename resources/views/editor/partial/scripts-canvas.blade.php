@@ -36,6 +36,16 @@ activeFormats: {
     codeBlock: false
 },
 
+// Context Menu & Slash Menu UI State
+showContextMenu: false,
+contextMenuX: 0,
+contextMenuY: 0,
+isTableContext: false,
+showSlashMenu: false,
+slashMenuX: 0,
+slashMenuY: 0,
+routedModel: 'OmniRoute Gateway',
+
 updateActiveFormats() {
     const ed = this.getEditor();
     if (!ed) return;

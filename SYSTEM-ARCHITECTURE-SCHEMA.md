@@ -38,7 +38,6 @@ flowchart TD
 
     subgraph FRONTAL_LOBE ["⚡ Frontal Lobe (AI Reasoning & Generation Matrix)"]
         OMNIRoute["[OmniRoute Gateway Client]"]:::frontal
-        WRITER_BRAIN["[Content Writer Brain & 15-Stage Pipeline]"]:::frontal
         STREAM_CTRL["[SSE Streaming Controller (/ai/stream)]"]:::frontal
         CIRCUIT_BREAKER["[AI Circuit Breaker & Rate Limiter]"]:::frontal
     end
@@ -201,14 +200,31 @@ flowchart TD
 ---
 
 ### 2. AI Intelligence & OmniRoute Gateway (Frontal Lobe)
-* **Primary Role**: Unified AI routing engine supporting cloud LLMs (OpenAI, Claude, DeepSeek, Groq, Gemini) and local models (Ollama, LM Studio).
+* **Primary Role**: Unified AI routing engine supporting cloud LLMs (OpenAI, Claude, DeepSeek, Groq, Gemini) and local models (Ollama, LM Studio), powered by the 24-Stage Knowledge-First Architecture State Engine.
 * **Core Files**:
   - Master Client: [`OmniRouteClient.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Services/OmniRouteClient.php)
+  - State Container & Data DTOs:
+    - [`ContentState.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Data/ContentState.php) (Master 24-Stage Pipeline State DTO)
+    - [`ArticleMission.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Data/ArticleMission.php) (Stage 01 Mission & Purpose DTO)
+    - [`AudienceProfile.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Data/AudienceProfile.php) (Stage 02 Audience Persona DTO)
+    - [`IntentContract.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Data/IntentContract.php) (Stage 03 Search Intent DTO)
+    - [`KeywordUniverse.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Data/KeywordUniverse.php) (Stage 05 & 06 Purpose-Driven Keyword/Entity DTO)
+    - [`KnowledgeGraph.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Data/KnowledgeGraph.php) (Stage 10-14 Source → Evidence → Claim Lineage Graph DTO)
+    - [`ContentBlueprint.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Data/ContentBlueprint.php) (Stage 15-18 Section Contracts Blueprint DTO)
+    - [`StructuredArticle.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Data/StructuredArticle.php) (Canonical JSON Article Model prior to TipTap rendering)
   - Streaming Controller: [`AiStreamController.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Http/Controllers/AiStreamController.php)
   - Brain & Prompt Matrix: [`ContentWriterBrain.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Services/ContentWriterBrain.php)
   - Pipeline Orchestrator: [`PipelineCoordinator.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Services/PipelineCoordinator.php)
+  - Research Director: [`ResearchDirectorService.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Services/ResearchDirectorService.php) (Stages 10-14 Research & Lineage Graph Engine)
+  - Constrained Writer: [`KnowledgeConstrainedWriterService.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Services/KnowledgeConstrainedWriterService.php) (Stages 15-21 Section Contracts Blueprint & Critic Repair Loop)
   - Circuit Breaker: [`AiCircuitBreaker.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Services/AiCircuitBreaker.php)
-  - Config: [`config/omniroute.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/config/omniroute.php)
+  - Editor Script Core: [`scripts-core.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/scripts-core.blade.php)
+  - Editor Script Canvas: [`scripts-canvas.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/scripts-canvas.blade.php)
+  - Editor Script AI Master Orchestrator: [`scripts-ai.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/scripts-ai.blade.php)
+  - Editor Script AI State & Helpers: [`scripts-ai-helpers.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/scripts-ai-helpers.blade.php)
+  - Editor Script Surgical SEO Fixes: [`scripts-ai-seo-fixes.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/scripts-ai-seo-fixes.blade.php)
+  - Editor Script SSE Stream Engine: [`scripts-ai-stream.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/scripts-ai-stream.blade.php)
+  - Editor Script Sub-Content Sub-Agent: [`scripts-ai-subagent.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/scripts-ai-subagent.blade.php)
 * **Inbound Synapses**:
   - `POST /ai/stream` from editor canvas with payload `{ action, context, target_model, prompt }`
   - Direct pipeline execution calls from [`DocumentEditor.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/Documents/Livewire/DocumentEditor.php)
@@ -218,15 +234,19 @@ flowchart TD
   - Deducts user word balance via `$user->consumeQuota($words)`
 * **Internal Mechanics**:
   - Applies 15-second strict circuit breaker timeouts on all HTTP requests to prevent web process starvation.
+  - Target Validation & Anti-Triviality Net: Automatically validates transform action output against target criteria (e.g. `expand` >= 1.25x length, `shorten` <= 0.85x length, `faq` contains `?`, `takeaways` contains bullet list, `seo` contains focus keyword) and triggers algorithmic fallback if target is violated.
+  - Live Selection Lock (`scripts-ai.blade.php`): Guarantees live TipTap editor selection dynamically overrides stale proposals on new user highlights.
   - Failover system: If primary model fails, automatically routes to fallback provider.
 * **Failure Guardrail**: Never bypass `$user->consumeQuota()`. Always return pure SSE formatted streams without markdown wrappers on stream boundaries.
 
 ---
 
-### 3. Rank Math SEO Analyzer & Heatmap (Parietal Lobe)
-* **Primary Role**: Real-time 100-point SEO scoring engine, LSI entity density matrix, and in-canvas color-coded heatmap.
+### 3. Multi-Dimensional Quality Audit & Rank Math SEO Engine (Parietal Lobe)
+* **Primary Role**: Real-time multi-dimensional quality audit engine evaluating Truth & Grounding, Audience Readability, Search Intent, Natural Keyword Placement, and E-E-A-T scores alongside Rank Math SEO heatmaps.
 * **Core Files**:
-  - Analyzer: [`SeoAnalyzer.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/SEO/Services/SeoAnalyzer.php)
+  - Multi-Dimensional Auditor: [`MultiDimensionalAuditService.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Services/MultiDimensionalAuditService.php)
+  - Intelligence Coordinator: [`ContentIntelligenceService.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Services/ContentIntelligenceService.php)
+  - SEO Analyzer: [`SeoAnalyzer.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/SEO/Services/SeoAnalyzer.php)
   - Schema Generator: [`SchemaGenerator.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/SEO/Services/SchemaGenerator.php)
   - Model: [`SeoAnalysis.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/SEO/Models/SeoAnalysis.php)
   - SEO Tab View: [`content-intelligence-tab-seo.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/Components/content-intelligence-tab-seo.blade.php)
@@ -581,8 +601,11 @@ flowchart TD
   - `OutlineNode` converts the blueprint into an adaptive, dependency-aware outline tree of `SectionNodeDTO`s, dynamically distributing word counts and assigning verified `claim_ids` from the Claim Graph directly to corresponding sections.
   - `SectionWriterNode` drafts prose per outline section, passes drafts through `CriticAgentService` across 6 dimensions (Fact Grounding, Completeness, Search Intent, Brand Voice, Readability, SEO), executes surgical self-correction loops when score $< 80$, and verifies claims via `FactCheckGateService`. Records episodic events into `episodic_events`.
   - `SeoOptimizerNode` computes keyword distribution, generates SERP meta titles/descriptions, and builds Google Schema JSON-LD graphs (`TechArticle`, `FAQPage`, `BreadcrumbList`).
-  - `MediaEnhancerNode` injects contextual Mermaid architectural diagrams, parameter comparison matrices, and authoritative evidence callout blocks.
-  - `AssemblyNode` synthesizes all drafted sections into canonical TipTap ProseMirror AST via `TipTapDocumentAssembler`, persiting the final `Document` and `DocumentContent` in HOA-Studio, indexing article element nodes for Level 3 Article Brain invalidation, and marking the workflow run as `COMPLETED`.
+  - `MediaEnhancerNode` injects contextual Mermaid architectural diagrams, parameter comparison matrices, authoritative evidence callout blocks, and **AI Hero Cover Visual prompts** (Flux / DALL-E 3 / Midjourney multi-engine) with curated Unsplash fallback imagery. Hero assets use 16:9 aspect ratio with cinematic 3D renders tailored to the article archetype. A dedicated Inspector tab (`media`) in the Content Intelligence dashboard renders live hero previews, copyable AI prompts, Mermaid diagram code, and HTML comparison tables with Alpine.js clipboard interactions.
+  - `AssemblyNode` synthesizes all drafted sections into canonical TipTap ProseMirror AST via `TipTapDocumentAssembler`, now including responsive `<figure>` hero cover images with `aspect-video` layouts, persisting the final `Document` and `DocumentContent` in HOA-Studio, indexing article element nodes for Level 3 Article Brain invalidation, and marking the workflow run as `COMPLETED`.
+  - `ContentIntelligencePublishService` bridges completed CI pipeline output to the Blog module, extracting SEO metadata and hero images from `content_seo_metadatas` and `content_media_assets` to auto-enrich blog posts. `SocialPreviewGenerator` produces Open Graph, Twitter/X Card, LinkedIn, Reddit previews, TL;DR summaries, and Schema.org JSON-LD from pipeline artifacts.
+  - **Master State & Contract Engine Architecture**: Integrated `ContentDocument`, `StageResultDTO`, `SectionContractDTO`, and `ContractEnforcer` across the graph. Every node updates a single canonical `ContentDocument` state, advances state versions (`v001` through `v020`), enforces section topic/keyword/claim boundaries, and attaches immutable `StageResultDTO` audit records to `workflow_runs.graph_state['content_document']`.
+  - **Upgrade 6: Performance Analytics & Refresh Intelligence** — `ContentPerformanceTracker` captures time-series snapshots (views, velocity, trends, engagement) into `content_performance_snapshots`. `StalenessDetectorService` computes composite staleness via four-factor weighted scoring (age decay, velocity decay, trend decay, content-type decay). `RefreshBriefGenerator` produces AI-authored refresh directives with priority scoring. The full cognitive cycle is now closed: Create → Assemble → Publish → Track → Detect → Refresh → Re-generate → Re-publish.
   - Graph nodes implement `WorkflowNodeInterface` and emit `WorkflowNodeResultDTO` containing structured payload, metrics, confidence, and next suggested node.
   - State machine dynamically updates `workflow_runs.graph_state` and creates `workflow_nodes` telemetry history (latency, tokens, confidence, status).
 * **Failure Guardrails**: Every stage must produce a validated schema. Contradicted or unverified claims are blocked or marked with epistemic caution tags. If node confidence drops below threshold or critical failure occurs, the engine pauses or routes to self-correction loops.

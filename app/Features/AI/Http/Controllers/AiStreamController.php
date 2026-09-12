@@ -317,9 +317,35 @@ class AiStreamController extends Controller
                     flush();
                 }
 
-                // Anti-Echo Safety Net: If AI returned identical text, apply algorithmic transformation
-                if ($hasSelection && trim(mb_strtolower($accumulated)) === trim(mb_strtolower($context['selected_text'] ?? ''))) {
-                    $fallback = $brain->executeLocalActionTransform($validated['type'], $context['selected_text'], $context);
+                // Anti-Echo & Comprehensive Target Validation Safety Net across all action types
+                $origText = trim($context['selected_text'] ?? '');
+                $origLen = mb_strlen($origText);
+                $accText = trim($accumulated);
+                $accLen = mb_strlen($accText);
+                $targetKw = trim($context['target_keyword'] ?? '');
+                $actionType = $validated['type'];
+
+                $isExactEcho = $hasSelection && trim(mb_strtolower($accText)) === trim(mb_strtolower($origText));
+                $failedTarget = false;
+
+                if ($hasSelection) {
+                    if (in_array($actionType, ['expand', 'expand_depth']) && $accLen < ($origLen * 1.25)) {
+                        $failedTarget = true;
+                    } elseif (in_array($actionType, ['shorten', 'condense']) && $accLen >= ($origLen * 0.85)) {
+                        $failedTarget = true;
+                    } elseif (in_array($actionType, ['generate_faq', 'faq']) && (! str_contains($accText, '?') || $accLen < 20)) {
+                        $failedTarget = true;
+                    } elseif (in_array($actionType, ['key_takeaways', 'tldr']) && ! preg_match('/^\s*[-*•\d\.]/m', $accText)) {
+                        $failedTarget = true;
+                    } elseif (in_array($actionType, ['seo_optimize', 'seo']) && ! empty($targetKw) && ! str_contains(mb_strtolower($accText), mb_strtolower($targetKw))) {
+                        $failedTarget = true;
+                    } elseif (in_array($actionType, ['recreate']) && ($isExactEcho || (mb_strlen($origText) > 40 && mb_substr($origText, 0, 20) === mb_substr($accText, 0, 20)))) {
+                        $failedTarget = true;
+                    }
+                }
+
+                if ($hasSelection && ($isExactEcho || $failedTarget)) {
+                    $fallback = $brain->executeLocalActionTransform($actionType, $origText, $context);
                     if (! empty($fallback)) {
                         $accumulated = $fallback;
                     }
