@@ -51,17 +51,30 @@
                             <span class="text-xs font-mono text-slate-400">/ 100</span>
                         </div>
                     </div>
-                    <!-- SEO Heatmap Toggle -->
-                    <button
-                        type="button"
-                        x-on:click="toggleSeoHeatmap()"
-                        :class="showSeoHeatmap ? 'bg-indigo-600 text-white border-indigo-400 shadow-indigo-500/30 ring-2 ring-indigo-500/50' : 'bg-slate-950/50 text-slate-300 border-white/10 hover:text-white hover:border-white/20'"
-                        class="px-2.5 py-1.5 rounded-xl border text-xs font-bold shadow-sm transition-all flex flex-col items-center justify-center h-[42px] cursor-pointer gap-0.5"
-                        title="Toggle the Offline Color-Coded SEO Heatmap directly in the editor"
-                    >
-                        <svg x-show="showSeoHeatmap" style="display:none;" class="w-3.5 h-3.5 text-white animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                        <span x-text="showSeoHeatmap ? 'CLOSE' : '👁️ HEATMAP'"></span>
-                    </button>
+                    <!-- SEO Header Action Buttons (Manual Check & Heatmap) -->
+                    <div class="flex items-center gap-1.5">
+                        <button
+                            type="button"
+                            x-on:click="refreshSeoHeatmap()"
+                            :disabled="isAnalyzingHeatmap"
+                            class="px-2.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-extrabold shadow-md shadow-indigo-600/30 transition-all flex flex-col items-center justify-center h-[42px] cursor-pointer gap-0.5 active:scale-95 disabled:opacity-50 select-none"
+                            title="Run a manual full-content SEO scan on the current document editor canvas"
+                        >
+                            <svg class="w-3.5 h-3.5" :class="isAnalyzingHeatmap ? 'animate-spin' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                            <span x-text="isAnalyzingHeatmap ? 'AUDITING...' : '🔍 AUDIT'">🔍 AUDIT</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            x-on:click="toggleSeoHeatmap()"
+                            :class="showSeoHeatmap ? 'bg-indigo-600 text-white border-indigo-400 shadow-indigo-500/30 ring-2 ring-indigo-500/50' : 'bg-slate-950/50 text-slate-300 border-white/10 hover:text-white hover:border-white/20'"
+                            class="px-2.5 py-1.5 rounded-xl border text-xs font-bold shadow-sm transition-all flex flex-col items-center justify-center h-[42px] cursor-pointer gap-0.5"
+                            title="Toggle the Offline Color-Coded SEO Heatmap directly in the editor"
+                        >
+                            <svg x-show="showSeoHeatmap" style="display:none;" class="w-3.5 h-3.5 text-white animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                            <span x-text="showSeoHeatmap ? 'CLOSE' : '👁️ HEATMAP'"></span>
+                        </button>
+                    </div>
 
 
 
@@ -158,6 +171,43 @@
                     <span class="flex items-center gap-1 text-purple-300"><span class="w-2 h-2 rounded-full bg-purple-500 shadow-sm shadow-purple-500/50"></span> 🟣 AI/GEO</span>
                     <span class="flex items-center gap-1 text-blue-300"><span class="w-2 h-2 rounded-full bg-blue-500 shadow-sm shadow-blue-500/50"></span> 🔵 Authority</span>
                     <span class="flex items-center gap-1 text-emerald-300"><span class="w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50"></span> 🟢 Passed</span>
+                </div>
+            </div>
+
+            <!-- Content Structure & Metrics Matrix -->
+            <div class="p-3 rounded-2xl bg-slate-900/90 border border-white/10 space-y-2 shadow-xl">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10.5px] font-bold text-white uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                        <span class="text-indigo-400">📊</span>
+                        <span>Content Structure Matrix</span>
+                    </span>
+                    <span class="text-[9.5px] font-mono text-slate-400">Live Breakdown</span>
+                </div>
+                <div class="grid grid-cols-3 gap-1.5 text-center font-mono text-[10px]">
+                    <div class="p-1.5 rounded-xl bg-slate-950/80 border border-white/5 space-y-0.5">
+                        <div class="text-slate-400 text-[9px] uppercase">Words</div>
+                        <div class="font-black text-emerald-400 text-xs">{{ $seoData['metrics']['words'] ?? 0 }}</div>
+                    </div>
+                    <div class="p-1.5 rounded-xl bg-slate-950/80 border border-white/5 space-y-0.5">
+                        <div class="text-slate-400 text-[9px] uppercase">Paragraphs</div>
+                        <div class="font-black text-cyan-400 text-xs">{{ $seoData['metrics']['paragraphs'] ?? 0 }}</div>
+                    </div>
+                    <div class="p-1.5 rounded-xl bg-slate-950/80 border border-white/5 space-y-0.5">
+                        <div class="text-slate-400 text-[9px] uppercase">Lines</div>
+                        <div class="font-black text-indigo-400 text-xs">{{ $seoData['metrics']['lines'] ?? 0 }}</div>
+                    </div>
+                    <div class="p-1.5 rounded-xl bg-slate-950/80 border border-white/5 space-y-0.5">
+                        <div class="text-slate-400 text-[9px] uppercase">Sections</div>
+                        <div class="font-black text-amber-400 text-xs">{{ $seoData['metrics']['sections'] ?? 0 }}</div>
+                    </div>
+                    <div class="p-1.5 rounded-xl bg-slate-950/80 border border-white/5 space-y-0.5">
+                        <div class="text-slate-400 text-[9px] uppercase">Sentences</div>
+                        <div class="font-black text-purple-400 text-xs">{{ $seoData['metrics']['sentences'] ?? 0 }}</div>
+                    </div>
+                    <div class="p-1.5 rounded-xl bg-slate-950/80 border border-white/5 space-y-0.5">
+                        <div class="text-slate-400 text-[9px] uppercase">KW Mentions</div>
+                        <div class="font-black text-rose-400 text-xs">{{ $seoData['metrics']['keyword']['count'] ?? 0 }} ({{ $seoData['metrics']['keyword']['density'] ?? 0 }}%)</div>
+                    </div>
                 </div>
             </div>
 

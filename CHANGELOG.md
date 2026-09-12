@@ -7,6 +7,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.8.9] - 2026-09-12
+
+### Added
+- **Editor AI Script Modularization & Reactive State Initialization**:
+  - Decomposed monolithic `scripts-ai.blade.php` (~2,045 lines) into 4 specialized sub-script partials: `scripts-ai-helpers.blade.php`, `scripts-ai-seo-fixes.blade.php`, `scripts-ai-stream.blade.php`, and `scripts-ai-subagent.blade.php`.
+  - Added initial state declarations across `scripts-core.blade.php`, `scripts-canvas.blade.php`, and `scripts-ai.blade.php` for floating context menus, slash command palette, surgical AI execution steps, outline diffs, and SEO heatmap refresh aliases.
+  - Eliminated browser console `Uncaught ReferenceError`s during Alpine.js proxy component mounting.
+
+---
+
+## [2.8.8] - 2026-09-11
+
+### Added
+- **Sequential Task Execution & Memory Safeguard Engine (`TaskExecutionGate.php`)**:
+  - Implemented an enterprise-grade atomic locking and single-task execution gate using `Cache::lock('hoa_single_task_execution_lock', 180)`.
+  - Ensures that when multiple AI tasks, section drafting operations, or background workflow steps run, they execute sequentially in line rather than in parallel.
+  - Automatically runs PHP garbage collection (`gc_collect_cycles()`) before and after every task execution, preventing memory usage spikes and keeping RAM bounded under 130MB.
+- **MySQL Filesort & Memory Allocation Optimization (`HY001: 1038 Out of sort memory`)**:
+  - Added migration `2026_09_11_200000_add_performance_indexes_to_workflow_runs_table.php` introducing composite indexes `(user_id, created_at)` and `(user_id, status, created_at)` on the `workflow_runs` table.
+  - Eliminates in-memory MySQL filesort operations when sorting workflow runs by `created_at DESC` for paginated dashboards.
+  - Optimized Livewire `ContentIntelligencePage` query projection (`select(...)`) to exclude `graph_state` JSON blobs during pagination list renders.
+
+---
+
+## [2.8.7] - 2026-09-08
+
+### Added
+- **Content Performance Analytics & Intelligent Refresh Engine (Upgrade 6)**:
+  - **Content Performance Snapshots Table**: New `content_performance_snapshots` migration capturing time-series performance data per published blog post — views count, views delta between snapshots, days since published, views-per-day velocity, trend percent, engagement score, and composite staleness score/tier.
+  - **Refresh Briefs Table**: New `refresh_briefs` migration storing AI-authored refresh directives with staleness reasons, recommended actions, suggested topic updates, new claim suggestions, SEO update recommendations, and structured JSON metadata.
+  - **Content Performance Tracker (`ContentPerformanceTracker.php`)**: Captures and stores weekly performance snapshots for published articles, computing views deltas, velocity, trend percentages, and engagement scores (0-100 composite). Provides `getLatestSnapshots()` and `getPortfolioHealth()` for dashboard visualization.
+  - **Staleness Detector Service (`StalenessDetectorService.php`)**: Multi-factor weighted staleness scoring algorithm with four decay components — Age Decay (logistic curve centered at 90 days), Velocity Decay (exponential inverse of views/day), Trend Decay (negative view trend signals declining relevance), and Content Type Decay (news/trends expire faster than tutorials/guides). Produces composite score (0.0=fresh, 1.0=critically stale) with 4-tier classification: fresh, aging, stale, critically_stale.
+  - **Refresh Brief Generator (`RefreshBriefGenerator.php`)**: Generates AI-authored Refresh Briefs for stale articles including topic change summaries, structured recommended actions, staleness reason breakdowns, suggested topic updates (year-tagged), new claim suggestions, SEO update recommendations, and word count deltas. Supports both single-post and bulk brief generation with priority scoring.
+  - **📊 Performance Analytics Inspector Tab (Tab 14)**: Three-panel dashboard — Content Portfolio Health (total posts tracked, total views, average staleness/engagement, color-coded staleness distribution bar), Per-Article Performance Table (views, velocity, age, engagement score, trend percent, staleness progress bar with tier badges), and Refresh Briefs Queue (priority-ranked briefs with urgency badges, suggested topic updates, 1-click Launch Refresh Mission and Dismiss actions).
+  - **Livewire Performance Actions**: `capturePerformanceSnapshot()` for on-demand snapshot capture, `generateRefreshBriefForRun()` for single-article refresh analysis, `generateBulkRefreshBriefs()` for portfolio-wide stale content scan, `launchRefreshMission()` to create a new CI mission from a refresh brief, and `dismissRefreshBrief()` to clear non-actionable briefs.
+  - **Content Intelligence Cognitive Cycle Closed**: The full loop is now operational — Create → Assemble → Publish → Track → Detect Staleness → Generate Refresh Brief → Launch Refresh Mission → Re-generate → Re-publish.
+  - **Comprehensive Test Suite**: 6 new tests covering staleness computation (fresh and stale cases), snapshot capture, portfolio health aggregation, refresh brief generation, and Livewire tab navigation (338 total tests passing, 100%).
+
+---
+
+## [2.8.6] - 2026-09-08
+
+### Added
+- **Content Intelligence — Blog Publishing Pipeline & Export Suite (Upgrade 5)**:
+  - **Content Intelligence Publish Service (`ContentIntelligencePublishService.php`)**: Bridges completed CI pipeline output to the Blog module via `PublishDocumentToBlog`, auto-enriching posts with SEO metadata (title, description, keywords), hero featured images from Unsplash, and keyword tags from the Content Intelligence SEO stage. Full publish/unpublish/status lifecycle.
+  - **Social Preview Generator (`SocialPreviewGenerator.php`)**: Generates Open Graph, Twitter/X Card, LinkedIn, and Reddit preview metadata from pipeline output. Produces auto-generated TL;DR summaries grounded in mission objectives and primary keywords, plus Schema.org JSON-LD TechArticle markup.
+  - **HTML Meta Tag Renderer**: Generates copy-paste-ready `<meta>` tag blocks for embedding social preview metadata in exported HTML or blog `<head>` sections.
+  - **🚀 Publish & Export Inspector Tab (Tab 12)**: Dedicated Inspector tab with Blog Publishing Bridge, Export Suite (6 formats), and Social Media Previews with 1-click clipboard copy.
+  - **Livewire Publish/Unpublish Actions**: `publishRunToBlog()` and `unpublishRunFromBlog()` methods on `ContentIntelligencePage`.
+  - **Comprehensive Test Suite**: 6 new tests covering publish lifecycle, social preview generation, HTML meta tags, and Livewire tab navigation (332 total tests passing, 100%).
+
+---
+
+## [2.8.5] - 2026-09-08
+
+### Added
+- **AI Hero & In-Body Visual Prompter Studio (Flux / DALL-E 3 / Unsplash / Mermaid & Tables)**:
+  - **Autonomous AI Hero Cover Visual Prompter**: Synthesizes photorealistic 3D, octane-rendered 8K prompts with Unreal Engine 5 aesthetic, volumetric lighting, and 16:9 aspect ratio specs tailored to article archetype and thesis.
+  - **Flux, DALL-E 3 & Midjourney Copyable Prompts**: Live 1-click clipboard prompt copy cards in the Content Intelligence Inspector.
+  - **Curated Unsplash Cover & TipTap Embedding**: Injects responsive, dark-glassmorphic `<figure>` cover images and markdown blocks into canonical TipTap ProseMirror documents.
+  - **Interactive Visual Synthesizer Drawer Tab (`media`)**: Added dedicated Inspector tab displaying live hero cover previews, copyable Mermaid code, and rendered comparative specification tables.
+
+---
+
 ## [2.8.4] - 2026-09-08
 
 ### Added

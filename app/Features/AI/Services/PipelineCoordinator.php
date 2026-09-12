@@ -17,6 +17,7 @@
 
 namespace App\Features\AI\Services;
 
+use App\Features\AI\Data\ContentState;
 use App\Features\KnowledgeBase\Actions\RetrieveRagContext;
 use App\Models\User;
 
@@ -26,10 +27,20 @@ class PipelineCoordinator
 
     protected OmniRouteClient $client;
 
-    public function __construct(ContentWriterBrain $brain, OmniRouteClient $client)
-    {
+    protected ResearchDirectorService $researchDirector;
+
+    protected KnowledgeConstrainedWriterService $constrainedWriter;
+
+    public function __construct(
+        ContentWriterBrain $brain,
+        OmniRouteClient $client,
+        ?ResearchDirectorService $researchDirector = null,
+        ?KnowledgeConstrainedWriterService $constrainedWriter = null
+    ) {
         $this->brain = $brain;
         $this->client = $client;
+        $this->researchDirector = $researchDirector ?? app(ResearchDirectorService::class);
+        $this->constrainedWriter = $constrainedWriter ?? app(KnowledgeConstrainedWriterService::class);
     }
 
     /**
@@ -68,14 +79,15 @@ class PipelineCoordinator
         $articleTitle = $this->generateArticleTitle($cleanSubject, $targetKeyword, $domain, $intent);
         $sendEvent('title', $articleTitle);
 
-        // Notify client with target topic & pipeline initialization
-        $sendEvent('pipeline_data', [
-            'topic' => $cleanSubject,
-            'title' => $articleTitle,
-            'keyword' => $targetKeyword,
-            'domain' => $domain,
-            'intent' => $intent,
-        ]);
+        // Initialize 24-Stage Knowledge-First ContentState Engine
+        $contentState = new ContentState($cleanSubject);
+        $contentState->mission->topic = $cleanSubject;
+        $contentState->mission->tone = $tone;
+        $contentState->intent->primaryIntent = $intent;
+        $contentState->keywordUniverse->primaryKeyword = $targetKeyword;
+
+        // Execute Research Director & Populate Knowledge Graph (Source -> Evidence -> Claim Lineage)
+        $contentState = $this->researchDirector->executeResearch($contentState, $user);
 
         // ==========================================
         // STAGE 1: SEARCH INTENT & AUDIENCE ANALYSIS
