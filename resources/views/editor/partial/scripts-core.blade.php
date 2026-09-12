@@ -21,6 +21,9 @@ isDirty: false,
 autosaveTimeout: null,
 leftPanelLoaded: false,
 rightPanelLoaded: false,
+targetKeyword: '{{ addslashes($targetKeyword ?? ($document->target_keyword ?? "")) }}',
+title: '{{ addslashes($title ?? ($document->title ?? "")) }}',
+metaDescription: '{{ addslashes($metaDescription ?? ($document->meta_description ?? "")) }}',
 
 // AI Provider/Model Selection
 selectedProvider: '',
