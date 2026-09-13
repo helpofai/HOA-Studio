@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## [2.8.9] - 2026-09-12
+### Refactored
+- **Editor Controller Decoupling**: Refactored monolithic DocumentEditor Livewire controller into 5 modular concern traits (HasSeoAuditing, HasBlogPublishing, HasDocumentImporting, HasDocumentSharing, HasBrainLineage).
+- **Editor Frontend Modularity**: Broken down monolithic modals.blade.php into separated blade components.
+- **View Normalization**: Moved editor.blade.php into the unified 
+esources/views/editor/ directory and safely removed deprecated MainEditor.blade.php.
+
 
 ### Added
 - **Editor AI Script Modularization & Reactive State Initialization**:
