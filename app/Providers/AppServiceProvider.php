@@ -60,5 +60,55 @@ class AppServiceProvider extends ServiceProvider
         Vite::useBuildDirectory('build');
 
         Livewire::component('admin.notification-bell', NotificationBell::class);
+
+        if (Schema::hasTable('settings')) {
+            try {
+                $settings = \Illuminate\Support\Facades\DB::table('settings')
+                    ->whereIn('group', ['auth', 'social_auth', 'security'])
+                    ->pluck('value', 'key');
+
+                if (! empty($settings['google_client_id'])) {
+                    config(['services.google.client_id' => $settings['google_client_id']]);
+                }
+                if (! empty($settings['google_client_secret'])) {
+                    config(['services.google.client_secret' => $settings['google_client_secret']]);
+                }
+                if (! empty($settings['google_redirect_url'])) {
+                    config(['services.google.redirect' => $settings['google_redirect_url']]);
+                }
+
+                if (! empty($settings['facebook_client_id'])) {
+                    config(['services.facebook.client_id' => $settings['facebook_client_id']]);
+                }
+                if (! empty($settings['facebook_client_secret'])) {
+                    config(['services.facebook.client_secret' => $settings['facebook_client_secret']]);
+                }
+                if (! empty($settings['facebook_redirect_url'])) {
+                    config(['services.facebook.redirect' => $settings['facebook_redirect_url']]);
+                }
+
+                if (! empty($settings['twitter_client_id'])) {
+                    config(['services.twitter.client_id' => $settings['twitter_client_id']]);
+                }
+                if (! empty($settings['twitter_client_secret'])) {
+                    config(['services.twitter.client_secret' => $settings['twitter_client_secret']]);
+                }
+                if (! empty($settings['twitter_redirect_url'])) {
+                    config(['services.twitter.redirect' => $settings['twitter_redirect_url']]);
+                }
+
+                if (! empty($settings['github_client_id'])) {
+                    config(['services.github.client_id' => $settings['github_client_id']]);
+                }
+                if (! empty($settings['github_client_secret'])) {
+                    config(['services.github.client_secret' => $settings['github_client_secret']]);
+                }
+                if (! empty($settings['github_redirect_url'])) {
+                    config(['services.github.redirect' => $settings['github_redirect_url']]);
+                }
+            } catch (\Throwable $e) {
+                // Ignore DB error during initial setup
+            }
+        }
     }
 }

@@ -699,3 +699,10 @@ sequenceDiagram
    - User hasMany AntigravityAccount
    - AntigravityAccountManager resolves AntigravityAccount based on quota exhaustion and priority.
    - OmniRouteClient can be injected with getActiveToken from AntigravityAccountManager for authorized routing.
+
+### 🔑 Social Auth & OAuth Provider Governance
+- **Feature Module**: pp/Features/Admin/Livewire/AdminAuthSettingsPage.php
+- **Blade View**: 
+esources/views/admin/auth-settings.blade.php (Tab: social_auth)
+- **Supported Providers**: Google, Facebook, X.com (Twitter), GitHub
+- **Dynamic Override Engine**: pp/Providers/AppServiceProvider.php (Auto-injects DB settings into config(['services.{provider}']))

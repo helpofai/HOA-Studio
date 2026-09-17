@@ -76,6 +76,27 @@ class AdminAuthSettingsPage extends Component
 
     public string $turnstileSecretKey = '';
 
+    // Social Auth & OAuth Credentials (Google, Facebook, X.com/Twitter, GitHub)
+    public bool $enableGoogleAuth = true;
+    public string $googleClientId = '';
+    public string $googleClientSecret = '';
+    public string $googleRedirectUrl = '';
+
+    public bool $enableFacebookAuth = false;
+    public string $facebookClientId = '';
+    public string $facebookClientSecret = '';
+    public string $facebookRedirectUrl = '';
+
+    public bool $enableTwitterAuth = false;
+    public string $twitterClientId = '';
+    public string $twitterClientSecret = '';
+    public string $twitterRedirectUrl = '';
+
+    public bool $enableGithubAuth = false;
+    public string $githubClientId = '';
+    public string $githubClientSecret = '';
+    public string $githubRedirectUrl = '';
+
     public function mount()
     {
         $settings = DB::table('settings')->pluck('value', 'key')->toArray();
@@ -92,6 +113,30 @@ class AdminAuthSettingsPage extends Component
         $this->autoBlockThreshold = isset($settings['auth_autoblock_threshold']) ? (int) $settings['auth_autoblock_threshold'] : 15;
         $this->autoBlockHours = isset($settings['auth_autoblock_hours']) ? (int) $settings['auth_autoblock_hours'] : 24;
         $this->maxRegistrationsPerHour = isset($settings['auth_max_reg_per_hour']) ? (int) $settings['auth_max_reg_per_hour'] : 3;
+
+        // Google Social Auth
+        $this->googleClientId = (string) ($settings['google_client_id'] ?? config('services.google.client_id') ?? '');
+        $this->googleClientSecret = (string) ($settings['google_client_secret'] ?? config('services.google.client_secret') ?? '');
+        $this->googleRedirectUrl = (string) ($settings['google_redirect_url'] ?? config('services.google.redirect') ?? url('/oauth/antigravity/callback'));
+        $this->enableGoogleAuth = isset($settings['google_auth_enabled']) ? (bool) $settings['google_auth_enabled'] : true;
+
+        // Facebook Social Auth
+        $this->facebookClientId = (string) ($settings['facebook_client_id'] ?? config('services.facebook.client_id') ?? '');
+        $this->facebookClientSecret = (string) ($settings['facebook_client_secret'] ?? config('services.facebook.client_secret') ?? '');
+        $this->facebookRedirectUrl = (string) ($settings['facebook_redirect_url'] ?? config('services.facebook.redirect') ?? url('/auth/facebook/callback'));
+        $this->enableFacebookAuth = isset($settings['facebook_auth_enabled']) ? (bool) $settings['facebook_auth_enabled'] : (! empty($this->facebookClientId));
+
+        // Twitter / X.com Social Auth
+        $this->twitterClientId = (string) ($settings['twitter_client_id'] ?? config('services.twitter.client_id') ?? '');
+        $this->twitterClientSecret = (string) ($settings['twitter_client_secret'] ?? config('services.twitter.client_secret') ?? '');
+        $this->twitterRedirectUrl = (string) ($settings['twitter_redirect_url'] ?? config('services.twitter.redirect') ?? url('/auth/twitter/callback'));
+        $this->enableTwitterAuth = isset($settings['twitter_auth_enabled']) ? (bool) $settings['twitter_auth_enabled'] : (! empty($this->twitterClientId));
+
+        // GitHub Social Auth
+        $this->githubClientId = (string) ($settings['github_client_id'] ?? config('services.github.client_id') ?? '');
+        $this->githubClientSecret = (string) ($settings['github_client_secret'] ?? config('services.github.client_secret') ?? '');
+        $this->githubRedirectUrl = (string) ($settings['github_redirect_url'] ?? config('services.github.redirect') ?? url('/auth/github/callback'));
+        $this->enableGithubAuth = isset($settings['github_auth_enabled']) ? (bool) $settings['github_auth_enabled'] : (! empty($this->githubClientId));
     }
 
     public function saveSecurityConfig()
@@ -135,6 +180,82 @@ class AdminAuthSettingsPage extends Component
         }
 
         session()->flash('status', 'Authentication, Rate Limiting, and Turnstile security configurations saved successfully.');
+    }
+
+    public function saveSocialAuthConfig()
+    {
+        $this->validate([
+            'googleClientId' => 'nullable|string|max:255',
+            'googleClientSecret' => 'nullable|string|max:255',
+            'googleRedirectUrl' => 'nullable|string|max:255',
+
+            'facebookClientId' => 'nullable|string|max:255',
+            'facebookClientSecret' => 'nullable|string|max:255',
+            'facebookRedirectUrl' => 'nullable|string|max:255',
+
+            'twitterClientId' => 'nullable|string|max:255',
+            'twitterClientSecret' => 'nullable|string|max:255',
+            'twitterRedirectUrl' => 'nullable|string|max:255',
+
+            'githubClientId' => 'nullable|string|max:255',
+            'githubClientSecret' => 'nullable|string|max:255',
+            'githubRedirectUrl' => 'nullable|string|max:255',
+        ]);
+
+        $configs = [
+            'google_auth_enabled' => $this->enableGoogleAuth ? '1' : '0',
+            'google_client_id' => trim($this->googleClientId),
+            'google_client_secret' => trim($this->googleClientSecret),
+            'google_redirect_url' => trim($this->googleRedirectUrl),
+
+            'facebook_auth_enabled' => $this->enableFacebookAuth ? '1' : '0',
+            'facebook_client_id' => trim($this->facebookClientId),
+            'facebook_client_secret' => trim($this->facebookClientSecret),
+            'facebook_redirect_url' => trim($this->facebookRedirectUrl),
+
+            'twitter_auth_enabled' => $this->enableTwitterAuth ? '1' : '0',
+            'twitter_client_id' => trim($this->twitterClientId),
+            'twitter_client_secret' => trim($this->twitterClientSecret),
+            'twitter_redirect_url' => trim($this->twitterRedirectUrl),
+
+            'github_auth_enabled' => $this->enableGithubAuth ? '1' : '0',
+            'github_client_id' => trim($this->githubClientId),
+            'github_client_secret' => trim($this->githubClientSecret),
+            'github_redirect_url' => trim($this->githubRedirectUrl),
+        ];
+
+        foreach ($configs as $key => $value) {
+            DB::table('settings')->updateOrInsert(
+                ['key' => $key],
+                [
+                    'value' => $value,
+                    'type' => 'social_auth',
+                    'group' => 'auth',
+                    'updated_at' => now(),
+                ]
+            );
+        }
+
+        // Apply config directly in runtime state
+        config([
+            'services.google.client_id' => trim($this->googleClientId),
+            'services.google.client_secret' => trim($this->googleClientSecret),
+            'services.google.redirect' => trim($this->googleRedirectUrl),
+
+            'services.facebook.client_id' => trim($this->facebookClientId),
+            'services.facebook.client_secret' => trim($this->facebookClientSecret),
+            'services.facebook.redirect' => trim($this->facebookRedirectUrl),
+
+            'services.twitter.client_id' => trim($this->twitterClientId),
+            'services.twitter.client_secret' => trim($this->twitterClientSecret),
+            'services.twitter.redirect' => trim($this->twitterRedirectUrl),
+
+            'services.github.client_id' => trim($this->githubClientId),
+            'services.github.client_secret' => trim($this->githubClientSecret),
+            'services.github.redirect' => trim($this->githubRedirectUrl),
+        ]);
+
+        session()->flash('status', 'Social Auth & OAuth Provider Credentials (Google, Facebook, X.com, GitHub) saved successfully.');
     }
 
     public function updatingSearchLog()

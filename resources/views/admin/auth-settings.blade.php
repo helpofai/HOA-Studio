@@ -177,6 +177,14 @@
         >
             ⚙️ Auth Configurations
         </button>
+
+        <button
+            type="button"
+            wire:click="$set('activeTab', 'social_auth')"
+            class="px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap {{ $activeTab === 'social_auth' ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/25' : 'text-slate-400 hover:text-white hover:bg-white/5' }}"
+        >
+            🔑 Social Auth & OAuth
+        </button>
     </div>
 
     <!-- TAB 1: OVERVIEW -->
@@ -765,6 +773,351 @@
                     </div>
                 </form>
             </x-glass.card>
+        </div>
+    @endif
+
+    <!-- TAB 7: SOCIAL AUTH & OAUTH PROVIDERS SETUP -->
+    @if ($activeTab === 'social_auth')
+        <div class="space-y-6">
+            <div class="flex items-center justify-between bg-slate-900/80 p-5 rounded-3xl border border-white/10 backdrop-blur-xl">
+                <div>
+                    <h2 class="text-lg font-bold text-white tracking-tight flex items-center gap-2">
+                        <span>🔑 Social Auth & OAuth 2.0 Provider Governance</span>
+                        <span class="text-xs px-2.5 py-0.5 rounded-full bg-violet-600/20 border border-violet-500/40 text-violet-300 font-mono">1-Click Direct Login</span>
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Configure Google, Facebook, X (Twitter), and GitHub OAuth credentials for 1-click user authentication and Antigravity AI quota rotation.</p>
+                </div>
+                <x-glass.button type="button" wire:click="saveSocialAuthConfig" variant="primary" size="sm" class="shadow-lg shadow-violet-500/25">
+                    <span wire:loading.remove wire:target="saveSocialAuthConfig">💾 Save All Social Credentials</span>
+                    <span wire:loading wire:target="saveSocialAuthConfig">Saving Credentials...</span>
+                </x-glass.button>
+            </div>
+
+            <form wire:submit.prevent="saveSocialAuthConfig" class="space-y-6">
+                <!-- 1. GOOGLE OAUTH 2.0 PROVIDER CARD -->
+                <x-glass.card variant="elevated" class="p-6 border-white/15 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-xl text-blue-400">
+                                🔍
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                                    <span>Google OAuth 2.0</span>
+                                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-mono font-bold">Required for Antigravity & Google Sign-In</span>
+                                </h3>
+                                <p class="text-xs text-slate-400">Enables 1-click Google Single Sign-On and multi-account Antigravity model quota rotation.</p>
+                            </div>
+                        </div>
+
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" wire:model="enableGoogleAuth" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <label class="block text-slate-300 font-semibold mb-1">Google Client ID</label>
+                            <x-glass.input
+                                wire:model="googleClientId"
+                                type="text"
+                                placeholder="xxxxxxxxx-xxxxxxxxxx.apps.googleusercontent.com"
+                                :error="$errors->has('googleClientId')"
+                            />
+                            @error('googleClientId')
+                                <p class="text-xs text-rose-400 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-slate-300 font-semibold mb-1">Google Client Secret</label>
+                            <x-glass.input
+                                wire:model="googleClientSecret"
+                                type="password"
+                                placeholder="GOCSPX-xxxxxxxxxxxxxxxxxxxx"
+                                :error="$errors->has('googleClientSecret')"
+                            />
+                            @error('googleClientSecret')
+                                <p class="text-xs text-rose-400 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1 text-xs">Authorized Redirect URI (Copy into Google Cloud Console)</label>
+                        <div class="flex items-center gap-2">
+                            <input
+                                type="text"
+                                readonly
+                                value="{{ url('/oauth/antigravity/callback') }}"
+                                class="w-full bg-slate-950 border border-white/10 text-violet-300 font-mono text-xs rounded-xl px-3 py-2 select-all focus:outline-none"
+                            />
+                            <button
+                                type="button"
+                                @click="navigator.clipboard.writeText('{{ url('/oauth/antigravity/callback') }}')"
+                                class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold shrink-0"
+                            >
+                                Copy URI
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Inline Documentation / Step-by-Step Setup Guide -->
+                    <div class="p-4 rounded-2xl bg-slate-950/80 border border-white/5 space-y-2 text-[11px] text-slate-400">
+                        <div class="font-bold text-slate-200 flex items-center gap-1.5">
+                            <span>📖</span>
+                            <span>Google Cloud Console Setup Documentation</span>
+                        </div>
+                        <ol class="list-decimal list-inside space-y-1 text-slate-400">
+                            <li>Open <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="text-indigo-400 hover:underline">Google Cloud Console &rarr; Credentials</a>.</li>
+                            <li>Click <strong>Create Credentials</strong> &rarr; <strong>OAuth client ID</strong>.</li>
+                            <li>Set Application Type to <strong>Web Application</strong>.</li>
+                            <li>Under <strong>Authorized redirect URIs</strong>, paste: <code class="text-violet-300 font-mono">{{ url('/oauth/antigravity/callback') }}</code></li>
+                            <li>Save and copy your <strong>Client ID</strong> and <strong>Client Secret</strong> into the fields above.</li>
+                        </ol>
+                    </div>
+                </x-glass.card>
+
+                <!-- 2. FACEBOOK OAUTH PROVIDER CARD -->
+                <x-glass.card variant="elevated" class="p-6 border-white/15 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-blue-600/10 border border-blue-600/30 flex items-center justify-center text-xl text-blue-500">
+                                📘
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                                    <span>Facebook Login</span>
+                                </h3>
+                                <p class="text-xs text-slate-400">Enables 1-click authentication using Meta/Facebook Accounts.</p>
+                            </div>
+                        </div>
+
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" wire:model="enableFacebookAuth" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <label class="block text-slate-300 font-semibold mb-1">Facebook App ID (Client ID)</label>
+                            <x-glass.input
+                                wire:model="facebookClientId"
+                                type="text"
+                                placeholder="123456789012345"
+                                :error="$errors->has('facebookClientId')"
+                            />
+                        </div>
+
+                        <div>
+                            <label class="block text-slate-300 font-semibold mb-1">Facebook App Secret</label>
+                            <x-glass.input
+                                wire:model="facebookClientSecret"
+                                type="password"
+                                placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                                :error="$errors->has('facebookClientSecret')"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1 text-xs">OAuth Redirect URI</label>
+                        <div class="flex items-center gap-2">
+                            <input
+                                type="text"
+                                readonly
+                                value="{{ url('/auth/facebook/callback') }}"
+                                class="w-full bg-slate-950 border border-white/10 text-violet-300 font-mono text-xs rounded-xl px-3 py-2 select-all focus:outline-none"
+                            />
+                            <button
+                                type="button"
+                                @click="navigator.clipboard.writeText('{{ url('/auth/facebook/callback') }}')"
+                                class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold shrink-0"
+                            >
+                                Copy URI
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Inline Documentation -->
+                    <div class="p-4 rounded-2xl bg-slate-950/80 border border-white/5 space-y-2 text-[11px] text-slate-400">
+                        <div class="font-bold text-slate-200 flex items-center gap-1.5">
+                            <span>📖</span>
+                            <span>Meta Developers Documentation</span>
+                        </div>
+                        <ol class="list-decimal list-inside space-y-1 text-slate-400">
+                            <li>Go to <a href="https://developers.facebook.com/" target="_blank" class="text-blue-400 hover:underline">Meta for Developers &rarr; My Apps</a>.</li>
+                            <li>Create an App &rarr; Select <strong>Facebook Login</strong> product.</li>
+                            <li>In Facebook Login Settings, add Valid OAuth Redirect URIs: <code class="text-violet-300 font-mono">{{ url('/auth/facebook/callback') }}</code></li>
+                            <li>Copy your <strong>App ID</strong> and <strong>App Secret</strong> from App Settings &rarr; Basic.</li>
+                        </ol>
+                    </div>
+                </x-glass.card>
+
+                <!-- 3. X.COM (TWITTER) OAUTH 2.0 PROVIDER CARD -->
+                <x-glass.card variant="elevated" class="p-6 border-white/15 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-slate-800 border border-white/20 flex items-center justify-center text-xl text-white">
+                                𝕏
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                                    <span>X.com (Twitter) OAuth 2.0</span>
+                                </h3>
+                                <p class="text-xs text-slate-400">Enables 1-click single sign-on with X / Twitter accounts.</p>
+                            </div>
+                        </div>
+
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" wire:model="enableTwitterAuth" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-slate-700"></div>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <label class="block text-slate-300 font-semibold mb-1">X API Client ID / Key</label>
+                            <x-glass.input
+                                wire:model="twitterClientId"
+                                type="text"
+                                placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxx"
+                                :error="$errors->has('twitterClientId')"
+                            />
+                        </div>
+
+                        <div>
+                            <label class="block text-slate-300 font-semibold mb-1">X API Client Secret</label>
+                            <x-glass.input
+                                wire:model="twitterClientSecret"
+                                type="password"
+                                placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                                :error="$errors->has('twitterClientSecret')"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1 text-xs">Callback URL (Copy into X Developer Portal)</label>
+                        <div class="flex items-center gap-2">
+                            <input
+                                type="text"
+                                readonly
+                                value="{{ url('/auth/twitter/callback') }}"
+                                class="w-full bg-slate-950 border border-white/10 text-violet-300 font-mono text-xs rounded-xl px-3 py-2 select-all focus:outline-none"
+                            />
+                            <button
+                                type="button"
+                                @click="navigator.clipboard.writeText('{{ url('/auth/twitter/callback') }}')"
+                                class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold shrink-0"
+                            >
+                                Copy URI
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Inline Documentation -->
+                    <div class="p-4 rounded-2xl bg-slate-950/80 border border-white/5 space-y-2 text-[11px] text-slate-400">
+                        <div class="font-bold text-slate-200 flex items-center gap-1.5">
+                            <span>📖</span>
+                            <span>X Developer Portal Documentation</span>
+                        </div>
+                        <ol class="list-decimal list-inside space-y-1 text-slate-400">
+                            <li>Open <a href="https://developer.x.com/en/portal/dashboard" target="_blank" class="text-slate-200 underline">X Developer Portal &rarr; Projects & Apps</a>.</li>
+                            <li>Under User Authentication Settings, select <strong>OAuth 2.0</strong> &amp; <strong>Web App</strong>.</li>
+                            <li>Set Callback URI: <code class="text-violet-300 font-mono">{{ url('/auth/twitter/callback') }}</code></li>
+                            <li>Copy <strong>Client ID</strong> &amp; <strong>Client Secret</strong> into the input fields above.</li>
+                        </ol>
+                    </div>
+                </x-glass.card>
+
+                <!-- 4. GITHUB OAUTH PROVIDER CARD -->
+                <x-glass.card variant="elevated" class="p-6 border-white/15 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-purple-950/80 border border-purple-500/30 flex items-center justify-center text-xl text-purple-400">
+                                🐙
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                                    <span>GitHub OAuth App</span>
+                                </h3>
+                                <p class="text-xs text-slate-400">Enables developer single sign-on with GitHub accounts.</p>
+                            </div>
+                        </div>
+
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" wire:model="enableGithubAuth" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                        <div>
+                            <label class="block text-slate-300 font-semibold mb-1">GitHub Client ID</label>
+                            <x-glass.input
+                                wire:model="githubClientId"
+                                type="text"
+                                placeholder="Ov23li..."
+                                :error="$errors->has('githubClientId')"
+                            />
+                        </div>
+
+                        <div>
+                            <label class="block text-slate-300 font-semibold mb-1">GitHub Client Secret</label>
+                            <x-glass.input
+                                wire:model="githubClientSecret"
+                                type="password"
+                                placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                                :error="$errors->has('githubClientSecret')"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-slate-300 font-semibold mb-1 text-xs">Authorization Callback URL</label>
+                        <div class="flex items-center gap-2">
+                            <input
+                                type="text"
+                                readonly
+                                value="{{ url('/auth/github/callback') }}"
+                                class="w-full bg-slate-950 border border-white/10 text-violet-300 font-mono text-xs rounded-xl px-3 py-2 select-all focus:outline-none"
+                            />
+                            <button
+                                type="button"
+                                @click="navigator.clipboard.writeText('{{ url('/auth/github/callback') }}')"
+                                class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold shrink-0"
+                            >
+                                Copy URI
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Inline Documentation -->
+                    <div class="p-4 rounded-2xl bg-slate-950/80 border border-white/5 space-y-2 text-[11px] text-slate-400">
+                        <div class="font-bold text-slate-200 flex items-center gap-1.5">
+                            <span>📖</span>
+                            <span>GitHub Developer Documentation</span>
+                        </div>
+                        <ol class="list-decimal list-inside space-y-1 text-slate-400">
+                            <li>Navigate to <a href="https://github.com/settings/developers" target="_blank" class="text-purple-400 hover:underline">GitHub &rarr; Settings &rarr; Developer Settings &rarr; OAuth Apps</a>.</li>
+                            <li>Click <strong>Register a new application</strong>.</li>
+                            <li>Set Authorization callback URL to: <code class="text-violet-300 font-mono">{{ url('/auth/github/callback') }}</code></li>
+                            <li>Generate a new Client Secret and paste Client ID and Secret into the inputs above.</li>
+                        </ol>
+                    </div>
+                </x-glass.card>
+
+                <div class="pt-4 flex items-center justify-between border-t border-white/10">
+                    <span class="text-xs text-slate-400">Social Auth credentials dynamically update application configuration upon saving.</span>
+                    <x-glass.button type="submit" variant="primary" class="shadow-lg shadow-violet-500/25">
+                        <span wire:loading.remove wire:target="saveSocialAuthConfig">💾 Save All Social Credentials</span>
+                        <span wire:loading wire:target="saveSocialAuthConfig">Saving Credentials...</span>
+                    </x-glass.button>
+                </div>
+            </form>
         </div>
     @endif
 
