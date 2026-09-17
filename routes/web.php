@@ -29,6 +29,7 @@ use App\Features\Admin\Livewire\AdminAuthSettingsPage;
 use App\Features\Admin\Livewire\AdminDashboardPage;
 use App\Features\Admin\Livewire\AdminMailNotificationPage;
 use App\Features\Admin\Livewire\AdminOmniRouteSetupPage;
+use App\Features\Admin\Livewire\AdminAntigravitySetupPage;
 use App\Features\Admin\Livewire\AdminSettingsPage;
 use App\Features\Admin\Livewire\AdminSystemInfoPage;
 use App\Features\Admin\Livewire\AdminUpdatesPage;
@@ -59,7 +60,7 @@ use App\Features\Usage\Livewire\UserUsagePage;
 use App\Features\WordPress\Http\Controllers\WordPressBridgeController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Features\AI\Http\Controllers\AntigravityOAuthController;
+use App\Features\Antigravity\Http\Controllers\AntigravityOAuthController;
 
 
 // Public Landing Page & Blog Routes
@@ -145,6 +146,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/mail-notifications', AdminMailNotificationPage::class)->name('mail-notifications');
     Route::get('/ai-settings', AdminAiSettingsPage::class)->name('ai-settings.index');
     Route::get('/ai-settings/omniroute', AdminOmniRouteSetupPage::class)->name('ai-settings.omniroute');
+    Route::get('/ai-settings/antigravity', AdminAntigravitySetupPage::class)->name('ai-settings.antigravity');
     Route::get('/usage', AdminUsageLogsPage::class)->name('usage');
     Route::get('/settings', AdminSettingsPage::class)->name('settings');
     Route::get('/system-info', AdminSystemInfoPage::class)->name('system-info');

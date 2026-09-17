@@ -10,6 +10,7 @@
 |
 */
 
+import { FaqExtension, FaqQuestion, FaqAnswer } from './extensions/FaqExtension';
 import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -483,7 +484,10 @@ export class TiptapDriver {
 
         const initialHtml = normalizeContentToHtml(this.config.initialContent || '<p></p>');
         const extensions = [
-            StarterKit.configure({
+            FaqExtension,
+    FaqQuestion,
+    FaqAnswer,
+    StarterKit.configure({
                 history: {
                     depth: 100,
                     newGroupDelay: 500,
