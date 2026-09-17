@@ -1,0 +1,18 @@
+.hoa-faq {
+    border: 1px solid #334155;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: #0f172a;
+}
+.hoa-faq summary {
+    font-weight: bold;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.hoa-faq[open] summary {
+    margin-bottom: 0.5rem;
+}
