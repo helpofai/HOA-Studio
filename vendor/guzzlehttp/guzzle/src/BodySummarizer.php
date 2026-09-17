@@ -1,14 +1,15 @@
 <?php
 
-declare(strict_types=1);
-
 namespace GuzzleHttp;
 
 use Psr\Http\Message\MessageInterface;
 
 final class BodySummarizer implements BodySummarizerInterface
 {
-    private ?int $truncateAt;
+    /**
+     * @var int|null
+     */
+    private $truncateAt;
 
     public function __construct(?int $truncateAt = null)
     {
@@ -20,10 +21,8 @@ final class BodySummarizer implements BodySummarizerInterface
      */
     public function summarize(MessageInterface $message): ?string
     {
-        try {
-            return Psr7\Message::bodySummary($message, $this->truncateAt);
-        } catch (\Exception $e) {
-            return null;
-        }
+        return $this->truncateAt === null
+            ? Psr7\Message::bodySummary($message)
+            : Psr7\Message::bodySummary($message, $this->truncateAt);
     }
 }

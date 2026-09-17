@@ -59,6 +59,8 @@ use App\Features\Usage\Livewire\UserUsagePage;
 use App\Features\WordPress\Http\Controllers\WordPressBridgeController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Features\AI\Http\Controllers\AntigravityOAuthController;
+
 
 // Public Landing Page & Blog Routes
 Route::get('/', function () {
@@ -159,3 +161,8 @@ Route::get('/storage/{path}', function (string $path) {
 
     return response()->file($fullPath);
 })->where('path', '.*')->name('public.storage.fallback');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/oauth/antigravity/redirect', [AntigravityOAuthController::class, 'redirect'])->name('oauth.antigravity.redirect');
+    Route::get('/oauth/antigravity/callback', [AntigravityOAuthController::class, 'callback'])->name('oauth.antigravity.callback');
+});

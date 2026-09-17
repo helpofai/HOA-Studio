@@ -16,11 +16,14 @@ class Request implements RequestInterface
 {
     use MessageTrait;
 
-    private string $method;
+    /** @var string */
+    private $method;
 
-    private ?string $requestTarget = null;
+    /** @var string|null */
+    private $requestTarget;
 
-    private UriInterface $uri;
+    /** @var UriInterface */
+    private $uri;
 
     /**
      * @param string                               $method  HTTP method
@@ -42,9 +45,9 @@ class Request implements RequestInterface
         if (!$uri instanceof UriInterface) {
             $uri = new Uri($uri);
         }
-        self::getRequestTargetFromUri($uri);
 
-        $this->method = $method;
+        self::warnOnMethodCasingChange($method);
+        $this->method = Utils::asciiToUpper($method);
         $this->uri = $uri;
         $this->setHeaders($headers);
         $this->protocol = $version;
@@ -64,12 +67,30 @@ class Request implements RequestInterface
             return $this->requestTarget;
         }
 
-        return self::getRequestTargetFromUri($this->uri);
+        $target = $this->uri->getPath();
+        if ($target === '') {
+            $target = '/';
+        }
+        if ($this->uri->getQuery() != '') {
+            $target .= '?'.$this->uri->getQuery();
+        }
+
+        return $target;
     }
 
-    public function withRequestTarget(string $requestTarget): RequestInterface
+    public function withRequestTarget($requestTarget): RequestInterface
     {
-        self::assertRequestTarget($requestTarget);
+        $hasWhitespace = preg_match('#\s#', $requestTarget);
+
+        if ($hasWhitespace === false) {
+            throw new \RuntimeException('Unable to validate request target: '.preg_last_error_msg());
+        }
+
+        if ($hasWhitespace === 1) {
+            throw new InvalidArgumentException(
+                'Invalid request target provided; cannot contain whitespace'
+            );
+        }
 
         $new = clone $this;
         $new->requestTarget = $requestTarget;
@@ -82,11 +103,12 @@ class Request implements RequestInterface
         return $this->method;
     }
 
-    public function withMethod(string $method): RequestInterface
+    public function withMethod($method): RequestInterface
     {
         $this->assertMethod($method);
+        self::warnOnMethodCasingChange($method);
         $new = clone $this;
-        $new->method = $method;
+        $new->method = Utils::asciiToUpper($method);
 
         return $new;
     }
@@ -96,30 +118,26 @@ class Request implements RequestInterface
         return $this->uri;
     }
 
-    public function withUri(UriInterface $uri, bool $preserveHost = false): RequestInterface
+    public function withUri(UriInterface $uri, $preserveHost = false): RequestInterface
     {
-        $sameUri = $uri === $this->uri;
-
-        if (!$sameUri && $this->requestTarget === null) {
-            self::getRequestTargetFromUri($uri);
+        if (!\is_bool($preserveHost)) {
+            \trigger_deprecation(
+                'guzzlehttp/psr7',
+                '2.11',
+                'Passing %s to RequestInterface::withUri() is deprecated; guzzlehttp/psr7 3.0 requires bool for $preserveHost.',
+                \get_debug_type($preserveHost)
+            );
         }
 
-        $currentHost = $this->getHeaderLine('Host');
-        $host = null;
-
-        if (!$preserveHost || $currentHost === '') {
-            $host = $this->getHostFromUri($uri);
-        }
-
-        if ($sameUri && ($host === null || $currentHost === $host)) {
+        if ($uri === $this->uri) {
             return $this;
         }
 
         $new = clone $this;
         $new->uri = $uri;
 
-        if ($host !== null) {
-            $new->setHostHeader($host);
+        if (!$preserveHost || !isset($this->headerNames['host'])) {
+            $new->updateHostFromUri();
         }
 
         return $new;
@@ -127,36 +145,20 @@ class Request implements RequestInterface
 
     private function updateHostFromUri(): void
     {
-        $host = $this->getHostFromUri($this->uri);
+        $host = $this->uri->getHost();
 
-        if ($host === null) {
+        if ($host == '') {
             return;
-        }
-
-        $this->setHostHeader($host);
-    }
-
-    private function getHostFromUri(UriInterface $uri): ?string
-    {
-        $host = $uri->getHost();
-
-        if ($host === '') {
-            return null;
         }
 
         Uri::assertValidHost($host);
 
-        if (($port = $uri->getPort()) !== null) {
+        if (($port = $this->uri->getPort()) !== null) {
             $host .= ':'.$port;
         }
 
         $this->assertValue($host);
 
-        return $host;
-    }
-
-    private function setHostHeader(string $host): void
-    {
         if (isset($this->headerNames['host'])) {
             $header = $this->headerNames['host'];
         } else {
@@ -164,47 +166,30 @@ class Request implements RequestInterface
             $this->headerNames['host'] = 'Host';
         }
         // Ensure Host is the first header.
-        // See: https://datatracker.ietf.org/doc/html/rfc9110#section-7.2
+        // See: https://datatracker.ietf.org/doc/html/rfc7230#section-5.4
         $this->headers = [$header => [$host]] + $this->headers;
     }
 
-    private function assertMethod(string $method): void
+    /**
+     * @param mixed $method
+     */
+    private function assertMethod($method): void
     {
-        if (!Rfc9110::isToken($method)) {
-            throw new InvalidArgumentException('Method must be a valid HTTP token.');
+        if (!is_string($method) || $method === '') {
+            throw new InvalidArgumentException('Method must be a non-empty string.');
         }
+
+        $this->assertNoLineSeparators($method, 'Method');
     }
 
-    private static function getRequestTargetFromUri(UriInterface $uri): string
+    private static function warnOnMethodCasingChange(string $method): void
     {
-        $target = self::normalizePathForOriginForm($uri->getPath());
-        if ($target === '') {
-            $target = '/';
-        }
-        if ($uri->getQuery() != '') {
-            $target .= '?'.$uri->getQuery();
-        }
-
-        self::assertRequestTarget($target);
-
-        return $target;
-    }
-
-    private static function assertRequestTarget(string $requestTarget): void
-    {
-        if (!Rfc9112::isValidRequestTarget($requestTarget)) {
-            throw new InvalidArgumentException(
-                'Invalid request target provided; cannot be empty or contain whitespace or control characters'
+        if ($method !== Utils::asciiToUpper($method)) {
+            \trigger_deprecation(
+                'guzzlehttp/psr7',
+                '2.11',
+                'Passing a non-uppercase HTTP method is deprecated; guzzlehttp/psr7 3.0 preserves method casing and will no longer uppercase it. Normalize the method before constructing or modifying requests if uppercase is required.'
             );
         }
-    }
-
-    private static function normalizePathForOriginForm(string $path): string
-    {
-        if (str_starts_with($path, '//')) {
-            return '/'.ltrim($path, '/');
-        }
-
-        return $path;
     }
 }
