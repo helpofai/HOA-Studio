@@ -125,4 +125,29 @@ class AdminAuthSettingsTest extends TestCase
             'value' => '1',
         ]);
     }
+
+    public function test_admin_can_save_social_auth_credentials()
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        Livewire::actingAs($admin)
+            ->test(AdminAuthSettingsPage::class)
+            ->set('googleClientId', 'mock-google-client-id')
+            ->set('googleClientSecret', 'mock-google-client-secret')
+            ->set('githubClientId', 'mock-github-client-id')
+            ->set('githubClientSecret', 'mock-github-client-secret')
+            ->call('saveSocialAuthConfig')
+            ->assertHasNoErrors()
+            ->assertSee('Social Auth &amp; OAuth Provider Credentials (Google, Facebook, X.com, GitHub) saved successfully.', false);
+
+        $this->assertDatabaseHas('settings', [
+            'key' => 'google_client_id',
+            'value' => 'mock-google-client-id',
+        ]);
+
+        $this->assertDatabaseHas('settings', [
+            'key' => 'github_client_id',
+            'value' => 'mock-github-client-id',
+        ]);
+    }
 }
