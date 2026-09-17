@@ -1,4 +1,4 @@
-div class="exception-summary <?= !$exceptionMessage ? 'exception-without-message' : ''; ?>">
+<div class="exception-summary <?= !$exceptionMessage ? 'exception-without-message' : ''; ?>">
     <div class="exception-metadata">
         <div class="container">
             <h2 class="exception-hierarchy">

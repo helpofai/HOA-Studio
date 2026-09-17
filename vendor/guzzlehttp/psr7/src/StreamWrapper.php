@@ -16,10 +16,11 @@ final class StreamWrapper
     /** @var resource */
     public $context;
 
-    private StreamInterface $stream;
+    /** @var StreamInterface */
+    private $stream;
 
     /** @var string r, r+, or w */
-    private string $mode;
+    private $mode;
 
     /**
      * Returns a resource representing the stream.
@@ -77,67 +78,40 @@ final class StreamWrapper
     public function stream_open(string $path, string $mode, int $options, ?string &$opened_path = null): bool
     {
         $options = stream_context_get_options($this->context);
-        $stream = $options['guzzle']['stream'] ?? null;
 
-        if (!$stream instanceof StreamInterface) {
+        if (!isset($options['guzzle']['stream'])) {
             return false;
         }
 
         $this->mode = $mode;
-        $this->stream = $stream;
+        $this->stream = $options['guzzle']['stream'];
 
         return true;
     }
 
-    /**
-     * @return string|false
-     */
-    public function stream_read(int $count)
+    public function stream_read(int $count): string
     {
-        try {
-            return $this->stream->read($count);
-        } catch (\RuntimeException $e) {
-            return false;
-        }
+        return $this->stream->read($count);
     }
 
     public function stream_write(string $data): int
     {
-        try {
-            return $this->stream->write($data);
-        } catch (\RuntimeException $e) {
-            return -1;
-        }
+        return $this->stream->write($data);
     }
 
-    /**
-     * @return int|false
-     */
-    public function stream_tell()
+    public function stream_tell(): int
     {
-        try {
-            return $this->stream->tell();
-        } catch (\RuntimeException $e) {
-            return false;
-        }
+        return $this->stream->tell();
     }
 
     public function stream_eof(): bool
     {
-        try {
-            return $this->stream->eof();
-        } catch (\RuntimeException $e) {
-            return true;
-        }
+        return $this->stream->eof();
     }
 
     public function stream_seek(int $offset, int $whence): bool
     {
-        try {
-            $this->stream->seek($offset, $whence);
-        } catch (\RuntimeException $e) {
-            return false;
-        }
+        $this->stream->seek($offset, $whence);
 
         return true;
     }
@@ -147,12 +121,8 @@ final class StreamWrapper
      */
     public function stream_cast(int $cast_as)
     {
-        try {
-            $stream = clone $this->stream;
-            $resource = $stream->detach();
-        } catch (\RuntimeException $e) {
-            return false;
-        }
+        $stream = clone $this->stream;
+        $resource = $stream->detach();
 
         return $resource ?? false;
     }
@@ -176,13 +146,7 @@ final class StreamWrapper
      */
     public function stream_stat()
     {
-        try {
-            $size = $this->stream->getSize();
-        } catch (\RuntimeException $e) {
-            return false;
-        }
-
-        if ($size === null) {
+        if ($this->stream->getSize() === null) {
             return false;
         }
 
@@ -197,12 +161,12 @@ final class StreamWrapper
         return [
             'dev' => 0,
             'ino' => 0,
-            'mode' => $modeMap[$this->mode] ?? 0,
+            'mode' => $modeMap[$this->mode],
             'nlink' => 0,
             'uid' => 0,
             'gid' => 0,
             'rdev' => 0,
-            'size' => $size,
+            'size' => $this->stream->getSize() ?: 0,
             'atime' => 0,
             'mtime' => 0,
             'ctime' => 0,

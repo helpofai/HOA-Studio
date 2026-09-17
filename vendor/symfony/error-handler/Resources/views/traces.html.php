@@ -1,4 +1,4 @@
-div class="trace trace-as-html" id="trace-box-<?= $index; ?>">
+<div class="trace trace-as-html" id="trace-box-<?= $index; ?>">
     <div class="trace-details">
         <div class="trace-head">
             <div class="sf-toggle" data-toggle-selector="#trace-html-<?= $index; ?>" data-toggle-initial="<?= $expand ? 'display' : ''; ?>">

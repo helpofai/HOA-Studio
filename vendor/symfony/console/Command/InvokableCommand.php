@@ -50,8 +50,11 @@ class InvokableCommand implements SignalableCommandInterface
         private ?ArgumentResolverInterface $argumentResolver = null,
     ) {
         $this->code = $code;
-        $this->signalableCommand = $code instanceof SignalableCommandInterface ? $code : null;
         $this->invokable = new \ReflectionFunction($this->getClosure($code));
+
+        // the container wraps the service in a closure; a closure bound to the command itself must not handle its signals
+        $code = $this->invokable->getClosureThis();
+        $this->signalableCommand = $code instanceof SignalableCommandInterface && !$code instanceof Command ? $code : null;
     }
 
     /**
@@ -148,10 +151,10 @@ class InvokableCommand implements SignalableCommandInterface
                     Cursor::class => new Cursor($output),
                     Application::class => $this->command->getApplication(),
                     Command::class, self::class => $this->command,
-                    default => null,
+                    default => false,
                 };
 
-                if (null !== $argument) {
+                if (false !== $argument) {
                     $coreUtilities[$index] = $argument;
                     continue;
                 }
@@ -177,7 +180,7 @@ class InvokableCommand implements SignalableCommandInterface
         $resolvedIndex = 0;
 
         foreach ($function->getParameters() as $index => $param) {
-            if (isset($coreUtilities[$index])) {
+            if (\array_key_exists($index, $coreUtilities)) {
                 $parameters[] = $coreUtilities[$index];
             } elseif ($param->isVariadic()) {
                 // Variadic parameters consume all remaining resolved arguments

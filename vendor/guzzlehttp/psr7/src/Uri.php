@@ -17,9 +17,10 @@ use Psr\Http\Message\UriInterface;
 class Uri implements UriInterface, \JsonSerializable
 {
     /**
-     * Absolute http and https URIs require a host per RFC 9110 Section 4.2.1
-     * but in generic URIs the host can be empty. So for http(s) URIs we apply
-     * this default host when no host is given yet to form a valid URI.
+     * Absolute http and https URIs require a host per RFC 7230 Section 2.7
+     * but in generic URIs the host can be empty. So for http(s) URIs
+     * we apply this default host when no host is given yet to form a
+     * valid URI.
      */
     private const HTTP_DEFAULT_HOST = 'localhost';
 
@@ -35,41 +36,37 @@ class Uri implements UriInterface, \JsonSerializable
         'imap' => 143,
         'pop' => 110,
         'ldap' => 389,
-        'ws' => 80,
-        'wss' => 443,
     ];
 
     private const QUERY_SEPARATORS_REPLACEMENT = ['=' => '%3D', '&' => '%26', '+' => '%2B'];
 
     /** @var string Uri scheme. */
-    private string $scheme = '';
+    private $scheme = '';
 
     /** @var string Uri user info. */
-    private string $userInfo = '';
+    private $userInfo = '';
 
     /** @var string Uri host. */
-    private string $host = '';
+    private $host = '';
 
     /** @var int|null Uri port. */
-    private ?int $port = null;
+    private $port;
 
     /** @var string Uri path. */
-    private string $path = '';
+    private $path = '';
 
     /** @var string Uri query string. */
-    private string $query = '';
+    private $query = '';
 
     /** @var string Uri fragment. */
-    private string $fragment = '';
+    private $fragment = '';
 
-    public function __construct(
-        #[\SensitiveParameter]
-        string $uri = ''
-    ) {
+    public function __construct(string $uri = '')
+    {
         if ($uri !== '') {
-            $parts = UriParser::parse($uri);
+            $parts = self::parse($uri);
             if ($parts === false) {
-                throw new MalformedUriException(\sprintf('Unable to parse URI: %s', DiagnosticValue::escape($uri)));
+                throw new MalformedUriException("Unable to parse URI: $uri");
             }
             try {
                 $this->applyParts($parts);
@@ -79,6 +76,108 @@ class Uri implements UriInterface, \JsonSerializable
                 throw new MalformedUriException($e->getMessage(), 0, $e);
             }
         }
+    }
+
+    /**
+     * UTF-8 aware \parse_url() replacement.
+     *
+     * The internal function produces broken output for non ASCII domain names
+     * (IDN) when used with locales other than "C".
+     *
+     * On the other hand, cURL understands IDN correctly only when UTF-8 locale
+     * is configured ("C.UTF-8", "en_US.UTF-8", etc.).
+     *
+     * @see https://bugs.php.net/bug.php?id=52923
+     * @see https://www.php.net/manual/en/function.parse-url.php#114817
+     * @see https://curl.haxx.se/libcurl/c/CURLOPT_URL.html#ENCODING
+     *
+     * @return array|false
+     */
+    private static function parse(string $url)
+    {
+        if (self::isPathNoSchemeReference($url)) {
+            return self::parsePathNoSchemeReference($url);
+        }
+
+        // Preserve bracketed IPv6 literals before encoding, including dotted IPv4
+        // tails. DEL (\x7F) is excluded so a raw-DEL host falls through to the
+        // general path and is rejected rather than silently mutated by parse_url().
+        $prefix = '';
+        $ipv6Prefix = preg_match('%\A([0-9A-Za-z+.-]+://\[[^\]\x00-\x20\x7F/?#@]+\])(.*)\z%s', $url, $matches);
+
+        if ($ipv6Prefix === false) {
+            return false;
+        }
+
+        if ($ipv6Prefix === 1) {
+            /** @var array{0:string, 1:string, 2:string} $matches */
+            $suffix = $matches[2];
+
+            // After the bracketed host only an optional numeric port and/or a
+            // path, query, or fragment may follow. Anything else (for example
+            // `:80@evil` or `:80x`) would let parse_url() reinterpret a
+            // different host.
+            if (preg_match('%\A(?::[0-9]*)?(?:[/?#].*)?\z%s', $suffix) !== 1) {
+                return false;
+            }
+
+            $prefix = $matches[1];
+            $url = $suffix;
+        }
+
+        /** @var string|null */
+        $encodedUrl = preg_replace_callback(
+            '%[^:/@?&=#]+%usD',
+            static function ($matches) {
+                return urlencode($matches[0]);
+            },
+            $url
+        );
+
+        if ($encodedUrl === null) {
+            return false;
+        }
+
+        $result = parse_url($prefix.$encodedUrl);
+
+        if ($result === false) {
+            return false;
+        }
+
+        return array_map('urldecode', $result);
+    }
+
+    private static function isPathNoSchemeReference(string $url): bool
+    {
+        if ($url === '' || $url[0] === '/' || $url[0] === '?' || $url[0] === '#') {
+            return false;
+        }
+
+        $firstSegment = substr($url, 0, strcspn($url, '/?#'));
+
+        return strpos($firstSegment, ':') === false;
+    }
+
+    /**
+     * @return array{path: string, query?: string, fragment?: string}
+     */
+    private static function parsePathNoSchemeReference(string $url): array
+    {
+        $parts = [];
+
+        if (false !== ($fragmentPosition = strpos($url, '#'))) {
+            $parts['fragment'] = substr($url, $fragmentPosition + 1);
+            $url = substr($url, 0, $fragmentPosition);
+        }
+
+        if (false !== ($queryPosition = strpos($url, '?'))) {
+            $parts['query'] = substr($url, $queryPosition + 1);
+            $url = substr($url, 0, $queryPosition);
+        }
+
+        $parts['path'] = $url;
+
+        return $parts;
     }
 
     public function __toString(): string
@@ -93,25 +192,20 @@ class Uri implements UriInterface, \JsonSerializable
     }
 
     /**
-     * Composes a URI reference string from its various components according to
-     * RFC 3986 Section 5.3.
+     * Composes a URI reference string from its various components.
      *
-     * Usually this method does not need to be called manually but instead is
-     * used indirectly via `Psr\Http\Message\UriInterface::__toString`.
+     * Usually this method does not need to be called manually but instead is used indirectly via
+     * `Psr\Http\Message\UriInterface::__toString`.
      *
-     * PSR-7 UriInterface treats an empty component the same as a missing
-     * component as `getQuery()`, `getFragment()` etc. always return a string.
-     * This explains the slight difference to RFC 3986 Section 5.3.
+     * PSR-7 UriInterface treats an empty component the same as a missing component as
+     * getQuery(), getFragment() etc. always return a string. This explains the slight
+     * difference to RFC 3986 Section 5.3.
      *
-     * Another adjustment is that the authority separator is added even when the
-     * authority is missing/empty for the "file" scheme. This is because PHP
-     * stream functions like `file_get_contents` only work with `file:///myfile`
-     * but not with `file:/myfile` although they are equivalent according to RFC
-     * 3986. But `file:///` is the more common syntax for the file scheme anyway
-     * (Chrome for example redirects to that format). The separator is omitted
-     * when such a URI has a rootless or empty path: adding it would turn the
-     * first path segment into the authority of the composed URI, or compose the
-     * string `file://`, which cannot be parsed back into a URI.
+     * Another adjustment is that the authority separator is added even when the authority is missing/empty
+     * for the "file" scheme. This is because PHP stream functions like `file_get_contents` only work with
+     * `file:///myfile` but not with `file:/myfile` although they are equivalent according to RFC 3986. But
+     * `file:///` is the more common syntax for the file scheme anyway (Chrome for example redirects to
+     * that format).
      *
      * @see https://datatracker.ietf.org/doc/html/rfc3986#section-5.3
      */
@@ -124,11 +218,11 @@ class Uri implements UriInterface, \JsonSerializable
             $uri .= $scheme.':';
         }
 
-        if ($authority != '' || ($scheme === 'file' && str_starts_with($path, '/'))) {
+        if ($authority != '' || $scheme === 'file') {
             $uri .= '//'.$authority;
         }
 
-        if ($authority != '' && $path != '' && !str_starts_with($path, '/')) {
+        if ($authority != '' && $path != '' && $path[0] != '/') {
             $path = '/'.$path;
         }
 
@@ -148,8 +242,8 @@ class Uri implements UriInterface, \JsonSerializable
     /**
      * Whether the URI has the default port of the current scheme.
      *
-     * `Psr\Http\Message\UriInterface::getPort` may return null or the standard
-     * port. This method can be used independently of the implementation.
+     * `Psr\Http\Message\UriInterface::getPort` may return null or the standard port. This method can be used
+     * independently of the implementation.
      */
     public static function isDefaultPort(UriInterface $uri): bool
     {
@@ -160,18 +254,17 @@ class Uri implements UriInterface, \JsonSerializable
     /**
      * Whether the URI is absolute, i.e. it has a scheme.
      *
-     * An instance of UriInterface can either be an absolute URI or a relative
-     * reference. An absolute URI has a scheme. A relative reference is used to
-     * express a URI relative to another URI, the base URI. Relative references
-     * can be divided into several forms according to RFC 3986 Section 4.2:
-     * - network-path references, e.g. `//example.com/path`
-     * - absolute-path references, e.g. `/path`
-     * - relative-path references, e.g. `subpath`
+     * An instance of UriInterface can either be an absolute URI or a relative reference. This method returns true
+     * if it is the former. An absolute URI has a scheme. A relative reference is used to express a URI relative
+     * to another URI, the base URI. Relative references can be divided into several forms:
+     * - network-path references, e.g. '//example.com/path'
+     * - absolute-path references, e.g. '/path'
+     * - relative-path references, e.g. 'subpath'
      *
      * @see Uri::isNetworkPathReference
      * @see Uri::isAbsolutePathReference
      * @see Uri::isRelativePathReference
-     * @see https://datatracker.ietf.org/doc/html/rfc3986#section-4.2
+     * @see https://datatracker.ietf.org/doc/html/rfc3986#section-4
      */
     public static function isAbsolute(UriInterface $uri): bool
     {
@@ -181,8 +274,7 @@ class Uri implements UriInterface, \JsonSerializable
     /**
      * Whether the URI is a network-path reference.
      *
-     * A relative reference that begins with two slash characters is termed a
-     * network-path reference.
+     * A relative reference that begins with two slash characters is termed an network-path reference.
      *
      * @see https://datatracker.ietf.org/doc/html/rfc3986#section-4.2
      */
@@ -192,10 +284,9 @@ class Uri implements UriInterface, \JsonSerializable
     }
 
     /**
-     * Whether the URI is an absolute-path reference.
+     * Whether the URI is a absolute-path reference.
      *
-     * A relative reference that begins with a single slash character is termed
-     * an absolute-path reference.
+     * A relative reference that begins with a single slash character is termed an absolute-path reference.
      *
      * @see https://datatracker.ietf.org/doc/html/rfc3986#section-4.2
      */
@@ -210,8 +301,7 @@ class Uri implements UriInterface, \JsonSerializable
     /**
      * Whether the URI is a relative-path reference.
      *
-     * A relative reference that does not begin with a slash character is termed
-     * a relative-path reference.
+     * A relative reference that does not begin with a slash character is termed a relative-path reference.
      *
      * @see https://datatracker.ietf.org/doc/html/rfc3986#section-4.2
      */
@@ -225,10 +315,9 @@ class Uri implements UriInterface, \JsonSerializable
     /**
      * Whether the URI is a same-document reference.
      *
-     * A same-document reference refers to a URI that is, aside from its
-     * fragment component, identical to the base URI. When no base URI is given,
-     * only an empty URI reference (apart from its fragment) is considered a
-     * same-document reference.
+     * A same-document reference refers to a URI that is, aside from its fragment
+     * component, identical to the base URI. When no base URI is given, only an empty
+     * URI reference (apart from its fragment) is considered a same-document reference.
      *
      * @param UriInterface      $uri  The URI to check
      * @param UriInterface|null $base An optional base URI to compare against
@@ -242,7 +331,7 @@ class Uri implements UriInterface, \JsonSerializable
 
             return ($uri->getScheme() === $base->getScheme())
                 && ($uri->getAuthority() === $base->getAuthority())
-                && (self::rawPath($uri) === self::rawPath($base))
+                && ($uri->getPath() === $base->getPath())
                 && ($uri->getQuery() === $base->getQuery());
         }
 
@@ -269,9 +358,10 @@ class Uri implements UriInterface, \JsonSerializable
      * Creates a new URI with a specific query string value.
      *
      * Any existing query string values that exactly match the provided key are
-     * removed and replaced with the given key value pair. A value of null will
-     * set the query string key without a value, e.g. "key" instead of
-     * "key=value".
+     * removed and replaced with the given key value pair.
+     *
+     * A value of null will set the query string key without a value, e.g. "key"
+     * instead of "key=value".
      *
      * @param UriInterface $uri   URI to use as a base.
      * @param string       $key   Key to set.
@@ -287,10 +377,9 @@ class Uri implements UriInterface, \JsonSerializable
     }
 
     /**
-     * Creates a new URI with multiple query string values.
+     * Creates a new URI with multiple specific query string values.
      *
-     * It has the same behavior as `withQueryValue()` but for an associative
-     * array of key => value.
+     * It has the same behavior as withQueryValue() but for an associative array of key => value.
      *
      * @param UriInterface    $uri           URI to use as a base.
      * @param (string|null)[] $keyValueArray Associative array of key and values
@@ -300,24 +389,36 @@ class Uri implements UriInterface, \JsonSerializable
         $result = self::getFilteredQueryString($uri, array_keys($keyValueArray));
 
         foreach ($keyValueArray as $key => $value) {
-            self::assertStringOrNullQueryValue($value);
-            $result[] = self::generateQueryString((string) $key, $value !== null ? (string) $value : null);
+            $result[] = self::generateQueryString((string) $key, $value !== null ? self::stringifyQueryValue($value) : null);
         }
 
         return $uri->withQuery(implode('&', $result));
     }
 
     /**
+     * Stringifies a non-null query value, deprecating non-string values that
+     * guzzlehttp/psr7 3.0 will reject. Non-finite floats are normalized to the
+     * strings PHP coerces them to, as implicit coercion of NAN emits a warning
+     * on PHP 8.5.
+     *
      * @param mixed $value
      */
-    private static function assertStringOrNullQueryValue($value): void
+    private static function stringifyQueryValue($value): string
     {
-        if ($value !== null && !is_string($value)) {
-            throw new \InvalidArgumentException(\sprintf(
-                'Query string values must be a string or null, %s given.',
-                \get_debug_type($value)
-            ));
+        if (!is_string($value)) {
+            \trigger_deprecation(
+                'guzzlehttp/psr7',
+                '2.12',
+                'Passing %s to Uri::withQueryValues() is deprecated; cast it to a string. guzzlehttp/psr7 3.0 will only accept string or null query values.',
+                \gettype($value)
+            );
+
+            if (is_float($value) && !is_finite($value)) {
+                return is_nan($value) ? 'NAN' : ($value > 0 ? 'INF' : '-INF');
+            }
         }
+
+        return (string) $value;
     }
 
     /**
@@ -327,10 +428,8 @@ class Uri implements UriInterface, \JsonSerializable
      *
      * @throws MalformedUriException If the components do not form a valid URI.
      */
-    public static function fromParts(
-        #[\SensitiveParameter]
-        array $parts
-    ): UriInterface {
+    public static function fromParts(array $parts): UriInterface
+    {
         $uri = new self();
         try {
             $uri->applyParts($parts);
@@ -351,8 +450,32 @@ class Uri implements UriInterface, \JsonSerializable
      */
     public static function assertValidHost(string $host): void
     {
-        if (!Rfc3986::isValidHost($host)) {
-            throw new \InvalidArgumentException(sprintf('Invalid host: %s', DiagnosticValue::escape($host)));
+        if ($host === '') {
+            return;
+        }
+
+        // Reject control characters and URI authority delimiters so getHost()
+        // cannot disagree with the on-wire authority.
+        $invalidHost = preg_match('/[\x00-\x20\x7F\/\?#@\\\\]/', $host);
+
+        if ($invalidHost === false) {
+            throw new \RuntimeException('Unable to validate URI host: '.preg_last_error_msg());
+        }
+
+        if ($invalidHost === 1) {
+            throw new \InvalidArgumentException(sprintf('Invalid host: "%s"', $host));
+        }
+
+        if (strpos($host, '[') !== false || strpos($host, ']') !== false) {
+            if ($host[0] !== '[' || substr($host, -1) !== ']') {
+                throw new \InvalidArgumentException(sprintf('Invalid host: "%s"', $host));
+            }
+
+            return;
+        }
+
+        if (strpos($host, ':') !== false) {
+            throw new \InvalidArgumentException(sprintf('Invalid host: "%s"', $host));
         }
     }
 
@@ -392,50 +515,7 @@ class Uri implements UriInterface, \JsonSerializable
 
     public function getPath(): string
     {
-        if (str_starts_with($this->path, '//')) {
-            return '/'.ltrim($this->path, '/');
-        }
-
         return $this->path;
-    }
-
-    /**
-     * Returns the path as it appears within a URI's string form.
-     *
-     * getPath() collapses multiple leading slashes so that a path used in
-     * isolation cannot be mistaken for a protocol-relative URL. Whole-URI
-     * operations like reference resolution and normalization (RFC 3986
-     * Sections 5 and 6) are defined on the URI string form, where the path
-     * stays verbatim, so they must read the path through this method instead.
-     * For direct instances of this class the path is derived from the stored
-     * components, including the leading slash the string form adds to a
-     * rootless path when an authority is present; for subclasses and other
-     * implementations the path is split from the string form per RFC 3986
-     * Appendix B, without validating or decoding any other component.
-     *
-     * @throws \RuntimeException If the path cannot be split from the string form.
-     *
-     * @internal
-     */
-    public static function rawPath(UriInterface $uri): string
-    {
-        if (get_class($uri) === self::class) {
-            if ($uri->path !== '' && !str_starts_with($uri->path, '/') && $uri->getAuthority() !== '') {
-                // composeComponents() prepends a slash to a rootless path when
-                // an authority is present, so the string form uses this path.
-                return '/'.$uri->path;
-            }
-
-            return $uri->path;
-        }
-
-        $count = preg_match('%^(?:[^:/?#]+:)?(?://[^/?#]*)?([^?#]*)%', (string) $uri, $matches);
-
-        if ($count === false) {
-            throw new \RuntimeException('Unable to read the URI path: '.preg_last_error_msg());
-        }
-
-        return $matches[1] ?? '';
     }
 
     public function getQuery(): string
@@ -448,7 +528,7 @@ class Uri implements UriInterface, \JsonSerializable
         return $this->fragment;
     }
 
-    public function withScheme(string $scheme): UriInterface
+    public function withScheme($scheme): UriInterface
     {
         $scheme = $this->filterScheme($scheme);
 
@@ -464,11 +544,8 @@ class Uri implements UriInterface, \JsonSerializable
         return $new;
     }
 
-    public function withUserInfo(
-        string $user,
-        #[\SensitiveParameter]
-        ?string $password = null
-    ): UriInterface {
+    public function withUserInfo($user, $password = null): UriInterface
+    {
         $info = $this->filterUserInfoComponent($user);
         if ($password !== null) {
             $info .= ':'.$this->filterUserInfoComponent($password);
@@ -485,7 +562,7 @@ class Uri implements UriInterface, \JsonSerializable
         return $new;
     }
 
-    public function withHost(string $host): UriInterface
+    public function withHost($host): UriInterface
     {
         $host = $this->filterHost($host);
 
@@ -500,8 +577,17 @@ class Uri implements UriInterface, \JsonSerializable
         return $new;
     }
 
-    public function withPort(?int $port): UriInterface
+    public function withPort($port): UriInterface
     {
+        if ($port !== null && !\is_int($port)) {
+            \trigger_deprecation(
+                'guzzlehttp/psr7',
+                '2.11',
+                'Passing %s to UriInterface::withPort() is deprecated; guzzlehttp/psr7 3.0 requires int|null.',
+                \get_debug_type($port)
+            );
+        }
+
         $port = $this->filterPort($port);
 
         if ($this->port === $port) {
@@ -516,7 +602,7 @@ class Uri implements UriInterface, \JsonSerializable
         return $new;
     }
 
-    public function withPath(string $path): UriInterface
+    public function withPath($path): UriInterface
     {
         $path = $this->filterPath($path);
 
@@ -531,7 +617,7 @@ class Uri implements UriInterface, \JsonSerializable
         return $new;
     }
 
-    public function withQuery(string $query): UriInterface
+    public function withQuery($query): UriInterface
     {
         $query = $this->filterQueryAndFragment($query);
 
@@ -545,7 +631,7 @@ class Uri implements UriInterface, \JsonSerializable
         return $new;
     }
 
-    public function withFragment(string $fragment): UriInterface
+    public function withFragment($fragment): UriInterface
     {
         $fragment = $this->filterQueryAndFragment($fragment);
 
@@ -569,10 +655,8 @@ class Uri implements UriInterface, \JsonSerializable
      *
      * @param array $parts Array of parse_url parts to apply.
      */
-    private function applyParts(
-        #[\SensitiveParameter]
-        array $parts
-    ): void {
+    private function applyParts(array $parts): void
+    {
         $this->scheme = isset($parts['scheme'])
             ? $this->filterScheme($parts['scheme'])
             : '';
@@ -583,7 +667,7 @@ class Uri implements UriInterface, \JsonSerializable
             ? $this->filterHost($parts['host'])
             : '';
         $this->port = isset($parts['port'])
-            ? $this->filterPortPart($parts['port'])
+            ? $this->filterPort($parts['port'])
             : null;
         $this->path = isset($parts['path'])
             ? $this->filterPath($parts['path'])
@@ -602,77 +686,63 @@ class Uri implements UriInterface, \JsonSerializable
     }
 
     /**
+     * @param mixed $scheme
+     *
      * @throws \InvalidArgumentException If the scheme is invalid.
      */
-    private function filterScheme(string $scheme): string
+    private function filterScheme($scheme): string
     {
+        if (!is_string($scheme)) {
+            throw new \InvalidArgumentException('Scheme must be a string');
+        }
+
         $scheme = Utils::asciiToLower($scheme);
 
-        if (!Rfc3986::isValidScheme($scheme)) {
-            throw new \InvalidArgumentException(sprintf('Invalid scheme: %s', DiagnosticValue::escape($scheme)));
+        if ($scheme !== '' && !preg_match('/^[a-z][a-z0-9.+-]*$/D', $scheme)) {
+            \trigger_deprecation(
+                'guzzlehttp/psr7',
+                '2.11',
+                'Passing "%s" as a URI scheme is deprecated; guzzlehttp/psr7 3.0 requires URI schemes to match RFC 3986 syntax and begin with a letter.',
+                $scheme
+            );
         }
 
         return $scheme;
     }
 
     /**
+     * @param mixed $component
+     *
      * @throws \InvalidArgumentException If the user info is invalid.
      */
-    private function filterUserInfoComponent(
-        #[\SensitiveParameter]
-        string $component
-    ): string {
+    private function filterUserInfoComponent($component): string
+    {
+        if (!is_string($component)) {
+            throw new \InvalidArgumentException('User info must be a string');
+        }
+
         return $this->filterComponent(
-            '/(?:[^%'.Rfc3986::CHAR_UNRESERVED.Rfc3986::CHAR_SUB_DELIMS.']++|%(?!'.Rfc3986::HEX_OCTET.'))/',
+            '/(?:[^%'.Rfc3986::CHAR_UNRESERVED.Rfc3986::CHAR_SUB_DELIMS.']+|%(?![A-Fa-f0-9]{2}))/',
             $component,
             'Unable to filter URI user info'
         );
     }
 
     /**
+     * @param mixed $host
+     *
      * @throws \InvalidArgumentException If the host is invalid.
      */
-    private function filterHost(string $host): string
+    private function filterHost($host): string
     {
+        if (!is_string($host)) {
+            throw new \InvalidArgumentException('Host must be a string');
+        }
+
         $host = Utils::asciiToLower($host);
-        $filtered = \preg_replace_callback('/%'.Rfc3986::HEX_OCTET.'/', static function (array $m): string {
-            return Utils::asciiToUpper($m[0]);
-        }, $host);
-        if ($filtered === null) {
-            throw new \RuntimeException('Unable to normalize URI host percent-encoding: '.\preg_last_error_msg());
-        }
-        self::assertValidHost($filtered);
+        self::assertValidHost($host);
 
-        if (str_starts_with($filtered, '[') && !str_starts_with($filtered, '[v')) {
-            // assertValidHost() accepted this bracketed value with the same
-            // filter_var() predicate tryCanonicalizeIpv6() validates with, and
-            // its pure-PHP parse cannot fail on filter-accepted text, so the
-            // null guard is defense in depth only.
-            $canonical = Rfc3986::tryCanonicalizeIpv6(substr($filtered, 1, -1));
-            if ($canonical !== null) {
-                $filtered = '['.$canonical.']';
-            }
-        }
-
-        return $filtered;
-    }
-
-    /**
-     * @throws \InvalidArgumentException If the port is invalid.
-     */
-    private function filterPort(?int $port): ?int
-    {
-        if ($port === null) {
-            return null;
-        }
-
-        if (0 > $port || 0xFFFF < $port) {
-            throw new \InvalidArgumentException(
-                sprintf('Invalid port: %d. Must be between 0 and 65535', $port)
-            );
-        }
-
-        return $port;
+        return $host;
     }
 
     /**
@@ -680,65 +750,20 @@ class Uri implements UriInterface, \JsonSerializable
      *
      * @throws \InvalidArgumentException If the port is invalid.
      */
-    private function filterPortPart($port): ?int
+    private function filterPort($port): ?int
     {
-        if (\is_int($port)) {
-            return $this->filterPort($port);
-        }
-
-        if (\is_string($port) && \ctype_digit($port)) {
-            // A zero port is accepted here; only Rfc9112::parsePort() rejects
-            // it for HTTP Host/authority parsing.
-            if (Rfc3986::isValidPort($port)) {
-                return (int) \ltrim($port, '0');
-            }
-
-            throw new \InvalidArgumentException(sprintf(
-                'Invalid port: %s. Must be between 0 and 65535',
-                \ltrim($port, '0')
-            ));
-        }
-
-        throw new \InvalidArgumentException(sprintf(
-            'Invalid port: %s. Must be between 0 and 65535',
-            self::describeInvalidPort($port)
-        ));
-    }
-
-    /**
-     * @param mixed $port
-     */
-    private static function describeInvalidPort($port): string
-    {
-        if (\is_string($port)) {
-            return DiagnosticValue::escape($port);
-        }
-
-        if (\is_int($port)) {
-            return (string) $port;
-        }
-
-        if (\is_bool($port)) {
-            return $port ? 'true' : 'false';
-        }
-
         if ($port === null) {
-            return 'null';
+            return null;
         }
 
-        if (\is_float($port)) {
-            if (\is_nan($port)) {
-                return 'NAN';
-            }
-
-            if (\is_infinite($port)) {
-                return $port > 0 ? 'INF' : '-INF';
-            }
-
-            return \sprintf('%.14G', $port);
+        $port = (int) $port;
+        if (0 > $port || 0xFFFF < $port) {
+            throw new \InvalidArgumentException(
+                sprintf('Invalid port: %d. Must be between 0 and 65535', $port)
+            );
         }
 
-        return \get_debug_type($port);
+        return $port;
     }
 
     /**
@@ -758,7 +783,7 @@ class Uri implements UriInterface, \JsonSerializable
             return rawurldecode((string) $k);
         }, $keys);
 
-        return array_filter(explode('&', $current), static function (string $part) use ($decodedKeys): bool {
+        return array_filter(explode('&', $current), function ($part) use ($decodedKeys) {
             return !in_array(rawurldecode(explode('=', $part)[0]), $decodedKeys, true);
         });
     }
@@ -788,12 +813,18 @@ class Uri implements UriInterface, \JsonSerializable
     /**
      * Filters the path of a URI
      *
+     * @param mixed $path
+     *
      * @throws \InvalidArgumentException If the path is invalid.
      */
-    private function filterPath(string $path): string
+    private function filterPath($path): string
     {
+        if (!is_string($path)) {
+            throw new \InvalidArgumentException('Path must be a string');
+        }
+
         return $this->filterComponent(
-            '/(?:[^'.Rfc3986::CHAR_UNRESERVED.Rfc3986::CHAR_SUB_DELIMS.'%:@\/]++|%(?!'.Rfc3986::HEX_OCTET.'))/',
+            '/(?:[^'.Rfc3986::CHAR_UNRESERVED.Rfc3986::CHAR_SUB_DELIMS.'%:@\/]++|%(?![A-Fa-f0-9]{2}))/',
             $path,
             'Unable to filter URI path'
         );
@@ -802,23 +833,25 @@ class Uri implements UriInterface, \JsonSerializable
     /**
      * Filters the query string or fragment of a URI.
      *
+     * @param mixed $str
+     *
      * @throws \InvalidArgumentException If the query or fragment is invalid.
      */
-    private function filterQueryAndFragment(string $str): string
+    private function filterQueryAndFragment($str): string
     {
+        if (!is_string($str)) {
+            throw new \InvalidArgumentException('Query and fragment must be a string');
+        }
+
         return $this->filterComponent(
-            '/(?:[^'.Rfc3986::CHAR_UNRESERVED.Rfc3986::CHAR_SUB_DELIMS.'%:@\/\?]++|%(?!'.Rfc3986::HEX_OCTET.'))/',
+            '/(?:[^'.Rfc3986::CHAR_UNRESERVED.Rfc3986::CHAR_SUB_DELIMS.'%:@\/\?]++|%(?![A-Fa-f0-9]{2}))/',
             $str,
             'Unable to filter URI query or fragment'
         );
     }
 
-    private function filterComponent(
-        string $pattern,
-        #[\SensitiveParameter]
-        string $component,
-        string $context
-    ): string {
+    private function filterComponent(string $pattern, string $component, string $context): string
+    {
         $filtered = preg_replace_callback($pattern, [$this, 'rawurlencodeMatchZero'], $component);
 
         if ($filtered === null) {
@@ -840,10 +873,10 @@ class Uri implements UriInterface, \JsonSerializable
         }
 
         if ($this->getAuthority() === '') {
-            if (str_starts_with($this->path, '//')) {
+            if (0 === strpos($this->path, '//')) {
                 throw new MalformedUriException('The path of a URI without an authority must not start with two slashes "//"');
             }
-            if ($this->scheme === '' && str_contains(explode('/', $this->path, 2)[0], ':')) {
+            if ($this->scheme === '' && false !== strpos(explode('/', $this->path, 2)[0], ':')) {
                 throw new MalformedUriException('A relative URI must not have a path beginning with a segment containing a colon');
             }
         }
