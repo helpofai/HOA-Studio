@@ -110,7 +110,7 @@ class User extends Authenticatable
 
     public function antigravityAccounts(): HasMany
     {
-        return ->hasMany(\App\Features\AI\Models\AntigravityAccount::class)->orderBy('priority_order');
+        return $this->hasMany(\App\Features\AI\Models\AntigravityAccount::class)->orderBy('priority_order');
     }
 
     public function documents()
