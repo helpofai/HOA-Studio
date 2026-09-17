@@ -688,3 +688,14 @@ sequenceDiagram
    - **Mandatory Requirement**: Record all newly created or modified files, methods, routes, and connections.
    - **Update the Mermaid Diagram**: Add new synaptic lines or nodes if a new flow was established.
    - **Update the Synapse Quick-Jump Matrix & Deep Spec Cards**: Ensure any new AI agent can instantly understand the new feature's place in the neuro-brain network without reading full file trees.
+### 🌌 Antigravity Multi-Account Gateway
+- **Feature Module**: pp/Features/Antigravity/
+- **Models**: App\Features\Antigravity\Models\AntigravityAccount
+- **Services**: App\Features\Antigravity\Services\AntigravityAccountManager
+- **Controllers**: App\Features\Antigravity\Http\Controllers\AntigravityOAuthController
+- **Database Tables**: ntigravity_accounts
+- **Routes**: oauth.antigravity.redirect, oauth.antigravity.callback
+- **Synaptic Connections**: 
+   - User hasMany AntigravityAccount
+   - AntigravityAccountManager resolves AntigravityAccount based on quota exhaustion and priority.
+   - OmniRouteClient can be injected with getActiveToken from AntigravityAccountManager for authorized routing.

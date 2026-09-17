@@ -232,6 +232,12 @@
                                 <span>⚡ Setup Gateway &rarr;</span>
                             </x-glass.button>
                         </a>
+                    @elseif($provider->slug === 'antigravity')
+                        <a href="{{ route('admin.ai-settings.antigravity') }}" wire:navigate>
+                            <x-glass.button variant="secondary" size="sm" class="gap-1 text-xs">
+                                <span>⚙️ Configure</span>
+                            </x-glass.button>
+                        </a>
                     @else
                         <a href="{{ route('admin.ai-settings.omniroute') }}" wire:navigate>
                             <x-glass.button variant="secondary" size="sm" class="gap-1 text-xs">
