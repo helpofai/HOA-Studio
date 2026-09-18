@@ -18,11 +18,18 @@
 <div class="p-6 max-w-7xl mx-auto space-y-6">
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-bold text-white tracking-tight">🤖 Antigravity Gateway Models</h1>
-        @if($account)
-            <x-glass.badge variant="success">Active Account: {{ $account->email }}</x-glass.badge>
-        @else
-            <x-glass.badge variant="danger">No Active Account</x-glass.badge>
-        @endif
+        <div class="flex items-center gap-3">
+            @if($account)
+                <x-glass.badge variant="success">Active Account: {{ $account->email }}</x-glass.badge>
+            @else
+                <x-glass.badge variant="danger">No Active Account</x-glass.badge>
+            @endif
+            <a href="{{ route('oauth.antigravity.redirect') }}">
+                <x-glass.button variant="secondary" size="sm">
+                    {{ $account ? 'Reconnect / Add Account' : 'Login / Link Account' }}
+                </x-glass.button>
+            </a>
+        </div>
     </div>
 
     @if($models->isEmpty())
