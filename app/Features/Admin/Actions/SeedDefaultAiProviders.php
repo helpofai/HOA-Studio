@@ -48,6 +48,20 @@ class SeedDefaultAiProviders
                 ],
             ],
             [
+                'name' => 'Antigravity Gateway',
+                'slug' => 'antigravity',
+                'icon' => '🌌',
+                'description' => 'Google OAuth backed multi-account AI routing with automatic model quota rotation.',
+                'base_url' => 'https://api.antigravity.ai/v1',
+                'is_local' => false,
+                'is_active' => true,
+                'allow_user_key' => true,
+                'models' => [
+                    ['name' => 'Antigravity Pro (Sonnet 3.5 / Gemini 1.5 Pro Hybrid)', 'model_id' => 'antigravity/pro-hybrid', 'context_window' => 200000],
+                    ['name' => 'Antigravity Flash (Speed & Intelligence Hybrid)', 'model_id' => 'antigravity/flash-hybrid', 'context_window' => 1000000],
+                ],
+            ],
+            [
                 'name' => 'DeepSeek',
                 'slug' => 'deepseek',
                 'icon' => '🐳',

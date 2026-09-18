@@ -36,12 +36,17 @@
             </p>
         </div>
 
-        <a href="{{ route('admin.ai-settings.omniroute') }}" wire:navigate>
-            <x-glass.button variant="primary" size="sm" class="shadow-lg shadow-violet-500/25 gap-2">
+        <div class="flex items-center gap-2">
+            <a href="{{ route('admin.ai-settings.antigravity') }}" wire:navigate class="inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 cursor-pointer active:scale-[0.98] px-3.5 py-2 text-xs gap-2 bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-lg shadow-indigo-500/25 border border-indigo-400/30">
+                <span>🌌</span>
+                <span>Configure Antigravity Pool &rarr;</span>
+            </a>
+
+            <a href="{{ route('admin.ai-settings.omniroute') }}" wire:navigate class="inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 cursor-pointer active:scale-[0.98] px-3.5 py-2 text-xs gap-2 bg-gradient-to-r from-violet-600 via-violet-500 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-lg shadow-violet-500/25 border border-violet-400/30">
                 <span>⚡</span>
                 <span>Configure OmniRoute Gateway &rarr;</span>
-            </x-glass.button>
-        </a>
+            </a>
+        </div>
     </div>
 
     @if (session('status'))
@@ -227,22 +232,16 @@
                     </button>
 
                     @if($isOmni)
-                        <a href="{{ route('admin.ai-settings.omniroute') }}" wire:navigate>
-                            <x-glass.button variant="primary" size="sm" class="gap-1.5 shadow-md shadow-violet-500/25 font-bold text-xs">
-                                <span>⚡ Setup Gateway &rarr;</span>
-                            </x-glass.button>
+                        <a href="{{ route('admin.ai-settings.omniroute') }}" wire:navigate class="inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 cursor-pointer px-3 py-1.5 text-xs gap-1.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-md shadow-violet-500/25 font-bold">
+                            <span>⚡ Setup Gateway &rarr;</span>
                         </a>
                     @elseif($provider->slug === 'antigravity')
-                        <a href="{{ route('admin.ai-settings.antigravity') }}" wire:navigate>
-                            <x-glass.button variant="secondary" size="sm" class="gap-1 text-xs">
-                                <span>⚙️ Configure</span>
-                            </x-glass.button>
+                        <a href="{{ route('admin.ai-settings.antigravity') }}" wire:navigate class="inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 cursor-pointer px-3 py-1.5 text-xs gap-1 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 hover:text-white border border-slate-700/50">
+                            <span>⚙️ Configure</span>
                         </a>
                     @else
-                        <a href="{{ route('admin.ai-settings.omniroute') }}" wire:navigate>
-                            <x-glass.button variant="secondary" size="sm" class="gap-1 text-xs">
-                                <span>⚙️ Configure</span>
-                            </x-glass.button>
+                        <a href="{{ route('admin.ai-settings.omniroute') }}" wire:navigate class="inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 cursor-pointer px-3 py-1.5 text-xs gap-1 bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 hover:text-white border border-slate-700/50">
+                            <span>⚙️ Configure</span>
                         </a>
                     @endif
                 </div>
