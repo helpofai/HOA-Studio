@@ -127,6 +127,11 @@ class AdminAntigravitySetupPage extends Component
         session()->flash('status', 'Direct Antigravity API key account added to rotation pool.');
     }
 
+    public function mount(AntigravityAccountManager $manager)
+    {
+        $manager->fetchAntigravityModels();
+    }
+
     public function render(AntigravityAccountManager $manager)
     {
         $provider = AiProvider::where('slug', 'antigravity')->with('models')->first();
