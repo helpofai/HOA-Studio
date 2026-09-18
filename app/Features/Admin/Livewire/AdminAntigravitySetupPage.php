@@ -137,7 +137,7 @@ class AdminAntigravitySetupPage extends Component
             'provider' => $provider,
             'accounts' => $accounts,
             'activeToken' => $activeToken,
-            'models' => $provider ? $provider->models : collect(),
+            'models' => $provider ? $provider->models()->orderBy('id')->get() : collect(),
         ]);
     }
 
