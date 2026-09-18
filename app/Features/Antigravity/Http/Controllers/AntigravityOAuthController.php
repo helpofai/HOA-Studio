@@ -34,9 +34,16 @@ class AntigravityOAuthController extends Controller
     {
         $clientId = config('services.google.client_id');
         $configuredRedirect = config('services.google.redirect', '/oauth/antigravity/callback');
-        $redirectUri = str_starts_with($configuredRedirect, 'http')
-            ? $configuredRedirect
-            : url($configuredRedirect);
+        
+        // If they specify a relative path in DB (e.g., "/oauth/antigravity/callback"), force it to use `forceRootUrl` if HTTPS is required,
+        // or ensure `url()` generates correct HTTPS bindings using `APP_URL`.
+        if (str_starts_with($configuredRedirect, 'http')) {
+            $redirectUri = $configuredRedirect;
+        } else {
+            // Force strict resolution using config('app.url') as fallback if reverse proxies drop the schema
+            $baseUrl = rtrim(config('app.url', 'https://studio.helpofai.com'), '/');
+            $redirectUri = $baseUrl . '/' . ltrim($configuredRedirect, '/');
+        }
 
         if (empty($clientId)) {
             return redirect()->route('admin.ai-settings.antigravity')->with('error', 'Google Client ID is not configured in .env (GOOGLE_CLIENT_ID).');
@@ -59,6 +66,13 @@ class AntigravityOAuthController extends Controller
 
         // If request expects JSON or explicitly asks for debug info, or direct redirect
         if ($request->has('debug')) {
+            \Illuminate\Support\Facades\Log::debug('Antigravity OAuth Debug', [
+                'app_url' => config('app.url'),
+                'configured_redirect' => $configuredRedirect,
+                'redirect_uri_sent_to_google' => $redirectUri,
+                'full_google_url' => $googleUrl,
+            ]);
+
             return response()->json([
                 'client_id' => $clientId,
                 'redirect_uri_sent_to_google' => $redirectUri,
@@ -104,9 +118,13 @@ class AntigravityOAuthController extends Controller
             $clientId = config('services.google.client_id');
             $clientSecret = config('services.google.client_secret');
             $configuredRedirect = config('services.google.redirect', '/oauth/antigravity/callback');
-            $redirectUri = str_starts_with($configuredRedirect, 'http')
-                ? $configuredRedirect
-                : url($configuredRedirect);
+            
+            if (str_starts_with($configuredRedirect, 'http')) {
+                $redirectUri = $configuredRedirect;
+            } else {
+                $baseUrl = rtrim(config('app.url', 'https://studio.helpofai.com'), '/');
+                $redirectUri = $baseUrl . '/' . ltrim($configuredRedirect, '/');
+            }
 
             // 1. Exchange auth code for tokens
             $tokenResponse = Http::asForm()->post('https://oauth2.googleapis.com/token', [
