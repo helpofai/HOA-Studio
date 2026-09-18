@@ -21,6 +21,8 @@ use App\Features\Antigravity\Models\AntigravityAccount;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Features\AI\Models\AiProvider;
+use App\Features\AI\Models\AiModel;
 
 class AntigravityAccountManager
 {
@@ -180,5 +182,35 @@ class AntigravityAccountManager
             ->where('is_active', true)
             ->where('is_quota_exhausted', false)
             ->count();
+    }
+
+    /**
+     * Fetch models from Antigravity gateway (mock discovery for now).
+     */
+    public function fetchAntigravityModels(): void
+    {
+        // Mock data to simulate dynamic fetching from Antigravity gateway
+        $discoveredModels = [
+            ['name' => 'Antigravity Pro (Hybrid)', 'model_id' => 'antigravity/pro-hybrid'],
+            ['name' => 'Antigravity Flash (Hybrid)', 'model_id' => 'antigravity/flash-hybrid'],
+            ['name' => 'Gemini 3.8 Flash', 'model_id' => 'antigravity.google'],
+            ['name' => 'Gemini 3.7 Flash', 'model_id' => 'antigravity.google'],
+            ['name' => 'Gemini 3.6 Flash', 'model_id' => 'antigravity.google'],
+            ['name' => 'Gemini 3.1 Pro (High)', 'model_id' => 'antigravity.google'],
+            ['name' => 'Gemini 3.1 Pro (Low)', 'model_id' => 'antigravity.google'],
+            ['name' => 'Claude Sonnet 4.6 (thinking)', 'model_id' => 'antigravity.google'],
+            ['name' => 'Claude Opus 4.6 (thinking)', 'model_id' => 'antigravity.google'],
+            ['name' => 'GPT-OSS-120B (open-weights model)', 'model_id' => 'antigravity.google'],
+        ];
+
+        $provider = AiProvider::where('slug', 'antigravity')->first();
+        if (!$provider) return;
+
+        foreach ($discoveredModels as $model) {
+            AiModel::updateOrCreate(
+                ['model_id' => $model['model_id'], 'ai_provider_id' => $provider->id, 'name' => $model['name']],
+                ['is_active' => true]
+            );
+        }
     }
 }
