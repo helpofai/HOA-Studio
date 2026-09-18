@@ -35,14 +35,17 @@ class AntigravityOAuthController extends Controller
         $clientId = config('services.google.client_id');
         $configuredRedirect = config('services.google.redirect', '/oauth/antigravity/callback');
         
-        // If they specify a relative path in DB (e.g., "/oauth/antigravity/callback"), force it to use `forceRootUrl` if HTTPS is required,
-        // or ensure `url()` generates correct HTTPS bindings using `APP_URL`.
+        // Fix: Use Str::replace() or parse_url() cleanly, ignoring extra slashes
+        $cleanConfigured = ltrim($configuredRedirect, '/');
+        
         if (str_starts_with($configuredRedirect, 'http')) {
             $redirectUri = $configuredRedirect;
+            // Clean up double slashes outside the scheme
+            $redirectUri = preg_replace('#([^:])//+#', '$1/', $redirectUri);
         } else {
             // Force strict resolution using config('app.url') as fallback if reverse proxies drop the schema
             $baseUrl = rtrim(config('app.url', 'https://studio.helpofai.com'), '/');
-            $redirectUri = $baseUrl . '/' . ltrim($configuredRedirect, '/');
+            $redirectUri = $baseUrl . '/' . $cleanConfigured;
         }
 
         if (empty($clientId)) {
@@ -118,12 +121,14 @@ class AntigravityOAuthController extends Controller
             $clientId = config('services.google.client_id');
             $clientSecret = config('services.google.client_secret');
             $configuredRedirect = config('services.google.redirect', '/oauth/antigravity/callback');
+            $cleanConfigured = ltrim($configuredRedirect, '/');
             
             if (str_starts_with($configuredRedirect, 'http')) {
                 $redirectUri = $configuredRedirect;
+                $redirectUri = preg_replace('#([^:])//+#', '$1/', $redirectUri);
             } else {
                 $baseUrl = rtrim(config('app.url', 'https://studio.helpofai.com'), '/');
-                $redirectUri = $baseUrl . '/' . ltrim($configuredRedirect, '/');
+                $redirectUri = $baseUrl . '/' . $cleanConfigured;
             }
 
             // 1. Exchange auth code for tokens
