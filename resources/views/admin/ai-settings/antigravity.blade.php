@@ -282,5 +282,40 @@
                 </x-glass.button>
             </div>
         </form>
+
+    <!-- Antigravity Model Grid -->
+    <div class="mt-8 space-y-4">
+        <h2 class="text-lg font-bold text-white tracking-tight">🤖 Antigravity Gateway Models</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            @foreach($models as $model)
+                <x-glass.card variant="elevated" class="p-5 border border-white/10 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-white">{{ $model->name }}</h3>
+                        <p class="text-xs text-slate-400 mt-1 font-mono">{{ $model->model_id }}</p>
+                    </div>
+                    <div class="mt-4 flex items-center justify-between">
+                        <button
+                            type="button"
+                            wire:click="toggleModelActive({{ $model->id }})"
+                            class="px-2.5 py-1 rounded-xl text-[10px] font-bold uppercase {{ $model->is_active ? 'bg-emerald-500/10 text-emerald-300' : 'bg-red-500/10 text-red-400' }}"
+                        >
+                            {{ $model->is_active ? 'Active' : 'Disabled' }}
+                        </button>
+                        @if(!$model->is_default)
+                            <button
+                                type="button"
+                                wire:click="setModelDefault({{ $model->id }})"
+                                class="text-xs text-indigo-400 hover:text-indigo-200"
+                            >
+                                Set Default
+                            </button>
+                        @else
+                            <span class="text-xs text-violet-400 font-bold">Default</span>
+                        @endif
+                    </div>
+                </x-glass.card>
+            @endforeach
+        </div>
+    </div>
     </x-glass.card>
 </div>
