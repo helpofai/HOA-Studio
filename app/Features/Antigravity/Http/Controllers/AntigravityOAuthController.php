@@ -33,7 +33,10 @@ class AntigravityOAuthController extends Controller
     public function redirect(Request $request)
     {
         $clientId = config('services.google.client_id');
-        $redirectUri = url(config('services.google.redirect', '/oauth/antigravity/callback'));
+        $configuredRedirect = config('services.google.redirect', '/oauth/antigravity/callback');
+        $redirectUri = str_starts_with($configuredRedirect, 'http')
+            ? $configuredRedirect
+            : url($configuredRedirect);
 
         if (empty($clientId)) {
             return redirect()->route('admin.ai-settings.antigravity')->with('error', 'Google Client ID is not configured in .env (GOOGLE_CLIENT_ID).');
@@ -46,13 +49,24 @@ class AntigravityOAuthController extends Controller
             'client_id' => $clientId,
             'redirect_uri' => $redirectUri,
             'response_type' => 'code',
-            'scope' => 'openid profile email',
+            'scope' => 'openid profile email https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/cclog https://www.googleapis.com/auth/experimentsandconfigs',
             'access_type' => 'offline',
             'prompt' => 'consent',
             'state' => $state,
         ]);
 
-        return redirect('https://accounts.google.com/o/oauth2/v2/auth?'.$query);
+        $googleUrl = 'https://accounts.google.com/o/oauth2/v2/auth?'.$query;
+
+        // If request expects JSON or explicitly asks for debug info, or direct redirect
+        if ($request->has('debug')) {
+            return response()->json([
+                'client_id' => $clientId,
+                'redirect_uri_sent_to_google' => $redirectUri,
+                'full_google_url' => $googleUrl,
+            ]);
+        }
+
+        return redirect($googleUrl);
     }
 
     /**
@@ -89,7 +103,10 @@ class AntigravityOAuthController extends Controller
         try {
             $clientId = config('services.google.client_id');
             $clientSecret = config('services.google.client_secret');
-            $redirectUri = url(config('services.google.redirect', '/oauth/antigravity/callback'));
+            $configuredRedirect = config('services.google.redirect', '/oauth/antigravity/callback');
+            $redirectUri = str_starts_with($configuredRedirect, 'http')
+                ? $configuredRedirect
+                : url($configuredRedirect);
 
             // 1. Exchange auth code for tokens
             $tokenResponse = Http::asForm()->post('https://oauth2.googleapis.com/token', [
