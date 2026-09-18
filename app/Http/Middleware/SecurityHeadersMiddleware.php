@@ -38,6 +38,14 @@ class SecurityHeadersMiddleware
     {
         $response = $next($request);
 
+        // Force UTF-8 encoding header for all HTML responses
+        $contentType = $response->headers->get('Content-Type');
+        if (! $contentType) {
+            $response->headers->set('Content-Type', 'text/html; charset=UTF-8');
+        } elseif (str_contains($contentType, 'text/html') && ! str_contains(strtolower($contentType), 'charset')) {
+            $response->headers->set('Content-Type', 'text/html; charset=UTF-8');
+        }
+
         // Anti-Clickjacking protection
         $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
 
