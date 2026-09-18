@@ -20,6 +20,7 @@ namespace App\Features\Admin\Livewire;
 use App\Features\AI\Models\AiProvider;
 use App\Features\Antigravity\Models\AntigravityAccount;
 use App\Features\Antigravity\Services\AntigravityAccountManager;
+use App\Features\AI\Services\ModelGovernanceService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -140,19 +141,33 @@ class AdminAntigravitySetupPage extends Component
         ]);
     }
 
-    public function toggleModelActive(int $modelId)
+    public function toggleModelActive(int $modelId, ModelGovernanceService $service)
     {
         $model = \App\Features\AI\Models\AiModel::findOrFail($modelId);
+        
         // Ensure the model belongs to the antigravity provider
         if ($model->aiProvider->slug !== 'antigravity') {
             session()->flash('error', 'Unauthorized action.');
             return;
         }
 
-        $model->is_active = ! $model->is_active;
-        $model->save();
+        $service->toggleActive($model);
 
         $status = $model->is_active ? 'activated' : 'deactivated';
         session()->flash('status', "Antigravity model '{$model->name}' {$status} successfully.");
+    }
+
+    public function setModelDefault(int $modelId, ModelGovernanceService $service)
+    {
+        $model = \App\Features\AI\Models\AiModel::findOrFail($modelId);
+        
+        if ($model->aiProvider->slug !== 'antigravity') {
+            session()->flash('error', 'Unauthorized action.');
+            return;
+        }
+
+        $service->setDefaultModel($model);
+
+        session()->flash('status', "Antigravity model '{$model->name}' set as default.");
     }
 }
