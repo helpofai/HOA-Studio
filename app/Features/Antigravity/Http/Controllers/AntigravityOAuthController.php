@@ -18,6 +18,7 @@
 namespace App\Features\Antigravity\Http\Controllers;
 
 use App\Features\Antigravity\Models\AntigravityAccount;
+use App\Features\Antigravity\Services\AntigravityAccountManager;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -89,7 +90,7 @@ class AntigravityOAuthController extends Controller
     /**
      * Handle the callback from Google.
      */
-    public function callback(Request $request)
+    public function callback(Request $request, AntigravityAccountManager $manager)
     {
         $state = $request->session()->pull('antigravity_oauth_state');
 
@@ -209,7 +210,10 @@ class AntigravityOAuthController extends Controller
                 ]);
             }
 
-            return redirect()->route('admin.ai-settings.antigravity')->with('success', 'Antigravity Google account linked successfully.');
+            // Sync Models immediately upon successful connection
+            $manager->fetchAntigravityModels();
+
+            return redirect()->route('admin.ai-settings.antigravity')->with('success', 'Antigravity Google account linked successfully and models synced.');
         } catch (\Exception $e) {
             Log::error('Antigravity OAuth Callback Exception', ['error' => $e->getMessage()]);
 
@@ -238,6 +242,6 @@ class AntigravityOAuthController extends Controller
         $request->merge($queryParams);
         
         // Redirect to normal callback logic
-        return $this->callback($request);
+        return $this->callback($request, app(AntigravityAccountManager::class));
     }
 }
