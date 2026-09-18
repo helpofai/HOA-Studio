@@ -1,0 +1,16 @@
+{
+  "id": "9ab80f19-563f-40ca-97a3-b75c8e11873c",
+  "timestamp": 1789722017,
+  "description": "Hotfix for local SSL certificate issues by adding withoutVerifying() to Http client in local environment.",
+  "operations": [
+    {
+      "op_type": "write",
+      "source_path": "app/Features/Antigravity/Services/AntigravityAccountManager.php",
+      "target_path": null,
+      "pre_hash": "5bfb9f1d1247ec23991b077df05ea63bdc86098f9ad6622065db0f452032f4a6",
+      "post_hash": "01285a6d8e18f5b539a1e5070c1a4f406679739f36d9168378bbca59145df1e0",
+      "snapshot_path": "C:\\Users\\rajib\\Desktop\\HOA-Studio\\aios\\.cache\\snapshots\\9ab80f19-563f-40ca-97a3-b75c8e11873c\\pre_image.dat"
+    }
+  ],
+  "reverted": false
+}

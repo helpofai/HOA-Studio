@@ -1,0 +1,16 @@
+{
+  "id": "86c3c658-35fc-4d45-a771-2cd6def4fbd2",
+  "timestamp": 1789718424,
+  "description": "Update AdminAntigravitySetupPage to provide models and include toggleModelActive action.",
+  "operations": [
+    {
+      "op_type": "write",
+      "source_path": "app/Features/Admin/Livewire/AdminAntigravitySetupPage.php",
+      "target_path": null,
+      "pre_hash": "1f7708a6addfd46ad5a1061759fddae9a1c008831db057156bc017d41f03e885",
+      "post_hash": "85243994d1482ba2531af5aba15d2738f3d227215b336b5de283664d999422dc",
+      "snapshot_path": "C:\\Users\\rajib\\Desktop\\HOA-Studio\\aios\\.cache\\snapshots\\86c3c658-35fc-4d45-a771-2cd6def4fbd2\\pre_image.dat"
+    }
+  ],
+  "reverted": false
+}

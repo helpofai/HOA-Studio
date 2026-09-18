@@ -1,0 +1,16 @@
+{
+  "id": "5f8d6849-9a21-45b5-a1b9-85f1b83d40df",
+  "timestamp": 1789719902,
+  "description": "Use ModelGovernanceService for model toggling and setting defaults.",
+  "operations": [
+    {
+      "op_type": "write",
+      "source_path": "app/Features/Admin/Livewire/AdminAntigravitySetupPage.php",
+      "target_path": null,
+      "pre_hash": "85243994d1482ba2531af5aba15d2738f3d227215b336b5de283664d999422dc",
+      "post_hash": "be42db3a4005aec399c3ad1e2baefa2ef8df16eeeff2089f9717b33f946d24c0",
+      "snapshot_path": "C:\\Users\\rajib\\Desktop\\HOA-Studio\\aios\\.cache\\snapshots\\5f8d6849-9a21-45b5-a1b9-85f1b83d40df\\pre_image.dat"
+    }
+  ],
+  "reverted": false
+}
