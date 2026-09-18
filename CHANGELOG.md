@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.9.0] - 2026-09-18
+
+### Added
+- **Social Auth & OAuth 2.0 Governance Tab**:
+  - Integrated 1-click configuration for Google, Facebook Login, X.com (Twitter), and GitHub OAuth credentials in Admin Auth Settings (`/admin/auth-settings`).
+  - Added step-by-step setup documentation cards and 1-click "Copy URI" buttons.
+  - Implemented dynamic runtime config hot-reloading in `AppServiceProvider`.
+- **Antigravity CLI OAuth Dialog & Popup Auth Flow**:
+  - Added native Javascript popup window trigger (`window.open`) for Google Antigravity account authorization.
+  - Built a fallback CLI-style "Connect Antigravity CLI / OAuth Authorization" card with manual callback parsing (`/oauth/antigravity/manual-callback`) to gracefully handle popup blocks and redirect URI mismatches.
+
+### Fixed
+- **Class Namespace Resolution**: Corrected `AntigravityAccount` model relationship path in `App\Models\User`.
+- **Mojibake UTF-8 Charset Header**: Added explicit `Content-Type: text/html; charset=UTF-8` response headers in `SecurityHeadersMiddleware`.
+- **Auto-Seeding**: Added Antigravity Gateway seeding to `SeedDefaultAiProviders`.
+
+---
+
 ## [2.8.9] - 2026-09-12
 ### Refactored
 - **Editor Controller Decoupling**: Refactored monolithic DocumentEditor Livewire controller into 5 modular concern traits (HasSeoAuditing, HasBlogPublishing, HasDocumentImporting, HasDocumentSharing, HasBrainLineage).
