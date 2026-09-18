@@ -185,32 +185,38 @@ class AntigravityAccountManager
     }
 
     /**
-     * Fetch models from Antigravity gateway (mock discovery for now).
+     * Fetch models from Antigravity gateway (Dynamic discovery).
      */
     public function fetchAntigravityModels(): void
     {
-        // Mock data to simulate dynamic fetching from Antigravity gateway
-        $discoveredModels = [
-            ['name' => 'Antigravity Pro (Hybrid)', 'model_id' => 'antigravity/pro-hybrid'],
-            ['name' => 'Antigravity Flash (Hybrid)', 'model_id' => 'antigravity/flash-hybrid'],
-            ['name' => 'Gemini 3.8 Flash', 'model_id' => 'antigravity.google'],
-            ['name' => 'Gemini 3.7 Flash', 'model_id' => 'antigravity.google'],
-            ['name' => 'Gemini 3.6 Flash', 'model_id' => 'antigravity.google'],
-            ['name' => 'Gemini 3.1 Pro (High)', 'model_id' => 'antigravity.google'],
-            ['name' => 'Gemini 3.1 Pro (Low)', 'model_id' => 'antigravity.google'],
-            ['name' => 'Claude Sonnet 4.6 (thinking)', 'model_id' => 'antigravity.google'],
-            ['name' => 'Claude Opus 4.6 (thinking)', 'model_id' => 'antigravity.google'],
-            ['name' => 'GPT-OSS-120B (open-weights model)', 'model_id' => 'antigravity.google'],
-        ];
-
         $provider = AiProvider::where('slug', 'antigravity')->first();
         if (!$provider) return;
 
-        foreach ($discoveredModels as $model) {
-            AiModel::updateOrCreate(
-                ['model_id' => $model['model_id'], 'ai_provider_id' => $provider->id, 'name' => $model['name']],
-                ['is_active' => true]
-            );
+        try {
+            $client = Http::timeout(10);
+            if (config('app.env') === 'local') {
+                $client->withoutVerifying();
+            }
+
+            // Replace with your actual Antigravity gateway endpoint
+            $response = $client->get('https://antigravity.gateway.example.com/models');
+
+            if ($response->successful()) {
+                $discoveredModels = $response->json(); // Expect [{name, model_id, context_window}, ...]
+                
+                foreach ($discoveredModels as $model) {
+                    AiModel::updateOrCreate(
+                        ['model_id' => $model['model_id'], 'ai_provider_id' => $provider->id],
+                        [
+                            'name' => $model['name'], 
+                            'is_active' => true,
+                            'context_window' => $model['context_window'] ?? 128000
+                        ]
+                    );
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to sync Antigravity models: ' . $e->getMessage());
         }
     }
 }
