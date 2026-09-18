@@ -128,7 +128,7 @@ class AdminAntigravitySetupPage extends Component
 
     public function render(AntigravityAccountManager $manager)
     {
-        $provider = AiProvider::where('slug', 'antigravity')->first();
+        $provider = AiProvider::where('slug', 'antigravity')->with('models')->first();
         $accounts = $manager->getAllAccounts(Auth::user());
         $activeToken = $manager->getActiveToken(Auth::user());
 
@@ -136,6 +136,23 @@ class AdminAntigravitySetupPage extends Component
             'provider' => $provider,
             'accounts' => $accounts,
             'activeToken' => $activeToken,
+            'models' => $provider ? $provider->models : collect(),
         ]);
+    }
+
+    public function toggleModelActive(int $modelId)
+    {
+        $model = \App\Features\AI\Models\AiModel::findOrFail($modelId);
+        // Ensure the model belongs to the antigravity provider
+        if ($model->aiProvider->slug !== 'antigravity') {
+            session()->flash('error', 'Unauthorized action.');
+            return;
+        }
+
+        $model->is_active = ! $model->is_active;
+        $model->save();
+
+        $status = $model->is_active ? 'activated' : 'deactivated';
+        session()->flash('status', "Antigravity model '{$model->name}' {$status} successfully.");
     }
 }
