@@ -1,0 +1,16 @@
+{
+  "id": "5a86be4b-833f-486e-9349-a0be14b0bd7d",
+  "timestamp": 1789722985,
+  "description": "Add fetchAntigravityModels method to sync models dynamically.",
+  "operations": [
+    {
+      "op_type": "write",
+      "source_path": "app/Features/Antigravity/Services/AntigravityAccountManager.php",
+      "target_path": null,
+      "pre_hash": "01285a6d8e18f5b539a1e5070c1a4f406679739f36d9168378bbca59145df1e0",
+      "post_hash": "15dc9cd1b832cd4b5ad3b85e3d4863f7a99e8505caec6a89bb0eb2165ac8f976",
+      "snapshot_path": "C:\\Users\\rajib\\Desktop\\HOA-Studio\\aios\\.cache\\snapshots\\5a86be4b-833f-486e-9349-a0be14b0bd7d\\pre_image.dat"
+    }
+  ],
+  "reverted": false
+}

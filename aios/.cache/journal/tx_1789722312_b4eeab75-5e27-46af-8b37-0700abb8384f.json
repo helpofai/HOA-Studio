@@ -1,0 +1,16 @@
+{
+  "id": "b4eeab75-5e27-46af-8b37-0700abb8384f",
+  "timestamp": 1789722312,
+  "description": "Hotfix for local SSL certificate issues by adding withoutVerifying() to Http clients in Auth Controller's callback when in local environment.",
+  "operations": [
+    {
+      "op_type": "write",
+      "source_path": "app/Features/Antigravity/Http/Controllers/AntigravityOAuthController.php",
+      "target_path": null,
+      "pre_hash": "cdbdf8dee6b7e33d9d6fa009a2ab5d92e3de76c6a0684eb3b9fdafb3d37558d4",
+      "post_hash": "7d522c32a3159174b5716ff9cf85699f883f43d9cae704a98c820a278db59cd6",
+      "snapshot_path": "C:\\Users\\rajib\\Desktop\\HOA-Studio\\aios\\.cache\\snapshots\\b4eeab75-5e27-46af-8b37-0700abb8384f\\pre_image.dat"
+    }
+  ],
+  "reverted": false
+}

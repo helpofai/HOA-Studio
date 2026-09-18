@@ -1,0 +1,16 @@
+{
+  "id": "afaf70c5-2bff-4135-ac2d-241b489a0bb0",
+  "timestamp": 1789723291,
+  "description": "Update OAuth callback to trigger model fetch immediately upon successful account link.",
+  "operations": [
+    {
+      "op_type": "write",
+      "source_path": "app/Features/Antigravity/Http/Controllers/AntigravityOAuthController.php",
+      "target_path": null,
+      "pre_hash": "7d522c32a3159174b5716ff9cf85699f883f43d9cae704a98c820a278db59cd6",
+      "post_hash": "151edb8016cc3f3b6f6eb5368cc76111e57daab43b02e741c447848e2e79c3c0",
+      "snapshot_path": "C:\\Users\\rajib\\Desktop\\HOA-Studio\\aios\\.cache\\snapshots\\afaf70c5-2bff-4135-ac2d-241b489a0bb0\\pre_image.dat"
+    }
+  ],
+  "reverted": false
+}

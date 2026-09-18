@@ -90,6 +90,7 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::get('/brand-voices', BrandVoicePage::class)->name('brand-voices.index');
     Route::get('/knowledge-base', KnowledgeBasePage::class)->name('knowledge-base.index');
     Route::get('/ai-models', UserAiModelsPage::class)->name('ai-models.index');
+    Route::get('/ai-models/antigravity', \App\Features\AI\Livewire\UserAntigravityModelsPage::class)->name('ai-models.antigravity');
     Route::get('/ai-models/omniroute', UserOmniRouteSetupPage::class)->name('ai-models.omniroute');
     Route::get('/ai-settings/omniroute', UserOmniRouteSetupPage::class)->name('ai-settings.omniroute');
     Route::get('/usage', UserUsagePage::class)->name('usage.index');
