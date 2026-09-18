@@ -170,6 +170,12 @@
                                     <span>⚡ Setup Gateway &rarr;</span>
                                 </x-glass.button>
                             </a>
+                        @elseif($p->slug === 'antigravity')
+                            <a href="{{ route('ai-models.antigravity') }}" wire:navigate>
+                                <x-glass.button variant="primary" size="sm" class="gap-1 shadow-md shadow-indigo-500/20">
+                                    <span>🤖 Gateway &rarr;</span>
+                                </x-glass.button>
+                            </a>
                         @elseif($p->allow_user_key)
                             @php
                                 $hasKey = $apiKeys->where('provider_slug', $p->slug)->isNotEmpty();
