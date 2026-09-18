@@ -131,8 +131,14 @@ class AntigravityOAuthController extends Controller
                 $redirectUri = $baseUrl . '/' . $cleanConfigured;
             }
 
+            // Fix for local environments with older cURL/SSL configs
+            $client = Http::asForm();
+            if (config('app.env') === 'local') {
+                $client->withoutVerifying();
+            }
+
             // 1. Exchange auth code for tokens
-            $tokenResponse = Http::asForm()->post('https://oauth2.googleapis.com/token', [
+            $tokenResponse = $client->post('https://oauth2.googleapis.com/token', [
                 'client_id' => $clientId,
                 'client_secret' => $clientSecret,
                 'redirect_uri' => $redirectUri,
@@ -155,8 +161,12 @@ class AntigravityOAuthController extends Controller
                 return redirect()->route('admin.ai-settings.antigravity')->with('error', 'Received empty access token from Google.');
             }
 
-            // 2. Fetch user details from Google UserInfo endpoint
-            $userInfoResponse = Http::withToken($accessToken)->get('https://www.googleapis.com/oauth2/v3/userinfo');
+            // 2. Fetch user details from Google UserInfo endpoint (also bypass SSL if local)
+            $userInfoClient = Http::withToken($accessToken);
+            if (config('app.env') === 'local') {
+                $userInfoClient->withoutVerifying();
+            }
+            $userInfoResponse = $userInfoClient->get('https://www.googleapis.com/oauth2/v3/userinfo');
 
             $googleId = null;
             $email = null;
