@@ -68,7 +68,7 @@
         </div>
     @endif
 
-    @if (session()->has('error'))
+        @if (session()->has('error'))
         <div class="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 text-sm font-semibold flex items-center justify-between">
             <div class="flex items-center gap-2">
                 <span>⚠️</span>
@@ -76,6 +76,25 @@
             </div>
         </div>
     @endif
+
+    <!-- 🔗 MANUAL OAUTH CALLBACK PASTE BOX -->
+    <x-glass.card variant="elevated" class="p-5 border-white/10 space-y-3" x-data="{ showManual: false }">
+        <button @click="showManual = !showManual" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-2">
+            <span>🔗 Popup blocked or callback failed? Use Manual Entry Mode</span>
+        </button>
+        
+        <div x-show="showManual" x-transition class="space-y-3 p-4 bg-slate-950 rounded-2xl border border-white/5">
+            <label class="block text-slate-300 font-semibold text-xs mb-1">Paste Full Redirect URL Here</label>
+            <form action="{{ route('oauth.antigravity.manual_callback') }}" method="POST" class="flex flex-col sm:flex-row gap-2">
+                @csrf
+                <input type="text" name="full_url" required placeholder="Paste the full URL from the popup window starting with https://..." class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:ring-violet-500 focus:border-violet-500 outline-none">
+                <x-glass.button type="submit" variant="primary" size="sm" class="shrink-0">
+                    Connect Account
+                </x-glass.button>
+            </form>
+            <p class="text-[10px] text-slate-500">If your browser blocks the Google login popup or fails to redirect back, copy the entire URL from the address bar of the Google login window after granting permissions and paste it here.</p>
+        </div>
+    </x-glass.card>
 
     <!-- Active Routing Summary Card -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
