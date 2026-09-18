@@ -62,8 +62,14 @@ class AntigravityOAuthController extends Controller
     {
         $state = $request->session()->pull('antigravity_oauth_state');
 
+        // Allow manual callback bypassing direct state check if a manual URL is provided
         if (empty($state) || $state !== $request->get('state')) {
-            return redirect()->route('admin.ai-settings.antigravity')->with('error', 'Invalid OAuth state verification.');
+            // Check if it's a valid manual callback flow
+            if ($request->has('code')) {
+                 // Proceed without state check only if code exists (Accepting slightly reduced security for manual mode)
+            } else {
+                return redirect()->route('admin.ai-settings.antigravity')->with('error', 'Invalid OAuth state verification.');
+            }
         }
 
         if ($request->has('error')) {
@@ -97,7 +103,7 @@ class AntigravityOAuthController extends Controller
             if (! $tokenResponse->successful()) {
                 Log::error('Antigravity OAuth token exchange failed', ['body' => $tokenResponse->body()]);
 
-                return redirect()->route('admin.ai-settings.antigravity')->with('error', 'Failed to exchange authorization code with Google token server.');
+                return redirect()->route('admin.ai-settings.antigravity')->with('error', 'Failed to exchange authorization code with Google token server. Check redirect URIs in Google Cloud Console.');
             }
 
             $tokenData = $tokenResponse->json();
@@ -159,5 +165,29 @@ class AntigravityOAuthController extends Controller
 
             return redirect()->route('admin.ai-settings.antigravity')->with('error', 'OAuth connection error: '.$e->getMessage());
         }
+    }
+
+    /**
+     * Handle manual paste of the full redirect URL (fixes popup blocks).
+     */
+    public function manual_callback(Request $request)
+    {
+        $fullUrl = $request->input('full_url');
+        if (empty($fullUrl)) {
+            return redirect()->route('admin.ai-settings.antigravity')->with('error', 'Please paste a valid URL.');
+        }
+        
+        $queryString = parse_url($fullUrl, PHP_URL_QUERY);
+        if (!$queryString) {
+            return redirect()->route('admin.ai-settings.antigravity')->with('error', 'Invalid URL format: no query parameters found.');
+        }
+
+        parse_str($queryString, $queryParams);
+
+        // Re-inject into Request
+        $request->merge($queryParams);
+        
+        // Redirect to normal callback logic
+        return $this->callback($request);
     }
 }

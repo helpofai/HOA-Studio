@@ -167,4 +167,5 @@ Route::get('/storage/{path}', function (string $path) {
 Route::middleware('auth')->group(function () {
     Route::get('/oauth/antigravity/redirect', [AntigravityOAuthController::class, 'redirect'])->name('oauth.antigravity.redirect');
     Route::get('/oauth/antigravity/callback', [AntigravityOAuthController::class, 'callback'])->name('oauth.antigravity.callback');
+    Route::post('/oauth/antigravity/manual-callback', [AntigravityOAuthController::class, 'manual_callback'])->name('oauth.antigravity.manual_callback');
 });
