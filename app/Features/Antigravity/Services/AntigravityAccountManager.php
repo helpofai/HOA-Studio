@@ -139,8 +139,13 @@ class AntigravityAccountManager
         }
 
         try {
-            $response = Http::asForm()
-                ->post('https://oauth2.googleapis.com/token', [
+            // Hotfix for Local SSL/Certificate issues in local dev
+            $client = Http::asForm();
+            if (config('app.env') === 'local') {
+                $client->withoutVerifying();
+            }
+
+            $response = $client->post('https://oauth2.googleapis.com/token', [
                     'client_id' => config('services.google.client_id'),
                     'client_secret' => config('services.google.client_secret'),
                     'refresh_token' => $account->google_oauth_refresh_token,
