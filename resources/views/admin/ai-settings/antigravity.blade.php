@@ -77,22 +77,35 @@
         </div>
     @endif
 
-    <!-- 🔗 MANUAL OAUTH CALLBACK PASTE BOX -->
-    <x-glass.card variant="elevated" class="p-5 border-white/10 space-y-3" x-data="{ showManual: false }">
-        <button @click="showManual = !showManual" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-2">
-            <span>🔗 Popup blocked or callback failed? Use Manual Entry Mode</span>
-        </button>
+    <!-- 🔗 MANUAL OAUTH CALLBACK PASTE BOX / POPUP DIALOG MODE -->
+    <x-glass.card variant="elevated" class="p-6 border-white/10 space-y-4" x-data="{ showManual: true }">
+        <div class="flex items-center justify-between border-b border-white/10 pb-3">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <span>🔑 Connect Antigravity CLI / OAuth Authorization</span>
+            </h3>
+            <button @click="showManual = !showManual" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold">
+                <span x-text="showManual ? 'Hide Dialog' : 'Show Dialog'"></span>
+            </button>
+        </div>
         
-        <div x-show="showManual" x-transition class="space-y-3 p-4 bg-slate-950 rounded-2xl border border-white/5">
-            <label class="block text-slate-300 font-semibold text-xs mb-1">Paste Full Redirect URL Here</label>
-            <form action="{{ route('oauth.antigravity.manual_callback') }}" method="POST" class="flex flex-col sm:flex-row gap-2">
-                @csrf
-                <input type="text" name="full_url" required placeholder="Paste the full URL from the popup window starting with https://..." class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:ring-violet-500 focus:border-violet-500 outline-none">
-                <x-glass.button type="submit" variant="primary" size="sm" class="shrink-0">
-                    Connect Account
-                </x-glass.button>
-            </form>
-            <p class="text-[10px] text-slate-500">If your browser blocks the Google login popup or fails to redirect back, copy the entire URL from the address bar of the Google login window after granting permissions and paste it here.</p>
+        <div x-show="showManual" x-transition class="space-y-4 p-4 bg-slate-950 rounded-2xl border border-white/5">
+            <div class="text-xs text-slate-300 space-y-1">
+                <div class="font-bold text-violet-400">Waiting for authorization</div>
+                <div class="text-slate-400">1. Click "Link New Google Antigravity Account" above to open the authentication popup.</div>
+                <div class="text-slate-400">2. Complete authorization in popup.</div>
+                <div class="text-slate-500 italic text-[11px] pt-1">If the popup closes or cannot relay the callback, this dialog will auto-switch to manual URL entry mode.</div>
+            </div>
+
+            <div class="pt-2 border-t border-white/5 space-y-2">
+                <label class="block text-slate-300 font-semibold text-xs">Popup blocked? Enter URL manually:</label>
+                <form action="{{ route('oauth.antigravity.manual_callback') }}" method="POST" class="flex flex-col sm:flex-row gap-2">
+                    @csrf
+                    <input type="text" name="full_url" required placeholder="http://**************.com/callback?state=...&code=..." class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:ring-violet-500 focus:border-violet-500 outline-none">
+                    <x-glass.button type="submit" variant="primary" size="sm" class="shrink-0 bg-gradient-to-r from-violet-600 to-indigo-600">
+                        Submit URL &amp; Authorize
+                    </x-glass.button>
+                </form>
+            </div>
         </div>
     </x-glass.card>
 
@@ -120,14 +133,24 @@
     </div>
 
     <!-- Accounts Priority Table -->
-    <x-glass.card variant="standard" class="p-6 border border-white/10 space-y-6">
+    <x-glass.card variant="elevated" class="p-6 border border-white/10 space-y-4">
         <div class="flex items-center justify-between border-b border-white/10 pb-4">
             <div>
                 <h2 class="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-                    <span>⚡ Antigravity Accounts Priority & Rotation Chain</span>
+                    <span>🌌 Antigravity Account Pool</span>
                 </h2>
-                <p class="text-xs text-slate-400 mt-0.5">Accounts are picked from top to bottom. If quota is exhausted on Account #1, the engine automatically selects Account #2.</p>
+                <p class="text-xs text-slate-400 mt-0.5">Manage your linked Google Accounts or direct API keys.</p>
             </div>
+            
+            <!-- NEW LOGIN SYSTEM -->
+            <x-glass.button 
+                variant="primary" 
+                size="sm" 
+                onclick="window.open('{{ route('oauth.antigravity.redirect') }}', 'AntigravityAuth', 'width=600,height=700,status=yes,scrollbars=yes');"
+                class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-lg shadow-indigo-500/25"
+            >
+                <span>🔑 Link New Google Antigravity Account</span>
+            </x-glass.button>
         </div>
 
         @if($accounts->isEmpty())
