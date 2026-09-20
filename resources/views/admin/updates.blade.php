@@ -15,7 +15,7 @@
 */
 --}}
 
-<div class="hoa-admin-updates-space space-y-8" x-data="{ activeTab: $wire.entangle('activeTab'), showLogs: false }">
+<div class="hoa-admin-updates-space space-y-8" x-data="{ activeTab: $wire.entangle('activeTab'), showLogs: false, showClearLogsModal: false }">
     <!-- Header -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -27,6 +27,7 @@
                 Zero-downtime GitHub updates, isolated database snapshots, and instant self-healing rollback.
             </p>
         </div>
+        <button wire:click="clearSystemCache" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold">Clear Cache</button>
 
         <div class="flex items-center gap-3">
             <button
@@ -265,7 +266,7 @@
                                 @if(!empty($updateLogs))
                                     <button
                                         type="button"
-                                        wire:click="clearTerminalLogs"
+                                        @click="showClearLogsModal = true"
                                         class="px-2 py-1 rounded-lg bg-slate-900 border border-white/10 hover:border-rose-500/40 text-[10px] font-mono text-slate-400 hover:text-rose-300 transition-colors cursor-pointer"
                                         title="Clear all logs"
                                     >
@@ -806,7 +807,7 @@
                         @if(!empty($updateLogs))
                             <button
                                 type="button"
-                                wire:click="clearTerminalLogs"
+                                @click="showClearLogsModal = true"
                                 class="px-2 py-1 rounded-lg bg-slate-900 border border-white/10 hover:border-rose-500/40 text-[10px] font-mono text-slate-400 hover:text-rose-300 transition-colors cursor-pointer"
                                 title="Clear all logs"
                             >

@@ -89,6 +89,32 @@ class AdminUpdatesPage extends Component
         $this->updateLogs = [];
     }
 
+    public function clearSystemCache()
+    {
+        $this->updateLogs = [];
+        $commands = [
+            'optimize:clear' => 'optimize:clear',
+            'config:cache'   => 'config:cache',
+            'route:cache'    => 'route:cache',
+            'view:cache'     => 'view:cache',
+            'event:cache'    => 'event:cache',
+        ];
+
+        foreach ($commands as $name => $cmd) {
+            \Illuminate\Support\Facades\Artisan::call($cmd);
+            
+            $this->updateLogs[] = [
+                'time' => date('H:i:s'),
+                'type' => 'success',
+                'message' => "Executed: php artisan $cmd"
+            ];
+        }
+
+        $this->feedbackType = 'success';
+        $this->feedbackMessage = 'System cache cleared successfully.';
+        $this->dispatch('show-cache-logs');
+    }
+
     public function triggerCheck(CoreUpdateService $updateService)
     {
         $this->isChecking = true;
