@@ -1,4 +1,17 @@
-# 📜 Changelog
+﻿## [2.9.1] - 2026-09-20
+
+### Fixed
+- Browser tab freezing during AI streaming: Added 30-second timeout guard to SSE stream loop in wordpress-editor.js
+- SSL verification in Antigravity services: Extended bypass to include 'testing' environment for local development and CI
+- OAuth state verification: Replaced session-based storage with Cache storage to prevent verification failures in distributed environments
+- Antigravity account manager: Added missing Date facade import for health monitor
+
+### Testing
+- All 263 tests pass with no regressions
+- Verified Antigravity OAuth flow and manual token linking
+- Confirmed browser UI remains responsive during stalled AI connections
+
+# ðŸ“œ Changelog
 
 All notable changes to **HelpOfAi Studio (HOA-Studio)** will be documented in this file.
 
@@ -59,14 +72,14 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 
 ### Added
 - **Content Performance Analytics & Intelligent Refresh Engine (Upgrade 6)**:
-  - **Content Performance Snapshots Table**: New `content_performance_snapshots` migration capturing time-series performance data per published blog post — views count, views delta between snapshots, days since published, views-per-day velocity, trend percent, engagement score, and composite staleness score/tier.
+  - **Content Performance Snapshots Table**: New `content_performance_snapshots` migration capturing time-series performance data per published blog post â€” views count, views delta between snapshots, days since published, views-per-day velocity, trend percent, engagement score, and composite staleness score/tier.
   - **Refresh Briefs Table**: New `refresh_briefs` migration storing AI-authored refresh directives with staleness reasons, recommended actions, suggested topic updates, new claim suggestions, SEO update recommendations, and structured JSON metadata.
   - **Content Performance Tracker (`ContentPerformanceTracker.php`)**: Captures and stores weekly performance snapshots for published articles, computing views deltas, velocity, trend percentages, and engagement scores (0-100 composite). Provides `getLatestSnapshots()` and `getPortfolioHealth()` for dashboard visualization.
-  - **Staleness Detector Service (`StalenessDetectorService.php`)**: Multi-factor weighted staleness scoring algorithm with four decay components — Age Decay (logistic curve centered at 90 days), Velocity Decay (exponential inverse of views/day), Trend Decay (negative view trend signals declining relevance), and Content Type Decay (news/trends expire faster than tutorials/guides). Produces composite score (0.0=fresh, 1.0=critically stale) with 4-tier classification: fresh, aging, stale, critically_stale.
+  - **Staleness Detector Service (`StalenessDetectorService.php`)**: Multi-factor weighted staleness scoring algorithm with four decay components â€” Age Decay (logistic curve centered at 90 days), Velocity Decay (exponential inverse of views/day), Trend Decay (negative view trend signals declining relevance), and Content Type Decay (news/trends expire faster than tutorials/guides). Produces composite score (0.0=fresh, 1.0=critically stale) with 4-tier classification: fresh, aging, stale, critically_stale.
   - **Refresh Brief Generator (`RefreshBriefGenerator.php`)**: Generates AI-authored Refresh Briefs for stale articles including topic change summaries, structured recommended actions, staleness reason breakdowns, suggested topic updates (year-tagged), new claim suggestions, SEO update recommendations, and word count deltas. Supports both single-post and bulk brief generation with priority scoring.
-  - **📊 Performance Analytics Inspector Tab (Tab 14)**: Three-panel dashboard — Content Portfolio Health (total posts tracked, total views, average staleness/engagement, color-coded staleness distribution bar), Per-Article Performance Table (views, velocity, age, engagement score, trend percent, staleness progress bar with tier badges), and Refresh Briefs Queue (priority-ranked briefs with urgency badges, suggested topic updates, 1-click Launch Refresh Mission and Dismiss actions).
+  - **ðŸ“Š Performance Analytics Inspector Tab (Tab 14)**: Three-panel dashboard â€” Content Portfolio Health (total posts tracked, total views, average staleness/engagement, color-coded staleness distribution bar), Per-Article Performance Table (views, velocity, age, engagement score, trend percent, staleness progress bar with tier badges), and Refresh Briefs Queue (priority-ranked briefs with urgency badges, suggested topic updates, 1-click Launch Refresh Mission and Dismiss actions).
   - **Livewire Performance Actions**: `capturePerformanceSnapshot()` for on-demand snapshot capture, `generateRefreshBriefForRun()` for single-article refresh analysis, `generateBulkRefreshBriefs()` for portfolio-wide stale content scan, `launchRefreshMission()` to create a new CI mission from a refresh brief, and `dismissRefreshBrief()` to clear non-actionable briefs.
-  - **Content Intelligence Cognitive Cycle Closed**: The full loop is now operational — Create → Assemble → Publish → Track → Detect Staleness → Generate Refresh Brief → Launch Refresh Mission → Re-generate → Re-publish.
+  - **Content Intelligence Cognitive Cycle Closed**: The full loop is now operational â€” Create â†’ Assemble â†’ Publish â†’ Track â†’ Detect Staleness â†’ Generate Refresh Brief â†’ Launch Refresh Mission â†’ Re-generate â†’ Re-publish.
   - **Comprehensive Test Suite**: 6 new tests covering staleness computation (fresh and stale cases), snapshot capture, portfolio health aggregation, refresh brief generation, and Livewire tab navigation (338 total tests passing, 100%).
 
 ---
@@ -74,11 +87,11 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 ## [2.8.6] - 2026-09-08
 
 ### Added
-- **Content Intelligence — Blog Publishing Pipeline & Export Suite (Upgrade 5)**:
+- **Content Intelligence â€” Blog Publishing Pipeline & Export Suite (Upgrade 5)**:
   - **Content Intelligence Publish Service (`ContentIntelligencePublishService.php`)**: Bridges completed CI pipeline output to the Blog module via `PublishDocumentToBlog`, auto-enriching posts with SEO metadata (title, description, keywords), hero featured images from Unsplash, and keyword tags from the Content Intelligence SEO stage. Full publish/unpublish/status lifecycle.
   - **Social Preview Generator (`SocialPreviewGenerator.php`)**: Generates Open Graph, Twitter/X Card, LinkedIn, and Reddit preview metadata from pipeline output. Produces auto-generated TL;DR summaries grounded in mission objectives and primary keywords, plus Schema.org JSON-LD TechArticle markup.
   - **HTML Meta Tag Renderer**: Generates copy-paste-ready `<meta>` tag blocks for embedding social preview metadata in exported HTML or blog `<head>` sections.
-  - **🚀 Publish & Export Inspector Tab (Tab 12)**: Dedicated Inspector tab with Blog Publishing Bridge, Export Suite (6 formats), and Social Media Previews with 1-click clipboard copy.
+  - **ðŸš€ Publish & Export Inspector Tab (Tab 12)**: Dedicated Inspector tab with Blog Publishing Bridge, Export Suite (6 formats), and Social Media Previews with 1-click clipboard copy.
   - **Livewire Publish/Unpublish Actions**: `publishRunToBlog()` and `unpublishRunFromBlog()` methods on `ContentIntelligencePage`.
   - **Comprehensive Test Suite**: 6 new tests covering publish lifecycle, social preview generation, HTML meta tags, and Livewire tab navigation (332 total tests passing, 100%).
 
@@ -98,7 +111,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 ## [2.8.4] - 2026-09-08
 
 ### Added
-- **TipTap Pro Canvas — Surgical Micro-Section Regenerator Suite**:
+- **TipTap Pro Canvas â€” Surgical Micro-Section Regenerator Suite**:
   - **Data Points & Empirical Metrics (`inject_data_points`)**: Injects verifiable data points, percentage metrics, and benchmark statistics directly into selected paragraphs with bold emphasis.
   - **Code Implementation Generator (`add_code_snippet`)**: Generates syntactically correct, multi-language code blocks (`\`\`\`language`) with macOS terminal chrome and copy buttons.
   - **Trade-offs & Technical Nuance (`inject_counter_arguments`)**: Injects architectural caveats, limitations, and balanced objective perspectives into technical drafts.
@@ -110,9 +123,9 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 ## [2.8.3] - 2026-09-08
 
 ### Added
-- **Content Intelligence — Real-Time SSE Token Streaming & Typewriter Terminal**:
+- **Content Intelligence â€” Real-Time SSE Token Streaming & Typewriter Terminal**:
   - **ContentIntelligenceStreamController (`ContentIntelligenceStreamController.php`)**: Dedicated Server-Sent Events (SSE) streaming engine with non-blocking buffer flush, word quota verification, and real-time step streaming (`node_start`, `token`, `node_complete`, `done`).
-  - **Live Typewriter Streaming Terminal (`resources/views/content-intelligence/index.blade.php`)**: Interactive Alpine.js typewriter terminal embedded in the Inspector Drawer. Streams token chunks live to the screen with blinking cursor (`▊`) and real-time telemetry log feed.
+  - **Live Typewriter Streaming Terminal (`resources/views/content-intelligence/index.blade.php`)**: Interactive Alpine.js typewriter terminal embedded in the Inspector Drawer. Streams token chunks live to the screen with blinking cursor (`â–Š`) and real-time telemetry log feed.
   - **Interactive Synaptic DAG Workflow Graph (10-Node Architecture)**: 7-tier dynamic directed acyclic graph mapping stages from Intake to Master TipTap Assembly with glowing state beacons and 1-click tab switching.
   - **Comprehensive Feature Tests**: Added 3 new tests covering SSE streaming authorization, unauthenticated guest redirects, and cross-user run isolation (33/33 Content Intelligence tests passing).
 
@@ -136,7 +149,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 ## [2.8.1] - 2026-09-08
 
 ### Added
-- **Content Intelligence — Multi-Archetype Article Engine (6 Canonical Archetypes)**:
+- **Content Intelligence â€” Multi-Archetype Article Engine (6 Canonical Archetypes)**:
   - **ArticleArchetype Enum (`ArticleArchetype.php`)**: Strongly typed domain enum defining 6 canonical article structural archetypes:
     1. `AUTO_DETECT`: AI-inferred adaptive outline based on inquiry extraction and domain classification.
     2. `COMPARATIVE_ROUNDUP`: Alternatives, competitor matrices, technical benchmarks, and verdict rankings.
@@ -158,17 +171,17 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 ## [2.8.0] - 2026-09-08
 
 ### Added
-- **Content Intelligence Pipeline — Full OmniRoute AI Research Integration (All 11 Services)**:
+- **Content Intelligence Pipeline â€” Full OmniRoute AI Research Integration (All 11 Services)**:
   - **DynamicContentProvider Gateway (`DynamicContentProvider.php`)**: Centralized AI content gateway wrapping `OmniRouteClient` with `askJSON()`, `askText()`, and `askStream()` methods. All 8 pipeline services now route through this provider for real AI-generated research, analysis, and content creation. Graceful fallback to schema defaults in test/development environments; production calls hit GPT-4o-mini via OmniRoute.
   - **Search Intelligence AI (`SearchIntelligenceService`)**: Real AI-powered query cluster generation, topic universe mapping, SERP competitor analysis, and content gap detection replacing algorithmic stubs.
   - **Knowledge Fabric AI (`KnowledgeFabricService`)**: AI-generated verified claim graphs with epistemic state classification (`verified`, `partially_verified`, `contradicted`, `unverified`), evidence snippet extraction, and confidence scoring.
   - **Content Blueprint AI (`ContentBlueprintService`)**: AI-synthesized article angles, unique value propositions, target transformations, and required entity/concept identification.
   - **Adaptive Outline AI (`AdaptiveOutlineService`)**: AI-enhanced hierarchical section tree with must-answer questions, writing directives, claim assignments, and word count targets per section.
-  - **Section Draftsman AI (`SectionDraftsmanService`)**: Real AI content generation per section — topic-aware, claim-grounded, persona-matched, revision-directive-aware HTML prose writing via OmniRoute.
+  - **Section Draftsman AI (`SectionDraftsmanService`)**: Real AI content generation per section â€” topic-aware, claim-grounded, persona-matched, revision-directive-aware HTML prose writing via OmniRoute.
   - **Critic Agent AI (`CriticAgentService`)**: AI-powered 6-dimension quality evaluation (fact grounding, completeness, search intent, brand voice, readability, SEO) producing specific revision directives, merged with algorithmic scoring.
   - **SEO Optimizer AI (`SeoOptimizationService`)**: AI-generated meta titles, descriptions, primary/secondary keywords, and SEO recommendations, merged with real keyword density analysis and JSON-LD schema synthesis.
 - **Workflow Engine Telemetry (`ContentWorkflowEngine`)**:
-  - Every pipeline node execution now logs an `AgentActivity` record (tokens used, latency, status, input payload, output summary) and a `BrainDecision` record (question, decision, reasoning, confidence, alternatives). Fully visible in the Inspector's "🤖 Agents & Router" tab.
+  - Every pipeline node execution now logs an `AgentActivity` record (tokens used, latency, status, input payload, output summary) and a `BrainDecision` record (question, decision, reasoning, confidence, alternatives). Fully visible in the Inspector's "ðŸ¤– Agents & Router" tab.
 - **Document Assembly Phase 5 Integration (`TipTapDocumentAssembler`)**:
   - Document assembly now automatically triggers Content Health Quality Audit (15-dimension), Risk Assessment (YMYL + human gating), and Content Genome Synthesis at final document compilation, ensuring every published article carries a complete quality fingerprint.
 
@@ -177,13 +190,13 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 
 ### Security
 - All AI calls route through the authenticated OmniRoute gateway with 15-second circuit breaker timeouts.
-- DynamicContentProvider gracefully falls back to schema defaults on provider failure — zero unhandled exceptions in production pipeline.
+- DynamicContentProvider gracefully falls back to schema defaults on provider failure â€” zero unhandled exceptions in production pipeline.
 
 ## [2.7.9] - 2026-09-07
 
 ### Added
 - **Full TipTap Editor & Content Intelligence Neuro-Brain Integration**:
-  - **Dedicated "🧠 Brain & Lineage" Sidebar Tab (`content-intelligence-tab-brain.blade.php`)**:
+  - **Dedicated "ðŸ§  Brain & Lineage" Sidebar Tab (`content-intelligence-tab-brain.blade.php`)**:
     - **7-Tier Sentence Lineage Inspector**: Deep provenance inspector tracing any active prose sentence across all 7 layers (`Source` $\rightarrow$ `Evidence` $\rightarrow$ `Claim` $\rightarrow$ `Sentence` $\rightarrow$ `Paragraph` $\rightarrow$ `Section` $\rightarrow$ `Article` $\rightarrow$ `Published URL`).
     - **Stale Fact Alert Banner & 1-Click Surgical Micro-Repair**: Detects when underlying research sources have changed and provides 1-click localized surgical rewriting without re-drafting the rest of the document.
     - **15-Dimension Content Health Assessment Scorecard**: Real-time evaluation across 15 dimensions (Search Intent, Information Quality, Evidence Strength, Factual Reliability, Topic Coverage, Entity Coverage, Semantic Depth, Original Value, Readability, Structure, SEO, Internal Linking, Freshness, Brand Alignment, User Value) with letter grade (`A+` to `F`) and actionable recommendations.
@@ -192,7 +205,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
     - **Content Genome Snapshot Synthesizer**: 1-click DNA snapshotting preserving mission, topic, entity, claim, and quality DNA for future article knowledge inheritance.
   - **In-Canvas Floating AI Actions & Slash Commands (`canvas.blade.php`, `scripts-ai.blade.php`, `scripts-canvas.blade.php`)**:
     - Added `surgical_micro_repair` and `verify_lineage` sub-agent modes to the TipTap paragraph context menu and `/` Slash AI command palette.
-    - Precision prompt engineering preserving surrounding context while stripping clichés and tightening factual grounding.
+    - Precision prompt engineering preserving surrounding context while stripping clichÃ©s and tightening factual grounding.
   - **Continuous Background Learning on Autosave (`DocumentEditor.php`)**:
     - Wired diff intelligence in `autosave()` comparing manual user prose revisions against previous versions via `UserFeedbackIntelligenceService::analyzeDiffAndRecordPreference()`.
   - **Direct Text Auditing in `QualityEngineService`**:
@@ -223,7 +236,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
     - Content portfolio analysis clustering articles by semantic topic domains and calculating cluster coverage scores ($0-100\%$).
     - Cross-document keyword cannibalization detection analyzing lexical and intent overlap with actionable merge/differentiation recommendations.
     - Uncovered subtopic opportunity discovery and internal cross-linking matrix generation.
-  - **Livewire 3 UI Inspector Tab 11 `🧭 Lineage & Strategy` (`resources/views/content-intelligence/index.blade.php`, `ContentIntelligencePage.php`)**:
+  - **Livewire 3 UI Inspector Tab 11 `ðŸ§­ Lineage & Strategy` (`resources/views/content-intelligence/index.blade.php`, `ContentIntelligencePage.php`)**:
     - Interactive 7-tier sentence lineage inspector with upstream epistemic root drawer.
     - Autonomous strategy memories matrix with progress badges, evidence counters, confidence bars, and custom observation recorder.
     - User feedback style rules feed with active toggles and real-time diff analyzer test bed.
@@ -238,7 +251,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
   - **Surgical Micro-Repair Loop Engine (`MicroRepairService`, `MicroRepair`)**:
     - Localized smallest-affected-unit self-correction avoiding wasteful full-document regenerations.
     - Escalation ladder: `Sentence` $\rightarrow$ `Paragraph` $\rightarrow$ `Section` $\rightarrow$ `Article`.
-    - Automated problem detection (run-on sentences, repetitive AI clichés, ungrounded absolute assertions), root-cause diagnosis, surgical localized string replacement, and word-level diff summaries.
+    - Automated problem detection (run-on sentences, repetitive AI clichÃ©s, ungrounded absolute assertions), root-cause diagnosis, surgical localized string replacement, and word-level diff summaries.
   - **15-Dimension Multidimensional Content Health Model (`QualityEngineService`, `QualityHealthAudit`)**:
     - Replaces single flat scores with a weighted 15-dimension assessment (`Search Intent`, `Information Quality`, `Evidence Strength`, `Factual Reliability`, `Topic Coverage`, `Entity Coverage`, `Semantic Depth`, `Original Value`, `Readability`, `Structure`, `SEO`, `Internal Linking`, `Freshness`, `Brand Alignment`, `User Value`).
     - Letter grade calculation (`A+` to `F`), overall score ($0-100$), verified strengths, critical gaps, and actionable recommendations.
@@ -247,7 +260,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
     - Mandatory primary source requirements enforcement and human approval checkpoints with 1-click signoff.
   - **Content Genome Knowledge Representation (`ContentGenomeService`, `ContentGenome`)**:
     - Structured knowledge asset capturing Mission DNA, Topics DNA, Entities DNA, Claims DNA, Facts DNA, Sources DNA, Quality DNA, and reusable fragments with deterministic cryptographic signatures for cross-mission knowledge inheritance.
-  - **Livewire 3 UI Inspector Tab 10 `🔬 Health & Micro-Repair` (`resources/views/content-intelligence/index.blade.php`)**:
+  - **Livewire 3 UI Inspector Tab 10 `ðŸ”¬ Health & Micro-Repair` (`resources/views/content-intelligence/index.blade.php`)**:
     - 15-dimension Content Health scorecard with ratings, progress bars, and explainable reasons.
     - Surgical Micro-Repairs feed with diff summaries and escalation levels.
     - Risk verification checklist with YMYL badges and 1-click human signoff button.
@@ -274,7 +287,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
   - **Telemetry & Activity Logging (`AgentActivity`)**:
     - Full telemetry capture tracking agent execution duration, token consumption, latency, prompt templates, and output payload summaries.
   - **Livewire 3 Agents & Router Explorer UI (`resources/views/content-intelligence/index.blade.php`)**:
-    - Tab 9 `🤖 Agents & Router` inspector pane featuring:
+    - Tab 9 `ðŸ¤– Agents & Router` inspector pane featuring:
       - Interactive Model Routing Matrix with task tiers and live active models.
       - 7 Worker Agent Dispatch Cards with 1-click execution triggers and role badges.
       - Live Mission Blackboard status monitor displaying findings, hypotheses, and state.
@@ -292,12 +305,12 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
     - Verbatim quote extract capture with character offsets, section headings, and page coordinates directly linked to authoritative sources.
     - Bidirectional claim grounding with typed relationship semantics: `SUPPORTS`, `REFUTES`, `QUALIFIES`, and `CONTEXTUALIZES`.
     - Weighted epistemic consensus calculator evaluating source credibility and detecting active contradictions (`is_contradicted`).
-    - Full 5-tier end-to-end lineage tracer (`SOURCE ➔ EVIDENCE ➔ CLAIM ➔ SENTENCE ➔ DOCUMENT`) linking TipTap text directly to original source documentation.
+    - Full 5-tier end-to-end lineage tracer (`SOURCE âž” EVIDENCE âž” CLAIM âž” SENTENCE âž” DOCUMENT`) linking TipTap text directly to original source documentation.
   - **Truth Layer Epistemic Audit (`TruthLayerService`, `TruthAuditReportDTO`)**:
     - Mission-wide epistemic health assessment calculating overall truth scores ($0 - 100\%$), risk ratings (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`), and verified vs contradicted claim breakdown.
     - Dynamic actionable truth directives and alerts flagging unverified assertions before assembly.
   - **Livewire 3 World & Truth Explorer UI (`resources/views/content-intelligence/index.blade.php`)**:
-    - New `🌐 World & Truth` inspector tab featuring the Truth Layer Audit Scorecard, Deep Evidence Lineage Explorer, interactive claim selector pills, and World Model Knowledge Graph matrix.
+    - New `ðŸŒ World & Truth` inspector tab featuring the Truth Layer Audit Scorecard, Deep Evidence Lineage Explorer, interactive claim selector pills, and World Model Knowledge Graph matrix.
   - **Robust Verification Suite (`ContentBrainWorldModelAndTruthTest.php`)**:
     - 10 feature tests with 55 assertions covering entity resolution, relationship linking, incompatibility detection, evidence snippet grounding, consensus calculation, deep lineage tracing, truth audits, and Livewire UI integration.
 - **Content Intelligence Phase 2: Cognitive Memory OS (3-Tier Brain Architecture)**:
@@ -308,7 +321,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
   - **8-Stage Memory Admission Gate Protocol (`MemoryAdmissionGate`, `DuplicateDetector`, `EvidenceValidator`)**:
     - Automatic screening of newly synthesized facts: schema validation, minimum confidence ($\ge 0.80$), duplicate detection, contradiction audit, and minimum importance threshold ($\ge 0.70$) before admitting facts into `brain_memories`.
   - **Non-Destructive Memory Decay & Lineage Reconciliation (`MemoryDecayService`)**:
-    - Half-life freshness score calculation; automatic transition of contradicted or outdated facts to `SUPERSEDED` and `OUTDATED` while preserving historical lineage (`v1 ➔ v2`).
+    - Half-life freshness score calculation; automatic transition of contradicted or outdated facts to `SUPERSEDED` and `OUTDATED` while preserving historical lineage (`v1 âž” v2`).
   - **Focused Context Retrieval (`AttentionEngine`)**:
     - Synthesizes high-salience, budget-constrained context for LLM prompts without token waste.
   - **Livewire 3 Memory OS Inspector Console**:
@@ -344,13 +357,13 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
     - 25 dedicated feature tests in `ContentIntelligenceTest.php` verifying authorization, state transitions, mission creation, node execution, feedback loops, and TipTap document compilation.
 - **Client-Side Reading Progress Memory & Card Synchronization Engine (`hoaCardReadingProgress`)**:
   - Automatic persistent tracking of reading progress (`progress`, `completed`, `scrollY`, `updated_at`) using browser `localStorage` keyed by unique article slug (`hoa_read_progress_{slug}`).
-  - **Dual-Gradient Progress Bar & Dynamic Status Badges**: Article cards across Grid View, List View, and Featured Hero dynamically reveal an animated gradient progress track (`0% → 100%`), live progress badge (`• 35% read` or `✓ 100% Read`), time-to-finish indicator, and thumbnail status badges.
+  - **Dual-Gradient Progress Bar & Dynamic Status Badges**: Article cards across Grid View, List View, and Featured Hero dynamically reveal an animated gradient progress track (`0% â†’ 100%`), live progress badge (`â€¢ 35% read` or `âœ“ 100% Read`), time-to-finish indicator, and thumbnail status badges.
   - **Upgraded Modern Glassmorphic Action Buttons**: Replaced generic text links with high-end, rounded-xl glassmorphic buttons with dynamic states:
-    - *Unread*: "Read →" with subtle border glow and hover translation.
-    - *In Progress*: "Resume (35%) →" with active indigo glow and direct jump option.
-    - *Completed*: "Read Again ↺" with emerald glass styling and smooth 180° rotation on hover.
+    - *Unread*: "Read â†’" with subtle border glow and hover translation.
+    - *In Progress*: "Resume (35%) â†’" with active indigo glow and direct jump option.
+    - *Completed*: "Read Again â†º" with emerald glass styling and smooth 180Â° rotation on hover.
   - **Zero-Latency bfcache & Multi-Tab Synchronization**: Listens to `storage`, `pageshow`, and `focus` window events, ensuring instant updates when navigating back from an article without page reloads.
-  - **Pick-Up Where You Left Off (Floating Resume Toast)**: On `/blog/{slug}`, if a reader previously scrolled past 350px without completing the article, a non-intrusive floating toast appears with a 1-click `Jump →` button that smoothly scrolls to the saved point.
+  - **Pick-Up Where You Left Off (Floating Resume Toast)**: On `/blog/{slug}`, if a reader previously scrolled past 350px without completing the article, a non-intrusive floating toast appears with a 1-click `Jump â†’` button that smoothly scrolls to the saved point.
 - **Dynamic Knowledge Archive & Content Explorer Suite (`/blog` & `/blog/archive`)**:
   - Real-time debounced search across titles, excerpts, categories, and tags.
   - Interactive tag cloud with article frequency counts (`BlogPost::getPublishedTagsWithCounts()`).
@@ -358,7 +371,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
   - Chronological archive timeline (`BlogPost::getPublishedArchiveTimeline()`).
   - Quick read-time filters (< 5m quick vs 5m+ deep dive) and multi-criteria sorting.
   - Dynamic Active Filter Chips Bar with 1-click reset.
-  - Grid View (`▦`) and List View (`☰`) presentation layout switcher.
+  - Grid View (`â–¦`) and List View (`â˜°`) presentation layout switcher.
 - **Multi-Format Featured Image Upload Engine**:
   - Support for PNG, JPG, WebP, GIF, SVG, AVIF, BMP, ICO, and TIFF formats.
   - Real-time upload progress bar and instant image preview in Section 1 post editor tab.
@@ -375,14 +388,14 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
   - 100% self-hosted local Mermaid library bundled via Vite (0 external CDN dependencies).
   - Auto-detects `erDiagram`, `flowchart`, `sequenceDiagram`, `classDiagram`, `stateDiagram`, `gitGraph`, `pie`, `mindmap`, and vector diagrams in publication views.
   - **Drag-to-Move Pan**: Smooth mouse dragging (`cursor: grab` / `cursor: grabbing`) and mobile single-finger touch dragging across large schemas with zero latency.
-  - **Precision Zoom Controls**: `➕` Zoom In (+25%), `➖` Zoom Out (-25%), live percentage indicator (`100%`, `125%`, etc.), double-click detail toggle, and 1-click `⟲ Fit` canvas reset.
+  - **Precision Zoom Controls**: `âž•` Zoom In (+25%), `âž–` Zoom Out (-25%), live percentage indicator (`100%`, `125%`, etc.), double-click detail toggle, and 1-click `âŸ² Fit` canvas reset.
   - **Focal-Point Mouse Wheel & Pinch Zoom**: Mouse wheel zooming tracking cursor focal point, and two-finger pinch-to-zoom on touch screens.
   - **Embedded Markdown Auto-Unpacker**: Automatically detects and unpacks giant raw Markdown code blocks containing embedded headings (`##`), dividers (`---`), ASCII architecture diagrams, and Mermaid diagrams into separate semantic DOM elements (`<h2>`, `<pre>`, `<hr>`), allowing dynamic TOC indexing.
   - **Floating Quick Dock & Source Drawers**: In-canvas floating quick action buttons, toggleable Mermaid source-code drawers, and 1-click schema clipboard copying.
 - **Cyberpunk ASCII Architecture Flow Terminals:**
-  - Box-drawing flowcharts (e.g. `┌─┐│└┘▼▲`) are automatically wrapped in a macOS terminal frame (`🔴 🟡 🟢`) with locked monospace font alignment and 1-click diagram copy.
+  - Box-drawing flowcharts (e.g. `â”Œâ”€â”â”‚â””â”˜â–¼â–²`) are automatically wrapped in a macOS terminal frame (`ðŸ”´ ðŸŸ¡ ðŸŸ¢`) with locked monospace font alignment and 1-click diagram copy.
 - **Permission & Feature Matrix Table Enhancer:**
-  - Tables comparing features/plans auto-highlight checkmarks (`✓` in glowing emerald), crossmarks (`✕` in muted slate), and status pills (`⚡ ...`) with responsive horizontal scrollers.
+  - Tables comparing features/plans auto-highlight checkmarks (`âœ“` in glowing emerald), crossmarks (`âœ•` in muted slate), and status pills (`âš¡ ...`) with responsive horizontal scrollers.
 - **Publisher-Grade Blog Layout & Tabbed Discovery Rail:**
   - Sticky aside rail with Alpine.js 3-tab widget displaying Similar Articles, Articles by Author, and Trending Posts.
   - Dynamic Table of Contents (TOC) with mobile drawer and reading progress tracking.
@@ -406,7 +419,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
   - Integrated **Bulk Download**: Packages multiple selected snapshot archives and SQL dumps into a single combined ZIP (`snapshots_bundle_YYYYMMDD_HHmmss.zip`).
   - Integrated **Bulk Delete**: Batch removes selected snapshot archives and SQL dumps with atomic manifest updates and immediate disk space recovery.
   - Added **Prune Old (Keep 3)** 1-click action to automatically retain the 3 most recent backups and purge older snapshots.
-  - Added cumulative disk storage footprint badge to section header (`📦 X MB total`).
+  - Added cumulative disk storage footprint badge to section header (`ðŸ“¦ X MB total`).
 
 ## [2.7.5] - 2026-09-05
 
@@ -430,7 +443,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 ### Added
 - **Floating Table Operations Toolbar (`hoa-table-floating-bar`):**
   - Added an intelligent, glassmorphic floating toolbar that docks directly above active tables whenever the cursor is inside any table cell.
-  - Quick 1-click actions: Insert Row Above (↑), Insert Row Below (↓), Delete Row (✕), Insert Column Left (←), Insert Column Right (→), Delete Column (✕), Toggle Header Row (🔲), Merge/Split Selected Cells (🔗), and Delete Entire Table (🗑️).
+  - Quick 1-click actions: Insert Row Above (â†‘), Insert Row Below (â†“), Delete Row (âœ•), Insert Column Left (â†), Insert Column Right (â†’), Delete Column (âœ•), Toggle Header Row (ðŸ”²), Merge/Split Selected Cells (ðŸ”—), and Delete Entire Table (ðŸ—‘ï¸).
   - Built-in canvas boundary protection and sticky positioning when scrolling long tables.
 - **Context Menu Table Controls Section:**
   - Dynamic table grid controls in the custom right-click context menu, detecting when the user right-clicks inside any `table`, `th`, or `td` element.
@@ -440,9 +453,9 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 - **Real-Time Code Syntax Highlighting Suite (`CodeBlockLowlight`):**
   - Integrated `@tiptap/extension-code-block-lowlight` powered by `lowlight` (highlight.js v11) covering 35+ common languages (JavaScript, TypeScript, Python, PHP, HTML, CSS, SQL, JSON, Bash, Markdown, Go, Rust, Java, C++, C#, etc.).
   - Added custom `CustomCodeBlockLowlight` NodeView featuring:
-    - Sleek macOS terminal header with colored dots (`● ● ●`).
+    - Sleek macOS terminal header with colored dots (`â— â— â—`).
     - Interactive language selector dropdown with live syntax switching.
-    - 1-Click "Copy Code" button with instant visual `"Copied! ✓"` feedback.
+    - 1-Click "Copy Code" button with instant visual `"Copied! âœ“"` feedback.
     - In-block <kbd>Tab</kbd> indentation (`enableTabIndentation: true`) and effortless exit navigation.
   - High-fidelity dark IDE theme CSS tokens (`hljs-keyword`, `hljs-string`, `hljs-title`, `hljs-number`, `hljs-comment`, `hljs-built_in`, `hljs-function`).
 
@@ -453,10 +466,10 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
   - Upgraded surgical paragraph transformation engine across all 7 right-click writing intelligence actions:
     - *Recreate Paragraph* (`recreate`): Completely re-architects sentence structures and syntax from scratch using domain authority and high-engagement rhetoric.
     - *Rewrite & Polish* (`rewrite`): Substantive qualitative enhancement eliminating passive voice, weak verbs, and wordy filler phrases.
-    - *Expand with Depth* (`expand`): Adds deep analytical rigor, tactical implications, and concrete real-world rationale (1.5x–2.2x depth).
-    - *Shorten & Condense* (`shorten`): Distills selected text into its punchy essence in 40%–60% of original word count.
+    - *Expand with Depth* (`expand`): Adds deep analytical rigor, tactical implications, and concrete real-world rationale (1.5xâ€“2.2x depth).
+    - *Shorten & Condense* (`shorten`): Distills selected text into its punchy essence in 40%â€“60% of original word count.
     - *Simplify (8th-Grade)* (`simplify`): Replaces polysyllabic academic abstractions with crisp, effortless plain English (Hemingway style).
-    - *Generate FAQ Block* (`generate_faq`): Formulates 2–3 high-intent search questions with authoritative answers and bold key entities.
+    - *Generate FAQ Block* (`generate_faq`): Formulates 2â€“3 high-intent search questions with authoritative answers and bold key entities.
     - *SEO Optimize Text* (`seo_optimize`): Naturally front-loads primary entities and weaves focus keywords for Google AI Overviews and GEO readiness.
 - **Deep Full-Document Narrative Comprehension:**
   - `ContentWriterBrain::buildSurgicalPrompt` now synthesizes the entire document thesis, working title, primary focus keyword, narrative placement role (Opening hook, Core body analysis, Concluding synthesis), and surrounding inflow/outflow context.
@@ -492,9 +505,9 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 - **Comprehensive Content Intelligence Sidebar Overhaul:**
   - **10-Point E-E-A-T Quality Audit:** Empirical evaluation across all 10 true E-E-A-T & GEO dimensions (search intent, topic coverage, original value, readability, SEO structure, internal linking, outbound citations, E-E-A-T signals, GEO readiness, technical SEO) with diagnostic progress bars, granular feedback, and 1-Click Master E-E-A-T Auto-Healer.
   - **Titles & Meta Descriptions:** Added real-time character counters (50-65 chars title, 120-160 chars meta), full meta description persistence in `SeoAnalysis::metrics['meta_description']` and seamless integration with `SeoAnalyzer`.
-  - **AI Content Ideas & Gaps:** Added 1-click `⚡ AI Draft Section` to automatically draft missing gap sections into the editor canvas, plus structured comparison table generator.
-  - **Keywords Density Matrix:** Real-time primary keyword density percentage and occurrence tracker with dynamic color tiers (0.8%–2.5% optimal), plus real-time secondary keyword usage tracking.
-  - **Outline & Versions:** Added instant `↻ Sync` on tab activation and hardened diff inspection across all editor drivers.
+  - **AI Content Ideas & Gaps:** Added 1-click `âš¡ AI Draft Section` to automatically draft missing gap sections into the editor canvas, plus structured comparison table generator.
+  - **Keywords Density Matrix:** Real-time primary keyword density percentage and occurrence tracker with dynamic color tiers (0.8%â€“2.5% optimal), plus real-time secondary keyword usage tracking.
+  - **Outline & Versions:** Added instant `â†» Sync` on tab activation and hardened diff inspection across all editor drivers.
 
 - **Dual-Engine Architecture (With AI & Local Algorithmic Fallback):**
   - All Content Intelligence features (Viral Titles, Meta Descriptions, LSI Semantic Keywords, FAQ Generation, Content Gaps, Quick Answers, and Auto-Healing) now operate on a dual-engine architecture:
@@ -514,8 +527,8 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 ### Added
 - **In-Canvas SEO Recommendation & Color-Coded Heatmap System:**
   - Implemented real-time in-canvas visual callouts and annotations directly inside the editor canvas for missing SEO requirements.
-  - Added 4-tier visual color system: 🔴 Critical Issues (Missing intro focus keyword, keyword stuffing, run-on sentences), 🟡 Warnings & Structure (Missing subheading keyword, bulky paragraphs, missing outbound citations), 🔵 Authority & E-E-A-T (Citations, clinical/research references, trust terms), 🟢 Focus Keyword Optimization.
-  - Added floating in-canvas inspection legend bar and interactive `🎯 Locate in Content` buttons in the SEO tab to smoothly scroll and highlight targeted lines.
+  - Added 4-tier visual color system: ðŸ”´ Critical Issues (Missing intro focus keyword, keyword stuffing, run-on sentences), ðŸŸ¡ Warnings & Structure (Missing subheading keyword, bulky paragraphs, missing outbound citations), ðŸ”µ Authority & E-E-A-T (Citations, clinical/research references, trust terms), ðŸŸ¢ Focus Keyword Optimization.
+  - Added floating in-canvas inspection legend bar and interactive `ðŸŽ¯ Locate in Content` buttons in the SEO tab to smoothly scroll and highlight targeted lines.
   - Enriched 6-pillar SEO checks with actionable recommendation boxes, current vs. goal metrics, and severity indicators.
 
 ---
@@ -538,7 +551,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 
 ## [2.6.7] - 2026-09-03
 
-### 🐛 Fixed
+### ðŸ› Fixed
 - **Localhost Hybrid Routing & Telemetry Stability Fix**:
   - Fixed regression in `AiStreamController::streamTransform` and `preparePrompt` where `$hasSelection` was undefined, causing HTTP 500 (`Server error while generating transformation.`).
   - Fixed telemetry polling loop in `AdminOmniRouteSetupPage::pingGatewayHealth` where server-side sockets attempted to connect to the cloud server's local loopback (`127.0.0.1:20128`) instead of recognizing client-side daemons on remote installations (`studio.helpofai.com`).
@@ -548,7 +561,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 
 ## [2.6.6] - 2026-09-03
 
-### 🐛 Fixed
+### ðŸ› Fixed
 - **Multi-Agent Swarm Double Article Bug in Editor**:
   - Resolved duplicate article synthesis triggered by the Multi-Agent Swarm button (`full-content-main-agent`).
   - Fixed regression where requests without active selection defaulted to full 15-stage pipeline article prompts regardless of action type.
@@ -561,14 +574,14 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 
 ## [2.6.5] - 2026-09-02
 
-### 🚀 Added & Improved
+### ðŸš€ Added & Improved
 - **WordPress Plugin Integration Rewrite (HOA Studio AI Bridge)**:
   - Advanced Enterprise Glassmorphic Dashboard matching the Laravel backend UI using `bg-slate-950` design tokens.
   - Multi-page system with nested sidebar menus (`Dashboard`, `Connection`, `AI Settings`, `Editor Control`).
   - Added new `hoa_studio_brand_voice` global prompt injection settings natively configurable in WordPress.
   - Refactored `hoa-studio-wordpress.php` from a 340-line monolithic script into a clean, 4-module object-oriented architecture (`/includes/admin`, `/includes/api`, `/includes/gutenberg`).
 
-### 🛡️ Cleaned & Hardened
+### ðŸ›¡ï¸ Cleaned & Hardened
 - **AI Gateway & SSE Streaming Latency Fix**:
   - Eliminated delayed token chunking on `AiStreamController` and WP Plugin `ajax_stream_proxy` with strict `@ob_implicit_flush(true)` execution flow, restoring sub-50ms Time-To-First-Token capability over Nginx/Apache.
 - **Automated Memory Protection**:
@@ -578,7 +591,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 
 ## [2.6.4] - 2026-08-31
 
-### 🚀 Added & Improved
+### ðŸš€ Added & Improved
 - **High-Converting Welcome Page & Real Editor Simulation Suite**:
   - Rebuilt landing page with crystal-clear copy, SEO headlines, dynamic system version badge, and structured JSON-LD `FAQPage` schema.
   - Upgraded 3-column interactive studio simulation matching full Master Editor capabilities (8-engine switcher, OmniRoute AI live streaming, floating AI prompt bar, and 7-tab Content Intelligence suite).
@@ -589,7 +602,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 
 ## [2.6.3] - 2026-08-30
 
-### 🚀 Added & Improved
+### ðŸš€ Added & Improved
 - **Fast SPA Page Transitions & Request Storm Elimination**:
   - Replaced speculative `wire:navigate.hover` prefetching across user and admin sidebars with clean `wire:navigate`, preventing request queue starvation and server bottlenecks during navigation.
 - **Glassmorphic Skeleton & Deferred Loading Architecture**:
@@ -600,14 +613,14 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 
 ## [2.6.2] - 2026-08-30
 
-### 🚀 Added & Improved
+### ðŸš€ Added & Improved
 - **Direct GitHub Repository & Version Sync Engine**:
   - Direct live inspection of `version.json`, build number, latest commit SHA, commit author, and release date from GitHub `main` branch with automated cache-busting (`?t=` timestamp) and zero rate-limit raw streaming.
   - Dedicated **GitHub Live Sync** matrix in Admin Updates control panel showing real-time repository connection status, target branch, and latest commit ID.
 - **Explicit Connection & Diagnostics Handling**:
   - Replaced silent fallbacks with transparent connection diagnostic messages when remote hosts or DNS/cURL queries are blocked on shared hosting.
 
-### 🛡️ Cleaned & Hardened
+### ðŸ›¡ï¸ Cleaned & Hardened
 - **Clean Feature Decoupling & Modular Hygiene**:
   - Fully removed experimental image editing modules, obsolete stylesheets, unused schema migrations, and unneeded dependencies (`fabric`) to keep application bundle lean and production-focused.
   - Rebuilt production assets with Vite with zero warnings or dangling references.
@@ -616,11 +629,11 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 
 ## [2.6.1] - 2026-08-29
 
-### 🚀 Added & Improved
+### ðŸš€ Added & Improved
 - **Localized AI Sub-Agent Paragraph Recreation Engine (`sub-content-sub-agent`)**:
   - Contextual right-click & floating menu actions for rewriting, polishing, and recreating individual paragraphs.
   - Automatic paragraph detection at cursor position when no manual range is selected.
-  - Capped token usage (150–450 tokens) and isolated synthesis pipeline preventing full document regeneration on localized edits.
+  - Capped token usage (150â€“450 tokens) and isolated synthesis pipeline preventing full document regeneration on localized edits.
 - **Enhanced Glassmorphic High-Contrast Visual Feedback**:
   - High-contrast translucent amber highlight (`rgba(234, 179, 8, 0.22)`) with drop shadow for selected paragraphs, ensuring crisp text legibility in dark themes.
   - Glowing emerald green confirmation badge (`.ai-replaced-green-highlight`) with dynamic 5-second auto-fade transition and automated markup sanitization upon acceptance.
@@ -628,7 +641,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
   - Upgraded TipTap driver to execute `.setTextSelection({ from, to }).deleteSelection().insertContent()` with multi-tiered HTML normalization fallbacks.
   - Preserved canvas `scrollTop` across content updates via `requestAnimationFrame`.
 
-### 🛡️ Fixed & Hardened
+### ðŸ›¡ï¸ Fixed & Hardened
 - **Livewire 3 Single-Root & DOM Isolation**:
   - Enforced single root element across Blade views and wrapped editor canvas and scripts under `wire:ignore` to prevent state resets.
   - Paused background autosaves during active AI proposal reviews to avoid premature re-renders or scroll jumps.
@@ -641,7 +654,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 
 ## [2.6.0] - 2026-08-26
 
-### 🚀 Added
+### ðŸš€ Added
 - **HOA Studio Enterprise WordPress Plugin & Bridge API Suite (`/api/v1/wordpress/*`)**:
   - **Standalone WordPress Plugin (`public/plugins/hoa-studio-wordpress/` & `public/downloads/hoa-studio-wordpress.zip`)**:
     - **TipTap Fullscreen AI Editor Canvas**: Brings HOA Studio's complete TipTap ProseMirror engine, floating selection formatting toolbar, and inline AI prompt bar (`Ctrl+K` / `/`) directly into WordPress Post & Page edit screens.
@@ -670,7 +683,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 
 ## [2.5.2] - 2026-08-26
 
-### 🚀 Added & Architectural Improvements
+### ðŸš€ Added & Architectural Improvements
 - **Thin Master Scripts Engine Refactor (`resources/views/editor/partial/`)**:
   - Refactored monolithic `scripts.blade.php` into a thin master orchestrator delegating to 5 feature-oriented sub-script blades:
     - `scripts-core.blade.php`: Lifecycle, model fetching, autosave engine, and draft disaster recovery.
@@ -679,7 +692,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
     - `scripts-diff.blade.php`: Visual LCS diff review, candidate variations, ghost completion, and metrics calculation.
     - `scripts-telemetry.blade.php`: Floating bubble dragging, system logging, and memory buffer.
 
-### 🛠️ Fixed & Polished
+### ðŸ› ï¸ Fixed & Polished
 - **AI Content Direct Persistence & Anti-Cut Protection**:
   - Eliminated unwanted modal/diff review popups during full-document generation by adding strict active DOM selection validation.
   - Streamed AI content now always commits directly to the editor canvas with immediate autosave and disaster draft persistence.
@@ -692,7 +705,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 
 ## [2.5.1] - 2026-08-25
 
-### 🚀 Added
+### ðŸš€ Added
 - **Turbo Hover Prefetching Engine (`wire:navigate.hover`)**:
   - Upgraded all navigation links across Workspace and Admin sidebars to instantly pre-fetch destination pages on 60ms cursor hover, eliminating perceived navigation delay.
 - **Glassmorphic Multi-Variant Skeleton Loader Suite (`<x-glass.skeleton />`)**:
@@ -702,7 +715,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 - **Hardware-Accelerated Cursor Glow Spotlight**:
   - Implemented 60 FPS LERP trailing physics spotlight cursor across all dashboard viewports.
 
-### 🛠️ Changed & Polished
+### ðŸ› ï¸ Changed & Polished
 - **Fixed-Coordinate Sidebar Icon Tracks**:
   - Re-architected sidebar navigation geometry with fixed `w-8 h-8` icon containers and unified `px-3 py-2.5` padding, completely eliminating icon wobble during rapid expand/collapse actions.
 - **Top Navbar Header Collapse Trigger**:
@@ -714,7 +727,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 
 ## [2.5.0] - 2026-08-24
 
-### 🚀 Added
+### ðŸš€ Added
 - **Advanced Core Update & Self-Healing Rollback Engine**:
   - Dual-Engine Update Architecture supporting **Native Git** (VPS/CLI) and **Pure-PHP Zip Archive** (Shared Hosting / cPanel).
   - Pre-flight automated snapshots: creates immutable point-in-time codebase `.zip` backups and database `.sql` dumps in `storage/app/updates/backups/`.
@@ -729,28 +742,28 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 
 ## [2.4.0] - 2026-08-24
 
-### 🚀 Added
+### ðŸš€ Added
 - **Multi-Candidate AI Generation (Choice Variations)**:
-  - Added support for generating, previewing, and toggling across variation candidates (`[ #1 ● ] [ #2 ] [ #3 ]`).
+  - Added support for generating, previewing, and toggling across variation candidates (`[ #1 â— ] [ #2 ] [ #3 ]`).
   - Added dynamic variation regeneration with persona style presets (*Professional, Casual, Persuasive, Academic*).
 - **Granular Git-Style Word-by-Word Diffing**:
   - Built a 2D dynamic programming Longest Common Subsequence (LCS) diffing engine (`computeWordDiff`).
   - Highlights exact word-level deletions (`<del>` in rose) and additions (`<ins>` in emerald).
-  - Added a **Split View (`◫ Split`)** vs **Unified View (`≡ Unified`)** switcher into the visual diff inspector.
+  - Added a **Split View (`â—« Split`)** vs **Unified View (`â‰¡ Unified`)** switcher into the visual diff inspector.
 - **Interactive Transform Modifiers & Sliders**:
   - Collapsible drawer controls for **Creativity Intensity** (`0.3` to `1.0`), **Tone Personas**, and **Length Targets** (*Shorter, Same, Longer*).
 - **Live Before-vs-After SEO & Readability Delta Telemetry**:
   - Real-time 4-column metric preview bar measuring Word Count Delta, Flesch-Kincaid Readability Delta, Focus Keyword Frequency Delta, and Copywriting Power Verbs.
 - **In-Canvas Inline Ghost Auto-Completion Mode**:
-  - Copilot/Cursor-style typing pause debounce (`1.2s`) predicting the next 25–35 words from preceding document context.
+  - Copilot/Cursor-style typing pause debounce (`1.2s`) predicting the next 25â€“35 words from preceding document context.
   - Floating inline ghost container with `Tab` to accept and `Esc` to dismiss.
 - **Snapshot Version Diff & Instant Time-Machine**:
-  - Upgraded Version History (Tab 7) with side-by-side snapshot comparison (`🔍 Diff`) against the live editor canvas.
+  - Upgraded Version History (Tab 7) with side-by-side snapshot comparison (`ðŸ” Diff`) against the live editor canvas.
   - 1-click snapshot restoration rollback via Livewire.
 - **Draggable Floating Selection Toolbar (`.editor-floating-actions`)**:
-  - Added a dedicated drag handle indicator (`⋮⋮`) with mouse and touch coordinate tracking to position the floating toolbar anywhere on screen.
+  - Added a dedicated drag handle indicator (`â‹®â‹®`) with mouse and touch coordinate tracking to position the floating toolbar anywhere on screen.
 
-### 🛡️ Fixed & Hardened
+### ðŸ›¡ï¸ Fixed & Hardened
 - **Safe JSON Response Extraction**:
   - Hardened all AI transform and SEO audit fix requests with text-first decoding (`await resp.text()`) and safe `JSON.parse()` wrappers to prevent `Unexpected token '!'` HTML error crashes.
 - **Route Fallbacks**:
@@ -762,7 +775,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 
 ## [2.3.0] - 2026-08-22
 
-### 🚀 Added
+### ðŸš€ Added
 - **Multi-Driver Document Canvas**:
   - Support for switching active drivers between **TipTap ProseMirror**, **Notion Block Canvas**, **Gutenberg Block Canvas**, **Markdown Split Screen**, and **Raw HTML**.
 - **OmniRoute Gateway v3.8.50 Live Telemetry**:
@@ -771,17 +784,17 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 - **Multi-Agent Copywriting Swarm**:
   - 5-step automated publishing pipeline: Researcher, Outliner Architect, Section Draftsman, Rich Media Engineer, and Rank Math Optimizer.
 
-### 🛡️ Fixed
+### ðŸ›¡ï¸ Fixed
 - Restructured `scripts.blade.php` to debounce autosaves (2000ms) and prevent duplicate write locks during active SSE streaming.
 
 ---
 
 ## [2.2.0] - 2026-08-20
 
-### 🚀 Added
+### ðŸš€ Added
 - **Rank Math 4-Pillar SEO Analyzer**:
-  - Real-time scoring (0–100) across **Basic SEO**, **Additional SEO**, **Title Readability**, and **Content Readability**.
-  - Integrated 1-click **⚡ AI Section Fix** buttons for each SEO audit check.
+  - Real-time scoring (0â€“100) across **Basic SEO**, **Additional SEO**, **Title Readability**, and **Content Readability**.
+  - Integrated 1-click **âš¡ AI Section Fix** buttons for each SEO audit check.
 - **Google SERP Snippet Preview**:
   - Live desktop vs. mobile Google search result snippet simulator.
 - **Local Draft Auto-Recovery**:
@@ -791,7 +804,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 
 ## [2.1.0] - 2026-08-18
 
-### 🚀 Added
+### ðŸš€ Added
 - **Vector Knowledge Base & RAG Pipeline**:
   - Multi-source ingestion for text, files, and web URLs.
   - Recursive 500-token chunker with 50-token semantic overlap.
@@ -804,7 +817,7 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 
 ## [2.0.0] - 2026-08-15
 
-### 🚀 Added
+### ðŸš€ Added
 - **Full Architecture Rewrite**:
   - Upgraded to **Laravel 12.x**, **PHP 8.5.0**, **Livewire 3.x**, and **Tailwind CSS 4.0**.
   - Vite 8.x client bundler with sub-2s production asset compiles.
@@ -821,6 +834,6 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 
 ## [1.0.0] - 2026-08-01
 
-### 🚀 Initial Release
+### ðŸš€ Initial Release
 - Initial core release of HelpOfAi Studio.
 - Basic document management, project folders, user authentication, and initial TipTap WYSIWYG editor implementation.

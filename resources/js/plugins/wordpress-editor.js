@@ -1,4 +1,4 @@
-/*
+﻿/*
 |--------------------------------------------------------------------------
 | HelpOfAi (HOA) Professional Software - WordPress TipTap Master Suite
 |--------------------------------------------------------------------------
@@ -139,16 +139,16 @@ export const CustomCodeBlockLowlight = CodeBlockLowlight.extend({
             const copyBtn = document.createElement('button');
             copyBtn.type = 'button';
             copyBtn.className = 'hoa-copy-code-btn flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] font-medium text-slate-300 hover:text-white transition-all cursor-pointer border border-white/5';
-            copyBtn.innerHTML = '<span>📋</span> <span>Copy</span>';
+            copyBtn.innerHTML = '<span>ðŸ“‹</span> <span>Copy</span>';
 
             copyBtn.addEventListener('click', () => {
                 const codeText = node.textContent;
                 if (navigator.clipboard) {
                     navigator.clipboard.writeText(codeText).then(() => {
-                        copyBtn.innerHTML = '<span class="text-emerald-400 font-bold">✓</span> <span class="text-emerald-300 font-bold">Copied!</span>';
+                        copyBtn.innerHTML = '<span class="text-emerald-400 font-bold">âœ“</span> <span class="text-emerald-300 font-bold">Copied!</span>';
                         copyBtn.classList.add('bg-emerald-500/10', 'border-emerald-500/30');
                         setTimeout(() => {
-                            copyBtn.innerHTML = '<span>📋</span> <span>Copy</span>';
+                            copyBtn.innerHTML = '<span>ðŸ“‹</span> <span>Copy</span>';
                             copyBtn.classList.remove('bg-emerald-500/10', 'border-emerald-500/30');
                         }, 2000);
                     }).catch(() => {});
@@ -209,23 +209,23 @@ export function normalizeContentToHtml(content) {
     // Rich Callout Boxes (> [!TIP], > [!WARNING], > [!NOTE], > [!IMPORTANT], > [!CAUTION])
     text = text.replace(/^>\s*\[!TIP\]\s*\n((?:>.*(?:\r?\n|$))*)/gim, (match, body) => {
         const cleanBody = body.replace(/^>\s?/gm, '').trim();
-        return `<div class="callout-box callout-tip"><div class="callout-title">💡 <span>Pro-Tip & Actionable Insight</span></div><p>${cleanBody}</p></div>`;
+        return `<div class="callout-box callout-tip"><div class="callout-title">ðŸ’¡ <span>Pro-Tip & Actionable Insight</span></div><p>${cleanBody}</p></div>`;
     });
     text = text.replace(/^>\s*\[!WARNING\]\s*\n((?:>.*(?:\r?\n|$))*)/gim, (match, body) => {
         const cleanBody = body.replace(/^>\s?/gm, '').trim();
-        return `<div class="callout-box callout-warning"><div class="callout-title">⚠️ <span>Warning & Critical Precaution</span></div><p>${cleanBody}</p></div>`;
+        return `<div class="callout-box callout-warning"><div class="callout-title">âš ï¸ <span>Warning & Critical Precaution</span></div><p>${cleanBody}</p></div>`;
     });
     text = text.replace(/^>\s*\[!NOTE\]\s*\n((?:>.*(?:\r?\n|$))*)/gim, (match, body) => {
         const cleanBody = body.replace(/^>\s?/gm, '').trim();
-        return `<div class="callout-box callout-info"><div class="callout-title">ℹ️ <span>Important Context & Notes</span></div><p>${cleanBody}</p></div>`;
+        return `<div class="callout-box callout-info"><div class="callout-title">â„¹ï¸ <span>Important Context & Notes</span></div><p>${cleanBody}</p></div>`;
     });
     text = text.replace(/^>\s*\[!IMPORTANT\]\s*\n((?:>.*(?:\r?\n|$))*)/gim, (match, body) => {
         const cleanBody = body.replace(/^>\s?/gm, '').trim();
-        return `<div class="callout-box callout-tldr"><div class="callout-title">⚡ <span>Executive Summary / TL;DR</span></div><p>${cleanBody}</p></div>`;
+        return `<div class="callout-box callout-tldr"><div class="callout-title">âš¡ <span>Executive Summary / TL;DR</span></div><p>${cleanBody}</p></div>`;
     });
     text = text.replace(/^>\s*\[!CAUTION\]\s*\n((?:>.*(?:\r?\n|$))*)/gim, (match, body) => {
         const cleanBody = body.replace(/^>\s?/gm, '').trim();
-        return `<div class="callout-box callout-caution"><div class="callout-title">🚨 <span>High-Risk Caution</span></div><p>${cleanBody}</p></div>`;
+        return `<div class="callout-box callout-caution"><div class="callout-title">ðŸš¨ <span>High-Risk Caution</span></div><p>${cleanBody}</p></div>`;
     });
 
     // Tables
@@ -867,7 +867,7 @@ export function normalizeContentToHtml(content) {
             lastProposalText = '';
 
             $('#hoa-wp-ai-proposal-box').show();
-            $('#hoa-proposal-body').html('<span class="text-emerald-400">✦ Sub-content-sub-agent is analyzing & drafting...</span>');
+            $('#hoa-proposal-body').html('<span class="text-emerald-400">âœ¦ Sub-content-sub-agent is analyzing & drafting...</span>');
 
             triggerAiStream({
                 prompt: 'Recreate and enhance this paragraph with deep technical clarity, active voice, and engaging rhythm.',
@@ -1080,8 +1080,8 @@ export function normalizeContentToHtml(content) {
         // CUSTOM EDITORIAL BLOCKS GENERATORS
         // ==========================================
         function insertCallout(type, title, body) {
-            const icons = { tip: '💡', warning: '⚠️', info: 'ℹ️', tldr: '⚡', caution: '🚨' };
-            const icon = icons[type] || '✦';
+            const icons = { tip: 'ðŸ’¡', warning: 'âš ï¸', info: 'â„¹ï¸', tldr: 'âš¡', caution: 'ðŸš¨' };
+            const icon = icons[type] || 'âœ¦';
             const html = `
                 <div class="callout-box callout-${type}">
                     <div class="callout-title">${icon} <span>${title}</span></div>
@@ -1097,11 +1097,11 @@ export function normalizeContentToHtml(content) {
             const html = `
                 <div class="pros-cons-grid">
                     <div class="pros-box">
-                        <div class="pros-title">✓ <span>Key Advantages (Pros)</span></div>
+                        <div class="pros-title">âœ“ <span>Key Advantages (Pros)</span></div>
                         <ul>${prosList}</ul>
                     </div>
                     <div class="cons-box">
-                        <div class="cons-title">✕ <span>Potential Tradeoffs (Cons)</span></div>
+                        <div class="cons-title">âœ• <span>Potential Tradeoffs (Cons)</span></div>
                         <ul>${consList}</ul>
                     </div>
                 </div>
@@ -1112,7 +1112,7 @@ export function normalizeContentToHtml(content) {
         function insertFaqAccordion(question, answer) {
             const html = `
                 <details class="hoa-faq" open>
-                    <summary><span>${question}</span> <span class="hoa-faq-toggle">▼</span></summary>
+                    <summary><span>${question}</span> <span class="hoa-faq-toggle">â–¼</span></summary>
                     <p>${answer}</p>
                 </details>
             `;
@@ -1124,7 +1124,7 @@ export function normalizeContentToHtml(content) {
                 <div class="eeat-trust-card">
                     <div class="eeat-header">
                         <div class="eeat-badge-wrap">
-                            <span class="eeat-icon">🏆</span>
+                            <span class="eeat-icon">ðŸ†</span>
                             <div>
                                 <div class="eeat-title">Editorial Testing & Trust Standards</div>
                                 <div class="eeat-sub">Independent Benchmark & Real-World Evaluation</div>
@@ -1205,7 +1205,7 @@ export function normalizeContentToHtml(content) {
             $('body').toggleClass('hoa-no-scroll');
 
             const isFull = $wrapper.hasClass('hoa-fullscreen-mode');
-            $(this).html(isFull ? '<span>✕ Exit Fullscreen</span>' : '<span>⛶ Fullscreen</span>');
+            $(this).html(isFull ? '<span>âœ• Exit Fullscreen</span>' : '<span>â›¶ Fullscreen</span>');
             editor.commands.focus();
         });
 
@@ -1324,7 +1324,7 @@ export function normalizeContentToHtml(content) {
 
             const $runBtn = $('#hoa-dedicated-ai-run-btn');
             const origBtnText = $runBtn.html();
-            $runBtn.prop('disabled', true).html('⚡ Streaming Tokens...');
+            $runBtn.prop('disabled', true).html('âš¡ Streaming Tokens...');
 
             updateSwarmSteps(0.05);
 
@@ -1341,7 +1341,7 @@ export function normalizeContentToHtml(content) {
             if (placement === 'proposal') {
                 lastProposalRange = (fromPos !== toPos) ? { from: fromPos, to: toPos } : null;
                 $('#hoa-wp-ai-proposal-box').fadeIn(150);
-                $('#hoa-proposal-body').html('<span class="text-emerald-400">✦ Sub-content-sub-agent reasoning & drafting...</span>');
+                $('#hoa-proposal-body').html('<span class="text-emerald-400">âœ¦ Sub-content-sub-agent reasoning & drafting...</span>');
             }
 
             let totalChars = 0;
@@ -1908,8 +1908,8 @@ export function normalizeContentToHtml(content) {
                 const kw = $('#hoa-target-keyword').val().trim();
                 const $list = $('#hoa-viral-titles-list');
 
-                $btn.prop('disabled', true).html('⚡ Generating...');
-                $list.html('<div class="hoa-loading-pulse">✦ AI is crafting 5 click-worthy SEO headlines...</div>');
+                $btn.prop('disabled', true).html('âš¡ Generating...');
+                $list.html('<div class="hoa-loading-pulse">âœ¦ AI is crafting 5 click-worthy SEO headlines...</div>');
 
                 try {
                     const prompt = `Generate 5 click-worthy, viral, SEO-optimized headlines for an article with focus keyword "${kw || title}" and current working title "${title || kw}". Return ONLY the 5 numbered titles, one per line. No conversational introduction.`;
@@ -1946,7 +1946,7 @@ export function normalizeContentToHtml(content) {
                     $('#hoa-post-title-input').val(titleText);
                     updateSeoScore();
                     const $btn = $(this).hasClass('hoa-btn-apply-title') ? $(this) : $(this).find('.hoa-btn-apply-title');
-                    $btn.text('✓ Applied!').css({ background: 'rgba(16, 185, 129, 0.3)', color: '#34d399' });
+                    $btn.text('âœ“ Applied!').css({ background: 'rgba(16, 185, 129, 0.3)', color: '#34d399' });
                     setTimeout(() => $btn.text('Apply').css({ background: '', color: '' }), 2500);
                 }
             });
@@ -1958,7 +1958,7 @@ export function normalizeContentToHtml(content) {
                 const kw = $('#hoa-target-keyword').val().trim();
                 const text = editor.getText().slice(0, 800);
 
-                $btn.prop('disabled', true).html('⚡ Generating...');
+                $btn.prop('disabled', true).html('âš¡ Generating...');
                 $('#hoa-generated-desc-box').hide();
 
                 try {
@@ -1980,7 +1980,7 @@ export function normalizeContentToHtml(content) {
                 if (text) {
                     $('#hoa-meta-description').val(text);
                     updateSeoScore();
-                    $(this).text('✓ Applied!').css({ background: 'rgba(16, 185, 129, 0.3)', color: '#34d399' });
+                    $(this).text('âœ“ Applied!').css({ background: 'rgba(16, 185, 129, 0.3)', color: '#34d399' });
                     setTimeout(() => $(this).text('Apply to SEO Meta').css({ background: '', color: '' }), 2500);
                 }
             });
@@ -1993,8 +1993,8 @@ export function normalizeContentToHtml(content) {
                 const kw = $('#hoa-target-keyword').val().trim();
                 const $list = $('#hoa-content-gaps-list');
 
-                $btn.prop('disabled', true).html('⚡ Analyzing Gaps...');
-                $list.html('<div class="hoa-loading-pulse">✦ Evaluating search intent and competitive gaps...</div>');
+                $btn.prop('disabled', true).html('âš¡ Analyzing Gaps...');
+                $list.html('<div class="hoa-loading-pulse">âœ¦ Evaluating search intent and competitive gaps...</div>');
 
                 try {
                     const prompt = `Analyze this article (Title: "${title}", Focus Keyword: "${kw}"). Identify 2 missing competitive subtopics (gaps) and 2 schema FAQ questions that would satisfy search intent. Format each line starting with "[GAP] Subtopic Name: Explanation" or "[FAQ] Question?: Concise answer". No extra conversational text.`;
@@ -2010,7 +2010,7 @@ export function normalizeContentToHtml(content) {
                                 const gapDesc = parts.slice(1).join(':').trim();
                                 html += `
                                     <div class="hoa-suggestion-card">
-                                        <div class="hoa-suggestion-title">💡 ${$('<div>').text(gapTitle).html()}</div>
+                                        <div class="hoa-suggestion-title">ðŸ’¡ ${$('<div>').text(gapTitle).html()}</div>
                                         <p class="hoa-suggestion-desc">${$('<div>').text(gapDesc).html()}</p>
                                         <button type="button" class="hoa-btn-insert-gap button button-small" data-type="heading" data-title="${$('<div>').text(gapTitle).html()}" data-desc="${$('<div>').text(gapDesc).html()}">+ Insert Heading & Section</button>
                                     </div>
@@ -2022,7 +2022,7 @@ export function normalizeContentToHtml(content) {
                                 const a = parts.slice(1).join('?').replace(/^:\s*/, '').trim();
                                 html += `
                                     <div class="hoa-suggestion-card">
-                                        <div class="hoa-suggestion-title">❓ ${$('<div>').text(q).html()}</div>
+                                        <div class="hoa-suggestion-title">â“ ${$('<div>').text(q).html()}</div>
                                         <p class="hoa-suggestion-desc">${$('<div>').text(a).html()}</p>
                                         <button type="button" class="hoa-btn-insert-gap button button-small" data-type="faq" data-question="${$('<div>').text(q).html()}" data-answer="${$('<div>').text(a).html()}">+ Insert FAQ Accordion</button>
                                     </div>
@@ -2051,7 +2051,7 @@ export function normalizeContentToHtml(content) {
                     const desc = $(this).data('desc');
                     editor.chain().focus('end').insertContent(`<h2>${title}</h2><p>${desc}</p>`).run();
                 }
-                $(this).text('✓ Inserted').prop('disabled', true);
+                $(this).text('âœ“ Inserted').prop('disabled', true);
             });
 
             // 11. TAB 5: Secondary & LSI Keywords Density Matrix
@@ -2240,8 +2240,8 @@ export function normalizeContentToHtml(content) {
                 e.preventDefault();
                 saveSnapshot(false);
                 const $btn = $(this);
-                $btn.text('✓ Saved!').css({ background: 'rgba(16, 185, 129, 0.3)', color: '#34d399' });
-                setTimeout(() => $btn.text('📸 Save Snapshot').css({ background: '', color: '' }), 2000);
+                $btn.text('âœ“ Saved!').css({ background: 'rgba(16, 185, 129, 0.3)', color: '#34d399' });
+                setTimeout(() => $btn.text('ðŸ“¸ Save Snapshot').css({ background: '', color: '' }), 2000);
             });
 
             $(document).on('click', '.hoa-btn-restore-snapshot', function() {
@@ -2338,8 +2338,8 @@ export function normalizeContentToHtml(content) {
                 const codeText = $btn.closest('.hoa-code-block-wrapper').find('code').text() || $btn.siblings('pre').text();
                 if (navigator.clipboard && codeText) {
                     navigator.clipboard.writeText(codeText).then(() => {
-                        $btn.html('<span>✓</span> <span>Copied!</span>');
-                        setTimeout(() => $btn.html('<span>📋</span> <span>Copy</span>'), 2000);
+                        $btn.html('<span>âœ“</span> <span>Copied!</span>');
+                        setTimeout(() => $btn.html('<span>ðŸ“‹</span> <span>Copy</span>'), 2000);
                     });
                 }
             });
@@ -2369,7 +2369,7 @@ export function normalizeContentToHtml(content) {
                         const $select = $('#hoa-ai-model-select');
                         const currentVal = $select.val() || 'auto';
                         $select.empty();
-                        $select.append('<option value="auto">⚡ Auto (OmniRoute Smart Router)</option>');
+                        $select.append('<option value="auto">âš¡ Auto (OmniRoute Smart Router)</option>');
                         res.data.available_models.forEach(function(m) {
                             const providerName = m.provider || 'OmniRoute';
                             $select.append(`<option value="${m.model_id}">${m.name} (${providerName})</option>`);
@@ -2425,3 +2425,7 @@ export function normalizeContentToHtml(content) {
         }
     });
 })(jQuery);
+
+
+
+

@@ -1,4 +1,13 @@
-# 🧠 HOA-Studio: Neuro-Brain System Architecture Schema
+﻿
+
+## 🔧 v2.9.1 Antigravity & Streaming Fixes (2026-09-20)
+- **Fixed Browser Tab Freezing**: Added 30-second timeout guard to SSE stream loop in esources/js/plugins/wordpress-editor.js to prevent UI lock during stalled AI connections
+- **Fixed SSL Verification in Testing**: Extended withoutVerifying() bypass to include 'testing' environment in:
+  - pp/Features/Antigravity/Services/AntigravityAccountManager.php
+  - pp/Features/Antigravity/Services/AntigravityHealthMonitor.php
+- **Fixed OAuth State Verification**: Replaced session-based storage with Laravel Cache storage in pp/Features/Antigravity/Http/Controllers/AntigravityOAuthController.php to prevent verification failures in distributed/test environments
+- **Fixed Missing Import**: Added Illuminate\Support\Facades\Date to AntigravityHealthMonitor.php
+# ðŸ§  HOA-Studio: Neuro-Brain System Architecture Schema
 <!--
 |--------------------------------------------------------------------------
 | HelpOfAi (HOA) Professional Software - System Architecture Schema
@@ -16,7 +25,7 @@
 
 ---
 
-## 🧭 Neuro-Brain Architecture Map (Click Any Node to Jump to Its Synapse Spec)
+## ðŸ§­ Neuro-Brain Architecture Map (Click Any Node to Jump to Its Synapse Spec)
 
 ```mermaid
 flowchart TD
@@ -29,48 +38,48 @@ flowchart TD
     classDef brainstem fill:#1f2937,stroke:#9ca3af,stroke-width:2px,color:#f9fafb;
     classDef external fill:#0f172a,stroke:#38bdf8,stroke-width:2px,stroke-dasharray: 5 5,color:#e2e8f0;
 
-    subgraph BRAINSTEM ["🏛️ Central Brainstem (Governance, System & Updates)"]
+    subgraph BRAINSTEM ["ðŸ›ï¸ Central Brainstem (Governance, System & Updates)"]
         ADMIN["[Admin Control Center]"]:::brainstem
         AUTH["[Auth & Quotas Engine]"]:::brainstem
         UPDATER["[Core Update Engine]"]:::brainstem
         RESCUE["[Emergency Rescue Engine]"]:::brainstem
     end
 
-    subgraph FRONTAL_LOBE ["⚡ Frontal Lobe (AI Reasoning & Generation Matrix)"]
+    subgraph FRONTAL_LOBE ["âš¡ Frontal Lobe (AI Reasoning & Generation Matrix)"]
         OMNIRoute["[OmniRoute Gateway Client]"]:::frontal
         STREAM_CTRL["[SSE Streaming Controller (/ai/stream)]"]:::frontal
         CIRCUIT_BREAKER["[AI Circuit Breaker & Rate Limiter]"]:::frontal
     end
 
-    subgraph CEREBRAL_CORTEX ["📝 Cerebral Cortex (Central Canvas & Editor Engine)"]
+    subgraph CEREBRAL_CORTEX ["ðŸ“ Cerebral Cortex (Central Canvas & Editor Engine)"]
         DOC_EDITOR["[DocumentEditor Livewire Core]"]:::cortex
         TIPTAP_CANVAS["[TipTap ProseMirror Canvas]"]:::cortex
         TOOLBAR_INTEL["[Editor Toolbar & Intelligence Tabs]"]:::cortex
-        BRAIN_TAB["[🧠 TipTap Brain & Lineage Tab]"]:::cortex
+        BRAIN_TAB["[ðŸ§  TipTap Brain & Lineage Tab]"]:::cortex
         IN_CANVAS_REPAIR["[In-Canvas Micro-Repair & Slash Actions]"]:::cortex
         VERSION_SYS["[Version History & Snapshot Engine]"]:::cortex
         UNIVERSAL_IMPORT["[Universal Document Import Studio]"]:::cortex
     end
 
-    subgraph PARIETAL_LOBE ["🎯 Parietal Lobe (SEO, Analytics & Perception)"]
+    subgraph PARIETAL_LOBE ["ðŸŽ¯ Parietal Lobe (SEO, Analytics & Perception)"]
         SEO_ANALYZER["[Rank Math SEO Engine & Heatmap]"]:::parietal
         SCHEMA_GEN["[JSON-LD Schema Generator]"]:::parietal
         QUALITY_AUDIT["[10-Point Quality Auditor]"]:::parietal
     end
 
-    subgraph OCCIPITAL_LOBE ["📚 Occipital Lobe (Long-Term Memory & Knowledge)"]
+    subgraph OCCIPITAL_LOBE ["ðŸ“š Occipital Lobe (Long-Term Memory & Knowledge)"]
         RAG_ENGINE["[KnowledgeBase RAG Retriever]"]:::occipital
         VECTOR_SEARCH["[Vector Semantic Search Engine]"]:::occipital
         BRAND_VOICE["[Brand Voice & Style Guide]"]:::occipital
     end
 
-    subgraph TEMPORAL_LOBE ["🚀 Temporal Lobe (Publishing, Syndication & Delivery)"]
+    subgraph TEMPORAL_LOBE ["ðŸš€ Temporal Lobe (Publishing, Syndication & Delivery)"]
         BLOG_PUBLISH["[Public Blog Manager & Engine]"]:::temporal
         WP_BRIDGE["[Headless WordPress Sync Bridge]"]:::temporal
         DOC_SHARE["[Public Document Sharing & Access]"]:::temporal
     end
 
-    subgraph EXTERNAL_NETWORKS ["🌐 External Synapses & Endpoints"]
+    subgraph EXTERNAL_NETWORKS ["ðŸŒ External Synapses & Endpoints"]
         AI_PROVIDERS["(OpenAI / Claude / DeepSeek / Ollama)"]:::external
         WP_SITE["(Live WordPress Client Website)"]:::external
         PUBLIC_WEB["(Public Readers & Search Engines)"]:::external
@@ -129,7 +138,7 @@ flowchart TD
 
 ---
 
-## ⚡ Master Synapse Quick-Jump Matrix
+## âš¡ Master Synapse Quick-Jump Matrix
 
 | Neural Hub | Feature Module | Core Entrypoint File | Primary Inbound Connection | Primary Outbound Connection |
 | :--- | :--- | :--- | :--- | :--- |
@@ -149,7 +158,7 @@ flowchart TD
 
 ---
 
-## 🧬 Deep Synaptic Specification Cards
+## ðŸ§¬ Deep Synaptic Specification Cards
 
 ---
 
@@ -192,7 +201,7 @@ flowchart TD
   - **Blade vs Alpine Syntax Conflict Elimination**: Replaced problematic `@entangle` directives inside partial views with `$wire.entangle()` and removed duplicate `.live` entanglements from controls already bound via event handlers, preventing duplicate HTTP requests on UI interactions.
   - **Memory & Serialization Safeguards**: Strip heavy AST HTML from persistent state (`seoData.marked_html`). Historical version records are queried with lightweight metadata columns (`['id', 'document_id', 'created_by', 'version_number', 'word_count', 'summary', 'operation_type', 'created_at']`). Deep version content is retrieved strictly on-demand via `getVersionContent(id)` for diffing, saving megabytes per autosave cycle.
   - **Instant Button Feedback Engine**: All action buttons across toolbar and Content Intelligence tabs (SEO, Versions, Keywords, Post/Publish, AI Ideas, Titles & Meta) enforce `wire:loading.attr="disabled"`, visual spinners, and state disabling, completely preventing duplicate requests and click lag.
-  - **Multi-Format Drag-and-Drop Featured Image Upload Engine with Live Progress & Dual-Preview Sync**: Integrated native file uploads via `WithFileUploads` in [`DocumentEditor.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/Documents/Livewire/DocumentEditor.php) (`$featuredImageUpload`, `updatedFeaturedImageUpload()`). Supports multi-format assets (`png, jpg, jpeg, webp, gif, svg, avif, bmp, ico, tif, tiff`) up to 15MB with automatic public storage linking (`featured-images/`). Features client-side animated upload progress bars (`livewire-upload-progress`, `0% → 100%`) directly inside the dropzone container, in-place instant image previewing with 1-click replacement overlays, and synchronized previews across both the Post Settings sidebar and the Publish Article to Blog modal (`class="w-full h-36 object-cover"`).
+  - **Multi-Format Drag-and-Drop Featured Image Upload Engine with Live Progress & Dual-Preview Sync**: Integrated native file uploads via `WithFileUploads` in [`DocumentEditor.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/Documents/Livewire/DocumentEditor.php) (`$featuredImageUpload`, `updatedFeaturedImageUpload()`). Supports multi-format assets (`png, jpg, jpeg, webp, gif, svg, avif, bmp, ico, tif, tiff`) up to 15MB with automatic public storage linking (`featured-images/`). Features client-side animated upload progress bars (`livewire-upload-progress`, `0% â†’ 100%`) directly inside the dropzone container, in-place instant image previewing with 1-click replacement overlays, and synchronized previews across both the Post Settings sidebar and the Publish Article to Blog modal (`class="w-full h-36 object-cover"`).
   - **SEO-Optimized Semantic Image Filenames & Public Storage Fallback**: Uploaded featured images automatically generate Google-friendly, keyword-rich filenames via `generateSeoFriendlyImageName()` (e.g. `{article-slug}-featured-image-{hash6}.{ext}`) instead of raw random hashes. Paired with a dedicated public storage fallback route (`/storage/{path}`) in [`routes/web.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/routes/web.php), completely preventing 403 Forbidden errors across Windows and shared hosting/cPanel environments without symlink privileges.
   - **Single-Root DOM Integrity**: Strictly preserves Livewire 3 single root container rule across `editor.blade.php` and partials (`modals.blade.php`), preventing DOM morphing desyncs and premature container closure.
 * **Failure Guardrail**: Never remove public methods bound to `wire:click` (e.g. `toggleSeoDrawer`, `runSeoAudit`, `openBlogModal`). Ensure single root `<div>` in `editor.blade.php`.
@@ -209,7 +218,7 @@ flowchart TD
     - [`AudienceProfile.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Data/AudienceProfile.php) (Stage 02 Audience Persona DTO)
     - [`IntentContract.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Data/IntentContract.php) (Stage 03 Search Intent DTO)
     - [`KeywordUniverse.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Data/KeywordUniverse.php) (Stage 05 & 06 Purpose-Driven Keyword/Entity DTO)
-    - [`KnowledgeGraph.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Data/KnowledgeGraph.php) (Stage 10-14 Source → Evidence → Claim Lineage Graph DTO)
+    - [`KnowledgeGraph.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Data/KnowledgeGraph.php) (Stage 10-14 Source â†’ Evidence â†’ Claim Lineage Graph DTO)
     - [`ContentBlueprint.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Data/ContentBlueprint.php) (Stage 15-18 Section Contracts Blueprint DTO)
     - [`StructuredArticle.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Data/StructuredArticle.php) (Canonical JSON Article Model prior to TipTap rendering)
   - Streaming Controller: [`AiStreamController.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/app/Features/AI/Http/Controllers/AiStreamController.php)
@@ -260,7 +269,7 @@ flowchart TD
   - Live HTML from TipTap via `runSeoAudit(liveHtml)`
   - Keyword updates via `wire:model.lazy="targetKeyword"`
 * **Outbound Synapses**:
-  - Returns calculated score, check breakdown (Critical 🔴, Warning 🟡, AI/GEO 🟣, Authority 🔵, Passed 🟢), and `marked_html`.
+  - Returns calculated score, check breakdown (Critical ðŸ”´, Warning ðŸŸ¡, AI/GEO ðŸŸ£, Authority ðŸ”µ, Passed ðŸŸ¢), and `marked_html`.
   - Injects schema markup into Titles & Meta tab.
 * **Internal Mechanics**:
   - Uses DOMDocument and Regex parsing to audit keyword density, header placement, image alts, URL slug length, and readability ease.
@@ -320,7 +329,7 @@ flowchart TD
     - **Categories Directory**: Horizontal pill carousel and vertical sidebar deck with live article counts.
     - **Archive Timeline**: Chronological Year/Month breakdown (`BlogPost::getPublishedArchiveTimeline()`) with one-click period scoping (`?archive=YYYY-mm`).
     - **Read-Time Filters & Multi-Criteria Sorting**: Quick reads (< 5 min), deep dives (5+ min), and sorting by newest, views (popularity), oldest, read duration, or alphabetical.
-    - **Dual Presentation Views**: One-click switcher between Magazine Grid (`▦`) and Editorial List (`☰`) layouts.
+    - **Dual Presentation Views**: One-click switcher between Magazine Grid (`â–¦`) and Editorial List (`â˜°`) layouts.
     - **Active Filter Chips Bar**: Visual dismissible chips for each active filter criteria with single-click reset.
   - Public article content rendered with `.hoa-article-content` and `.markdown-body` via [`markdown.css`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/css/markdown.css), providing dark glassmorphic styling for tables, checklists, callouts, and code blocks with automatic duplicate leading `<h1>` suppression.
   - **Zero-Latency Independent Post Sidebar Accordions & Multi-Format Featured Image Upload**: Status & Visibility, Multi-Format Featured Image Upload (PNG/JPG/WebP/GIF/SVG/AVIF/BMP/ICO/TIFF drag-and-drop dropzone with browse, replace, and instant preview), Categories, Tags, and Excerpt panels in [`content-intelligence-tab-post.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/Components/content-intelligence-tab-post.blade.php) utilize self-contained Alpine components (`x-data="{ isOpen: ... }"`) keyed with `wire:key` to prevent Livewire morphing conflicts, deliver 0ms category selection, instant image dropzone uploads and preset previews, and real-time character counts without collapsing active panels.
@@ -328,31 +337,31 @@ flowchart TD
     - **Editorial Masthead**: Typographic hero with category kicker, reading time, view count, byline strip, and cinematic featured image banner.
     - **Dual Editorial Publication & Revision Dates**: Byline strip supports dual publication tracking, cleanly rendering `Published on {date}` alongside `Updated on {date}` whenever an article has been updated or revised post-publication, backed by atomic view counting (`DB::table()->increment('views_count')`) that preserves content modification timestamps.
     - **Dynamic Table of Contents (TOC)**: Alpine.js (`hoaBlogPostReader()`) auto-extracts `h2` and `h3` tags, generates semantic anchor IDs, applies `scroll-margin-top`, and tracks scroll position with active section highlight. Includes mobile collapsible drawer for screens `< lg`.
-    - **Reading Immersion**: Fixed top scroll progress bar (`0% → 100%`) and a floating blurred glass header that slides in when scrolled past hero with real-time reading progress and quick-share actions.
+    - **Reading Immersion**: Fixed top scroll progress bar (`0% â†’ 100%`) and a floating blurred glass header that slides in when scrolled past hero with real-time reading progress and quick-share actions.
     - **Circulation & Navigation**: Previous and Next article cards (`$previousPost`, `$nextPost`), verified author card with author post archive links, and related category stories deck.
     - **Tabbed Discovery Hub (Sticky Aside Rail)**: Alpine.js-powered 3-tab widget displaying:
       - `Similar`: Other published articles in the same category (`$similarPosts`).
       - `By Author`: Articles published by the same author (`$authorPosts`).
       - `Trending`: Most-read articles across the journal ranked `#01, #02...` (`$trendingPosts`).
-    - **Code Snippets**: 1-click clipboard copy button on all `<pre>` code blocks with visual `"✓ Copied!"` feedback.
+    - **Code Snippets**: 1-click clipboard copy button on all `<pre>` code blocks with visual `"âœ“ Copied!"` feedback.
     - **Self-Hosted Visual Diagram & Schema Engine** ([`blog-visual-enhancer.js`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/js/features/blog/blog-visual-enhancer.js)):
       - **Embedded Markdown Auto-Unpacker**: Automatically detects and unpacks giant raw Markdown code blocks containing embedded headings (`##`), dividers (`---`), ASCII architecture diagrams, and Mermaid diagrams into separate semantic DOM elements (`<h2>`, `<pre>`, `<hr>`), allowing dynamic TOC indexing.
       - **Interactive Pan & Zoom Canvas (ER Schemas & Diagrams)**: 100% self-hosted local Mermaid library bundled via Vite (0 CDN dependencies). Auto-detects `erDiagram`, `flowchart`, `sequenceDiagram`, etc., rendering them into an interactive dark-glass viewport with:
         - **Drag-to-Move Panning**: Click & drag with mouse cursor (`cursor: grab / grabbing`) or single-finger touch dragging on mobile devices.
         - **Smooth Wheel & Pinch Zoom**: Mouse wheel scroll-to-zoom with pointer focal tracking, and multi-touch pinch-to-zoom on touchscreens.
-        - **Precision Zoom Controls**: `➕` Zoom In, `➖` Zoom Out, live percentage indicator (`100%`, `125%`, etc.), double-click detail toggle, and 1-click `⟲ Fit` canvas reset.
+        - **Precision Zoom Controls**: `âž•` Zoom In, `âž–` Zoom Out, live percentage indicator (`100%`, `125%`, etc.), double-click detail toggle, and 1-click `âŸ² Fit` canvas reset.
         - **Floating Quick Dock & Source Drawers**: In-canvas floating quick action buttons, toggleable Mermaid source-code drawers, and 1-click schema clipboard copying.
-      - **Cyberpunk ASCII Architecture Terminals**: Box-drawing flowcharts (e.g. `┌─┐│└┘▼▲`) are auto-wrapped in a macOS terminal frame (`🔴 🟡 🟢`) with locked monospace font alignment and 1-click diagram copy.
-      - **Permission & Feature Matrix Enhancer**: Tables comparing features/plans auto-highlight checkmarks (`✓` in glowing emerald), crossmarks (`✕` in muted slate), and pills (`⚡ ...`) with responsive horizontal scrollers.
+      - **Cyberpunk ASCII Architecture Terminals**: Box-drawing flowcharts (e.g. `â”Œâ”€â”â”‚â””â”˜â–¼â–²`) are auto-wrapped in a macOS terminal frame (`ðŸ”´ ðŸŸ¡ ðŸŸ¢`) with locked monospace font alignment and 1-click diagram copy.
+      - **Permission & Feature Matrix Enhancer**: Tables comparing features/plans auto-highlight checkmarks (`âœ“` in glowing emerald), crossmarks (`âœ•` in muted slate), and pills (`âš¡ ...`) with responsive horizontal scrollers.
     - **Client-Side Reading Memory & Multi-Card Progress Sync Engine (`hoaCardReadingProgress`)**:
       - **Persistent Reading Storage**: Automatically records and persists per-article reading progress (`progress`, `completed`, `scrollY`, `updated_at`) using browser `localStorage` keyed by unique article slug (`hoa_read_progress_{slug}`).
-      - **Dynamic Reading Progress Bar & Status Metrics**: Article cards across Grid View, List View, and the Featured Hero Spotlight dynamically reveal an animated gradient progress track (`0% → 100%`) with real-time status badges (`• 35% read` or `✓ 100% Read`), calculated time remaining (`4m left`), and floating thumbnail status pills.
+      - **Dynamic Reading Progress Bar & Status Metrics**: Article cards across Grid View, List View, and the Featured Hero Spotlight dynamically reveal an animated gradient progress track (`0% â†’ 100%`) with real-time status badges (`â€¢ 35% read` or `âœ“ 100% Read`), calculated time remaining (`4m left`), and floating thumbnail status pills.
       - **Upgraded Glassmorphic Action Buttons**: Replaced generic text links with high-end, rounded-xl glassmorphic action buttons featuring 3 reactive dynamic states:
-        - *Unread*: "Read →" with subtle hover arrow translation and indigo border glow.
-        - *In Progress*: "Resume (35%) →" with active indigo gradient glow and direct jump option.
-        - *Completed*: "Read Again ↺" with emerald glass styling and smooth 180° rotation on hover.
+        - *Unread*: "Read â†’" with subtle hover arrow translation and indigo border glow.
+        - *In Progress*: "Resume (35%) â†’" with active indigo gradient glow and direct jump option.
+        - *Completed*: "Read Again â†º" with emerald glass styling and smooth 180Â° rotation on hover.
       - **Zero-Latency bfcache & Multi-Tab Synchronization**: Automatically listens for window `storage`, `pageshow`, and `focus` events, ensuring instant updates when navigating back from an article without requiring a full page reload.
-      - **Pick-Up Where You Left Off (Floating Resume Toast)**: In `/blog/{slug}`, if a reader previously read past 350px without completing the article, a non-intrusive floating toast appears with a 1-click `Jump →` action to smoothly glide down to their exact saved reading point.
+      - **Pick-Up Where You Left Off (Floating Resume Toast)**: In `/blog/{slug}`, if a reader previously read past 350px without completing the article, a non-intrusive floating toast appears with a 1-click `Jump â†’` action to smoothly glide down to their exact saved reading point.
 
 ---
 
@@ -450,7 +459,7 @@ flowchart TD
   - Client Event Bridge: [`scripts-core.blade.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/resources/views/editor/partial/scripts-core.blade.php)
   - Feature Tests: [`DocumentImportSystemTest.php`](file:///C:/Users/rajib/Desktop/HOA-Studio/tests/Feature/DocumentImportSystemTest.php)
 * **Inbound Synapses**:
-  - Toolbar `📥 Import` button triggers `openImportModal()`.
+  - Toolbar `ðŸ“¥ Import` button triggers `openImportModal()`.
   - Multi-format file drag-and-drop or file upload via `wire:model="importFile"` (`.docx`, `.pdf`, `.md`, `.html`, `.csv`, `.txt`, `.json`).
   - Formatting tuning (`clean_whitespace`, `preserve_headings`, `smart_typography`) via `reprocessImport()`.
 * **Outbound Synapses**:
@@ -601,7 +610,7 @@ flowchart TD
     - *Autonomous Strategy Learning Engine (`AutonomousLearningEngineService`, `StrategyMemory`, `StrategyCandidateDTO`)*: Closed cognitive feedback loop advancing successful strategic patterns through a 4-stage lifecycle (`Observation` $\rightarrow$ `Candidate` $\rightarrow$ `Validated` $\rightarrow$ `Adopted`). Automated post-mission learning harvesting lessons from quality audits, evidence density, and readability performance. Strategy candidate adoption and rejection workflows with evidence accumulation thresholds.
     - *User Feedback Intelligence Engine (`UserFeedbackIntelligenceService`, `UserStylePreference`)*: Ingests and diffs manual user edits against AI-generated prose to infer authorial writing preferences (`prefer_concise_sentences`, `eliminate_fluff_phrases`, `prefer_bulleted_breakdowns`). Progressive confidence calibration preventing hasty rule modifications on singular edits. Interactive diff tester and rule activation toggles.
     - *Site-Level Topic Strategy & Portfolio Brain (`SiteTopicStrategyService`, `SiteTopicCluster`, `SitePortfolioReportDTO`)*: Content portfolio analysis clustering articles by semantic topic domains and calculating cluster coverage scores ($0-100\%$). Cross-document keyword cannibalization detection analyzing lexical and intent overlap with actionable merge/differentiation recommendations. Uncovered subtopic opportunity discovery and internal cross-linking matrix generation.
-    - *Livewire 3 UI Inspector Tab 11 `🧭 Lineage & Strategy` (`resources/views/content-intelligence/index.blade.php`, `ContentIntelligencePage.php`)*: Interactive 7-tier sentence lineage inspector with upstream epistemic root drawer; autonomous strategy memories matrix with progress badges, evidence counters, confidence bars, and custom observation recorder; user feedback style rules feed with active toggles and real-time diff analyzer test bed; site topic portfolio dashboard displaying cluster coverage gauges, cannibalization risk alerts, and cross-linking opportunities.
+    - *Livewire 3 UI Inspector Tab 11 `ðŸ§­ Lineage & Strategy` (`resources/views/content-intelligence/index.blade.php`, `ContentIntelligencePage.php`)*: Interactive 7-tier sentence lineage inspector with upstream epistemic root drawer; autonomous strategy memories matrix with progress badges, evidence counters, confidence bars, and custom observation recorder; user feedback style rules feed with active toggles and real-time diff analyzer test bed; site topic portfolio dashboard displaying cluster coverage gauges, cannibalization risk alerts, and cross-linking opportunities.
   - `ContradictionResolverService` automatically audits claims, detecting conflicts and resolving them using hierarchical strategies (`authority`, `recency`, `methodology`, and `nuanced_synthesis`).
   - `BlueprintNode` synthesizes a machine-readable Strategic Content Blueprint: article angle (Information Gain thesis), UVP, target transformation, required/optional sections, required entities, and internal/external link targets.
   - `OutlineNode` converts the blueprint into an adaptive, dependency-aware outline tree of `SectionNodeDTO`s, dynamically distributing word counts and assigning verified `claim_ids` from the Claim Graph directly to corresponding sections.
@@ -611,7 +620,7 @@ flowchart TD
   - `AssemblyNode` synthesizes all drafted sections into canonical TipTap ProseMirror AST via `TipTapDocumentAssembler`, now including responsive `<figure>` hero cover images with `aspect-video` layouts, persisting the final `Document` and `DocumentContent` in HOA-Studio, indexing article element nodes for Level 3 Article Brain invalidation, and marking the workflow run as `COMPLETED`.
   - `ContentIntelligencePublishService` bridges completed CI pipeline output to the Blog module, extracting SEO metadata and hero images from `content_seo_metadatas` and `content_media_assets` to auto-enrich blog posts. `SocialPreviewGenerator` produces Open Graph, Twitter/X Card, LinkedIn, Reddit previews, TL;DR summaries, and Schema.org JSON-LD from pipeline artifacts.
   - **Master State & Contract Engine Architecture**: Integrated `ContentDocument`, `StageResultDTO`, `SectionContractDTO`, and `ContractEnforcer` across the graph. Every node updates a single canonical `ContentDocument` state, advances state versions (`v001` through `v020`), enforces section topic/keyword/claim boundaries, and attaches immutable `StageResultDTO` audit records to `workflow_runs.graph_state['content_document']`.
-  - **Upgrade 6: Performance Analytics & Refresh Intelligence** — `ContentPerformanceTracker` captures time-series snapshots (views, velocity, trends, engagement) into `content_performance_snapshots`. `StalenessDetectorService` computes composite staleness via four-factor weighted scoring (age decay, velocity decay, trend decay, content-type decay). `RefreshBriefGenerator` produces AI-authored refresh directives with priority scoring. The full cognitive cycle is now closed: Create → Assemble → Publish → Track → Detect → Refresh → Re-generate → Re-publish.
+  - **Upgrade 6: Performance Analytics & Refresh Intelligence** â€” `ContentPerformanceTracker` captures time-series snapshots (views, velocity, trends, engagement) into `content_performance_snapshots`. `StalenessDetectorService` computes composite staleness via four-factor weighted scoring (age decay, velocity decay, trend decay, content-type decay). `RefreshBriefGenerator` produces AI-authored refresh directives with priority scoring. The full cognitive cycle is now closed: Create â†’ Assemble â†’ Publish â†’ Track â†’ Detect â†’ Refresh â†’ Re-generate â†’ Re-publish.
   - Graph nodes implement `WorkflowNodeInterface` and emit `WorkflowNodeResultDTO` containing structured payload, metrics, confidence, and next suggested node.
   - State machine dynamically updates `workflow_runs.graph_state` and creates `workflow_nodes` telemetry history (latency, tokens, confidence, status).
 * **Failure Guardrails**: Every stage must produce a validated schema. Contradicted or unverified claims are blocked or marked with epistemic caution tags. If node confidence drops below threshold or critical failure occurs, the engine pauses or routes to self-correction loops.
@@ -646,7 +655,7 @@ flowchart TD
 
 ---
 
-## ⚡ Global Event Bus & Inter-Feature Signals
+## âš¡ Global Event Bus & Inter-Feature Signals
 
 ```mermaid
 sequenceDiagram
@@ -672,7 +681,7 @@ sequenceDiagram
 
 ---
 
-## 🚨 AI Agent Protocol for Feature Insertion & Upgrades
+## ðŸš¨ AI Agent Protocol for Feature Insertion & Upgrades
 
 ### Before Writing Code:
 1. **Identify the Target Neural Hub**: Look up which of the 10 hubs in this schema your requested change belongs to.
@@ -688,21 +697,34 @@ sequenceDiagram
    - **Mandatory Requirement**: Record all newly created or modified files, methods, routes, and connections.
    - **Update the Mermaid Diagram**: Add new synaptic lines or nodes if a new flow was established.
    - **Update the Synapse Quick-Jump Matrix & Deep Spec Cards**: Ensure any new AI agent can instantly understand the new feature's place in the neuro-brain network without reading full file trees.
-### 🌌 Antigravity Multi-Account Gateway
-- **Feature Module**: pp/Features/Antigravity/
-- **Models**: App\Features\Antigravity\Models\AntigravityAccount
-- **Services**: App\Features\Antigravity\Services\AntigravityAccountManager
-- **Controllers**: App\Features\Antigravity\Http\Controllers\AntigravityOAuthController
-- **Database Tables**: ntigravity_accounts
-- **Routes**: oauth.antigravity.redirect, oauth.antigravity.callback
+### ðŸŒŒ Antigravity Multi-Account Gateway
+- **Feature Module**: `app/Features/Antigravity/`
+- **Models**: `App\Features\Antigravity\Models\AntigravityAccount`, `AiModel`, `AiProvider`
+- **Services**:
+  - `App\Features\Antigravity\Services\AntigravityAccountManager` (Multi-account priority rotation, token refresh, dynamic Google model sync)
+  - `App\Features\Antigravity\Services\AntigravityPayloadAdapter` (OpenAI to Google Generative Language schema conversion)
+  - `App\Features\Antigravity\Services\AntigravityGatewayService` (Synchronous & SSE stream generation directly with Google API, JIT quota gating, 429 rotation, multi-account priority-based failover)
+  - `App\Features\Antigravity\Services\AntigravityHealthMonitor` (Live health probe across registered models)
+- **Controllers & Livewire Components**:
+  - `App\Features\Antigravity\Http\Controllers\AntigravityOAuthController` (OAuth redirect & popup callback)
+  - `App\Features\Antigravity\Http\Controllers\AntigravityStreamController` (Standalone SSE endpoint)
+  - `App\Features\Antigravity\Livewire\AdminAntigravitySetupPage` (Admin setup & live health probe)
+  - `App\Features\Antigravity\Livewire\UserAntigravityModelsPage` (User hub, model catalog, batch testing, account management)
+- **Database Tables**: `antigravity_accounts`, `antigravity_telemetry`
+- **Routes**:
+  - `oauth.antigravity.redirect`, `oauth.antigravity.callback`, `oauth.antigravity.manual_callback`
+  - `ai-models.antigravity`, `ai-settings.antigravity`
+  - `admin.ai-settings.antigravity`
+  - `api.ai.antigravity.stream`
 - **Synaptic Connections**: 
-   - User hasMany AntigravityAccount
-   - AntigravityAccountManager resolves AntigravityAccount based on quota exhaustion and priority.
-   - OmniRouteClient can be injected with getActiveToken from AntigravityAccountManager for authorized routing.
-
-### 🔑 Social Auth & OAuth Provider Governance
+  - `User` hasMany `AntigravityAccount`
+  - `AiStreamController` & `TransformText` route `antigravity/*` models to `AntigravityGatewayService`
+  - `AntigravityAccountManager` handles automatic 429 failover to next prioritized linked Google account
+  - `AntigravityGatewayService` deducts tokens via `$user->consumeQuota()` and logs performance to `antigravity_telemetry`
+### ðŸ”‘ Social Auth & OAuth Provider Governance
 - **Feature Module**: pp/Features/Admin/Livewire/AdminAuthSettingsPage.php
 - **Blade View**: 
 esources/views/admin/auth-settings.blade.php (Tab: social_auth)
 - **Supported Providers**: Google, Facebook, X.com (Twitter), GitHub
 - **Dynamic Override Engine**: pp/Providers/AppServiceProvider.php (Auto-injects DB settings into config(['services.{provider}']))
+
