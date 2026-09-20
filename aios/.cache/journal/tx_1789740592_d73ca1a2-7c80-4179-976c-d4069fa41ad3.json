@@ -1,0 +1,16 @@
+{
+  "id": "d73ca1a2-7c80-4179-976c-d4069fa41ad3",
+  "timestamp": 1789740592,
+  "description": "Update fetchAntigravityModels to perform real HTTP call for dynamic model discovery.",
+  "operations": [
+    {
+      "op_type": "write",
+      "source_path": "app/Features/Antigravity/Services/AntigravityAccountManager.php",
+      "target_path": null,
+      "pre_hash": "15dc9cd1b832cd4b5ad3b85e3d4863f7a99e8505caec6a89bb0eb2165ac8f976",
+      "post_hash": "1b47a4e7044cc59ce8b40c8623771dd79e89bc0223c0922a5969e14852356e14",
+      "snapshot_path": "C:\\Users\\rajib\\Desktop\\HOA-Studio\\aios\\.cache\\snapshots\\d73ca1a2-7c80-4179-976c-d4069fa41ad3\\pre_image.dat"
+    }
+  ],
+  "reverted": false
+}

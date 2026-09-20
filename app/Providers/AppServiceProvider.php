@@ -68,13 +68,22 @@ class AppServiceProvider extends ServiceProvider
                     ->pluck('value', 'key');
 
                 if (! empty($settings['google_client_id'])) {
-                    config(['services.google.client_id' => $settings['google_client_id']]);
+                    config([
+                        'services.google.client_id' => $settings['google_client_id'],
+                        'services.antigravity.client_id' => $settings['google_client_id'],
+                    ]);
                 }
                 if (! empty($settings['google_client_secret'])) {
-                    config(['services.google.client_secret' => $settings['google_client_secret']]);
+                    config([
+                        'services.google.client_secret' => $settings['google_client_secret'],
+                        'services.antigravity.client_secret' => $settings['google_client_secret'],
+                    ]);
                 }
                 if (! empty($settings['google_redirect_url'])) {
-                    config(['services.google.redirect' => $settings['google_redirect_url']]);
+                    config([
+                        'services.google.redirect' => $settings['google_redirect_url'],
+                        'services.antigravity.redirect' => $settings['google_redirect_url'],
+                    ]);
                 }
 
                 if (! empty($settings['facebook_client_id'])) {

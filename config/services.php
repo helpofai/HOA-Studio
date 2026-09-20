@@ -56,6 +56,12 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URL', '/oauth/antigravity/callback'),
     ],
 
+    'antigravity' => [
+        'client_id' => env('ANTIGRAVITY_CLIENT_ID'),
+        'client_secret' => env('ANTIGRAVITY_CLIENT_SECRET'),
+        'redirect' => env('ANTIGRAVITY_REDIRECT_URL'),
+    ],
+
     'facebook' => [
         'client_id' => env('FACEBOOK_CLIENT_ID'),
         'client_secret' => env('FACEBOOK_CLIENT_SECRET'),

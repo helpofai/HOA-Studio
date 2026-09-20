@@ -154,6 +154,7 @@ async triggerAiTransform(type, customInstruction = '', placementMode = 'auto', c
             document_title: this.title || (this.$wire ? this.$wire.title : '') || 'Untitled Article',
             focus_keyword: this.targetKeyword || (this.$wire ? this.$wire.targetKeyword : '') || '',
             model: this.aiModel,
+            provider: this.selectedProvider,
             check_id: checkId,
             pipeline_stages: selectedPipelineStages
         };

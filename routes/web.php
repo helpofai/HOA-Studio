@@ -90,7 +90,7 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::get('/brand-voices', BrandVoicePage::class)->name('brand-voices.index');
     Route::get('/knowledge-base', KnowledgeBasePage::class)->name('knowledge-base.index');
     Route::get('/ai-models', UserAiModelsPage::class)->name('ai-models.index');
-    Route::get('/ai-models/antigravity', \App\Features\AI\Livewire\UserAntigravityModelsPage::class)->name('ai-models.antigravity');
+    Route::get('/ai-models/antigravity', \App\Features\Antigravity\Livewire\UserAntigravityModelsPage::class)->name('ai-models.antigravity');
     Route::get('/ai-models/omniroute', UserOmniRouteSetupPage::class)->name('ai-models.omniroute');
     Route::get('/ai-settings/omniroute', UserOmniRouteSetupPage::class)->name('ai-settings.omniroute');
     Route::get('/usage', UserUsagePage::class)->name('usage.index');
@@ -104,6 +104,7 @@ Route::middleware('auth')->prefix('dashboard')->group(function () {
     Route::post('/api/ai/transform', [AiStreamController::class, 'transform'])->name('ai.transform');
     Route::post('/api/ai/stream-transform', [AiStreamController::class, 'streamTransform'])->name('ai.stream-transform');
     Route::post('/api/ai/stream', [AiStreamController::class, 'stream'])->name('ai.stream');
+    Route::post('/api/ai/antigravity/stream', [\App\Features\Antigravity\Http\Controllers\AntigravityStreamController::class, 'stream'])->name('api.ai.antigravity.stream');
     Route::post('/api/ai/prepare-prompt', [AiStreamController::class, 'preparePrompt'])->name('ai.prepare-prompt');
     Route::post('/api/ai/record-usage', [AiStreamController::class, 'recordUsage'])->name('ai.record-usage');
     Route::get('/api/ai/providers/models', [AiProviderController::class, 'getModels'])->name('ai.providers.models');
@@ -147,7 +148,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/mail-notifications', AdminMailNotificationPage::class)->name('mail-notifications');
     Route::get('/ai-settings', AdminAiSettingsPage::class)->name('ai-settings.index');
     Route::get('/ai-settings/omniroute', AdminOmniRouteSetupPage::class)->name('ai-settings.omniroute');
-    Route::get('/ai-settings/antigravity', AdminAntigravitySetupPage::class)->name('ai-settings.antigravity');
+    Route::get('/ai-settings/antigravity', \App\Features\Antigravity\Livewire\AdminAntigravitySetupPage::class)->name('ai-settings.antigravity');
     Route::get('/usage', AdminUsageLogsPage::class)->name('usage');
     Route::get('/settings', AdminSettingsPage::class)->name('settings');
     Route::get('/system-info', AdminSystemInfoPage::class)->name('system-info');

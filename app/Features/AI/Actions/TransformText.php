@@ -393,7 +393,14 @@ EOT,
             ['role' => 'user', 'content' => $userContent],
         ];
 
-        $response = $this->client->chatCompletion($messages, $options);
+        $targetModel = $options['model'] ?? config('omniroute.default_model', 'auto');
+        if (str_starts_with($targetModel, 'antigravity/') || $targetModel === 'antigravity') {
+            $antigravityService = app(\App\Features\Antigravity\Services\AntigravityGatewayService::class);
+            $response = $antigravityService->chatCompletion($user, $messages, $options);
+        } else {
+            $response = $this->client->chatCompletion($messages, $options);
+        }
+
         $resultText = trim($response['content']);
 
         $wordCount = str_word_count(strip_tags($resultText));

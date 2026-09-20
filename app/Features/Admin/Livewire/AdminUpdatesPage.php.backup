@@ -1,0 +1,474 @@
+<?php
+
+/*
+|--------------------------------------------------------------------------
+| HelpOfAi (HOA) Professional Software - Admin Updates & Rollback Page
+|--------------------------------------------------------------------------
+|
+| Copyright (c) 2026 Rajib Adhikary. All Rights Reserved.
+|
+| Author      : Rajib Adhikary
+| Organization: HelpOfAi (HOA)
+| Website     : https://helpofai.com
+| Location    : Basta Purba Para, Aranghata, Nadia, West Bengal, India
+|
+|--------------------------------------------------------------------------
+*/
+
+namespace App\Features\Admin\Livewire;
+
+use App\Features\Admin\Services\CoreUpdateService;
+use App\Features\Admin\Services\DatabaseUpdateRollbackService;
+use App\Features\Admin\Services\HealthProberService;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
+use Livewire\Component;
+
+#[Layout('layouts.admin')]
+#[Title('Core Updates & Rollback — HelpOfAi Studio')]
+class AdminUpdatesPage extends Component
+{
+    public array $updateInfo = [];
+
+    public array $versionMeta = [];
+
+    public array $restorePoints = [];
+
+    public array $selectedRestorePoints = [];
+
+    public bool $selectAll = false;
+
+    public array $dbSnapshots = [];
+
+    public array $dbDetails = [];
+
+    public array $migrationsData = [];
+
+    public array $healthReport = [];
+
+    public array $updateLogs = [];
+
+    public bool $isChecking = false;
+
+    public bool $isUpdating = false;
+
+    public bool $isMigrating = false;
+
+    public bool $isRollingBack = false;
+
+    public string $activeTab = 'core'; // 'core', 'database', 'migrations', 'health'
+
+    public ?string $feedbackMessage = null;
+
+    public ?string $feedbackType = null;
+
+    public function mount(
+        CoreUpdateService $updateService,
+        HealthProberService $healthProber,
+        DatabaseUpdateRollbackService $dbService
+    ) {
+        $this->refreshData($updateService, $healthProber, $dbService);
+    }
+
+    public function refreshData(
+        CoreUpdateService $updateService,
+        HealthProberService $healthProber,
+        DatabaseUpdateRollbackService $dbService
+    ) {
+        $this->updateInfo = $updateService->checkForUpdates();
+        $this->versionMeta = $updateService->getVersionMetadata();
+        $this->restorePoints = $updateService->getRestorePoints();
+        $this->dbSnapshots = $dbService->getDatabaseSnapshots();
+        $this->dbDetails = $dbService->getDatabaseDetails();
+        $this->migrationsData = $dbService->getMigrationsList();
+        $this->healthReport = $healthProber->probeSystem();
+    }
+
+    public function clearTerminalLogs()
+    {
+        $this->updateLogs = [];
+    }
+
+    public function clearSystemCache()
+    {
+        $this->updateLogs = [];
+        $commands = [
+            'optimize:clear' => 'php artisan optimize:clear',
+            'config:cache'   => 'php artisan config:cache',
+            'route:cache'    => 'php artisan route:cache',
+            'view:cache'     => 'php artisan view:cache',
+            'event:cache'    => 'php artisan event:cache',
+        ];
+
+        foreach ($commands as $name => $cmd) {
+            $output = [];
+            $resultCode = 0;
+            exec('php ' . base_path('artisan') . ' ' . $cmd . ' 2>&1', $output, $resultCode);
+            
+            $this->updateLogs[] = [
+                'time' => date('H:i:s'),
+                'type' => $resultCode === 0 ? 'success' : 'error',
+                'message' => "Executed: $cmd - " . (implode("\n", $output) ?: 'Success')
+            ];
+        }
+
+        $this->feedbackType = 'success';
+        $this->feedbackMessage = 'System cache cleared successfully.';
+        $this->dispatch('show-cache-logs');
+    }
+
+    public function triggerCheck(CoreUpdateService $updateService)
+    {
+        $this->isChecking = true;
+        $this->updateInfo = $updateService->checkForUpdates();
+        $this->isChecking = false;
+
+        if (! empty($this->updateInfo['connection_error'])) {
+            $this->feedbackType = 'error';
+            $this->feedbackMessage = $this->updateInfo['connection_error'];
+        } else {
+            $this->feedbackType = $this->updateInfo['has_update'] ? 'success' : 'info';
+            $this->feedbackMessage = $this->updateInfo['has_update']
+                ? "New update available: v{$this->updateInfo['latest_version']} directly from GitHub!"
+                : "You are currently running the latest version (v{$this->updateInfo['current_version']}).";
+        }
+    }
+
+    public function createSnapshot(CoreUpdateService $updateService)
+    {
+        try {
+            $rp = $updateService->createRestorePoint('Manual Admin Snapshot');
+            $this->restorePoints = $updateService->getRestorePoints();
+            $this->feedbackType = 'success';
+            $this->feedbackMessage = "Full restore snapshot [{$rp['id']}] created successfully ({$rp['file_size_mb']} MB).";
+            $this->updateLogs[] = [
+                'time' => date('H:i:s'),
+                'type' => 'success',
+                'message' => "Manual full snapshot created: [{$rp['id']}] ({$rp['file_size_mb']} MB)",
+            ];
+        } catch (\Throwable $e) {
+            $this->feedbackType = 'error';
+            $this->feedbackMessage = "Failed to create snapshot: {$e->getMessage()}";
+            $this->updateLogs[] = [
+                'time' => date('H:i:s'),
+                'type' => 'error',
+                'message' => "Failed to create snapshot: {$e->getMessage()}",
+            ];
+        }
+    }
+
+    public function createDbSnapshot(DatabaseUpdateRollbackService $dbService)
+    {
+        try {
+            $snap = $dbService->createDatabaseSnapshot('Manual DB Backup');
+            $this->dbSnapshots = $dbService->getDatabaseSnapshots();
+            $this->feedbackType = 'success';
+            $this->feedbackMessage = "Database snapshot [{$snap['id']}] created successfully ({$snap['size_kb']} KB).";
+            $this->updateLogs[] = [
+                'time' => date('H:i:s'),
+                'type' => 'success',
+                'message' => "Manual database snapshot created: [{$snap['id']}] ({$snap['size_kb']} KB)",
+            ];
+        } catch (\Throwable $e) {
+            $this->feedbackType = 'error';
+            $this->feedbackMessage = "Failed to create DB snapshot: {$e->getMessage()}";
+            $this->updateLogs[] = [
+                'time' => date('H:i:s'),
+                'type' => 'error',
+                'message' => "Failed to create DB snapshot: {$e->getMessage()}",
+            ];
+        }
+    }
+
+    public function runDbMigrations(DatabaseUpdateRollbackService $dbService)
+    {
+        $this->isMigrating = true;
+        try {
+            $result = $dbService->runMigrations();
+            $this->dbDetails = $dbService->getDatabaseDetails();
+            $this->migrationsData = $dbService->getMigrationsList();
+            $this->updateLogs = array_merge($this->updateLogs, $result['logs'] ?? []);
+            $this->feedbackType = $result['success'] ? 'success' : 'error';
+            $this->feedbackMessage = $result['output'];
+        } finally {
+            $this->isMigrating = false;
+        }
+    }
+
+    public function rollbackMigrationStep(DatabaseUpdateRollbackService $dbService)
+    {
+        $this->isMigrating = true;
+        try {
+            $result = $dbService->rollbackLastMigrationBatch(1);
+            $this->dbDetails = $dbService->getDatabaseDetails();
+            $this->migrationsData = $dbService->getMigrationsList();
+            $this->updateLogs = array_merge($this->updateLogs, $result['logs'] ?? []);
+            $this->feedbackType = $result['success'] ? 'success' : 'error';
+            $this->feedbackMessage = $result['output'];
+        } finally {
+            $this->isMigrating = false;
+        }
+    }
+
+    public function downloadRestorePoint(string $restorePointId, CoreUpdateService $updateService)
+    {
+        $manifests = $updateService->getRestorePoints();
+        $target = null;
+        foreach ($manifests as $rp) {
+            if ($rp['id'] === $restorePointId) {
+                $target = $rp;
+                break;
+            }
+        }
+
+        if (! $target || empty($target['file_backup']) || ! file_exists($target['file_backup'])) {
+            $this->feedbackType = 'error';
+            $this->feedbackMessage = 'Snapshot archive file not found on disk.';
+
+            return;
+        }
+
+        return response()->download($target['file_backup'], basename($target['file_backup']), [
+            'Content-Type' => 'application/zip',
+        ]);
+    }
+
+    public function deleteRestorePoint(string $restorePointId, CoreUpdateService $updateService)
+    {
+        try {
+            $updateService->deleteRestorePoint($restorePointId);
+            $this->restorePoints = $updateService->getRestorePoints();
+            $this->feedbackType = 'success';
+            $this->feedbackMessage = "Snapshot [{$restorePointId}] deleted successfully.";
+        } catch (\Throwable $e) {
+            $this->feedbackType = 'error';
+            $this->feedbackMessage = "Failed to delete snapshot: {$e->getMessage()}";
+        }
+    }
+
+    public function updatedSelectAll($value)
+    {
+        if ($value) {
+            $this->selectedRestorePoints = array_values(array_column($this->restorePoints, 'id'));
+        } else {
+            $this->selectedRestorePoints = [];
+        }
+    }
+
+    public function updatedSelectedRestorePoints()
+    {
+        $total = count($this->restorePoints);
+        $this->selectAll = ($total > 0 && count($this->selectedRestorePoints) === $total);
+    }
+
+    public function clearSelectedRestorePoints()
+    {
+        $this->selectedRestorePoints = [];
+        $this->selectAll = false;
+    }
+
+    public function selectAllRestorePoints()
+    {
+        $this->selectedRestorePoints = array_values(array_column($this->restorePoints, 'id'));
+        $this->selectAll = true;
+    }
+
+    public function selectAutoSnapshots()
+    {
+        $this->selectedRestorePoints = [];
+        foreach ($this->restorePoints as $rp) {
+            $label = strtolower($rp['label'] ?? '');
+            if (str_contains($label, 'pre-update') || str_contains($label, 'auto') || ($rp['type'] ?? '') === 'auto') {
+                $this->selectedRestorePoints[] = $rp['id'];
+            }
+        }
+        $total = count($this->restorePoints);
+        $this->selectAll = ($total > 0 && count($this->selectedRestorePoints) === $total);
+    }
+
+    public function selectManualSnapshots()
+    {
+        $this->selectedRestorePoints = [];
+        foreach ($this->restorePoints as $rp) {
+            $label = strtolower($rp['label'] ?? '');
+            if (str_contains($label, 'manual') || str_contains($label, 'admin')) {
+                $this->selectedRestorePoints[] = $rp['id'];
+            }
+        }
+        $total = count($this->restorePoints);
+        $this->selectAll = ($total > 0 && count($this->selectedRestorePoints) === $total);
+    }
+
+    public function getSelectedSizeMb(): float
+    {
+        $total = 0.0;
+        foreach ($this->restorePoints as $rp) {
+            if (in_array($rp['id'], $this->selectedRestorePoints, true)) {
+                $total += (float) ($rp['file_size_mb'] ?? 0);
+            }
+        }
+
+        return round($total, 2);
+    }
+
+    public function bulkDeleteRestorePoints(CoreUpdateService $updateService)
+    {
+        if (empty($this->selectedRestorePoints)) {
+            $this->feedbackType = 'error';
+            $this->feedbackMessage = 'No restore snapshots selected for deletion.';
+
+            return;
+        }
+
+        $count = count($this->selectedRestorePoints);
+        $freedMb = $this->getSelectedSizeMb();
+
+        try {
+            $deleted = $updateService->deleteRestorePoints($this->selectedRestorePoints);
+            $this->restorePoints = $updateService->getRestorePoints();
+            $this->selectedRestorePoints = [];
+            $this->selectAll = false;
+            $this->feedbackType = 'success';
+            $this->feedbackMessage = "Successfully deleted {$deleted} snapshot(s) and freed ~{$freedMb} MB disk space.";
+            $this->updateLogs[] = [
+                'time' => date('H:i:s'),
+                'type' => 'success',
+                'message' => "Bulk deleted {$deleted} restore snapshot(s) (~{$freedMb} MB freed)",
+            ];
+        } catch (\Throwable $e) {
+            $this->feedbackType = 'error';
+            $this->feedbackMessage = "Bulk deletion failed: {$e->getMessage()}";
+        }
+    }
+
+    public function bulkDownloadRestorePoints(CoreUpdateService $updateService)
+    {
+        if (empty($this->selectedRestorePoints)) {
+            $this->feedbackType = 'error';
+            $this->feedbackMessage = 'No restore snapshots selected for download.';
+
+            return;
+        }
+
+        if (count($this->selectedRestorePoints) === 1) {
+            return $this->downloadRestorePoint($this->selectedRestorePoints[0], $updateService);
+        }
+
+        $bundle = $updateService->bundleRestorePoints($this->selectedRestorePoints);
+        if (! $bundle || ! file_exists($bundle)) {
+            $this->feedbackType = 'error';
+            $this->feedbackMessage = 'Failed to generate bulk snapshot archive bundle.';
+
+            return;
+        }
+
+        return response()->download($bundle, basename($bundle), [
+            'Content-Type' => 'application/zip',
+        ]);
+    }
+
+    public function pruneOlderRestorePoints(CoreUpdateService $updateService, int $keep = 3)
+    {
+        try {
+            $deleted = $updateService->pruneOlderRestorePoints($keep);
+            $this->restorePoints = $updateService->getRestorePoints();
+            $this->selectedRestorePoints = [];
+            $this->selectAll = false;
+            $this->feedbackType = 'success';
+            $this->feedbackMessage = "Pruned older snapshots. Retained {$keep} latest snapshot(s) and deleted {$deleted} older snapshot(s).";
+            $this->updateLogs[] = [
+                'time' => date('H:i:s'),
+                'type' => 'info',
+                'message' => "Pruned older snapshots: retained {$keep} latest, removed {$deleted}",
+            ];
+        } catch (\Throwable $e) {
+            $this->feedbackType = 'error';
+            $this->feedbackMessage = "Pruning failed: {$e->getMessage()}";
+        }
+    }
+
+    public function deleteDbSnapshot(string $snapshotId, DatabaseUpdateRollbackService $dbService)
+    {
+        try {
+            $dbService->deleteSnapshot($snapshotId);
+            $this->dbSnapshots = $dbService->getDatabaseSnapshots();
+            $this->feedbackType = 'success';
+            $this->feedbackMessage = "Database snapshot [{$snapshotId}] deleted successfully.";
+        } catch (\Throwable $e) {
+            $this->feedbackType = 'error';
+            $this->feedbackMessage = "Failed to delete DB snapshot: {$e->getMessage()}";
+        }
+    }
+
+    public function restoreDbSnapshot(string $snapshotId, DatabaseUpdateRollbackService $dbService)
+    {
+        try {
+            $dbService->restoreFromSnapshot($snapshotId);
+            $this->dbDetails = $dbService->getDatabaseDetails();
+            $this->feedbackType = 'success';
+            $this->feedbackMessage = "Database successfully restored from snapshot [{$snapshotId}].";
+        } catch (\Throwable $e) {
+            $this->feedbackType = 'error';
+            $this->feedbackMessage = "Database restore failed: {$e->getMessage()}";
+        }
+    }
+
+    public function applyUpdate(CoreUpdateService $updateService, HealthProberService $healthProber, DatabaseUpdateRollbackService $dbService)
+    {
+        $this->isUpdating = true;
+        $this->updateLogs = [];
+
+        try {
+            $result = $updateService->executeUpdate();
+            $this->updateLogs = $result['logs'] ?? [];
+            $this->healthReport = $result['health'] ?? [];
+            $this->restorePoints = $updateService->getRestorePoints();
+            $this->dbSnapshots = $dbService->getDatabaseSnapshots();
+            $this->dbDetails = $dbService->getDatabaseDetails();
+            $this->versionMeta = $updateService->getVersionMetadata();
+            $this->updateInfo = $updateService->checkForUpdates();
+
+            if ($result['success']) {
+                $this->feedbackType = 'success';
+                $this->feedbackMessage = 'Core update applied and verified successfully!';
+            } elseif ($result['rolled_back']) {
+                $this->feedbackType = 'error';
+                $this->feedbackMessage = 'Update failed safety verification! System automatically rolled back to working state.';
+            } else {
+                $this->feedbackType = 'error';
+                $this->feedbackMessage = "Update failed: {$result['message']}";
+            }
+        } catch (\Throwable $e) {
+            $this->feedbackType = 'error';
+            $this->feedbackMessage = "Update exception: {$e->getMessage()}";
+        } finally {
+            $this->isUpdating = false;
+        }
+    }
+
+    public function rollbackTo(string $restorePointId, CoreUpdateService $updateService, HealthProberService $healthProber, DatabaseUpdateRollbackService $dbService)
+    {
+        $this->isRollingBack = true;
+        try {
+            $updateService->rollbackToPoint($restorePointId);
+            $this->restorePoints = $updateService->getRestorePoints();
+            $this->dbSnapshots = $dbService->getDatabaseSnapshots();
+            $this->dbDetails = $dbService->getDatabaseDetails();
+            $this->versionMeta = $updateService->getVersionMetadata();
+            $this->healthReport = $healthProber->probeSystem();
+            $this->updateInfo = $updateService->checkForUpdates();
+            $this->feedbackType = 'success';
+            $this->feedbackMessage = "System successfully rolled back to restore point [{$restorePointId}].";
+        } catch (\Throwable $e) {
+            $this->feedbackType = 'error';
+            $this->feedbackMessage = "Rollback failed: {$e->getMessage()}";
+        } finally {
+            $this->isRollingBack = false;
+        }
+    }
+
+    public function render()
+    {
+        return view('admin.updates');
+    }
+}

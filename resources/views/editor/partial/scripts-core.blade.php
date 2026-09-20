@@ -198,6 +198,15 @@ init() {
     this.addLog('SYSTEM', 'OmniRoute Gateway v2.0 kernel initialized.');
     this.addLog('ENGINE', 'Editor driver mounted: ' + (config.editorType || 'tiptap').toUpperCase());
     this.addLog('SEO', 'Real-time semantic SEO analyzer active.');
+    
+    // Listen for provider changes from AI Command Center
+    this.$on('provider-changed', (event) => {
+        console.log('[AI Command Center] Provider changed:', event.detail.provider, event.detail.model);
+        this.selectedProvider = event.detail.provider;
+        this.aiModel = event.detail.model;
+        // Fetch models for the newly selected provider to keep model list updated
+        this.fetchModelsForProvider(event.detail.provider);
+    });
 
     // Initialize default AI provider
     if (this.availableProviders && this.availableProviders.length > 0) {

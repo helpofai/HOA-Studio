@@ -301,20 +301,39 @@ class AiStreamController extends Controller
             }
 
             try {
-                $generator = $client->streamChatCompletion($messages, $streamOptions);
+                if (str_starts_with($routedModel, 'antigravity/') || $routedModel === 'antigravity') {
+                    $antigravityService = app(\App\Features\Antigravity\Services\AntigravityGatewayService::class);
+                    $generator = $antigravityService->streamChatCompletion($user, $messages, $streamOptions);
 
-                foreach ($generator as $chunk) {
-                    $token = is_array($chunk) ? ($chunk['token'] ?? '') : (string) $chunk;
-                    $accumulated .= $token;
+                    foreach ($generator as $chunkData) {
+                        $token = is_array($chunkData) ? ($chunkData['chunk'] ?? '') : (string) $chunkData;
+                        $accumulated .= $token;
 
-                    if (is_array($chunk) && isset($chunk['model'])) {
-                        $routedModel = $chunk['model'];
+                        if (is_array($chunkData) && isset($chunkData['model'])) {
+                            $routedModel = $chunkData['model'];
+                        }
+
+                        echo "event: token\n";
+                        echo 'data: '.json_encode(['token' => $token, 'model' => $routedModel])."\n\n";
+
+                        flush();
                     }
+                } else {
+                    $generator = $client->streamChatCompletion($messages, $streamOptions);
 
-                    echo "event: token\n";
-                    echo 'data: '.json_encode(['token' => $token, 'model' => $routedModel])."\n\n";
+                    foreach ($generator as $chunk) {
+                        $token = is_array($chunk) ? ($chunk['token'] ?? '') : (string) $chunk;
+                        $accumulated .= $token;
 
-                    flush();
+                        if (is_array($chunk) && isset($chunk['model'])) {
+                            $routedModel = $chunk['model'];
+                        }
+
+                        echo "event: token\n";
+                        echo 'data: '.json_encode(['token' => $token, 'model' => $routedModel])."\n\n";
+
+                        flush();
+                    }
                 }
 
                 // Anti-Echo & Comprehensive Target Validation Safety Net across all action types
@@ -393,6 +412,7 @@ class AiStreamController extends Controller
             'prompt' => 'required|string|max:20000',
             'system_prompt' => 'nullable|string|max:5000',
             'model' => 'nullable|string',
+            'provider' => 'nullable|string',
             'temperature' => 'nullable|numeric|min:0|max:2',
         ]);
 
@@ -418,6 +438,7 @@ class AiStreamController extends Controller
         return response()->stream(function () use ($client, $messages, $validated, $user, $recordUsage) {
             $accumulated = '';
             $routedModel = $validated['model'] ?? config('omniroute.default_model', 'auto');
+            $provider = $validated['provider'] ?? 'omniroute';
 
             // Disable PHP output buffering entirely for zero-latency SSE token delivery
             @ob_implicit_flush(true);
@@ -426,22 +447,42 @@ class AiStreamController extends Controller
             }
 
             try {
-                $generator = $client->streamChatCompletion($messages, [
+                $streamOptions = [
                     'model' => $routedModel,
                     'temperature' => (float) ($validated['temperature'] ?? 0.7),
-                ]);
+                ];
 
-                foreach ($generator as $chunk) {
-                    $token = is_array($chunk) ? ($chunk['token'] ?? '') : (string) $chunk;
-                    $accumulated .= $token;
+                if ($provider === 'antigravity') {
+                    $antigravityService = app(\App\Features\Antigravity\Services\AntigravityGatewayService::class);
+                    $generator = $antigravityService->streamChatCompletion($user, $messages, $streamOptions);
 
-                    if (is_array($chunk) && isset($chunk['model'])) {
-                        $routedModel = $chunk['model'];
+                    foreach ($generator as $chunkData) {
+                        $token = is_array($chunkData) ? ($chunkData['chunk'] ?? '') : (string) $chunkData;
+                        $accumulated .= $token;
+
+                        if (is_array($chunkData) && isset($chunkData['model'])) {
+                            $routedModel = $chunkData['model'];
+                        }
+
+                        echo "event: token\n";
+                        echo 'data: '.json_encode(['token' => $token, 'model' => $routedModel])."\n\n";
+                        flush();
                     }
+                } else {
+                    $generator = $client->streamChatCompletion($messages, $streamOptions);
 
-                    echo "event: token\n";
-                    echo 'data: '.json_encode(['token' => $token, 'model' => $routedModel])."\n\n";
-                    flush();
+                    foreach ($generator as $chunk) {
+                        $token = is_array($chunk) ? ($chunk['token'] ?? '') : (string) $chunk;
+                        $accumulated .= $token;
+
+                        if (is_array($chunk) && isset($chunk['model'])) {
+                            $routedModel = $chunk['model'];
+                        }
+
+                        echo "event: token\n";
+                        echo 'data: '.json_encode(['token' => $token, 'model' => $routedModel])."\n\n";
+                        flush();
+                    }
                 }
 
                 $words = max(1, str_word_count(strip_tags($accumulated)));

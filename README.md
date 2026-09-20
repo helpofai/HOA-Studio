@@ -20,7 +20,7 @@
   <strong>HelpOfAi Studio</strong> is an all-in-one, enterprise-ready content production platform. Built with cutting-edge Laravel 12, Livewire 3, Alpine.js, Tailwind CSS 4, Tiptap Editor, and the OmniRoute AI Multi-Model Gateway, it delivers sub-millisecond AI transformations, vector-powered RAG knowledge retrieval, real-time SEO scoring, multi-format exports, and cryptographic BYOK key governance.
 </p>
 
-[Key Features](#-key-features) • [Architecture](#-system-architecture) • [Database Schema](#-entity-relationship-schema) • [Quickstart](#-quickstart--installation) • [AI Routing](#-omniroute-model-directory) • [Localhost & Hybrid Routing](#-localhost--direct-browser-hybrid-routing-guide) • [API Guide](#-rest-api--sse-streaming) • [Roadmap](#-16-phase-roadmap-completion)
+[Key Features](#-key-features) • [14 Feature Modules](#-the-14-core-functional-feature-modules) • [Architecture](#-system-architecture) • [Embedded AIOS](#-the-embedded-aios-subsystem-aios) • [Database Schema](#-entity-relationship-schema) • [Hosting Guardrails](#-production--shared-hosting-guardrails) • [Quickstart](#-quickstart--installation) • [AI Routing](#-omniroute-model-directory) • [Localhost & Hybrid Routing](#-localhost--direct-browser-hybrid-routing-guide) • [API Guide](#-rest-api--sse-streaming) • [Roadmap](#-16-phase-roadmap-completion)
 
 ---
 
@@ -190,6 +190,126 @@
 │ • Password-Gated Public Share │           │ • Cloud Proxy Auto-Fallback   │           │ • Configurable Vector Cache   │
 └───────────────────────────────┘           └───────────────────────────────┘           └───────────────────────────────┘
 ```
+
+### 🧠 System Neural Map
+
+```
+                        ┌─────────────────────────────────────────┐
+                        │      HOA-Studio Neural Architecture     │
+                        └─────────────────────────────────────────┘
+                                             │
+      ┌───────────────────┬──────────────────┼───────────────────┬──────────────────┐
+      ▼                   ▼                  ▼                   ▼                  ▼
+┌──────────────┐   ┌──────────────┐   ┌──────────────┐   ┌──────────────┐   ┌──────────────┐
+│Cerebral      │   │Frontal       │   │Parietal      │   │Occipital     │   │Temporal      │
+│Cortex        │   │Lobe          │   │Lobe          │   │Lobe          │   │Lobe          │
+├──────────────┤   ├──────────────┤   ├──────────────┤   ├──────────────┤   ├──────────────┤
+│• TipTap Pro  │   │• OmniRoute   │   │• Rank Math   │   │• RAG Vector  │   │• Public Blog │
+│• Multi-Driver│   │  AI Gateway  │   │  SEO Engine  │   │  Retriever   │   │• WP Headless │
+│• Word Diff   │   │• SSE Stream  │   │• Heatmap     │   │• Cosine Sim. │   │  Sync Bridge │
+│• Universal   │   │• Content     │   │• JSON-LD     │   │• Brand Voice │   │• Public Doc  │
+│  Doc Import  │   │  Brain Graph │   │• 10-Pt Audit │   │  Profiler    │   │  Sharing     │
+└──────────────┘   └──────────────┘   └──────────────┘   └──────────────┘   └──────────────┘
+```
+
+---
+
+## 🏛️ The 14 Core Functional Feature Modules
+
+The codebase is organized into 14 domain-driven feature modules under `app/Features/`:
+
+### 📝 1. Documents & TipTap Pro Canvas (`app/Features/Documents/`)
+- **Multi-Engine Canvas**: Seamlessly switch between **TipTap ProseMirror**, **Notion Block Canvas**, **Gutenberg Block Canvas**, **Markdown Split Screen**, and **Raw HTML** modes.
+- **Universal Document Import Studio (`UniversalDocumentExtractor.php`)**: Ingests `.docx`, `.pdf`, `.md`, `.html`, `.csv`, `.txt`, and `.json` with automatic cleanup, heading hierarchy preservation, and dynamic insertion modes (`replace`, `append`, `cursor`, `new_doc`).
+- **Dynamic Programming LCS Diffing**: Word-level Git-style insertion (`<ins>`) and deletion (`<del>`) diffing across milestone snapshots.
+- **Floating Table Operations Bar**: Floating glassmorphic context controls for cell merging/splitting, column/row manipulation, and table styling.
+- **Syntax Tokenizer (`lowlight`)**: Real-time AST code block highlighting across 35+ languages with macOS terminal chrome and 1-click clipboard copying.
+- **Document Export Engine (`ExportDocumentController.php`)**: 1-click binary generation to `.docx` (via native WordprocessingML), `.md`, `.html`, `.txt`, and print-optimized PDF with `@media print` rules.
+- **Secure Public Sharing (`/share/{token}`)**: AES-256 hashed password-gated links, permissions (`allow_copy`, `allow_download`), expiration controls, and distraction-free reader mode.
+
+### 🪄 2. AI Intelligence & OmniRoute Gateway (`app/Features/AI/`)
+- **Multi-Model Routing (`OmniRouteClient.php`)**: Dynamic adapter layer dispatching to OpenAI, Anthropic Claude, DeepSeek, and Ollama with intelligent failover.
+- **SSE Token Streaming (`AiStreamController.php`)**: Sub-50ms Time-To-First-Token streaming directly into TipTap via Server-Sent Events (`data: {"chunk": "...", "done": false}`).
+- **Direct Browser Hybrid Routing (0ms Latency)**: Allows users to route AI queries directly from their browser to localhost AI daemons (Ollama, LM Studio, or local OmniRoute on `127.0.0.1:20128`), bypassing server proxy overhead and ensuring strict data privacy.
+- **Cryptographic BYOK Governance**: User API keys encrypted at rest using **AES-256-GCM**, with plan-based throttling for shared keys and **unlimited throughput** for BYOK users.
+- **Emergency Circuit Breaker**: Platform-wide killswitch and model health prober to prevent billing spikes or runaway API calls.
+
+### 🧠 3. Content Intelligence OS (`app/Features/ContentIntelligence/`)
+- **Multi-Stage Workflow Graph**: Orchestrates complex AI writing pipelines through dynamic stage DTOs (Research $\rightarrow$ Outline $\rightarrow$ Section Drafting $\rightarrow$ Fact Checking $\rightarrow$ Polish).
+- **Anti-Echo Narrative Comprehension**: Understands full-document context while drafting subsequent chapters or paragraphs without repeating previously written concepts.
+
+### 📚 4. Knowledge Base & Vector RAG Pipeline (`app/Features/KnowledgeBase/`)
+- **Multi-Source Ingestion**: Ingests raw text, documentation files, company policies, and live URLs.
+- **Recursive Chunking**: Parses documents into 500-token chunks with 50-token semantic sliding-window overlap.
+- **Vector Embedding Cache**: SHA-256 keyed cache with user-configurable TTLs (1 day, 7 days, 30 days) providing sub-millisecond retrieval.
+- **Dense Cosine Similarity**: Pure-PHP vector similarity calculations guaranteeing zero external vector database dependencies (runs smoothly on shared hosting).
+
+### 🎭 5. Brand Voice Engine (`app/Features/BrandVoice/`)
+- **Persona & Tone Synthesis**: Define custom personas (target audience, reading level, tone spectrums, forbidden terms, required phrases).
+- **Automated Prompt Injection**: Dynamically injects voice constraints into all AI prompts and template generations.
+
+### 📊 6. Rank Math SEO Engine (`app/Features/SEO/`)
+- **Real-Time 100-Point Audit**: Analyzes focus keyword placement, density (optimal 1.0%–2.5%), heading structure (H1–H3), and content scannability.
+- **Flesch-Kincaid Reading Ease**: Live readability scoring derived from syllable counts and sentence length.
+- **In-Canvas Keyword Heatmap**: Visually highlights keyword distribution throughout the document canvas.
+- **JSON-LD Schema Generator**: Automatically generates Article, BlogPosting, and FAQPage structured data schemas for search engines.
+
+### 📰 7. Blog Publishing Engine (`app/Features/Blog/`)
+- **Full Public CMS (`/blog`, `/blog/{slug}`, `/blog/archive`)**: Public blog with live debounced search, chronological archive, category hierarchies, and an interactive tag cloud with article counts.
+- **1-Click Editor Publishing**: Single-click dispatch from TipTap directly to the live blog with auto-slugification and SEO meta population.
+
+### 🌐 8. Headless WordPress Bridge (`app/Features/WordPress/`)
+- **Studio Connect Handshake (`api/v1/wordpress/*`)**: REST API authenticated via Bearer token (`auth.studio`) for remote content synchronization.
+- **Custom Client Plugin**: Serves a downloadable companion WordPress plugin ZIP directly from the dashboard (`/dashboard/wordpress/plugin/download`) for 1-click bidirectional publishing.
+
+### 📋 9. Templates Hub (`app/Features/Templates/`)
+- **Curated Prompt Matrix**: Structured form-driven prompt generation covering marketing copy, technical writing, social media campaigns, and academic synthesis.
+
+### ⚙️ 10. Admin Control Center & Governance (`app/Features/Admin/`)
+- **Unified Governance Suite (`/admin/*`)**: Complete management of users, roles, word credit adjustments, OmniRoute provider keys, and SMTP notification configurations.
+- **Core Update & Migration Engine (`CoreUpdateService.php`)**: Automated system updater that synchronizes `.env` variables from `.env.example`, executes defensive migrations, and pulls Git updates.
+- **Diagnostic Terminal & Logs**: Built-in terminal log visualizer (`/admin/api/terminal-logs`) and environment health matrix.
+
+### 📁 11. Projects Workspace (`app/Features/Projects/`)
+- **Multi-Tenant Scoping**: Organizes documents, assets, brand voices, and RAG knowledge bases by client, brand, or project folder.
+
+### 🔒 12. Auth, Security & Rate Limiting (`app/Features/Auth/`)
+- **Hardened Security Matrix**: Dual-role authorization (`role:admin` vs user), brute-force defense logs (`auth_security_logs`), automatic IP blocking (`blocked_ips`), and session fixation guards.
+
+### 📈 13. Usage & Quota Telemetry (`app/Features/Usage/`)
+- **Credit Governance**: Strict `$user->consumeQuota($words)` enforcement on all AI generation endpoints, tracking regular and bonus quotas with model-specific cost multipliers.
+
+### 📊 14. Dashboard Mission Control (`app/Features/Dashboard/`)
+- **Analytical Command Center**: Real-time word generation stats, recent document feeds, quick-action template triggers, and quota consumption meters.
+
+---
+
+## 🤖 The Embedded AIOS Subsystem (`/aios/`)
+
+In addition to the web application, this repository houses **HelpOfAi AIOS (AI Software Engineering Operating System)** located in `/aios/`:
+- **Offline-First & Deterministic**: A capability-based software engineering intelligence platform operating independently of cloud services.
+- **9 Core Architectural Layers**:
+  1. `Layer 0 - Constitution`: Immutable engineering laws and design principles.
+  2. `Layer 1 - Registry`: Module, capability, dependency, feature, and prompt registries.
+  3. `Layer 2 - Kernel`: Execution lifecycle, state machine, capability router, request parser.
+  4. `Layer 3 - Runtime`: Job queue, scheduler, cache, event bus, resource manager, logging.
+  5. `Layer 4 - Intelligence`: Planner, Project Brain, Memory, Knowledge Graph, Digital Twin.
+  6. `Layer 5 - Engines`: Analysis, Feature, Code, Testing, Review, Security, DevOps engines.
+  7. `Layer 6 - Agents`: Master agent, specialist agents, communication bus, orchestrator.
+  8. `Layer 7 - Knowledge`: Framework packs, language packs, domain packs, architecture patterns.
+  9. `Layer 8 - Ecosystem`: Plugin SDK, workflows, templates, studio, documentation.
+- **16 Autonomous Specialist Agents**: Defined via JSON manifests, capability matrixes, and tool bindings:
+  - *Master*, *Architect*, *Backend*, *Frontend*, *Database*, *API*, *QA*, *DevOps*, *Security*, *Documentation*, *Android*, *iOS*, *Flutter*, *Laravel*, *React*, and *Reviewer*.
+
+---
+
+## 🛡️ Production & Shared-Hosting Guardrails
+
+HOA-Studio is engineered to run seamlessly across high-end cloud VPS environments as well as heavily restricted shared hosting (cPanel/Apache):
+- **Defensive Migrations**: Every migration is wrapped with `Schema::hasTable` and `Schema::hasColumn` to prevent live upgrade crashes.
+- **Zero CLI Assumptions**: Native pure-PHP fallbacks for file compression (`ZipArchive`), vector cosine similarity, and database migrations when `exec()` and shell access are disabled.
+- **Standalone Zero-Dependency Rescue Utility (`public/hoa-rescue.php`)**: An offline emergency PHP script capable of running database rollbacks, clearing cache/sessions, resetting administrator credentials, and diagnosing HTTP 500 errors even if the Laravel core cannot boot.
+- **Robust Path Resolution**: Employs Laravel helper functions (`storage_path()`, `base_path()`, `public_path()`) to guarantee cross-platform compatibility across Windows, Linux, and cPanel environments.
 
 ---
 

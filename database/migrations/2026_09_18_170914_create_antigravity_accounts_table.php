@@ -14,13 +14,13 @@ return new class extends Migration
         if (!Schema::hasTable('antigravity_accounts')) {
             Schema::create('antigravity_accounts', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
                 $table->string('email')->nullable();
                 $table->string('google_oauth_id')->nullable();
                 $table->text('google_oauth_token')->nullable();
                 $table->text('google_oauth_refresh_token')->nullable();
-                $table->timestamp('token_expires_at')->nullable();
                 $table->text('antigravity_key')->nullable();
+                $table->timestamp('token_expires_at')->nullable();
                 $table->boolean('is_active')->default(true);
                 $table->boolean('is_quota_exhausted')->default(false);
                 $table->timestamp('quota_reset_at')->nullable();
