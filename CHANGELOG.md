@@ -837,3 +837,4 @@ esources/views/editor/ directory and safely removed deprecated MainEditor.blade.
 ### ðŸš€ Initial Release
 - Initial core release of HelpOfAi Studio.
 - Basic document management, project folders, user authentication, and initial TipTap WYSIWYG editor implementation.
+

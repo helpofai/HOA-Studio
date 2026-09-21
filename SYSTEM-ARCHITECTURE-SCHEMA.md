@@ -728,3 +728,4 @@ esources/views/admin/auth-settings.blade.php (Tab: social_auth)
 - **Supported Providers**: Google, Facebook, X.com (Twitter), GitHub
 - **Dynamic Override Engine**: pp/Providers/AppServiceProvider.php (Auto-injects DB settings into config(['services.{provider}']))
 
+
