@@ -1,6 +1,77 @@
 #!/usr/bin/env php
 <?php
+/**
+ * Self-healing CLI launcher for Artisan.
+ * If the script is inadvertently executed via PHP-FPM or another SAPI,
+ * it will automatically re-launch itself using the PHP CLI binary.
+ */
+if (PHP_SAPI !== 'cli' && PHP_SAPI !== 'phpdbg') {
+    // Allow override via environment variable
+    $cliBin = getenv('ARTISAN_PHP');
 
+    // If not set, try to discover a usable PHP CLI binary
+    if (!$cliBin) {
+        $candidates = [
+            'php-cli',
+            'php8.4',
+            'php8.3',
+            'php8.2',
+            'php' // fallback; will be checked below
+        ];
+        foreach ($candidates as $candidate) {
+            $bin = null;
+            if (strpos($candidate, '/') === false) {
+                // Search in PATH
+                $path = getenv('PATH') ?: '';
+                foreach (explode(PATH_SEPARATOR, $path) as $dir) {
+                    $dir = trim($dir, '"\'');
+                    if ($dir && is_file($dir . '/' . $candidate) && is_executable($dir . '/' . $candidate)) {
+                        $bin = $dir . '/' . $candidate;
+                        break;
+                    }
+                }
+            } else {
+                // Absolute or relative path given
+                if (is_file($candidate) && is_executable($candidate)) {
+                    $bin = $candidate;
+                }
+            }
+            if ($bin) {
+                // Verify it's actually a CLI binary
+                $versionOutput = [];
+                $exitCode = null;
+                exec($bin . ' -v 2>&1', $versionOutput, $exitCode);
+                $output = implode("\n", $versionOutput);
+                if (stripos($output, '(cli)') !== false || stripos($output, '(cgi)') === false) {
+                    $cliBin = $bin;
+                    break;
+                }
+            }
+        }
+    }
+
+    if ($cliBin && is_file($cliBin) && is_executable($cliBin)) {
+        // Re-exec ourselves with the discovered CLI binary, preserving all args
+        $_SERVER['argv'][0] = __FILE__;
+        $args = $_SERVER['argv'];
+        array_shift($args); // remove the script name itself? Actually we want to keep the script as first arg.
+        // Better: reconstruct command: $cliBin __FILE__ arg1 arg2 ...
+        $cmd = $cliBin . ' ' . escapeshellarg(__FILE__);
+        foreach ($args as $arg) {
+            $cmd .= ' ' . escapeshellarg($arg);
+        }
+        exec($cmd, $output, $ret);
+        exit($ret);
+    }
+
+    // If we get here, we couldn't find a suitable CLI binary
+    fwrite(STDERR, "Error: Artisan must be run with the PHP CLI binary.\n");
+    fwrite(STDERR, "Hint: Set the ARTISAN_PHP environment variable to the path of your PHP CLI executable\n");
+    fwrite(STDERR, "      (e.g., /usr/bin/php8.4) or ensure 'php' in your PATH points to the CLI binary.\n");
+    exit(1);
+}
+
+// Original Laravel Artisan code starts here
 use Illuminate\Foundation\Application;
 use Symfony\Component\Console\Input\ArgvInput;
 
