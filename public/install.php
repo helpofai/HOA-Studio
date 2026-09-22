@@ -105,8 +105,8 @@ function _checkRequirements(): array
     $checks = [];
 
     $checks[] = [
-        'label' => 'PHP Version ≥ 8.2',
-        'ok' => version_compare(PHP_VERSION, '8.2.0', '>='),
+        'label' => 'PHP Version ≥ 8.4.1',
+        'ok' => version_compare(PHP_VERSION, '8.4.1', '>='),
         'detail' => 'PHP '.PHP_VERSION,
         'fatal' => true,
     ];
@@ -197,7 +197,7 @@ function _writeEnv(array $d): bool
     return (bool) file_put_contents(HOA_ENV_FILE, $env);
 }
 
-function _findCliPhp(): string
+function _findCliPhp(): ?string
 {
     $candidates = ['php-cli', 'php8.4', 'php8.3', 'php8.2', 'php8.1', 'php'];
     $paths = [
@@ -210,31 +210,44 @@ function _findCliPhp(): string
         '/opt/plesk/php/8.2/bin/'
     ];
 
-    if (PHP_SAPI === 'cli' && PHP_BINARY) {
+    // Helper to check if a binary is CLI and meets version >= 8.4.1
+    $isUsablePhp = function (string $bin): bool {
+        if (!is_executable($bin)) {
+            return false;
+        }
+        $output = [];
+        $exitCode = null;
+        @exec(escapeshellarg($bin) . ' -v 2>&1', $output, $exitCode);
+        if ($exitCode !== 0) {
+            return false;
+        }
+        $versionOutput = implode("\n", $output);
+        // Must be CLI, not FPM/CGI
+        if (stripos($versionOutput, '(cli)') === false || stripos($versionOutput, '(cgi)') !== false) {
+            return false;
+        }
+        // Extract version number (e.g., "PHP 8.4.1 (cli)")
+        if (!preg_match('/PHP\s+(\d+\.\d+\.\d+)/', $versionOutput, $matches)) {
+            return false;
+        }
+        $version = $matches[1];
+        return version_compare($version, '8.4.1', '>=');
+    };
+
+    if (PHP_SAPI === 'cli' && PHP_BINARY && $isUsablePhp(PHP_BINARY)) {
         return escapeshellarg(PHP_BINARY);
-    }
-    
-    if (!function_exists('exec') || in_array('exec', array_map('trim', explode(',', ini_get('disable_functions'))))) {
-        return 'php';
     }
 
     foreach ($paths as $path) {
         foreach ($candidates as $cand) {
             $bin = $path ? $path . $cand : $cand;
-            // Only test absolute paths that actually exist (skip if just 'php' with no path)
-            if ($path && !is_executable($bin)) {
-                continue;
-            }
-            $output = [];
-            @exec(escapeshellarg($bin) . ' -v 2>&1', $output);
-            $str = implode("\n", $output);
-            if (stripos($str, '(cli)') !== false && stripos($str, '(cgi)') === false && stripos($str, 'Usage: php-fpm') === false) {
+            if ($isUsablePhp($bin)) {
                 return escapeshellarg($bin);
             }
         }
     }
 
-    return escapeshellarg(PHP_BINARY ?: 'php');
+    return null;
 }
 
 function _artisan(string $cmd): array
@@ -269,14 +282,10 @@ function _artisan(string $cmd): array
     }
 
     $php = _findCliPhp();
-    $art = escapeshellarg(HOA_ARTISAN);
-    $full = $php.' '.$art.' '.$cmd.' 2>&1';
-    $lines = [];
-    $code = 0;
-    exec($full, $lines, $code);
-
-    return ['ok' => ($code === 0), 'out' => implode("\n", $lines)];
-}
+    
+    if (!$php) {
+        return ['ok' => false, 'out' => '⚠️ Could not find PHP-CLI binary (>=8.4.1). Run this command manually: php artisan '.$cmd];
+    }
 
 function _createAdmin(array $d): array
 {
