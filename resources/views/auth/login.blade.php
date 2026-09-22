@@ -36,7 +36,7 @@
 
         <!-- Glass Login Card -->
         <x-glass.card variant="elevated" class="p-6 sm:p-8 border border-white/15 shadow-2xl">
-            <form wire:submit="login" class="space-y-4">
+            <form wire:submit="login" method="POST" class="space-y-4">
                 @if (session('status') || session('success'))
                     <x-glass.alert variant="success" class="mb-4">
                         {{ session('status') ?? session('success') }}
