@@ -197,14 +197,80 @@ function _writeEnv(array $d): bool
     return (bool) file_put_contents(HOA_ENV_FILE, $env);
 }
 
+function _findCliPhp(): string
+{
+    $candidates = ['php-cli', 'php8.4', 'php8.3', 'php8.2', 'php8.1', 'php'];
+    $paths = [
+        '', '/usr/local/bin/', '/usr/bin/', '/bin/',
+        '/opt/cpanel/ea-php84/root/usr/bin/',
+        '/opt/cpanel/ea-php83/root/usr/bin/',
+        '/opt/cpanel/ea-php82/root/usr/bin/',
+        '/opt/plesk/php/8.4/bin/',
+        '/opt/plesk/php/8.3/bin/',
+        '/opt/plesk/php/8.2/bin/'
+    ];
+
+    if (PHP_SAPI === 'cli' && PHP_BINARY) {
+        return escapeshellarg(PHP_BINARY);
+    }
+    
+    if (!function_exists('exec') || in_array('exec', array_map('trim', explode(',', ini_get('disable_functions'))))) {
+        return 'php';
+    }
+
+    foreach ($paths as $path) {
+        foreach ($candidates as $cand) {
+            $bin = $path ? $path . $cand : $cand;
+            // Only test absolute paths that actually exist (skip if just 'php' with no path)
+            if ($path && !is_executable($bin)) {
+                continue;
+            }
+            $output = [];
+            @exec(escapeshellarg($bin) . ' -v 2>&1', $output);
+            $str = implode("\n", $output);
+            if (stripos($str, '(cli)') !== false && stripos($str, '(cgi)') === false && stripos($str, 'Usage: php-fpm') === false) {
+                return escapeshellarg($bin);
+            }
+        }
+    }
+
+    return escapeshellarg(PHP_BINARY ?: 'php');
+}
+
 function _artisan(string $cmd): array
 {
-    if (! function_exists('exec')) {
-        return ['ok' => false, 'out' => '⚠️ exec() disabled. Run manually: php artisan '.$cmd];
+    $execDisabled = !function_exists('exec') || in_array('exec', array_map('trim', explode(',', ini_get('disable_functions'))));
+    
+    if ($execDisabled) {
+        // Pure-PHP Laravel Bootstrap Fallback if exec() is blocked in shared hosting
+        try {
+            if (!file_exists(HOA_ROOT.'/vendor/autoload.php')) {
+                return ['ok' => false, 'out' => 'exec() disabled and vendor/autoload.php not found. Please run composer install.'];
+            }
+            require_once HOA_ROOT.'/vendor/autoload.php';
+            $app = require_once HOA_ROOT.'/bootstrap/app.php';
+            
+            // clear cached config so it loads the fresh .env created in step 2
+            if (file_exists(HOA_ROOT.'/bootstrap/cache/config.php')) {
+                @unlink(HOA_ROOT.'/bootstrap/cache/config.php');
+            }
+            
+            $kernel = $app->make(\Illuminate\Contracts\Console\Kernel::class);
+            $kernel->call(explode(' ', $cmd)[0], array_fill_keys(array_slice(explode(' ', $cmd), 1), true));
+            $out = clone $kernel->output(); // simplified
+            // actually $kernel->call takes string or array, Laravel 11/12 accepts string command
+            $status = $kernel->call($cmd);
+            $out = $kernel->output();
+            
+            return ['ok' => ($status === 0), 'out' => "[Pure-PHP] " . $out];
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'out' => 'Pure-PHP fallback failed: ' . $e->getMessage()];
+        }
     }
-    $php = PHP_BINARY ?: 'php';
+
+    $php = _findCliPhp();
     $art = escapeshellarg(HOA_ARTISAN);
-    $full = escapeshellarg($php).' '.$art.' '.$cmd.' 2>&1';
+    $full = $php.' '.$art.' '.$cmd.' 2>&1';
     $lines = [];
     $code = 0;
     exec($full, $lines, $code);
