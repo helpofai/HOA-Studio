@@ -286,6 +286,7 @@ function _artisan(string $cmd): array
     if (!$php) {
         return ['ok' => false, 'out' => '⚠️ Could not find PHP-CLI binary (>=8.2.0). Run this command manually: php artisan '.$cmd];
     }
+}
 
 function _createAdmin(array $d): array
 {
