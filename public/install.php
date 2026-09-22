@@ -105,8 +105,8 @@ function _checkRequirements(): array
     $checks = [];
 
     $checks[] = [
-        'label' => 'PHP Version ≥ 8.4.1',
-        'ok' => version_compare(PHP_VERSION, '8.4.1', '>='),
+        'label' => 'PHP Version ≥ 8.2.0',
+        'ok' => version_compare(PHP_VERSION, '8.2.0', '>='),
         'detail' => 'PHP '.PHP_VERSION,
         'fatal' => true,
     ];
@@ -210,7 +210,7 @@ function _findCliPhp(): ?string
         '/opt/plesk/php/8.2/bin/'
     ];
 
-    // Helper to check if a binary is CLI and meets version >= 8.4.1
+    // Helper to check if a binary is CLI and meets version >= 8.2.0
     $isUsablePhp = function (string $bin): bool {
         if (!is_executable($bin)) {
             return false;
@@ -226,12 +226,12 @@ function _findCliPhp(): ?string
         if (stripos($versionOutput, '(cli)') === false || stripos($versionOutput, '(cgi)') !== false) {
             return false;
         }
-        // Extract version number (e.g., "PHP 8.4.1 (cli)")
+        // Extract version number (e.g., "PHP 8.2.0 (cli)")
         if (!preg_match('/PHP\s+(\d+\.\d+\.\d+)/', $versionOutput, $matches)) {
             return false;
         }
         $version = $matches[1];
-        return version_compare($version, '8.4.1', '>=');
+        return version_compare($version, '8.2.0', '>=');
     };
 
     if (PHP_SAPI === 'cli' && PHP_BINARY && $isUsablePhp(PHP_BINARY)) {
@@ -284,7 +284,7 @@ function _artisan(string $cmd): array
     $php = _findCliPhp();
     
     if (!$php) {
-        return ['ok' => false, 'out' => '⚠️ Could not find PHP-CLI binary (>=8.4.1). Run this command manually: php artisan '.$cmd];
+        return ['ok' => false, 'out' => '⚠️ Could not find PHP-CLI binary (>=8.2.0). Run this command manually: php artisan '.$cmd];
     }
 
 function _createAdmin(array $d): array
