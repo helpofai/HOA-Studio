@@ -284,8 +284,35 @@ function _artisan(string $cmd): array
     $php = _findCliPhp();
     
     if (!$php) {
-        return ['ok' => false, 'out' => '⚠️ Could not find PHP-CLI binary (>=8.2.0). Run this command manually: php artisan '.$cmd];
+        // As a final fallback if no CLI binary could be found, attempt the Pure-PHP fallback!
+        try {
+            if (!file_exists(HOA_ROOT.'/vendor/autoload.php')) {
+                return ['ok' => false, 'out' => '⚠️ PHP-CLI not found and vendor/autoload.php missing. Please run composer install.'];
+            }
+            require_once HOA_ROOT.'/vendor/autoload.php';
+            $app = require_once HOA_ROOT.'/bootstrap/app.php';
+            
+            if (file_exists(HOA_ROOT.'/bootstrap/cache/config.php')) {
+                @unlink(HOA_ROOT.'/bootstrap/cache/config.php');
+            }
+            
+            $kernel = $app->make(\Illuminate\Contracts\Console\Kernel::class);
+            $status = $kernel->call($cmd);
+            $out = clone $kernel->output(); // simplified
+            
+            return ['ok' => ($status === 0), 'out' => "[Pure-PHP Fallback] " . $out];
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'out' => '⚠️ Could not find PHP-CLI (>=8.2.0) and Pure-PHP fallback failed: ' . $e->getMessage()];
+        }
     }
+    
+    $art = escapeshellarg(HOA_ARTISAN);
+    $full = $php.' '.$art.' '.$cmd.' 2>&1';
+    $lines = [];
+    $code = 0;
+    exec($full, $lines, $code);
+
+    return ['ok' => ($code === 0), 'out' => implode("\n", $lines)];
 }
 
 function _createAdmin(array $d): array
