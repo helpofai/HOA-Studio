@@ -269,9 +269,6 @@ function _artisan(string $cmd): array
             }
             
             $kernel = $app->make(\Illuminate\Contracts\Console\Kernel::class);
-            $kernel->call(explode(' ', $cmd)[0], array_fill_keys(array_slice(explode(' ', $cmd), 1), true));
-            $out = clone $kernel->output(); // simplified
-            // actually $kernel->call takes string or array, Laravel 11/12 accepts string command
             $status = $kernel->call($cmd);
             $out = $kernel->output();
             
@@ -298,7 +295,7 @@ function _artisan(string $cmd): array
             
             $kernel = $app->make(\Illuminate\Contracts\Console\Kernel::class);
             $status = $kernel->call($cmd);
-            $out = clone $kernel->output(); // simplified
+            $out = $kernel->output();
             
             return ['ok' => ($status === 0), 'out' => "[Pure-PHP Fallback] " . $out];
         } catch (\Throwable $e) {
