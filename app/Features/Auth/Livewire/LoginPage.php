@@ -70,9 +70,6 @@ class LoginPage extends Component
         // 2. Verify Anti-Bot Honeypot and timing speed
         $security->verifyHoneypot($this->honeypot, $this->formLoadedAt);
 
-        // 3. Verify Cloudflare Turnstile token if enabled
-        $security->verifyTurnstile($this->turnstileToken);
-
         $this->validate();
 
         $action->execute($this->email, $this->password, $this->remember);

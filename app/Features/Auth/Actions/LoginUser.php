@@ -45,95 +45,97 @@ class LoginUser
         $normalizedEmail = Str::lower(trim($email));
         $ip = request()->ip() ?? '127.0.0.1';
 
+        $rateLimitingEnabled = config('services.auth_security.rate_limiting_enabled', false);
+
         // Load dynamic throttle settings from database (with sensible defaults)
-        $settings = DB::table('settings')->whereIn('key', [
-            'auth_max_ip_attempts',
-            'auth_max_account_attempts',
-            'auth_lockout_minutes',
-            'auth_autoblock_threshold',
-            'auth_autoblock_hours',
-        ])->pluck('value', 'key');
+        if ($rateLimitingEnabled) {
+            $settings = DB::table('settings')->whereIn('key', [
+                'auth_max_ip_attempts',
+                'auth_max_account_attempts',
+                'auth_lockout_minutes',
+                'auth_autoblock_threshold',
+                'auth_autoblock_hours',
+            ])->pluck('value', 'key');
 
-        $maxIpAttempts = isset($settings['auth_max_ip_attempts']) ? (int) $settings['auth_max_ip_attempts'] : 10;
-        $maxAccountAttempts = isset($settings['auth_max_account_attempts']) ? (int) $settings['auth_max_account_attempts'] : 5;
-        $lockoutMinutes = isset($settings['auth_lockout_minutes']) ? (int) $settings['auth_lockout_minutes'] : 5;
-        $autoBlockThreshold = isset($settings['auth_autoblock_threshold']) ? (int) $settings['auth_autoblock_threshold'] : 15;
-        $autoBlockHours = isset($settings['auth_autoblock_hours']) ? (int) $settings['auth_autoblock_hours'] : 24;
+            $maxIpAttempts = isset($settings['auth_max_ip_attempts']) ? (int) $settings['auth_max_ip_attempts'] : 10;
+            $maxAccountAttempts = isset($settings['auth_max_account_attempts']) ? (int) $settings['auth_max_account_attempts'] : 5;
+            $lockoutMinutes = isset($settings['auth_lockout_minutes']) ? (int) $settings['auth_lockout_minutes'] : 5;
+            $autoBlockThreshold = isset($settings['auth_autoblock_threshold']) ? (int) $settings['auth_autoblock_threshold'] : 15;
+            $autoBlockHours = isset($settings['auth_autoblock_hours']) ? (int) $settings['auth_autoblock_hours'] : 24;
 
-        // 1. Dual Throttling Keys:
-        // Key A: IP-specific rate limiter
-        $ipThrottleKey = 'login:ip:'.$ip;
-        // Key B: Specific Account + IP rate limiter
-        $accountThrottleKey = 'login:account:'.Str::transliterate($normalizedEmail.'|'.$ip);
+            // 1. Dual Throttling Keys:
+            $ipThrottleKey = 'login:ip:'.$ip;
+            $accountThrottleKey = 'login:account:'.Str::transliterate($normalizedEmail.'|'.$ip);
 
-        // Check global IP throttle (defense against distributed dictionary attacks from single source)
-        if (RateLimiter::tooManyAttempts($ipThrottleKey, $maxIpAttempts)) {
-            $seconds = RateLimiter::availableIn($ipThrottleKey);
-            throw ValidationException::withMessages([
-                'email' => trans('auth.throttle', [
-                    'seconds' => $seconds,
-                    'minutes' => ceil($seconds / 60),
-                ]),
-            ]);
-        }
-
-        // Check specific user + IP throttle
-        if (RateLimiter::tooManyAttempts($accountThrottleKey, $maxAccountAttempts)) {
-            $seconds = RateLimiter::availableIn($accountThrottleKey);
-            throw ValidationException::withMessages([
-                'email' => trans('auth.throttle', [
-                    'seconds' => $seconds,
-                    'minutes' => ceil($seconds / 60),
-                ]),
-            ]);
-        }
-
-        // Attempt login with timing-safe hash comparison
-        if (! Auth::attempt(['email' => $normalizedEmail, 'password' => $password], $remember)) {
-            $ipAttempts = RateLimiter::hit($ipThrottleKey, 60);
-            $accountAttempts = RateLimiter::hit($accountThrottleKey, $lockoutMinutes * 60); // Lock for configured minutes if limit hit
-
-            // Log security failure
-            AuthSecurityLog::create([
-                'ip_address' => $ip,
-                'email' => $normalizedEmail,
-                'event_type' => 'failed_login',
-                'user_agent' => request()->userAgent(),
-                'details' => ['attempts' => $ipAttempts],
-                'is_blocked' => $ipAttempts >= $maxIpAttempts,
-            ]);
-
-            // Auto-block IP if exceeding configured threshold (Auto IP Blocker)
-            if ($ipAttempts >= $autoBlockThreshold && ! BlockedIp::where('ip_address', $ip)->exists()) {
-                BlockedIp::create([
-                    'ip_address' => $ip,
-                    'reason' => 'Automated block: Exceeded maximum failed login attempts ('.$ipAttempts.' attempts)',
-                    'blocked_by' => 'system',
-                    'blocked_until' => now()->addHours($autoBlockHours),
+            if (RateLimiter::tooManyAttempts($ipThrottleKey, $maxIpAttempts)) {
+                $seconds = RateLimiter::availableIn($ipThrottleKey);
+                throw ValidationException::withMessages([
+                    'email' => trans('auth.throttle', [
+                        'seconds' => $seconds,
+                        'minutes' => ceil($seconds / 60),
+                    ]),
                 ]);
+            }
 
-                // Dispatch notification to admins
+            if (RateLimiter::tooManyAttempts($accountThrottleKey, $maxAccountAttempts)) {
+                $seconds = RateLimiter::availableIn($accountThrottleKey);
+                throw ValidationException::withMessages([
+                    'email' => trans('auth.throttle', [
+                        'seconds' => $seconds,
+                        'minutes' => ceil($seconds / 60),
+                    ]),
+                ]);
+            }
+        }
+
+        // Attempt login
+        if (! Auth::attempt(['email' => $normalizedEmail, 'password' => $password], $remember)) {
+            if ($rateLimitingEnabled) {
+                $ipAttempts = RateLimiter::hit($ipThrottleKey, 60);
+                $accountAttempts = RateLimiter::hit($accountThrottleKey, $lockoutMinutes * 60);
+
+                // Log security failure
                 try {
-                    $admins = User::where('role', 'admin')->get();
-                    $alert = new SecurityAlertNotification(
-                        title: 'Malicious IP Auto-Blocked',
-                        description: "Network IP {$ip} has been automatically blacklisted for {$autoBlockHours} hours after {$ipAttempts} failed login attempts.",
-                        severity: 'critical',
-                        actionUrl: url('/admin/auth-settings'),
-                        actionText: 'Manage IP Blacklist',
-                        metadata: [
-                            'ip' => $ip,
-                            'timestamp' => now()->toIso8601String(),
-                            'target_email' => $normalizedEmail,
-                        ]
-                    );
-
-                    foreach ($admins as $admin) {
-                        $admin->notify($alert);
-                    }
+                    AuthSecurityLog::create([
+                        'ip_address' => $ip,
+                        'email' => $normalizedEmail,
+                        'event_type' => 'failed_login',
+                        'user_agent' => request()->userAgent(),
+                        'details' => ['attempts' => $ipAttempts],
+                        'is_blocked' => $ipAttempts >= $maxIpAttempts,
+                    ]);
                 } catch (\Throwable $e) {
-                    // Silently log failure to prevent breaking authentication flow
-                    Log::warning('Failed to dispatch auto-block security notification', ['error' => $e->getMessage()]);
+                    Log::debug('Auth security log skipped: '.$e->getMessage());
+                }
+
+                // Auto-block IP
+                if ($ipAttempts >= $autoBlockThreshold && ! BlockedIp::where('ip_address', $ip)->exists()) {
+                    try {
+                        BlockedIp::create([
+                            'ip_address' => $ip,
+                            'reason' => 'Automated block: Exceeded maximum failed login attempts ('.$ipAttempts.' attempts)',
+                            'blocked_by' => 'system',
+                            'blocked_until' => now()->addHours($autoBlockHours),
+                        ]);
+                        $admins = User::where('role', 'admin')->get();
+                        $alert = new SecurityAlertNotification(
+                            title: 'Malicious IP Auto-Blocked',
+                            description: "Network IP {$ip} has been automatically blacklisted for {$autoBlockHours} hours after {$ipAttempts} failed login attempts.",
+                            severity: 'critical',
+                            actionUrl: url('/admin/auth-settings'),
+                            actionText: 'Manage IP Blacklist',
+                            metadata: [
+                                'ip' => $ip,
+                                'timestamp' => now()->toIso8601String(),
+                                'target_email' => $normalizedEmail,
+                            ]
+                        );
+                        foreach ($admins as $admin) {
+                            $admin->notify($alert);
+                        }
+                    } catch (\Throwable $e) {
+                        Log::warning('Failed to dispatch auto-block security notification', ['error' => $e->getMessage()]);
+                    }
                 }
             }
 
@@ -142,17 +144,24 @@ class LoginUser
             ]);
         }
 
-        // Authentication succeeded: clear failed attempt locks
-        RateLimiter::clear($ipThrottleKey);
-        RateLimiter::clear($accountThrottleKey);
+        // Authentication succeeded
+        if ($rateLimitingEnabled && isset($ipThrottleKey, $accountThrottleKey)) {
+            RateLimiter::clear($ipThrottleKey);
+            RateLimiter::clear($accountThrottleKey);
+        }
 
-        AuthSecurityLog::create([
-            'ip_address' => $ip,
-            'email' => $normalizedEmail,
-            'event_type' => 'successful_login',
-            'user_agent' => request()->userAgent(),
-            'is_blocked' => false,
-        ]);
+        // Log successful login (silent fail so login is never blocked by logging errors)
+        try {
+            AuthSecurityLog::create([
+                'ip_address' => $ip,
+                'email' => $normalizedEmail,
+                'event_type' => 'successful_login',
+                'user_agent' => request()->userAgent(),
+                'is_blocked' => false,
+            ]);
+        } catch (\Throwable $e) {
+            Log::debug('Auth security log skipped: '.$e->getMessage());
+        }
 
         // Dispatch Login Detected Security Email (Optional/Configurable)
         try {
@@ -172,7 +181,7 @@ class LoginUser
         } catch (\Throwable $e) {
         }
 
-        // Prevent Session Fixation attacks: regenerate session ID on login
+        // Prevent Session Fixation attacks
         if (request()->hasSession()) {
             request()->session()->regenerate();
         }

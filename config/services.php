@@ -50,6 +50,34 @@ return [
         'strict' => env('CLOUDFLARE_TURNSTILE_STRICT', false),
     ],
 
+    /*
+     * Authentication Security Features
+     * All disabled by default for smooth out-of-the-box experience.
+     * Enable individually as needed via env or config.
+     */
+    'auth_security' => [
+
+        /*
+         * IP Blocking: Block IPs that show malicious patterns.
+         */
+        'ip_blocking_enabled' => env('AUTH_SECURITY_IP_BLOCKING_ENABLED', false),
+
+        /*
+         * Honeypot Trap: Invisible form field to catch bots.
+         */
+        'honeypot_enabled' => env('AUTH_SECURITY_HONEYPOT_ENABLED', false),
+
+        /*
+         * Rate Limiting: Throttle login attempts by IP and account.
+         */
+        'rate_limiting_enabled' => env('AUTH_SECURITY_RATE_LIMITING_ENABLED', false),
+
+        /*
+         * Login Notifications: Email admins on admin login.
+         */
+        'login_notifications_enabled' => env('AUTH_SECURITY_LOGIN_NOTIFICATIONS_ENABLED', false),
+    ],
+
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),

@@ -31,6 +31,10 @@ class AuthSecurityService
      */
     public function checkIpBlock(): void
     {
+        if (!config('services.auth_security.ip_blocking_enabled', false)) {
+            return;
+        }
+
         $ip = request()->ip() ?? '127.0.0.1';
         if (BlockedIp::isIpBlocked($ip)) {
             Log::warning('Blocked IP attempted authentication', ['ip' => $ip]);
@@ -58,6 +62,10 @@ class AuthSecurityService
      */
     public function verifyHoneypot(?string $honeypotValue, ?int $formLoadedAt = null): void
     {
+        if (!config('services.auth_security.honeypot_enabled', false)) {
+            return;
+        }
+
         $ip = request()->ip() ?? '127.0.0.1';
 
         // 1. If honeypot is populated, it's definitely an automated bot/scraper
